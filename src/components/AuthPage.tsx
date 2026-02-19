@@ -66,7 +66,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   const validateSignIn = (): boolean => {
     const newErrors: FieldErrors = {};
-    if (!email.trim()) newErrors.email = "Email is required";
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = "Please enter a valid email address";
+    }
     if (!password) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
