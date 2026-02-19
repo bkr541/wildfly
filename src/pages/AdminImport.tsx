@@ -5,14 +5,12 @@ const TABLE_ORDER = [
   "locations",
   "airports",
   "users",
-  "user_flights",
 ] as const;
 
 const EXPECTED_COUNTS: Record<string, number> = {
   locations: 154,
   airports: 72,
   users: 9,
-  user_flights: 2,
 };
 
 type TableResult = {
@@ -37,27 +35,6 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 // Map SQLite boolean integers to actual booleans for PG
 function mapRow(table: string, row: Record<string, unknown>): Record<string, unknown> {
   const mapped = { ...row };
-
-  // Convert JSON string fields to parsed objects for jsonb columns
-  if (table === "user_events" || table === "user_flights") {
-    if (typeof mapped.snapshot_json === "string") {
-      try {
-        mapped.snapshot_json = JSON.parse(mapped.snapshot_json as string);
-      } catch {
-        // keep as-is
-      }
-    }
-  }
-
-  // Boolean fields in user_flights
-  if (table === "user_flights") {
-    if (mapped.gowild_eligible !== null && mapped.gowild_eligible !== undefined) {
-      mapped.gowild_eligible = Boolean(mapped.gowild_eligible);
-    }
-    if (mapped.nonstop !== null && mapped.nonstop !== undefined) {
-      mapped.nonstop = Boolean(mapped.nonstop);
-    }
-  }
 
   return mapped;
 }
