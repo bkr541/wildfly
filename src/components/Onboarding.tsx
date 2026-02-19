@@ -8,30 +8,22 @@ interface OnboardingProps {
 const slides = [
   {
     background: "/onboarding/background1.png",
-    title: "Fly Wild, Travel Smart",
-    subtitle:
-      "Trust us, we get that it can be a wild ride navigating the GoWild! Pass at times - that's why we're here",
+    title: "Discover Live Music",
+    subtitle: "Find events, artists, and festivals tailored to your taste.",
   },
   {
     background: "/onboarding/background2.png",
-    title: "Fly With The Odds In Your Favor",
-    subtitle:
-      "Our Insights Model fuses real-time network changes with past flight behavior to create predictive stats and clearer booking confidence",
+    title: "Plan Your Trip",
+    subtitle: "Book flights and build your perfect festival itinerary.",
   },
   {
     background: "/onboarding/background3.png",
-    title: "Smarter Results, Flight After Flight",
+    title: "Friends That Plan Together, Fly Together",
     subtitle:
-      "Every trip, destination, and event teaches your personal Curation Engine your style, so your recommendations get sharper and more relevant over time.",
+      "See what your friends are planning, compare destinations, and sync trips without the endless group chat spiral.",
   },
   {
     background: "/onboarding/background4.png",
-    title: "Never Miss A Deal",
-    subtitle:
-      "Get real-time alerts on flight availability and price drops so you can book with confidence and never miss an opportunity.",
-  },
-  {
-    background: "/onboarding/background5.png",
     title: "Make It Yours",
     subtitle: "Set up your profile and let us personalize your experience.",
   },
