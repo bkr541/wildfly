@@ -394,6 +394,7 @@ export type Database = {
       }
       users: {
         Row: {
+          auth_user_id: string | null
           bio: string | null
           dob: string | null
           email: string
@@ -403,10 +404,11 @@ export type Database = {
           image_file: string
           last_name: string | null
           onboarding_complete: string
-          password: string
+          password: string | null
           username: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           bio?: string | null
           dob?: string | null
           email: string
@@ -416,10 +418,11 @@ export type Database = {
           image_file: string
           last_name?: string | null
           onboarding_complete: string
-          password: string
+          password?: string | null
           username?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           bio?: string | null
           dob?: string | null
           email?: string
@@ -429,7 +432,7 @@ export type Database = {
           image_file?: string
           last_name?: string | null
           onboarding_complete?: string
-          password?: string
+          password?: string | null
           username?: string | null
         }
         Relationships: [
@@ -447,7 +450,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
