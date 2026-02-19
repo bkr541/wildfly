@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
 
 interface AuthPageProps {
-  onSignIn: () => void;
+  onSignIn: (needsOnboarding: boolean) => void;
 }
 
 interface FieldErrors {
@@ -51,12 +52,39 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+
     if (isSignUp) {
       if (!validateSignUp()) return;
+      setLoading(true);
+      try {
+        const { error } = await supabase.from("users").insert({
+          email: email.trim(),
+          password: password,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          dob: dob,
+          onboarding_complete: "No",
+          image_file: "",
+        });
+        if (error) {
+          setSubmitError(error.message);
+          return;
+        }
+        onSignIn(true);
+      } catch {
+        setSubmitError("Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      onSignIn(false);
     }
-    onSignIn();
   };
 
   const inputBase =
@@ -170,10 +198,15 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
           <button
             type="submit"
-            className="w-full py-3 mt-4 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
+            disabled={loading}
+            className="w-full py-3 mt-4 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {isSignUp ? "Register" : "Sign In"}
+            {loading ? "Please wait..." : isSignUp ? "Register" : "Sign In"}
           </button>
+
+          {submitError && (
+            <p className="text-destructive text-sm text-center mt-2">{submitError}</p>
+          )}
         </form>
 
         <p className="mt-8 text-muted-foreground text-sm">
