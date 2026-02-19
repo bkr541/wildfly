@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 interface AuthPageProps {
   onSignIn: (needsOnboarding: boolean) => void;
@@ -26,6 +35,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showLoginError, setShowLoginError] = useState(false);
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
@@ -52,8 +64,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const [loading, setLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const validateSignIn = (): boolean => {
+    const newErrors: FieldErrors = {};
+    if (!email.trim()) newErrors.email = "Email is required";
+    if (!password) newErrors.password = "Password is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +100,39 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setLoading(false);
       }
     } else {
-      onSignIn(false);
+      if (!validateSignIn()) return;
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("onboarding_complete")
+          .eq("email", email.trim())
+          .eq("password", password)
+          .maybeSingle();
+
+        if (error) {
+          setSubmitError(error.message);
+          return;
+        }
+
+        if (!data) {
+          setShowLoginError(true);
+          return;
+        }
+
+        onSignIn(data.onboarding_complete === "No");
+      } catch {
+        setSubmitError("Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleTryAgain = () => {
+    setEmail("");
+    setPassword("");
+    setShowLoginError(false);
   };
 
   const inputBase =
@@ -219,6 +267,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           </button>
         </p>
       </div>
+
+      <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Login Failed</AlertDialogTitle>
+            <AlertDialogDescription>
+              The email and password combination is not correct. Please try again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleTryAgain}>
+              Try Again
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
