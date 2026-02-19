@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import HomePage from "./pages/Home";
+import AdminImport from "./pages/AdminImport";
 
-const App = () => {
+const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
 
@@ -19,5 +21,14 @@ const App = () => {
     </div>
   );
 };
+
+const App = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/admin/import" element={<AdminImport />} />
+      <Route path="*" element={<MainApp />} />
+    </Routes>
+  </BrowserRouter>
+);
 
 export default App;
