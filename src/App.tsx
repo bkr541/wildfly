@@ -1,27 +1,23 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { useState, useCallback } from "react";
+import SplashScreen from "./components/SplashScreen";
+import AuthPage from "./components/AuthPage";
+import HomePage from "./pages/Home";
 
-const queryClient = new QueryClient();
+const App = () => {
+  const [splashDone, setSplashDone] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
+
+  return (
+    <div className="flex justify-center min-h-screen bg-background">
+      <div className="w-full max-w-[768px] relative">
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+        {splashDone && !isSignedIn && <AuthPage onSignIn={() => setIsSignedIn(true)} />}
+        {splashDone && isSignedIn && <HomePage onSignOut={() => setIsSignedIn(false)} />}
+      </div>
+    </div>
+  );
+};
 
 export default App;
