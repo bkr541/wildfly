@@ -38,6 +38,10 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          pink: "hsl(var(--accent-pink))",
+          yellow: "hsl(var(--accent-yellow))",
+          blue: "hsl(var(--accent-blue))",
+          coral: "hsl(var(--accent-coral))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -65,20 +69,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
