@@ -38,6 +38,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showLoginError, setShowLoginError] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
@@ -52,12 +54,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
     if (!password) {
       newErrors.password = "Password is required";
-    }
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (password && confirmPassword && password !== confirmPassword) {
-      newErrors.password = "Passwords do not match";
-      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -82,39 +78,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
     if (isSignUp) {
       if (!validateSignUp()) return;
-      setLoading(true);
-      try {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-        });
-        if (authError) {
-          setSubmitError(authError.message);
-          return;
-        }
-        if (!authData.user) {
-          setSubmitError("Sign up failed. Please try again.");
-          return;
-        }
-        const { error: profileError } = await supabase.from("users").insert({
-          auth_user_id: authData.user.id,
-          email: email.trim(),
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          dob: dob,
-          onboarding_complete: "No",
-          image_file: "",
-        });
-        if (profileError) {
-          setSubmitError(profileError.message);
-          return;
-        }
-        onSignIn(true);
-      } catch {
-        setSubmitError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+      // Open confirmation dialog instead of submitting directly
+      setConfirmPassword("");
+      setConfirmError(null);
+      setShowConfirmDialog(true);
     } else {
       if (!validateSignIn()) return;
       setLoading(true);
@@ -138,7 +105,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           .maybeSingle();
 
         if (!profile) {
-          // Create profile if missing
           await supabase.from("users").insert({
             auth_user_id: authData.user.id,
             email: email.trim(),
@@ -155,6 +121,52 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const handleConfirmSignUp = async () => {
+    if (!confirmPassword) {
+      setConfirmError("Please confirm your password");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setConfirmError("Passwords do not match");
+      return;
+    }
+    setConfirmError(null);
+    setShowConfirmDialog(false);
+    setLoading(true);
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      });
+      if (authError) {
+        setSubmitError(authError.message);
+        return;
+      }
+      if (!authData.user) {
+        setSubmitError("Sign up failed. Please try again.");
+        return;
+      }
+      const { error: profileError } = await supabase.from("users").insert({
+        auth_user_id: authData.user.id,
+        email: email.trim(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        dob: dob,
+        onboarding_complete: "No",
+        image_file: "",
+      });
+      if (profileError) {
+        setSubmitError(profileError.message);
+        return;
+      }
+      onSignIn(true);
+    } catch {
+      setSubmitError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -243,33 +255,35 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined, confirmPassword: undefined })); }}
-              placeholder="••••••••"
-              className={errors.password ? inputError : inputNormal}
-            />
-            {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
-          </div>
-
           {isSignUp && (
             <div>
               <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                Confirm Password
+                Password
               </label>
               <input
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setErrors(prev => ({ ...prev, confirmPassword: undefined, password: undefined })); }}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
                 placeholder="••••••••"
-                className={errors.confirmPassword ? inputError : inputNormal}
+                className={errors.password ? inputError : inputNormal}
               />
-              {errors.confirmPassword && <p className="text-destructive text-xs mt-1">{errors.confirmPassword}</p>}
+              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
+            </div>
+          )}
+
+          {!isSignUp && (
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                placeholder="••••••••"
+                className={errors.password ? inputError : inputNormal}
+              />
+              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
             </div>
           )}
 
@@ -296,6 +310,34 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           </button>
         </p>
       </div>
+
+      {/* Confirm Password Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please re-enter your password to complete registration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-6 pb-2">
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => { setConfirmPassword(e.target.value); setConfirmError(null); }}
+              placeholder="••••••••"
+              className={confirmError ? inputError : inputNormal}
+              autoFocus
+            />
+            {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleConfirmSignUp}>
+              Confirm & Sign Up
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
