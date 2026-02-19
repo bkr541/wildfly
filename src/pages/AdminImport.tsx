@@ -4,29 +4,15 @@ import initSqlJs, { Database as SqlJsDatabase } from "sql.js";
 const TABLE_ORDER = [
   "locations",
   "airports",
-  "artists",
-  "genres",
-  "artist_genres",
   "users",
-  "user_events",
   "user_flights",
-  "user_favorite_artists",
-  "user_favorite_genres",
-  "user_favorite_locations",
 ] as const;
 
 const EXPECTED_COUNTS: Record<string, number> = {
   locations: 154,
   airports: 72,
-  artists: 1420,
-  genres: 113,
-  artist_genres: 0,
   users: 9,
-  user_events: 4,
   user_flights: 2,
-  user_favorite_artists: 31,
-  user_favorite_genres: 18,
-  user_favorite_locations: 30,
 };
 
 type TableResult = {
@@ -157,19 +143,6 @@ export default function AdminImport() {
           },
         });
 
-        // For join tables without id, delete differently
-        if (["artist_genres", "user_favorite_artists", "user_favorite_genres", "user_favorite_locations"].includes(table)) {
-          const firstCol = Object.keys(rows[0])[0];
-          await fetch(`${supabaseUrl}/rest/v1/${table}?${firstCol}=gte.0`, {
-            method: "DELETE",
-            headers: {
-              apikey: supabaseKey,
-              Authorization: `Bearer ${supabaseKey}`,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal",
-            },
-          });
-        }
 
         // Insert in batches using fetch
         const batches = chunkArray(rows, BATCH_SIZE);
