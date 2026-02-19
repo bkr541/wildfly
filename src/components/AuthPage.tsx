@@ -18,7 +18,7 @@ interface AuthPageProps {
 interface FieldErrors {
   firstName?: string;
   lastName?: string;
-  dob?: string;
+  
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -33,7 +33,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dob, setDob] = useState("");
+  
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -46,7 +46,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
     if (!firstName.trim()) newErrors.firstName = "First name is required";
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!dob) newErrors.dob = "Date of birth is required";
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!emailRegex.test(email.trim())) {
@@ -154,7 +153,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         email: email.trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        dob: dob,
         onboarding_complete: "No",
         image_file: "",
       });
@@ -226,20 +224,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </div>
           )}
 
-          {isSignUp && (
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                value={dob}
-                onChange={(e) => { setDob(e.target.value); setErrors(prev => ({ ...prev, dob: undefined })); }}
-                className={errors.dob ? inputError : inputNormal}
-              />
-              {errors.dob && <p className="text-destructive text-xs mt-1">{errors.dob}</p>}
-            </div>
-          )}
+
 
           <div>
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
