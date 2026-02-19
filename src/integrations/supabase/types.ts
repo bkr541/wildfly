@@ -106,7 +106,6 @@ export type Database = {
           image_file: string
           last_name: string | null
           onboarding_complete: string
-          password: string | null
           username: string | null
         }
         Insert: {
@@ -120,7 +119,6 @@ export type Database = {
           image_file: string
           last_name?: string | null
           onboarding_complete: string
-          password?: string | null
           username?: string | null
         }
         Update: {
@@ -134,7 +132,6 @@ export type Database = {
           image_file?: string
           last_name?: string | null
           onboarding_complete?: string
-          password?: string | null
           username?: string | null
         }
         Relationships: [
