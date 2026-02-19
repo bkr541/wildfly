@@ -94,6 +94,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: number
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: number
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           auth_user_id: string | null
@@ -105,6 +141,7 @@ export type Database = {
           id: number
           image_file: string
           last_name: string | null
+          mobile_number: string | null
           onboarding_complete: string
           username: string | null
         }
@@ -118,6 +155,7 @@ export type Database = {
           id?: number
           image_file: string
           last_name?: string | null
+          mobile_number?: string | null
           onboarding_complete: string
           username?: string | null
         }
@@ -131,6 +169,7 @@ export type Database = {
           id?: number
           image_file?: string
           last_name?: string | null
+          mobile_number?: string | null
           onboarding_complete?: string
           username?: string | null
         }
