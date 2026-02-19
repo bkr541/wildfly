@@ -14,7 +14,434 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      airports: {
+        Row: {
+          iata_code: string
+          icao_code: string | null
+          id: number
+          latitude: number | null
+          location_id: number | null
+          longitude: number | null
+          name: string
+          timezone: string | null
+        }
+        Insert: {
+          iata_code: string
+          icao_code?: string | null
+          id?: number
+          latitude?: number | null
+          location_id?: number | null
+          longitude?: number | null
+          name: string
+          timezone?: string | null
+        }
+        Update: {
+          iata_code?: string
+          icao_code?: string | null
+          id?: number
+          latitude?: number | null
+          location_id?: number | null
+          longitude?: number | null
+          name?: string
+          timezone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airports_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_genres: {
+        Row: {
+          artist_id: number
+          genre_id: number
+        }
+        Insert: {
+          artist_id: number
+          genre_id: number
+        }
+        Update: {
+          artist_id?: number
+          genre_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_genres_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_genres_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artists: {
+        Row: {
+          display_name: string
+          edmtrain_id: number | null
+          genres: string | null
+          id: number
+          image_url: string | null
+          normalized_name: string
+          spotify_id: string | null
+        }
+        Insert: {
+          display_name: string
+          edmtrain_id?: number | null
+          genres?: string | null
+          id?: number
+          image_url?: string | null
+          normalized_name: string
+          spotify_id?: string | null
+        }
+        Update: {
+          display_name?: string
+          edmtrain_id?: number | null
+          genres?: string | null
+          id?: number
+          image_url?: string | null
+          normalized_name?: string
+          spotify_id?: string | null
+        }
+        Relationships: []
+      }
+      genres: {
+        Row: {
+          energy: number | null
+          genre_name: string
+          id: number
+          mood_tags: string | null
+          parent_genre: string | null
+        }
+        Insert: {
+          energy?: number | null
+          genre_name: string
+          id?: number
+          mood_tags?: string | null
+          parent_genre?: string | null
+        }
+        Update: {
+          energy?: number | null
+          genre_name?: string
+          id?: number
+          mood_tags?: string | null
+          parent_genre?: string | null
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          city: string | null
+          country: string | null
+          edmtrain_locationid: number | null
+          id: number
+          latitude: number | null
+          longitude: number | null
+          name: string
+          region: string | null
+          state: string | null
+          state_code: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          edmtrain_locationid?: number | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          region?: string | null
+          state?: string | null
+          state_code?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          edmtrain_locationid?: number | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          region?: string | null
+          state?: string | null
+          state_code?: string | null
+        }
+        Relationships: []
+      }
+      user_events: {
+        Row: {
+          edmtrain_event_id: number
+          end_time: string | null
+          id: number
+          saved_at: string
+          snapshot_json: Json | null
+          start_time: string
+          user_id: number
+        }
+        Insert: {
+          edmtrain_event_id: number
+          end_time?: string | null
+          id?: number
+          saved_at: string
+          snapshot_json?: Json | null
+          start_time: string
+          user_id: number
+        }
+        Update: {
+          edmtrain_event_id?: number
+          end_time?: string | null
+          id?: number
+          saved_at?: string
+          snapshot_json?: Json | null
+          start_time?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_artists: {
+        Row: {
+          artist_id: number
+          user_id: number
+        }
+        Insert: {
+          artist_id: number
+          user_id: number
+        }
+        Update: {
+          artist_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_artists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_genres: {
+        Row: {
+          genre_id: number
+          user_id: number
+        }
+        Insert: {
+          genre_id: number
+          user_id: number
+        }
+        Update: {
+          genre_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_genres_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_genres_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_locations: {
+        Row: {
+          location_id: number
+          user_id: number
+        }
+        Insert: {
+          location_id: number
+          user_id: number
+        }
+        Update: {
+          location_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_flights: {
+        Row: {
+          airline: string | null
+          cabin_class: string | null
+          currency: string | null
+          destination_iata: string
+          duration_minutes: number | null
+          end_time: string
+          flight_key: string
+          flight_number: string | null
+          gowild_eligible: boolean | null
+          id: number
+          nonstop: boolean | null
+          origin_iata: string
+          price_total: number | null
+          provider: string | null
+          provider_offer_id: string | null
+          saved_at: string
+          seats_remaining: number | null
+          snapshot_json: Json
+          snapshot_updated_at: string | null
+          start_time: string
+          stops: number | null
+          trip_type: string | null
+          user_id: number
+        }
+        Insert: {
+          airline?: string | null
+          cabin_class?: string | null
+          currency?: string | null
+          destination_iata: string
+          duration_minutes?: number | null
+          end_time: string
+          flight_key: string
+          flight_number?: string | null
+          gowild_eligible?: boolean | null
+          id?: number
+          nonstop?: boolean | null
+          origin_iata: string
+          price_total?: number | null
+          provider?: string | null
+          provider_offer_id?: string | null
+          saved_at: string
+          seats_remaining?: number | null
+          snapshot_json: Json
+          snapshot_updated_at?: string | null
+          start_time: string
+          stops?: number | null
+          trip_type?: string | null
+          user_id: number
+        }
+        Update: {
+          airline?: string | null
+          cabin_class?: string | null
+          currency?: string | null
+          destination_iata?: string
+          duration_minutes?: number | null
+          end_time?: string
+          flight_key?: string
+          flight_number?: string | null
+          gowild_eligible?: boolean | null
+          id?: number
+          nonstop?: boolean | null
+          origin_iata?: string
+          price_total?: number | null
+          provider?: string | null
+          provider_offer_id?: string | null
+          saved_at?: string
+          seats_remaining?: number | null
+          snapshot_json?: Json
+          snapshot_updated_at?: string | null
+          start_time?: string
+          stops?: number | null
+          trip_type?: string | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_flights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          bio: string | null
+          dob: string | null
+          email: string
+          first_name: string | null
+          home_location_id: number | null
+          id: number
+          image_file: string
+          last_name: string | null
+          onboarding_complete: string
+          password: string
+          username: string | null
+        }
+        Insert: {
+          bio?: string | null
+          dob?: string | null
+          email: string
+          first_name?: string | null
+          home_location_id?: number | null
+          id?: number
+          image_file: string
+          last_name?: string | null
+          onboarding_complete: string
+          password: string
+          username?: string | null
+        }
+        Update: {
+          bio?: string | null
+          dob?: string | null
+          email?: string
+          first_name?: string | null
+          home_location_id?: number | null
+          id?: number
+          image_file?: string
+          last_name?: string | null
+          onboarding_complete?: string
+          password?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_home_location_id_fkey"
+            columns: ["home_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
