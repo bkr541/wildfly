@@ -263,7 +263,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
             {/* Fields */}
             <div className="space-y-4">
-              <div>
+              <div className="form-group">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Username *</label>
                 <input
                   value={username}
@@ -273,11 +273,11 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                 />
                 {usernameError && <p className="text-destructive text-xs mt-1">{usernameError}</p>}
               </div>
-              <div>
+              <div className="form-group">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Date of Birth</label>
                 <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={inputBase} />
               </div>
-              <div>
+              <div className="form-group">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Mobile Number</label>
                 <input type="tel" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" className={inputBase} />
               </div>
@@ -302,7 +302,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             <p className="text-muted-foreground text-sm mb-8">Tell us where you call home and your favorite places to explore.</p>
 
             {/* Home City */}
-            <div ref={homeCityRef} className="relative mb-6">
+            <div ref={homeCityRef} className="form-group relative mb-6">
               <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Home City *</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -328,7 +328,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
             {/* Favorite Cities - only show when home city selected */}
             {homeCity && (
-              <div ref={favCityRef} className="relative mb-4">
+              <div ref={favCityRef} className="form-group relative mb-4">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>

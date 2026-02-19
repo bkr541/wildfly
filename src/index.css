@@ -60,6 +60,12 @@
 }
 
 @layer utilities {
+  /* When an input inside a form-group is focused, color the label to match the focus ring */
+  .form-group:focus-within > label,
+  .form-group:focus-within > .form-label {
+    color: hsl(var(--ring));
+  }
+
   .gradient-splash {
     background: linear-gradient(
       135deg,

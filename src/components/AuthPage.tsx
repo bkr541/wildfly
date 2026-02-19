@@ -195,7 +195,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5" noValidate>
           {isSignUp && (
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="form-group">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                   First Name
                 </label>
@@ -208,7 +208,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 />
                 {errors.firstName && <p className="text-destructive text-xs mt-1">{errors.firstName}</p>}
               </div>
-              <div>
+              <div className="form-group">
                 <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                   Last Name
                 </label>
@@ -226,7 +226,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
 
 
-          <div>
+          <div className="form-group">
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
               Email
             </label>
@@ -241,7 +241,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           </div>
 
           {isSignUp && (
-            <div>
+            <div className="form-group">
               <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                 Password
               </label>
@@ -257,7 +257,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           )}
 
           {!isSignUp && (
-            <div>
+            <div className="form-group">
               <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                 Password
               </label>
