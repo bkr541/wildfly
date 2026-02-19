@@ -60,9 +60,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   };
 
   const inputBase =
-    "w-full px-4 py-3 rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground outline-none transition-all";
-  const inputNormal = `${inputBase} border border-transparent focus:ring-2 focus:ring-accent-blue`;
-  const inputError = `${inputBase} border border-destructive bg-destructive/5 focus:ring-2 focus:ring-destructive`;
+    "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all";
+  const inputNormal = `${inputBase} border border-border focus:ring-2 focus:ring-accent-blue`;
+  const inputError = `${inputBase} border border-destructive focus:ring-2 focus:ring-destructive`;
 
   return (
     <div className="relative flex flex-col min-h-screen bg-background overflow-hidden">
