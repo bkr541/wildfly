@@ -27,7 +27,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
         <h1 className="text-3xl font-bold text-foreground mb-8">
-          {isSignUp ? "Create Account" : "Welcome back!"}
+          {isSignUp ? "Sign Up" : "Sign In"}
         </h1>
 
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
