@@ -9,6 +9,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dob, setDob] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +35,52 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         </h1>
 
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
+          {isSignUp && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First"
+                  className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-2 focus:ring-accent-blue transition-all"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last"
+                  className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-2 focus:ring-accent-blue transition-all"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          {isSignUp && (
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-2 focus:ring-accent-blue transition-all"
+                required
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
               Email
@@ -58,6 +108,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               required
             />
           </div>
+
+          {isSignUp && (
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-2 focus:ring-accent-blue transition-all"
+                required
+              />
+            </div>
+          )}
 
           <button
             type="submit"
