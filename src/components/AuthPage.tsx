@@ -84,17 +84,29 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       if (!validateSignUp()) return;
       setLoading(true);
       try {
-        const { error } = await supabase.from("users").insert({
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: email.trim(),
-          password: password,
+          password,
+        });
+        if (authError) {
+          setSubmitError(authError.message);
+          return;
+        }
+        if (!authData.user) {
+          setSubmitError("Sign up failed. Please try again.");
+          return;
+        }
+        const { error: profileError } = await supabase.from("users").insert({
+          auth_user_id: authData.user.id,
+          email: email.trim(),
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           dob: dob,
           onboarding_complete: "No",
           image_file: "",
         });
-        if (error) {
-          setSubmitError(error.message);
+        if (profileError) {
+          setSubmitError(profileError.message);
           return;
         }
         onSignIn(true);
@@ -107,24 +119,37 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       if (!validateSignIn()) return;
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("users")
-          .select("onboarding_complete")
-          .eq("email", email.trim())
-          .eq("password", password)
-          .maybeSingle();
-
-        if (error) {
-          setSubmitError(error.message);
-          return;
-        }
-
-        if (!data) {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (authError) {
           setShowLoginError(true);
           return;
         }
+        if (!authData.user) {
+          setShowLoginError(true);
+          return;
+        }
+        const { data: profile } = await supabase
+          .from("users")
+          .select("onboarding_complete")
+          .eq("auth_user_id", authData.user.id)
+          .maybeSingle();
 
-        onSignIn(data.onboarding_complete === "No");
+        if (!profile) {
+          // Create profile if missing
+          await supabase.from("users").insert({
+            auth_user_id: authData.user.id,
+            email: email.trim(),
+            onboarding_complete: "No",
+            image_file: "",
+          });
+          onSignIn(true);
+          return;
+        }
+
+        onSignIn(profile.onboarding_complete === "No");
       } catch {
         setSubmitError("Something went wrong. Please try again.");
       } finally {
