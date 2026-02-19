@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
+import ProfileSetup from "./components/ProfileSetup";
 import HomePage from "./pages/Home";
 import AdminImport from "./pages/AdminImport";
 
@@ -11,6 +12,7 @@ const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
@@ -56,8 +58,11 @@ const MainApp = () => {
       <div className="w-full max-w-[768px] relative">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
         {splashDone && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
-        {splashDone && isSignedIn && needsOnboarding && (
-          <Onboarding onComplete={() => setNeedsOnboarding(false)} />
+        {splashDone && isSignedIn && needsOnboarding && !showProfileSetup && (
+          <Onboarding onComplete={() => setShowProfileSetup(true)} />
+        )}
+        {splashDone && isSignedIn && showProfileSetup && (
+          <ProfileSetup onComplete={() => { setNeedsOnboarding(false); setShowProfileSetup(false); }} />
         )}
         {splashDone && isSignedIn && !needsOnboarding && (
           <HomePage onSignOut={handleSignOut} />
