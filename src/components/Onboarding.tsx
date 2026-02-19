@@ -8,18 +8,21 @@ interface OnboardingProps {
 const slides = [
   {
     background: "/onboarding/background1.png",
-    title: "Discover Live Music",
-    subtitle: "Find events, artists, and festivals tailored to your taste.",
+    title: "Fly Wild, Travel Smart",
+    subtitle:
+      "Trust us, we get that it can be a wild ride navigating the GoWild! Pass at times - that's why we're here",
   },
   {
     background: "/onboarding/background2.png",
-    title: "Plan Your Trip",
-    subtitle: "Book flights and build your perfect festival itinerary.",
+    title: "Fly With The Odds In Your Favor",
+    subtitle:
+      "Our Insights Model fuses real-time network changes with past flight behavior to create predictive stats and clearer booking confidence",
   },
   {
     background: "/onboarding/background3.png",
-    title: "Connect With Friends",
-    subtitle: "Share lineups, coordinate plans, and never miss a show.",
+    title: "Smarter Results, Flight After Flight",
+    subtitle:
+      "Every trip, destination, and event teaches your personal Curation Engine your style, so your recommendations get sharper and more relevant over time.",
   },
   {
     background: "/onboarding/background4.png",
@@ -50,12 +53,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
       {/* Content pinned to bottom */}
       <div className="relative z-10 flex-1 flex flex-col justify-end px-8 pb-16">
-        <h1 className="text-3xl font-bold text-foreground mb-3">
-          {slides[current].title}
-        </h1>
-        <p className="text-muted-foreground text-base mb-10">
-          {slides[current].subtitle}
-        </p>
+        <h1 className="text-3xl font-bold text-foreground mb-3">{slides[current].title}</h1>
+        <p className="text-muted-foreground text-base mb-10">{slides[current].subtitle}</p>
 
         {/* Navigation row */}
         <div className="flex items-center justify-between">
