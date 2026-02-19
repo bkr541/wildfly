@@ -26,6 +26,12 @@ const slides = [
   },
   {
     background: "/onboarding/background4.png",
+    title: "Never Miss A Deal",
+    subtitle:
+      "Get real-time alerts on flight availability and price drops so you can book with confidence and never miss an opportunity.",
+  },
+  {
+    background: "/onboarding/background5.png",
     title: "Make It Yours",
     subtitle: "Set up your profile and let us personalize your experience.",
   },
