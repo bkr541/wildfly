@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
-import mainLogo from "@/assets/mainlogo.png";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -20,7 +19,7 @@ interface AuthPageProps {
 interface FieldErrors {
   firstName?: string;
   lastName?: string;
-  
+
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -35,7 +34,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  
+
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -219,14 +218,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     <div className="relative flex flex-col min-h-screen bg-background overflow-hidden">
       <DecorativeCircles />
 
-      <div className="w-full flex justify-center pt-10 pb-6 relative z-10">
-        <img src={mainLogo} alt="WildFly logo" className="h-24 md:h-28 w-auto object-contain" />
+      <div className="pt-12 pb-4 text-center relative z-10">
+        <img src="/assets/logo/mainlogo1.png" alt="HearMe logo" className="mx-auto h-24 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        <h1 className="text-3xl font-bold text-foreground mb-8">
-          {isSignUp ? "Sign Up" : "Sign In"}
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">{isSignUp ? "Sign Up" : "Sign In"}</h1>
 
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5" noValidate>
           {isSignUp && (
@@ -238,7 +235,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <input
                   type="text"
                   value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); setErrors(prev => ({ ...prev, firstName: undefined })); }}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    setErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
                   placeholder="First"
                   className={errors.firstName ? inputError : inputNormal}
                 />
@@ -251,7 +251,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <input
                   type="text"
                   value={lastName}
-                  onChange={(e) => { setLastName(e.target.value); setErrors(prev => ({ ...prev, lastName: undefined })); }}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    setErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
                   placeholder="Last"
                   className={errors.lastName ? inputError : inputNormal}
                 />
@@ -260,8 +263,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </div>
           )}
 
-
-
           <div className="form-group">
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
               Email
@@ -269,7 +270,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <input
               type="email"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               placeholder="you@example.com"
               className={errors.email ? inputError : inputNormal}
             />
@@ -284,7 +288,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
                 placeholder="••••••••"
                 className={errors.password ? inputError : inputNormal}
               />
@@ -304,7 +311,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <div className="flex justify-end mt-1">
               <button
                 type="button"
-                onClick={() => { setForgotEmail(email); setForgotError(null); setForgotSuccess(false); setShowForgotPassword(true); }}
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotError(null);
+                  setForgotSuccess(false);
+                  setShowForgotPassword(true);
+                }}
                 className="text-xs text-accent-blue font-semibold hover:underline"
               >
                 Forgot My Password
@@ -320,15 +332,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
 
-          {submitError && (
-            <p className="text-destructive text-sm text-center mt-2">{submitError}</p>
-          )}
+          {submitError && <p className="text-destructive text-sm text-center mt-2">{submitError}</p>}
         </form>
 
         <p className="mt-8 text-muted-foreground text-sm">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
-            onClick={() => { setIsSignUp(!isSignUp); setErrors({}); }}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setErrors({});
+            }}
             className="text-accent-blue font-semibold hover:underline"
           >
             {isSignUp ? "Sign In" : "Sign Up"}
@@ -341,16 +354,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Password</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please re-enter your password to complete registration.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="px-6 pb-2">
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setConfirmError(null); }}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setConfirmError(null);
+                }}
                 placeholder="••••••••"
                 className={confirmError ? inputError : inputNormal}
                 autoFocus
@@ -367,9 +381,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
           </div>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleConfirmSignUp}>
-              Confirm & Sign Up
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -383,15 +395,19 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleTryAgain}>
-              Try Again
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleTryAgain}>Try Again</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Forgot Password Dialog */}
-      <AlertDialog open={showForgotPassword} onOpenChange={(open) => { setShowForgotPassword(open); if (!open) setForgotSuccess(false); }}>
+      <AlertDialog
+        open={showForgotPassword}
+        onOpenChange={(open) => {
+          setShowForgotPassword(open);
+          if (!open) setForgotSuccess(false);
+        }}
+      >
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
@@ -407,7 +423,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <input
                   type="email"
                   value={forgotEmail}
-                  onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
+                  onChange={(e) => {
+                    setForgotEmail(e.target.value);
+                    setForgotError(null);
+                  }}
                   placeholder="you@example.com"
                   className={forgotError ? inputError : inputNormal}
                   autoFocus
@@ -418,9 +437,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           )}
           <AlertDialogFooter>
             {forgotSuccess ? (
-              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>
-                Done
-              </AlertDialogAction>
+              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
             ) : (
               <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
                 {forgotLoading ? "Sending..." : "Send Reset Link"}
