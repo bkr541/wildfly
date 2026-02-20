@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
 import {
@@ -40,6 +41,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [showLoginError, setShowLoginError] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
@@ -240,37 +243,29 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
           </div>
 
-          {isSignUp && (
-            <div className="form-group">
-              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                Password
-              </label>
+          <div className="form-group">
+            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+              Password
+            </label>
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
                 placeholder="••••••••"
                 className={errors.password ? inputError : inputNormal}
               />
-              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-          )}
-
-          {!isSignUp && (
-            <div className="form-group">
-              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
-                placeholder="••••••••"
-                className={errors.password ? inputError : inputNormal}
-              />
-              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
-            </div>
-          )}
+            {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
+          </div>
 
           <button
             type="submit"
@@ -306,14 +301,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="px-6 pb-2">
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => { setConfirmPassword(e.target.value); setConfirmError(null); }}
-              placeholder="••••••••"
-              className={confirmError ? inputError : inputNormal}
-              autoFocus
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setConfirmError(null); }}
+                placeholder="••••••••"
+                className={confirmError ? inputError : inputNormal}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
           </div>
           <AlertDialogFooter>

@@ -130,6 +130,53 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          notif_gowild_availability: boolean
+          notif_new_feature_announcements: boolean
+          notif_new_route_alerts: boolean
+          notif_pass_sale_alerts: boolean
+          notifications_master: boolean
+          theme_preference: string
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notif_gowild_availability?: boolean
+          notif_new_feature_announcements?: boolean
+          notif_new_route_alerts?: boolean
+          notif_pass_sale_alerts?: boolean
+          notifications_master?: boolean
+          theme_preference?: string
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notif_gowild_availability?: boolean
+          notif_new_feature_announcements?: boolean
+          notif_new_route_alerts?: boolean
+          notif_pass_sale_alerts?: boolean
+          notifications_master?: boolean
+          theme_preference?: string
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           auth_user_id: string | null
