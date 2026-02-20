@@ -1,6 +1,7 @@
 import * as React from "react";
 import { OTPInput, OTPInputContext } from "input-otp";
-import { Dot } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircle as faDot } from "@fortawesome/free-solid-svg-icons";
 
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,7 @@ InputOTPSlot.displayName = "InputOTPSlot";
 const InputOTPSeparator = React.forwardRef<React.ElementRef<"div">, React.ComponentPropsWithoutRef<"div">>(
   ({ ...props }, ref) => (
     <div ref={ref} role="separator" {...props}>
-      <Dot />
+      <FontAwesomeIcon icon={faDot} className="h-2 w-2" />
     </div>
   ),
 );
