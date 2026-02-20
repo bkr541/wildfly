@@ -106,13 +106,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           return;
         }
         const { data: profile } = await supabase
-          .from("users")
+          .from("userinfo")
           .select("onboarding_complete")
           .eq("auth_user_id", authData.user.id)
           .maybeSingle();
 
         if (!profile) {
-          await supabase.from("users").insert({
+          await supabase.from("userinfo").insert({
             auth_user_id: authData.user.id,
             email: email.trim(),
             onboarding_complete: "No",
@@ -156,7 +156,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError("Sign up failed. Please try again.");
         return;
       }
-      const { error: profileError } = await supabase.from("users").insert({
+      const { error: profileError } = await supabase.from("userinfo").insert({
         auth_user_id: authData.user.id,
         email: email.trim(),
         first_name: firstName.trim(),
