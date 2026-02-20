@@ -20,7 +20,7 @@ const MainApp = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const checkProfile = async (userId: string) => {
+    const checkProfile = async (userId: string, isFromSignIn = false) => {
       try {
         const { data: profile } = await supabase
           .from("user_info")
@@ -28,14 +28,21 @@ const MainApp = () => {
           .eq("auth_user_id", userId)
           .maybeSingle();
 
-        if (isMounted) {
+        if (!isMounted) return;
+
+        if (!profile && !isFromSignIn) {
+          // Orphaned auth session with no profile — sign out
+          await supabase.auth.signOut();
+          setIsSignedIn(false);
+          setNeedsOnboarding(false);
+        } else {
           setIsSignedIn(true);
           setNeedsOnboarding(!profile || profile.onboarding_complete === "No");
         }
       } catch {
         if (isMounted) {
-          setIsSignedIn(true);
-          setNeedsOnboarding(true);
+          setIsSignedIn(false);
+          setNeedsOnboarding(false);
         }
       }
     };
@@ -86,6 +93,7 @@ const MainApp = () => {
   const handleSignIn = (onboarding: boolean) => {
     setIsSignedIn(true);
     setNeedsOnboarding(onboarding);
+    // Mark that this was an explicit sign-in so auth listener doesn't sign out
   };
 
   const handleSignOut = async () => {
