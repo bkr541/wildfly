@@ -156,40 +156,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         password,
       });
 
-      // If user already exists in auth, try signing in instead
+      // If user already exists in auth, show error
       if (authError && (authError.message.toLowerCase().includes("already") || authError.message.toLowerCase().includes("registered"))) {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-
-        if (signInError) {
-          setSubmitError("An account with this email already exists. Please sign in instead.");
-          return;
-        }
-
-        if (signInData.user) {
-          // Check if profile exists, create if missing
-          const { data: existingProfile } = await supabase
-            .from("user_info")
-            .select("id")
-            .eq("auth_user_id", signInData.user.id)
-            .maybeSingle();
-
-          if (!existingProfile) {
-            await supabase.from("user_info").insert({
-              auth_user_id: signInData.user.id,
-              email: email.trim(),
-              first_name: firstName.trim(),
-              last_name: lastName.trim(),
-              onboarding_complete: "No",
-              image_file: "",
-            });
-          }
-
-          onSignIn(true);
-          return;
-        }
+        setSubmitError("An account with this email already exists. Please sign in instead.");
+        return;
       }
 
       if (authError) {
