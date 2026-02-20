@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "./components/SplashScreen";
@@ -17,10 +17,13 @@ const MainApp = () => {
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
+  // Track whether handleSignIn was called so the listener doesn't override it
+  const signInHandledRef = useRef(false);
+
   useEffect(() => {
     let isMounted = true;
 
-    const checkProfile = async (userId: string, isFromSignIn = false) => {
+    const checkProfile = async (userId: string) => {
       try {
         const { data: profile } = await supabase
           .from("user_info")
@@ -30,14 +33,13 @@ const MainApp = () => {
 
         if (!isMounted) return;
 
-        if (!profile && !isFromSignIn) {
-          // Orphaned auth session with no profile — sign out
-          await supabase.auth.signOut();
+        if (profile) {
+          setIsSignedIn(true);
+          setNeedsOnboarding(profile.onboarding_complete === "No");
+        } else {
+          // No profile found — treat as not signed in
           setIsSignedIn(false);
           setNeedsOnboarding(false);
-        } else {
-          setIsSignedIn(true);
-          setNeedsOnboarding(!profile || profile.onboarding_complete === "No");
         }
       } catch {
         if (isMounted) {
@@ -52,27 +54,50 @@ const MainApp = () => {
       (event, session) => {
         if (!isMounted) return;
 
-        if (session?.user) {
-          // Use setTimeout to avoid Supabase auth deadlock
-          setTimeout(() => {
-            if (isMounted) checkProfile(session.user.id);
-          }, 0);
-        } else {
+        // If handleSignIn already set the state, skip listener processing
+        if (signInHandledRef.current) {
+          signInHandledRef.current = false;
+          return;
+        }
+
+        if (event === 'SIGNED_OUT' || !session?.user) {
           setIsSignedIn(false);
           setNeedsOnboarding(false);
           setCheckingSession(false);
+          return;
         }
+
+        // For other events (TOKEN_REFRESHED, etc.), re-check profile
+        setTimeout(() => {
+          if (isMounted) checkProfile(session.user.id);
+        }, 0);
       }
     );
 
-    // Initial session check
+    // Initial session check — only place we sign out orphaned sessions
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
         if (session?.user) {
-          await checkProfile(session.user.id);
+          const { data: profile } = await supabase
+            .from("user_info")
+            .select("onboarding_complete")
+            .eq("auth_user_id", session.user.id)
+            .maybeSingle();
+
+          if (!isMounted) return;
+
+          if (profile) {
+            setIsSignedIn(true);
+            setNeedsOnboarding(profile.onboarding_complete === "No");
+          } else {
+            // Orphaned auth session — sign out
+            await supabase.auth.signOut();
+            setIsSignedIn(false);
+            setNeedsOnboarding(false);
+          }
         } else {
           setIsSignedIn(false);
           setNeedsOnboarding(false);
@@ -91,9 +116,9 @@ const MainApp = () => {
   }, []);
 
   const handleSignIn = (onboarding: boolean) => {
+    signInHandledRef.current = true;
     setIsSignedIn(true);
     setNeedsOnboarding(onboarding);
-    // Mark that this was an explicit sign-in so auth listener doesn't sign out
   };
 
   const handleSignOut = async () => {
