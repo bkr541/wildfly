@@ -7,16 +7,6 @@ import Onboarding from "./components/Onboarding";
 import ProfileSetup from "./components/ProfileSetup";
 import HomePage from "./pages/Home";
 import AdminImport from "./pages/AdminImport";
-import UserHub from "./pages/userhub/UserHub";
-import Account from "./pages/userhub/Account";
-import EditProfile from "./pages/userhub/EditProfile";
-import HomeCity from "./pages/userhub/HomeCity";
-import FavoriteDestinations from "./pages/userhub/FavoriteDestinations";
-import Notifications from "./pages/userhub/Notifications";
-import Appearance from "./pages/userhub/Appearance";
-import SecurityPrivacy from "./pages/userhub/SecurityPrivacy";
-import ChangePassword from "./pages/userhub/ChangePassword";
-import { Toaster } from "@/components/ui/toaster";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -63,49 +53,31 @@ const MainApp = () => {
     // Splash handles the wait
   }
 
-  // If signed in and onboarding complete, show routed content
-  if (splashDone && isSignedIn && !needsOnboarding) {
-    return (
-      <Routes>
-        <Route path="/user-hub" element={<UserHub />} />
-        <Route path="/user-hub/account" element={<Account />} />
-        <Route path="/user-hub/account/edit-profile" element={<EditProfile />} />
-        <Route path="/user-hub/account/home-city" element={<HomeCity />} />
-        <Route path="/user-hub/account/favorite-destinations" element={<FavoriteDestinations />} />
-        <Route path="/user-hub/notifications" element={<Notifications />} />
-        <Route path="/user-hub/appearance" element={<Appearance />} />
-        <Route path="/user-hub/security-privacy" element={<SecurityPrivacy />} />
-        <Route path="/user-hub/security-privacy/change-password" element={<ChangePassword />} />
-        <Route path="*" element={<HomePage onSignOut={handleSignOut} />} />
-      </Routes>
-    );
-  }
-
   return (
-    <>
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-      {splashDone && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
-      {splashDone && isSignedIn && needsOnboarding && !showProfileSetup && (
-        <Onboarding onComplete={() => setShowProfileSetup(true)} />
-      )}
-      {splashDone && isSignedIn && showProfileSetup && (
-        <ProfileSetup onComplete={() => { setNeedsOnboarding(false); setShowProfileSetup(false); }} />
-      )}
-    </>
+    <div className="flex justify-center min-h-screen bg-background">
+      <div className="w-full max-w-[768px] relative">
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+        {splashDone && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
+        {splashDone && isSignedIn && needsOnboarding && !showProfileSetup && (
+          <Onboarding onComplete={() => setShowProfileSetup(true)} />
+        )}
+        {splashDone && isSignedIn && showProfileSetup && (
+          <ProfileSetup onComplete={() => { setNeedsOnboarding(false); setShowProfileSetup(false); }} />
+        )}
+        {splashDone && isSignedIn && !needsOnboarding && (
+          <HomePage onSignOut={handleSignOut} />
+        )}
+      </div>
+    </div>
   );
 };
 
 const App = () => (
   <BrowserRouter>
-    <div className="flex justify-center min-h-screen bg-background">
-      <div className="w-full max-w-[768px] relative">
-        <Routes>
-          <Route path="/admin/import" element={<AdminImport />} />
-          <Route path="*" element={<MainApp />} />
-        </Routes>
-        <Toaster />
-      </div>
-    </div>
+    <Routes>
+      <Route path="/admin/import" element={<AdminImport />} />
+      <Route path="*" element={<MainApp />} />
+    </Routes>
   </BrowserRouter>
 );
 
