@@ -125,7 +125,7 @@ export type Database = {
             foreignKeyName: "user_locations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "userinfo"
             referencedColumns: ["id"]
           },
         ]
@@ -172,12 +172,12 @@ export type Database = {
             foreignKeyName: "user_settings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "userinfo"
             referencedColumns: ["id"]
           },
         ]
       }
-      users: {
+      userinfo: {
         Row: {
           auth_user_id: string | null
           bio: string | null

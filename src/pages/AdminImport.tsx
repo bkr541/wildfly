@@ -4,13 +4,13 @@ import initSqlJs, { Database as SqlJsDatabase } from "sql.js";
 const TABLE_ORDER = [
   "locations",
   "airports",
-  "users",
+  "userinfo",
 ] as const;
 
 const EXPECTED_COUNTS: Record<string, number> = {
   locations: 154,
   airports: 72,
-  users: 9,
+  userinfo: 9,
 };
 
 type TableResult = {
