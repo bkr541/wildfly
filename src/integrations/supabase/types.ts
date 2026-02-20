@@ -94,90 +94,7 @@ export type Database = {
         }
         Relationships: []
       }
-      user_locations: {
-        Row: {
-          created_at: string
-          id: string
-          location_id: number
-          user_id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          location_id: number
-          user_id: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          location_id?: number
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_locations_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_locations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "userinfo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_settings: {
-        Row: {
-          created_at: string
-          id: string
-          notif_gowild_availability: boolean
-          notif_new_feature_announcements: boolean
-          notif_new_route_alerts: boolean
-          notif_pass_sale_alerts: boolean
-          notifications_master: boolean
-          theme_preference: string
-          updated_at: string
-          user_id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notif_gowild_availability?: boolean
-          notif_new_feature_announcements?: boolean
-          notif_new_route_alerts?: boolean
-          notif_pass_sale_alerts?: boolean
-          notifications_master?: boolean
-          theme_preference?: string
-          updated_at?: string
-          user_id: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notif_gowild_availability?: boolean
-          notif_new_feature_announcements?: boolean
-          notif_new_route_alerts?: boolean
-          notif_pass_sale_alerts?: boolean
-          notifications_master?: boolean
-          theme_preference?: string
-          updated_at?: string
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "userinfo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      userinfo: {
+      user_info: {
         Row: {
           auth_user_id: string | null
           bio: string | null
@@ -226,6 +143,89 @@ export type Database = {
             columns: ["home_location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_locations: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: number
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: number
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          notif_gowild_availability: boolean
+          notif_new_feature_announcements: boolean
+          notif_new_route_alerts: boolean
+          notif_pass_sale_alerts: boolean
+          notifications_master: boolean
+          theme_preference: string
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notif_gowild_availability?: boolean
+          notif_new_feature_announcements?: boolean
+          notif_new_route_alerts?: boolean
+          notif_pass_sale_alerts?: boolean
+          notifications_master?: boolean
+          theme_preference?: string
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notif_gowild_availability?: boolean
+          notif_new_feature_announcements?: boolean
+          notif_new_route_alerts?: boolean
+          notif_pass_sale_alerts?: boolean
+          notifications_master?: boolean
+          theme_preference?: string
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_info"
             referencedColumns: ["id"]
           },
         ]

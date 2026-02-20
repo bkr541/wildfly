@@ -62,7 +62,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) return;
       const { data } = await supabase
-        .from("userinfo")
+        .from("user_info")
         .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
         .eq("auth_user_id", authUser.id)
         .maybeSingle();
@@ -151,7 +151,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     if (!error) {
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
       setAvatarUrl(urlData.publicUrl);
-      await supabase.from("userinfo").update({ image_file: urlData.publicUrl }).eq("id", user.id);
+      await supabase.from("user_info").update({ image_file: urlData.publicUrl }).eq("id", user.id);
     }
   };
 
@@ -163,7 +163,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     const updates: Record<string, any> = { username: username.trim() };
     if (dob) updates.dob = dob;
     if (mobileNumber.trim()) updates.mobile_number = mobileNumber.trim();
-    await supabase.from("userinfo").update(updates).eq("id", user.id);
+    await supabase.from("user_info").update(updates).eq("id", user.id);
     setSaving(false);
     setStep(1);
   };
@@ -173,7 +173,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     if (!homeCity) { setHomeCityError("Home City is required"); return; }
     if (!user) return;
     setSaving(true);
-    await supabase.from("userinfo").update({ home_location_id: homeCity.id }).eq("id", user.id);
+    await supabase.from("user_info").update({ home_location_id: homeCity.id }).eq("id", user.id);
     // Sync user_locations: delete all then insert current favorites
     await supabase.from("user_locations").delete().eq("user_id", user.id);
     if (favoriteCities.length > 0) {
@@ -189,7 +189,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const handleStartFlying = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("userinfo").update({ onboarding_complete: "Yes" }).eq("id", user.id);
+    await supabase.from("user_info").update({ onboarding_complete: "Yes" }).eq("id", user.id);
     setSaving(false);
     setShowInterstitial(true);
     setTimeout(() => onComplete(), 2500);

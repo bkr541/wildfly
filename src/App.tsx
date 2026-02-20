@@ -21,7 +21,7 @@ const MainApp = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const { data: profile } = await supabase
-          .from("userinfo")
+          .from("user_info")
           .select("onboarding_complete")
           .eq("auth_user_id", session.user.id)
           .maybeSingle();
