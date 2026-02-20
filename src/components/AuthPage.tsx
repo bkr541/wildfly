@@ -368,104 +368,110 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       </div>
 
       {/* Confirm Password Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-xs rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Password</AlertDialogTitle>
-            <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="px-6 pb-2">
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setConfirmError(null);
-                }}
-                placeholder="••••••••"
-                className={confirmError ? inputError : inputNormal}
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" /> : <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />}
-              </button>
-            </div>
-            {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
-        <AlertDialogContent className="max-w-xs rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Login Failed</AlertDialogTitle>
-            <AlertDialogDescription>
-              The email and password combination is not correct. Please try again.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleTryAgain}>Try Again</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Forgot Password Dialog */}
-      <AlertDialog
-        open={showForgotPassword}
-        onOpenChange={(open) => {
-          setShowForgotPassword(open);
-          if (!open) setForgotSuccess(false);
-        }}
-      >
-        <AlertDialogContent className="max-w-xs rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {forgotSuccess
-                ? "If an account exists with that email, a password reset link has been sent."
-                : "Enter your email address and we'll send you a link to reset your password."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {!forgotSuccess && (
+      {showConfirmDialog && (
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent className="max-w-xs rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Password</AlertDialogTitle>
+              <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
+            </AlertDialogHeader>
             <div className="px-6 pb-2">
-              <div className="form-group">
+              <div className="relative">
                 <input
-                  type="email"
-                  value={forgotEmail}
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
                   onChange={(e) => {
-                    setForgotEmail(e.target.value);
-                    setForgotError(null);
+                    setConfirmPassword(e.target.value);
+                    setConfirmError(null);
                   }}
-                  placeholder="you@example.com"
-                  className={forgotError ? inputError : inputNormal}
+                  placeholder="••••••••"
+                  className={confirmError ? inputError : inputNormal}
                   autoFocus
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" /> : <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />}
+                </button>
               </div>
-              {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
+              {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
             </div>
-          )}
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
-          <AlertDialogFooter>
-            {forgotSuccess ? (
-              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
-            ) : (
-              <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
-                {forgotLoading ? "Sending..." : "Send Reset Link"}
-              </AlertDialogAction>
+      {showLoginError && (
+        <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
+          <AlertDialogContent className="max-w-xs rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Login Failed</AlertDialogTitle>
+              <AlertDialogDescription>
+                The email and password combination is not correct. Please try again.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={handleTryAgain}>Try Again</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Forgot Password Dialog */}
+      {showForgotPassword && (
+        <AlertDialog
+          open={showForgotPassword}
+          onOpenChange={(open) => {
+            setShowForgotPassword(open);
+            if (!open) setForgotSuccess(false);
+          }}
+        >
+          <AlertDialogContent className="max-w-xs rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {forgotSuccess
+                  ? "If an account exists with that email, a password reset link has been sent."
+                  : "Enter your email address and we'll send you a link to reset your password."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {!forgotSuccess && (
+              <div className="px-6 pb-2">
+                <div className="form-group">
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => {
+                      setForgotEmail(e.target.value);
+                      setForgotError(null);
+                    }}
+                    placeholder="you@example.com"
+                    className={forgotError ? inputError : inputNormal}
+                    autoFocus
+                  />
+                </div>
+                {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
+              </div>
             )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
+            <AlertDialogFooter>
+              {forgotSuccess ? (
+                <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
+              ) : (
+                <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
+                  {forgotLoading ? "Sending..." : "Send Reset Link"}
+                </AlertDialogAction>
+              )}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };
