@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
+import mainLogo from "@/assets/mainlogo.png";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -219,7 +220,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <DecorativeCircles />
 
       <div className="pt-12 pb-4 text-center relative z-10">
-        <img src="/assets/logo/mainlogo1.png" alt="HearMe logo" className="mx-auto h-10 object-contain" />
+        <img src={mainLogo} alt="WildFly logo" className="mx-auto h-10 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
