@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -62,7 +63,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             disabled={current === 0}
             className="w-10 h-10 rounded-full flex items-center justify-center text-foreground disabled:opacity-20 transition-opacity"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
 
           {/* Dots */}
@@ -90,7 +91,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               onClick={next}
               className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:opacity-80 transition-opacity"
             >
-              <ChevronRight className="w-6 h-6" />
+              <FontAwesomeIcon icon={faChevronRight} className="w-6 h-6" />
             </button>
           )}
         </div>

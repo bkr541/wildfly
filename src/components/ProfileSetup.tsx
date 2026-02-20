@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, Camera, X, Search, Users } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faCamera, faXmark, faMagnifyingGlass, faUsers } from "@fortawesome/free-solid-svg-icons";
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -227,7 +228,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
       <div className="flex items-center px-6 pt-10 pb-2">
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)} className="mr-3 text-foreground">
-            <ChevronLeft className="w-6 h-6" />
+            <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
         )}
         <div className="flex gap-1.5 flex-1 justify-center">
@@ -251,10 +252,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
                 )}
                 <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-foreground" />
+                  <FontAwesomeIcon icon={faCamera} className="w-6 h-6 text-foreground" />
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </label>
@@ -305,7 +306,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             <div ref={homeCityRef} className="form-group relative mb-6">
               <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Home City *</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                 <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   value={homeCitySearch}
                   onChange={e => handleHomeCitySearch(e.target.value)}
@@ -333,7 +334,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     value={favSearch}
                     onChange={e => handleFavSearch(e.target.value)}
@@ -364,7 +365,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                         <span key={loc.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-foreground text-sm">
                           {formatLocationDisplay(loc)}
                           <button onClick={() => removeFavorite(loc.id)} className="hover:text-destructive transition-colors">
-                            <X className="w-3.5 h-3.5" />
+                            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
                           </button>
                         </span>
                       ))}
@@ -393,7 +394,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             <p className="text-muted-foreground text-sm mb-8">Find your travel buddies, make a crew, and explore together.</p>
 
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 disabled
                 placeholder="Find Friends"
@@ -401,7 +402,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               />
             </div>
             <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50">
-              <Users className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <p className="text-muted-foreground text-sm">This feature is coming soon</p>
             </div>
 

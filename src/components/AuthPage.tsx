@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
 import mainLogo from "@/assets/mainlogo.png";
@@ -318,7 +319,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" /> : <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />}
               </button>
             </div>
             {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
@@ -392,7 +393,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
               >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" /> : <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />}
               </button>
             </div>
             {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
