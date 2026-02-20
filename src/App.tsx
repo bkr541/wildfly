@@ -18,16 +18,41 @@ const MainApp = () => {
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
+    let isMounted = true;
+
+    const checkProfile = async (userId: string) => {
+      try {
         const { data: profile } = await supabase
           .from("user_info")
           .select("onboarding_complete")
-          .eq("auth_user_id", session.user.id)
+          .eq("auth_user_id", userId)
           .maybeSingle();
 
+        if (!isMounted) return;
         setIsSignedIn(true);
         setNeedsOnboarding(!profile || profile.onboarding_complete === "No");
+      } catch {
+        if (!isMounted) return;
+        setIsSignedIn(true);
+        setNeedsOnboarding(true);
+      }
+    };
+
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        checkProfile(session.user.id);
+      } else {
+        setCheckingSession(false);
+      }
+    });
+
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        checkProfile(session.user.id);
       } else {
         setIsSignedIn(false);
         setNeedsOnboarding(false);
@@ -35,7 +60,10 @@ const MainApp = () => {
       setCheckingSession(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignIn = (onboarding: boolean) => {

@@ -8,23 +8,23 @@ interface OnboardingProps {
 
 const slides = [
   {
-    background: "/onboarding/background1.png",
+    background: "/assets/onboarding/background1.png",
     title: "Discover Live Music",
     subtitle: "Find events, artists, and festivals tailored to your taste.",
   },
   {
-    background: "/onboarding/background2.png",
+    background: "/assets/onboarding/background2.png",
     title: "Plan Your Trip",
     subtitle: "Book flights and build your perfect festival itinerary.",
   },
   {
-    background: "/onboarding/background3.png",
+    background: "/assets/onboarding/background3.png",
     title: "Friends That Plan Together, Fly Together",
     subtitle:
       "See what your friends are planning, compare destinations, and sync trips without the endless group chat spiral.",
   },
   {
-    background: "/onboarding/background4.png",
+    background: "/assets/onboarding/background4.png",
     title: "Make It Yours",
     subtitle: "Set up your profile and let us personalize your experience.",
   },
@@ -44,8 +44,13 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-        style={{ backgroundImage: `url(${slides[current].background})` }}
+        className="absolute inset-0 transition-all duration-500 bg-background"
+        style={{
+          backgroundImage: `url(${slides[current].background})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
       />
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
