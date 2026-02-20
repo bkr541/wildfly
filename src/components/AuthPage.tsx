@@ -43,6 +43,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
@@ -177,6 +182,33 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     setShowLoginError(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!forgotEmail.trim()) {
+      setForgotError("Email is required");
+      return;
+    }
+    if (!emailRegex.test(forgotEmail.trim())) {
+      setForgotError("Please enter a valid email address");
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        setForgotError(error.message);
+        return;
+      }
+      setForgotSuccess(true);
+    } catch {
+      setForgotError("Something went wrong. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   const inputBase =
     "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all";
   const inputNormal = `${inputBase} border border-border focus:ring-2 focus:ring-accent-blue`;
@@ -267,6 +299,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
           </div>
 
+          {!isSignUp && (
+            <div className="flex justify-end mt-1">
+              <button
+                type="button"
+                onClick={() => { setForgotEmail(email); setForgotError(null); setForgotSuccess(false); setShowForgotPassword(true); }}
+                className="text-xs text-accent-blue font-semibold hover:underline"
+              >
+                Forgot My Password
+              </button>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
@@ -341,6 +385,46 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <AlertDialogAction onClick={handleTryAgain}>
               Try Again
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Forgot Password Dialog */}
+      <AlertDialog open={showForgotPassword} onOpenChange={(open) => { setShowForgotPassword(open); if (!open) setForgotSuccess(false); }}>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {forgotSuccess
+                ? "If an account exists with that email, a password reset link has been sent."
+                : "Enter your email address and we'll send you a link to reset your password."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {!forgotSuccess && (
+            <div className="px-6 pb-2">
+              <div className="form-group">
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
+                  placeholder="you@example.com"
+                  className={forgotError ? inputError : inputNormal}
+                  autoFocus
+                />
+              </div>
+              {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
+            </div>
+          )}
+          <AlertDialogFooter>
+            {forgotSuccess ? (
+              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>
+                Done
+              </AlertDialogAction>
+            ) : (
+              <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
+                {forgotLoading ? "Sending..." : "Send Reset Link"}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
