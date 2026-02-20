@@ -219,8 +219,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     <div className="relative flex flex-col min-h-screen bg-background overflow-hidden">
       <DecorativeCircles />
 
-      <div className="pt-12 pb-4 text-center relative z-10">
-        <img src={mainLogo} alt="WildFly logo" className="mx-auto h-10 object-contain" />
+      <div className="w-full flex justify-center pt-10 pb-6 relative z-10">
+        <img src={mainLogo} alt="WildFly logo" className="h-24 md:h-28 w-auto object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
