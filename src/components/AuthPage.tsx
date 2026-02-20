@@ -210,7 +210,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   };
 
   const inputBase =
-    "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all";
+    "w-full px-4 py-3 rounded-lg bg-[#1A4E54] text-foreground placeholder:text-muted-foreground outline-none transition-all";
   const inputNormal = `${inputBase} border border-border focus:ring-2 focus:ring-accent-blue`;
   const inputError = `${inputBase} border border-destructive focus:ring-2 focus:ring-destructive`;
 
@@ -219,7 +219,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <DecorativeCircles />
 
       <div className="pt-12 pb-4 text-center relative z-10">
-        <p className="text-muted-foreground text-sm tracking-widest uppercase">Hearme</p>
+        <img src="/assets/logo/mainlogo1.png" alt="HearMe logo" className="mx-auto h-10 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
@@ -316,7 +316,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             disabled={loading}
             className="w-full py-3 mt-4 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? "Please wait..." : isSignUp ? "Register" : "Sign In"}
+            {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
 
           {submitError && (

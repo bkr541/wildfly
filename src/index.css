@@ -64,6 +64,7 @@
   .form-group:focus-within > label,
   .form-group:focus-within > .form-label {
     color: hsl(var(--ring));
+    font-weight: 700;
   }
 
   .gradient-splash {
