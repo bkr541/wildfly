@@ -1,14 +1,35 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faMagnifyingGlass,
+  faHouse,
+  faPlane,
+  faLocationDot,
+  faUserGroup,
+  faCreditCard,
+  faRightFromBracket,
+  faChevronLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
+
+const menuItems = [
+  { icon: faHouse, label: "Home" },
+  { icon: faPlane, label: "Flights" },
+  { icon: faLocationDot, label: "Destinations" },
+  { icon: faUserGroup, label: "Friends" },
+  { icon: faCreditCard, label: "Subscription" },
+];
 
 const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Explorer");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [fullName, setFullName] = useState("");
 
   useEffect(() => {
     const loadAvatar = async () => {
@@ -31,8 +52,10 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
         const li = (data.last_name?.[0] || "").toUpperCase();
         setInitials(fi + li || "U");
 
-        // Display first_name instead of username
         setUserName(data.first_name || "Explorer");
+        setFullName(
+          [data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer"
+        );
       }
     };
     loadAvatar();
@@ -46,10 +69,68 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* Header layout */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
-        {/* Left Side: Menu Icon */}
-        <button className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
-          <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
-        </button>
+        {/* Left Side: Menu Icon → opens Sheet */}
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
+            <button className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
+              <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
+          >
+            {/* Profile header */}
+            <div className="flex items-center gap-4 px-6 pt-10 pb-6">
+              <Avatar className="h-16 w-16 border-2 border-[#E3E6E6] shadow-sm">
+                <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
+                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-lg font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
+                <p className="text-[#2E4A4A] text-lg font-semibold truncate">{fullName}</p>
+              </div>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+              >
+                <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="h-px bg-[#E5E7EB] mx-6" />
+
+            {/* Nav items */}
+            <nav className="flex-1 px-6 pt-6 flex flex-col gap-2">
+              {menuItems.map((item) => (
+                <button
+                  key={item.label}
+                  className="flex items-center gap-5 py-4 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
+                >
+                  <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                  <span className="text-base font-semibold">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+
+            {/* Logout at bottom */}
+            <div className="mt-auto">
+              <div className="h-px bg-[#E5E7EB] mx-6" />
+              <button
+                onClick={() => {
+                  setSheetOpen(false);
+                  onSignOut();
+                }}
+                className="flex items-center gap-5 px-8 py-6 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+              >
+                <FontAwesomeIcon icon={faRightFromBracket} className="w-5 h-5" />
+                <span className="text-base font-semibold">Logout</span>
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {/* Right Side: Search, Notifications & Avatar */}
         <div className="flex items-center gap-5 h-12">
