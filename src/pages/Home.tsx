@@ -24,7 +24,7 @@ const menuItems = [
   { icon: faCreditCard, label: "Subscription" },
 ];
 
-const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onNavigateAccount: () => void }) => {
+const HomePage = ({ onSignOut, onNavigateAccount, onNavigateFlights }: { onSignOut: () => void; onNavigateAccount: () => void; onNavigateFlights: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Explorer");
@@ -113,6 +113,10 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
                 <button
                   key={item.label}
                   type="button"
+                  onClick={() => {
+                    setSheetOpen(false);
+                    if (item.label === "Flights") onNavigateFlights();
+                  }}
                   className="flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
                 >
                   <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
