@@ -47,9 +47,9 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
       <div
         className="relative h-[60%] w-full transition-all duration-500 ease-in-out"
         style={{
-          backgroundImage: 'url("/lovable-uploads/6ac39ef2-1e8c-4c30-9ed1-969beac61a04.png")',
+          backgroundImage: `url(${slides[current].background})`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "top center",
           backgroundRepeat: "no-repeat",
         }}
       >
