@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlane } from "@fortawesome/free-solid-svg-icons";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -17,30 +19,30 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center gradient-splash transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-[#345C5A] transition-opacity duration-500 ${
         show ? "opacity-100" : "opacity-0"
       }`}
     >
-      {/* Ripple rings */}
+      {/* Expanding Ripple Ring */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full border-2 border-accent-blue/40 animate-ripple" />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full border-2 border-accent-pink/30 animate-ripple-delay-1" />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full border-2 border-accent-yellow/20 animate-ripple-delay-2" />
+        <div className="w-40 h-40 rounded-full border-4 border-[#F2F3F3]/10 animate-ping" />
       </div>
 
-      {/* Center logo */}
-      <div className="relative z-10 text-center">
-        <h1 className="text-4xl font-bold text-foreground tracking-widest uppercase">Wildfly</h1>
-      </div>
+      {/* Center Content */}
+      <div className="relative z-10 text-center flex flex-col items-center">
+        {/* --- OPTION: CUSTOM GIF --- */}
+        {/* If you want to use a GIF, delete the airplane icon div below and uncomment this line: */}
+        {/* <img src="/assets/your-animated-logo.gif" alt="Wildfly" className="w-24 h-24 mb-6" /> */}
 
-      {/* Decorative circles */}
-      <div className="absolute top-1/4 left-1/4 w-10 h-10 rounded-full bg-accent-pink/40 animate-float" />
-      <div className="absolute bottom-1/3 right-1/4 w-6 h-6 rounded-full bg-accent-yellow/50 animate-float-delay" />
-      <div className="absolute top-1/3 right-1/3 w-8 h-8 rounded-full bg-accent-blue/40 animate-float-delay-2" />
+        {/* --- OPTION: CSS ANIMATED ICON --- */}
+        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-lg">
+          <FontAwesomeIcon icon={faPlane} className="text-white w-8 h-8 -rotate-45" />
+        </div>
+
+        {/* App Title */}
+        <h1 className="text-4xl font-bold text-white tracking-widest uppercase">Wildfly</h1>
+        <p className="mt-3 text-[#F2F3F3]/70 text-sm tracking-widest uppercase font-medium">Taking off...</p>
+      </div>
     </div>
   );
 };
