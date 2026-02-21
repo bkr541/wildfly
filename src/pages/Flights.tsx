@@ -281,22 +281,23 @@ const FlightsPage = ({
               left: `calc(6px + ${tripOptions.findIndex((o) => o.value === tripType)} * ((100% - 12px) / ${tripOptions.length}))`,
             }}
           />
-          {tripOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setTripType(opt.value)}
-              className={cn(
-                "flex-1 py-2.5 text-xs font-semibold rounded-xl transition-colors duration-200 relative z-10 flex items-center justify-center gap-1.5",
-                tripType === opt.value
-                  ? "text-white"
-                  : "text-[#6B7B7B] hover:text-[#2E4A4A]"
-              )}
-            >
-              <FontAwesomeIcon icon={opt.icon} className="w-3 h-3" />
-              {opt.label}
-            </button>
-          ))}
+          {tripOptions.map((opt) => {
+            const isActive = tripType === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTripType(opt.value)}
+                className={cn(
+                  "flex-1 py-2.5 text-xs font-semibold rounded-xl transition-colors duration-200 relative z-10 flex items-center justify-center gap-1.5",
+                  isActive ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
+                )}
+              >
+                <FontAwesomeIcon icon={opt.icon} className="w-3 h-3" />
+                {isActive && <span className="animate-fade-in">{opt.label}</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Departure Airport */}
