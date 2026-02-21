@@ -60,29 +60,24 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Load user data
   useEffect(() => {
     const loadUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser) { setLoading(false); return; }
-        const { data } = await supabase
-          .from("user_info")
-          .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
-          .eq("auth_user_id", authUser.id)
-          .maybeSingle();
-        if (data) {
-          setUser(data as UserData);
-          const defaultUsername = `${data.first_name || ""}${data.last_name || ""}`.replace(/\s/g, "");
-          setUsername(data.username || defaultUsername);
-          setDob(data.dob || "");
-          setMobileNumber((data as any).mobile_number || "");
-          if (data.image_file && data.image_file.startsWith("http")) {
-            setAvatarUrl(data.image_file);
-          }
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+      const { data } = await supabase
+        .from("user_info")
+        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
+        .eq("auth_user_id", authUser.id)
+        .maybeSingle();
+      if (data) {
+        setUser(data as UserData);
+        const defaultUsername = `${data.first_name || ""}${data.last_name || ""}`.replace(/\s/g, "");
+        setUsername(data.username || defaultUsername);
+        setDob(data.dob || "");
+        setMobileNumber((data as any).mobile_number || "");
+        if (data.image_file && data.image_file.startsWith("http")) {
+          setAvatarUrl(data.image_file);
         }
-      } catch (err) {
-        console.error("ProfileSetup loadUser error:", err);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     loadUser();
   }, []);
@@ -203,8 +198,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   const firstName = user?.first_name || "User";
 
-  const inputBase = "w-full px-4 py-3 rounded-xl bg-white text-[#1A4E54] placeholder:text-gray-400 outline-none transition-all border border-gray-200 focus:ring-2 focus:ring-[#1A4E54]/20 focus:border-[#1A4E54]";
-  const inputError = "w-full px-4 py-3 rounded-xl bg-white text-[#1A4E54] placeholder:text-gray-400 outline-none transition-all border border-destructive focus:ring-2 focus:ring-destructive/20";
+  const inputBase = "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all border border-border focus:ring-2 focus:ring-ring";
+  const inputError = "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all border border-destructive focus:ring-2 focus:ring-destructive";
 
   if (loading) {
     return (
@@ -217,28 +212,28 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Interstitial
   if (showInterstitial) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F3F3F3] animate-fade-in px-8">
-        <div className="w-20 h-20 rounded-full bg-[#1A4E54]/10 flex items-center justify-center mb-8 animate-scale-in">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background animate-fade-in px-8">
+        <div className="w-20 h-20 rounded-full bg-accent-blue/20 flex items-center justify-center mb-8 animate-scale-in">
           <span className="text-4xl">✈️</span>
         </div>
-        <h1 className="text-3xl font-bold text-[#1A4E54] mb-3 text-center">You're All Set!</h1>
-        <p className="text-gray-500 text-lg text-center">It's time to get wild</p>
+        <h1 className="text-3xl font-bold text-foreground mb-3 text-center">You're All Set!</h1>
+        <p className="text-muted-foreground text-lg text-center">It's time to get wild</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F3F3F3]">
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="flex items-center px-6 pt-10 pb-2">
         {step > 0 && (
-          <button onClick={() => setStep(s => s - 1)} className="mr-3 text-[#1A4E54]">
+          <button onClick={() => setStep(s => s - 1)} className="mr-3 text-foreground">
             <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
         )}
-        <div className="flex gap-2 flex-1 justify-center max-w-[200px] mx-auto">
+        <div className="flex gap-1.5 flex-1 justify-center">
           {[0, 1, 2].map(i => (
-            <div key={i} className={`h-1 rounded-full flex-1 transition-colors ${i <= step ? "bg-[#3D918B]" : "bg-gray-200"}`} />
+            <div key={i} className={`h-1 rounded-full flex-1 max-w-[60px] transition-colors ${i <= step ? "bg-accent-blue" : "bg-border"}`} />
           ))}
         </div>
         {step === 0 && <div className="w-6" />}
@@ -248,29 +243,29 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#1A4E54] mt-8 mb-2">User's Profile</h1>
-            <p className="text-gray-500 text-base mb-10">Let's start off by learning a little more about you.</p>
+            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Profile</h1>
+            <p className="text-muted-foreground text-sm mb-8">Let's start off by learning a little more about you.</p>
 
             {/* Avatar */}
-            <div className="flex flex-col items-center mb-8">
-              <label className="relative w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer overflow-hidden group">
+            <div className="flex flex-col items-center mb-6">
+              <label className="relative w-24 h-24 rounded-full bg-secondary flex items-center justify-center cursor-pointer overflow-hidden group">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <FontAwesomeIcon icon={faCamera} className="w-10 h-10 text-[#1A4E54] opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
                 )}
-                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-white" />
+                <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <FontAwesomeIcon icon={faCamera} className="w-6 h-6 text-foreground" />
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </label>
-              <p className="text-[#1A4E54] font-bold text-lg mt-4 hidden">{user?.first_name} {user?.last_name}</p>
+              <p className="text-foreground font-semibold mt-3">{user?.first_name} {user?.last_name}</p>
             </div>
 
             {/* Fields */}
             <div className="space-y-4">
               <div className="form-group">
-                <label className="block text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Username *</label>
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Username *</label>
                 <input
                   value={username}
                   onChange={e => { setUsername(e.target.value); setUsernameError(""); }}
@@ -280,11 +275,11 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                 {usernameError && <p className="text-destructive text-xs mt-1">{usernameError}</p>}
               </div>
               <div className="form-group">
-                <label className="block text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Date of Birth</label>
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Date of Birth</label>
                 <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={inputBase} />
               </div>
               <div className="form-group">
-                <label className="block text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Mobile Number</label>
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Mobile Number</label>
                 <input type="tel" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" className={inputBase} />
               </div>
             </div>
@@ -293,7 +288,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               <button
                 onClick={handleScreen1Continue}
                 disabled={saving}
-                className="w-full py-4 rounded-xl bg-[#1A4E54] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Continue"}
               </button>
@@ -304,27 +299,27 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 2: Destinations ===================== */}
         {step === 1 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#1A4E54] mt-8 mb-2">User's Destinations</h1>
-            <p className="text-gray-500 text-base mb-10">Tell us where you call home and your favorite places to explore.</p>
+            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Destinations</h1>
+            <p className="text-muted-foreground text-sm mb-8">Tell us where you call home and your favorite places to explore.</p>
 
             {/* Home City */}
             <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className="block text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Home City *</label>
+              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Home City *</label>
               <div className="relative">
-                 <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                 <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   value={homeCitySearch}
                   onChange={e => handleHomeCitySearch(e.target.value)}
                   onFocus={() => homeCitySearch.length >= 3 && setShowHomeCityDropdown(true)}
                   placeholder="Search for your home city..."
-                  className={`${homeCityError ? inputError : inputBase} pl-12`}
+                  className={`${homeCityError ? inputError : inputBase} pl-10`}
                 />
               </div>
               {homeCityError && <p className="text-destructive text-xs mt-1">{homeCityError}</p>}
               {showHomeCityDropdown && homeCityResults.length > 0 && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {homeCityResults.map(loc => (
-                    <button key={loc.id} onClick={() => selectHomeCity(loc)} className="w-full text-left px-4 py-3 text-sm text-[#1A4E54] hover:bg-gray-50 transition-colors">
+                    <button key={loc.id} onClick={() => selectHomeCity(loc)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                       {formatLocationDisplay(loc)}
                     </button>
                   ))}
@@ -335,26 +330,26 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             {/* Favorite Cities - only show when home city selected */}
             {homeCity && (
               <div ref={favCityRef} className="form-group relative mb-4">
-                <label className="block text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>
                 <div className="relative">
-                  <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     value={favSearch}
                     onChange={e => handleFavSearch(e.target.value)}
                     onFocus={() => favSearch.length >= 3 && setShowFavDropdown(true)}
                     placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
                     disabled={favoriteCities.length >= 5}
-                    className={`${inputBase} pl-12 disabled:opacity-50`}
+                    className={`${inputBase} pl-10 disabled:opacity-50`}
                   />
                 </div>
                 {showFavDropdown && favResults.length > 0 && (
-                  <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     {favResults
                       .filter(loc => loc.id !== homeCity.id && !favoriteCities.some(f => f.id === loc.id))
                       .map(loc => (
-                        <button key={loc.id} onClick={() => addFavorite(loc)} className="w-full text-left px-4 py-3 text-sm text-[#1A4E54] hover:bg-gray-50 transition-colors">
+                        <button key={loc.id} onClick={() => addFavorite(loc)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           {formatLocationDisplay(loc)}
                         </button>
                       ))}
@@ -363,11 +358,11 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
                 {/* Chips */}
                 {favoriteCities.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Selected Cities: {favoriteCities.length}</p>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted-foreground mb-2">Selected Cities: {favoriteCities.length}</p>
                     <div className="flex flex-wrap gap-2">
                       {favoriteCities.map(loc => (
-                        <span key={loc.id} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-[#1A4E54] text-sm font-medium shadow-sm">
+                        <span key={loc.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-foreground text-sm">
                           {formatLocationDisplay(loc)}
                           <button onClick={() => removeFavorite(loc.id)} className="hover:text-destructive transition-colors">
                             <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
@@ -384,7 +379,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               <button
                 onClick={handleScreen2Continue}
                 disabled={saving}
-                className="w-full py-4 rounded-xl bg-[#1A4E54] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Continue"}
               </button>
@@ -395,27 +390,27 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#1A4E54] mt-8 mb-2">User's Friends</h1>
-            <p className="text-gray-500 text-base mb-10">Find your travel buddies, make a crew, and explore together.</p>
+            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Friends</h1>
+            <p className="text-muted-foreground text-sm mb-8">Find your travel buddies, make a crew, and explore together.</p>
 
-            <div className="relative mb-6">
-              <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="relative mb-4">
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 disabled
                 placeholder="Find Friends"
-                className={`${inputBase} pl-12 opacity-50 cursor-not-allowed`}
+                className={`${inputBase} pl-10 opacity-50 cursor-not-allowed`}
               />
             </div>
-            <div className="flex items-center gap-4 p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
-              <FontAwesomeIcon icon={faUsers} className="w-6 h-6 text-[#1A4E54] opacity-40 flex-shrink-0" />
-              <p className="text-[#1A4E54] opacity-60 text-base font-medium">This feature is coming soon</p>
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50">
+              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <p className="text-muted-foreground text-sm">This feature is coming soon</p>
             </div>
 
             <div className="mt-auto pt-6">
               <button
                 onClick={handleStartFlying}
                 disabled={saving}
-                className="w-full py-4 rounded-xl bg-[#1A4E54] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Start Flying"}
               </button>
