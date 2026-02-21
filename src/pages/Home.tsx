@@ -67,13 +67,13 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
       {/* Header layout */}
-      <header className="flex items-center justify-between px-6 py-3 relative z-10">
+      <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
         {/* Left: Menu icon -> Sheet */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <button
               type="button"
-              className="h-12 w-12 flex items-center justify-start p-0 m-0 text-[#2E4A4A] hover:opacity-80 transition-opacity"
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
             >
               <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
             </button>
@@ -85,6 +85,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           >
             {/* Sidebar profile header */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-6">
+              {/* ✅ resized to match header avatar */}
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
                 <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
@@ -97,7 +98,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
               <button
                 onClick={() => setSheetOpen(false)}
-                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors p-0 m-0"
+                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
                 type="button"
               >
                 <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
@@ -106,7 +107,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
             <div className="h-px bg-[#E5E7EB] mx-6" />
 
-            {/* Nav items (tight spacing) */}
+            {/* Nav items (tightened spacing) */}
             <nav className="flex-1 px-6 pt-4 flex flex-col justify-start gap-1">
               {menuItems.map((item) => (
                 <button
@@ -139,17 +140,17 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
         </Sheet>
 
         {/* Right: Search, Notifications, Avatar */}
-        <div className="flex items-center gap-5 h-12 p-0 m-0">
+        <div className="flex items-center gap-5 h-12">
           <button
             type="button"
-            className="h-12 w-12 flex items-center justify-center p-0 m-0 text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
           >
             <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
           </button>
 
           <button
             type="button"
-            className="h-12 w-12 flex items-center justify-center p-0 m-0 text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
           >
             <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
           </button>
@@ -164,8 +165,8 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
         </div>
       </header>
 
-      {/* Title Group (moved up closer to header) */}
-      <div className="px-6 pt-0 pb-6 -mt-2 relative z-10 animate-fade-in">
+      {/* Title Group */}
+      <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
       </div>
