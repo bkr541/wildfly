@@ -34,8 +34,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
       {/* Center logo */}
       <div className="relative z-10 text-center">
-        <h1 className="text-4xl font-bold text-foreground tracking-wide">Hearme</h1>
-        <p className="mt-2 text-muted-foreground text-sm">Welcome</p>
+        <h1 className="text-4xl font-bold text-foreground tracking-widest uppercase">Wildfly</h1>
       </div>
 
       {/* Decorative circles */}
