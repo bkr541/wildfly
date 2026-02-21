@@ -9,24 +9,25 @@ interface OnboardingProps {
 const slides = [
   {
     background: "/assets/onboarding/background1.png",
-    title: "Discover Live Music",
-    subtitle: "Find events, artists, and festivals tailored to your taste.",
+    title: "Less Headache, More Confidence",
+    subtitle: "We understand that booking can be a wild ride sometimes. Wildfly was made to help that.",
   },
   {
     background: "/assets/onboarding/background2.png",
-    title: "Plan Your Trip",
-    subtitle: "Book flights and build your perfect festival itinerary.",
+    title: "More Searches, More You",
+    subtitle:
+      "Wildfly has two unique Agents powering it - Stats and Curation. Our Stats Agent pulls from current and historical flight trends to always keep you updated, while our Curation Agent learns when and where you like to explore, then provides you the perfect way to get there.",
   },
   {
     background: "/assets/onboarding/background3.png",
     title: "Friends That Plan Together, Fly Together",
-    subtitle:
-      "See what your friends are planning, compare destinations, and sync trips without the endless group chat spiral.",
+    subtitle: "Find other wild flyers, compare destinations, and sync trips without the endless group chat.",
   },
   {
     background: "/assets/onboarding/background4.png",
-    title: "Make It Yours",
-    subtitle: "Set up your profile and let us personalize your experience.",
+    title: "Plan Smarter, Fly Wilder",
+    subtitle:
+      "At the end of the day, Wildfly is here to help you have the information you need to get to the destination you're going.",
   },
 ];
 
@@ -46,10 +47,9 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
       <div
         className="relative h-[60%] w-full transition-all duration-500 ease-in-out"
         style={{
-          backgroundImage: `url(${slides[current].background})`,
+          backgroundImage: 'url("/lovable-uploads/6ac39ef2-1e8c-4c30-9ed1-969beac61a04.png")',
           backgroundSize: "cover",
-          // Changed from "center" to "top center" to shift image down visually
-          backgroundPosition: "top center",
+          backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
