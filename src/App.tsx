@@ -9,6 +9,7 @@ import ProfileSetup from "./components/ProfileSetup";
 import HomePage from "./pages/Home";
 import AccountHub from "./pages/AccountHub";
 import FlightsPage from "./pages/Flights";
+import DestinationsPage from "./pages/Destinations";
 import AdminImport from "./pages/AdminImport";
 
 const MainApp = () => {
@@ -17,7 +18,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations">("home");
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -171,6 +172,10 @@ const MainApp = () => {
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flights" && (
           <FlightsPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
+        )}
+
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "destinations" && (
+          <DestinationsPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
         )}
       </div>
     </div>
