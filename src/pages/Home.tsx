@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBell } from "@fortawesome/free-solid-svg-icons";
 
 const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -33,22 +33,30 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {/* Updated decorative circles to match the new teal theme */}
+      {/* Decorative circles */}
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      {/* Header layout updated to justify-between to split the menu and avatar */}
+      {/* Header layout */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
-        {/* New Menu Icon */}
+        {/* Left Side: Menu Icon */}
         <button className="w-10 h-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
           <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
         </button>
 
-        {/* Updated Avatar Styling */}
-        <Avatar className="h-10 w-10 border-2 border-[#E3E6E6] shadow-sm">
-          <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-          <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-sm font-bold">{initials}</AvatarFallback>
-        </Avatar>
+        {/* Right Side: Notifications & Avatar */}
+        <div className="flex items-center gap-5">
+          {/* Notification Icon */}
+          <button className="text-[#2E4A4A] hover:opacity-80 transition-opacity relative">
+            <FontAwesomeIcon icon={faBell} className="w-[22px] h-[22px]" />
+          </button>
+
+          {/* Increased Avatar Size (h-12 w-12) */}
+          <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity">
+            <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
+            <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
+          </Avatar>
+        </div>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10"></div>
