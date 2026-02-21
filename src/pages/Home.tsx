@@ -56,6 +56,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
         setFullName([data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer");
       }
     };
+
     loadAvatar();
   }, []);
 
@@ -67,10 +68,13 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
       {/* Header layout */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
-        {/* Left Side: Menu Icon → opens Sheet */}
+        {/* Left: Menu icon -> Sheet */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
-            <button className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
+            <button
+              type="button"
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            >
               <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
             </button>
           </SheetTrigger>
@@ -79,11 +83,12 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
-            {/* Profile header */}
+            {/* Sidebar profile header */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-6">
-              <Avatar className="h-16 w-16 border-2 border-[#E3E6E6] shadow-sm">
+              {/* ✅ resized to match header avatar */}
+              <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-lg font-bold">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
               </Avatar>
 
               <div className="flex-1 min-w-0">
@@ -134,25 +139,22 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           </SheetContent>
         </Sheet>
 
-        {/* Right Side: Search, Notifications & Avatar */}
+        {/* Right: Search, Notifications, Avatar */}
         <div className="flex items-center gap-5 h-12">
-          {/* Search Icon */}
           <button
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
             type="button"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
           >
             <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
           </button>
 
-          {/* Notification Icon (Outline) */}
           <button
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
             type="button"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
           >
             <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
           </button>
 
-          {/* Avatar */}
           <Avatar
             className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
             onClick={onNavigateAccount}
@@ -169,9 +171,9 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
         <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        {/* We can drop upcoming trips or flight cards right in here */}
+        {/* Add content here */}
       </div>
     </div>
   );
