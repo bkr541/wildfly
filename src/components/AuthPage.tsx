@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
 import mainLogo from "@/assets/mainlogo.png";
@@ -20,10 +21,8 @@ interface AuthPageProps {
 interface FieldErrors {
   firstName?: string;
   lastName?: string;
-
   email?: string;
   password?: string;
-  confirmPassword?: string;
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,47 +30,76 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Confirm password is ONLY used in the popup dialog (no duplicate inline field)
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showLoginError, setShowLoginError] = useState(false);
 
+  // Confirm password popup
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  const [showLoginError, setShowLoginError] = useState(false);
+  // Password reveal
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const validateSignIn = () => {
-    const nextErrors: FieldErrors = {};
-    if (!emailRegex.test(email.trim())) nextErrors.email = "Enter a valid email";
-    if (!password || password.length < 6) nextErrors.password = "Password must be at least 6 characters";
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+  // Forgot password
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const validateSignUp = (): boolean => {
+    const newErrors: FieldErrors = {};
+
+    if (!firstName.trim()) newErrors.firstName = "First name is required";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const validateSignUp = () => {
-    const nextErrors: FieldErrors = {};
-    if (!firstName.trim()) nextErrors.firstName = "First name is required";
-    if (!lastName.trim()) nextErrors.lastName = "Last name is required";
-    if (!emailRegex.test(email.trim())) nextErrors.email = "Enter a valid email";
-    if (!password || password.length < 6) nextErrors.password = "Password must be at least 6 characters";
-    if (!confirmPassword) nextErrors.confirmPassword = "Confirm your password";
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+  const validateSignIn = (): boolean => {
+    const newErrors: FieldErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) newErrors.password = "Password is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
+    // SIGN UP: validate form, then open confirm password popup
     if (isSignUp) {
       if (!validateSignUp()) return;
       setConfirmPassword("");
@@ -80,6 +108,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       return;
     }
 
+    // SIGN IN
     if (!validateSignIn()) return;
 
     setLoading(true);
@@ -107,11 +136,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           onboarding_complete: "No",
           image_file: "",
         });
+
+        // No profile means onboarding is needed
         onSignIn(true);
         return;
       }
 
-      // ✅ Rule: if onboarding_complete !== "Yes", go to onboarding.
+      // ✅ Correct rule: anything other than "Yes" goes to onboarding
       onSignIn(profile.onboarding_complete !== "Yes");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -163,13 +194,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         return;
       }
 
-      // If email confirmations are enabled, Supabase may return no session here.
-      // In that case, we can't proceed to onboarding because the user isn't signed in yet.
+      // ✅ If email confirmation is enabled, session may be null here
       if (!authData.session) {
         setSubmitError("Check your email to confirm your account, then sign in.");
         return;
       }
 
+      // Signup should go directly to onboarding
       onSignIn(true);
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -178,145 +209,291 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
+  const handleTryAgain = () => {
+    setEmail("");
+    setPassword("");
+    setShowLoginError(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail.trim()) {
+      setForgotError("Email is required");
+      return;
+    }
+    if (!emailRegex.test(forgotEmail.trim())) {
+      setForgotError("Please enter a valid email address");
+      return;
+    }
+
+    setForgotLoading(true);
+    setForgotError(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        setForgotError(error.message);
+        return;
+      }
+
+      setForgotSuccess(true);
+    } catch {
+      setForgotError("Something went wrong. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const inputBase =
+    "w-full px-4 py-3 rounded-lg bg-[#1A4E54] text-foreground placeholder:text-muted-foreground outline-none transition-all";
+  const inputNormal = `${inputBase} border border-border focus:ring-2 focus:ring-accent-blue`;
+  const inputError = `${inputBase} border border-destructive focus:ring-2 focus:ring-destructive`;
+
   return (
-    <div className="min-h-screen w-full flex flex-col justify-center items-center relative overflow-hidden">
+    <div className="relative flex flex-col min-h-screen bg-background overflow-hidden">
       <DecorativeCircles />
 
-      <div className="w-full max-w-[480px] px-8">
-        <div className="flex flex-col items-center mb-10">
-          <img src={mainLogo} alt="logo" className="w-20 h-20 mb-5" />
-          <h1 className="text-3xl font-bold text-foreground">{isSignUp ? "Create Account" : "Welcome Back"}</h1>
-          <p className="text-muted-foreground mt-2">{isSignUp ? "Sign up to get started" : "Sign in to continue"}</p>
-        </div>
+      <div className="w-full flex justify-center pt-8 pb-2 relative z-10">
+        <img src={mainLogo} alt="WildFly logo" className="h-32 md:h-36 w-auto max-w-[280px] object-contain" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="flex-1 flex flex-col items-center justify-start px-8 pt-2 pb-10 relative z-10">
+        <h1 className="text-3xl font-bold text-foreground mb-6">{isSignUp ? "Sign Up" : "Sign In"}</h1>
+
+        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5" noValidate>
           {isSignUp && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-muted-foreground">First name</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="form-group">
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                  First Name
+                </label>
                 <input
+                  type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full mt-1 px-4 py-3 rounded-xl bg-muted text-foreground outline-none"
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    setErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
+                  placeholder="First"
+                  className={errors.firstName ? inputError : inputNormal}
                 />
-                {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+                {errors.firstName && <p className="text-destructive text-xs mt-1">{errors.firstName}</p>}
               </div>
 
-              <div>
-                <label className="text-sm text-muted-foreground">Last name</label>
+              <div className="form-group">
+                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                  Last Name
+                </label>
                 <input
+                  type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full mt-1 px-4 py-3 rounded-xl bg-muted text-foreground outline-none"
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    setErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
+                  placeholder="Last"
+                  className={errors.lastName ? inputError : inputNormal}
                 />
-                {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+                {errors.lastName && <p className="text-destructive text-xs mt-1">{errors.lastName}</p>}
               </div>
             </div>
           )}
 
-          <div>
-            <label className="text-sm text-muted-foreground">Email</label>
+          <div className="form-group">
+            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+              Email
+            </label>
             <input
+              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-4 py-3 rounded-xl bg-muted text-foreground outline-none"
-              autoComplete="email"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
+              placeholder="you@example.com"
+              className={errors.email ? inputError : inputNormal}
             />
-            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
           </div>
 
-          <div>
-            <label className="text-sm text-muted-foreground">Password</label>
+          <div className="form-group">
+            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+              Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1 px-4 py-3 rounded-xl bg-muted text-foreground outline-none pr-12"
-                autoComplete={isSignUp ? "new-password" : "current-password"}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                placeholder="••••••••"
+                className={errors.password ? inputError : inputNormal}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? (
+                  <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
+                ) : (
+                  <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
+                )}
               </button>
             </div>
-            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
           </div>
 
-          {isSignUp && (
-            <div>
-              <label className="text-sm text-muted-foreground">Confirm password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full mt-1 px-4 py-3 rounded-xl bg-muted text-foreground outline-none"
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
+          {!isSignUp && (
+            <div className="flex justify-end mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotError(null);
+                  setForgotSuccess(false);
+                  setShowForgotPassword(true);
+                }}
+                className="text-xs text-accent-blue font-semibold hover:underline"
+              >
+                Forgot My Password
+              </button>
             </div>
           )}
-
-          {submitError && <p className="text-sm text-red-500">{submitError}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60"
+            className="w-full py-3 mt-4 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+            {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
 
+          {submitError && <p className="text-destructive text-sm text-center mt-2">{submitError}</p>}
+        </form>
+
+        <p className="mt-8 text-muted-foreground text-sm">
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
-            type="button"
             onClick={() => {
-              setIsSignUp((s) => !s);
+              setIsSignUp(!isSignUp);
               setErrors({});
               setSubmitError(null);
             }}
-            className="w-full text-sm text-muted-foreground"
+            className="text-accent-blue font-semibold hover:underline"
           >
-            {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+            {isSignUp ? "Sign In" : "Sign Up"}
           </button>
-        </form>
+        </p>
       </div>
 
+      {/* Confirm Password Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm password</AlertDialogTitle>
-            <AlertDialogDescription>Re-enter your password to finish creating your account.</AlertDialogDescription>
+            <AlertDialogTitle>Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="mt-4">
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-muted text-foreground outline-none"
-            />
-            {confirmError && <p className="text-xs text-red-500 mt-2">{confirmError}</p>}
+          <div className="px-6 pb-2">
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setConfirmError(null);
+                }}
+                placeholder="••••••••"
+                className={confirmError ? inputError : inputNormal}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? (
+                  <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
+                ) : (
+                  <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
+                )}
+              </button>
+            </div>
+            {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleConfirmSignUp} disabled={loading}>
-              {loading ? "Creating..." : "Create Account"}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Login failed</AlertDialogTitle>
-            <AlertDialogDescription>Invalid email or password. Please try again.</AlertDialogDescription>
+            <AlertDialogTitle>Login Failed</AlertDialogTitle>
+            <AlertDialogDescription>
+              The email and password combination is not correct. Please try again.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowLoginError(false)}>OK</AlertDialogAction>
+            <AlertDialogAction onClick={handleTryAgain}>Try Again</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Forgot Password Dialog */}
+      <AlertDialog
+        open={showForgotPassword}
+        onOpenChange={(open) => {
+          setShowForgotPassword(open);
+          if (!open) setForgotSuccess(false);
+        }}
+      >
+        <AlertDialogContent className="max-w-xs rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {forgotSuccess
+                ? "If an account exists with that email, a password reset link has been sent."
+                : "Enter your email address and we'll send you a link to reset your password."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {!forgotSuccess && (
+            <div className="px-6 pb-2">
+              <div className="form-group">
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => {
+                    setForgotEmail(e.target.value);
+                    setForgotError(null);
+                  }}
+                  placeholder="you@example.com"
+                  className={forgotError ? inputError : inputNormal}
+                  autoFocus
+                />
+              </div>
+              {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            {forgotSuccess ? (
+              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
+            ) : (
+              <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
+                {forgotLoading ? "Sending..." : "Send Reset Link"}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
