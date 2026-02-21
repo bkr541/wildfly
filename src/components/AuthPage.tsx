@@ -4,6 +4,7 @@ import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
 import mainLogo from "@/assets/mainlogo.png";
+import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -74,6 +75,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
     if (!password) {
       newErrors.password = "Password is required";
+    } else if (!isPasswordStrong(password)) {
+      newErrors.password = "Password does not meet all requirements";
     }
 
     setErrors(newErrors);
@@ -322,31 +325,47 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
               Password
             </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
+            {isSignUp ? (
+              <PasswordStrengthInput
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
+                onChange={(val) => {
+                  setPassword(val);
                   setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
-                placeholder="••••••••"
-                className={errors.password ? inputError : inputNormal}
+                showPassword={showPassword}
+                onToggleVisibility={() => setShowPassword(!showPassword)}
+                error={errors.password}
+                inputClassName={errors.password ? inputError : inputNormal}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
-                ) : (
-                  <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
-                )}
-              </button>
-            </div>
-            {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
+            ) : (
+              <>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrors((prev) => ({ ...prev, password: undefined }));
+                    }}
+                    placeholder="••••••••"
+                    className={errors.password ? inputError : inputNormal}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
+                    ) : (
+                      <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
+              </>
+            )}
           </div>
 
           {!isSignUp && (
