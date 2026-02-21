@@ -12,7 +12,6 @@ import {
   faUserGroup,
   faCreditCard,
   faRightFromBracket,
-  faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 
@@ -76,24 +75,19 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-[85%] sm:max-w-sm p-0 bg-[#345C5A] border-none rounded-r-3xl flex flex-col"
+            // The [&>button]:hidden class removes the default shadcn "X" close button
+            className="w-[85%] sm:max-w-sm p-0 bg-[#345C5A] border-none rounded-r-3xl flex flex-col [&>button]:hidden"
           >
             {/* Profile header */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-4">
-              <Avatar className="h-16 w-16 border-2 border-[#E3E6E6] shadow-sm">
+              <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-lg font-bold">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-[#F2F3F3]/70 text-sm font-medium">Hello,</p>
                 <p className="text-white text-lg font-semibold truncate">{fullName}</p>
               </div>
-              <button
-                onClick={() => setSheetOpen(false)}
-                className="text-[#F2F3F3]/70 hover:text-white transition-colors"
-              >
-                <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
-              </button>
             </div>
 
             <div className="h-px bg-white/10 mx-6" />
