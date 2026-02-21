@@ -7,30 +7,29 @@ interface OnboardingProps {
 }
 
 const slides = [
-{
-  background: "/assets/onboarding/background1.png",
-  title: "Less Headache, More Confidence",
-  subtitle:
-  "We understand that sometimes booking a flight can be kind of wild, and not in a good way. Wildfly was made to take the worry out of booking and help you enjoy the experience of flying wild."
-},
-{
-  background: "/assets/onboarding/background2.png",
-  title: "More Searches, More You",
-  subtitle:
-  "Wildfly has two unique Agents powering it - Stats and Curation. Our Stats Agent pulls from current and historical flight trends to always keep you updated, while our Curation Agent learns when and where you like to explore, then provides you the perfect way to get there."
-},
-{
-  background: "/assets/onboarding/background3.png",
-  title: "Friends That Plan Together, Fly Together",
-  subtitle: "Find other wild flyers, compare destinations, and sync trips without the endless group chat."
-},
-{
-  background: "/assets/onboarding/background4.png",
-  title: "Plan Smarter, Fly Wilder",
-  subtitle:
-  "At the end of the day, Wildfly is here to help you have the information you need to get to the destination you're going."
-}];
-
+  {
+    background: "/assets/onboarding/background1.png",
+    title: "Less Headache, More Confidence",
+    subtitle: "We understand that booking can be a wild ride sometimes. Wildfly was made to help that.",
+  },
+  {
+    background: "/assets/onboarding/background2.png",
+    title: "More Searches, More You",
+    subtitle:
+      "Wildfly has two unique Agents powering it - Stats and Curation. Our Stats Agent pulls from current and historical flight trends to always keep you updated, while our Curation Agent learns when and where you like to explore, then provides you the perfect way to get there.",
+  },
+  {
+    background: "/assets/onboarding/background3.png",
+    title: "Friends That Plan Together, Fly Together",
+    subtitle: "Find other wild flyers, compare destinations, and sync trips without the endless group chat.",
+  },
+  {
+    background: "/assets/onboarding/background4.png",
+    title: "Plan Smarter, Fly Wilder",
+    subtitle:
+      "At the end of the day, Wildfly is here to help you have the information you need to get to the destination you're going.",
+  },
+];
 
 const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, ref) => {
   const [current, setCurrent] = useState(0);
@@ -48,12 +47,12 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
       <div
         className="relative h-[60%] w-full transition-all duration-500 ease-in-out"
         style={{
-          backgroundImage: "url(\"/lovable-uploads/6ac39ef2-1e8c-4c30-9ed1-969beac61a04.png\")",
+          backgroundImage: 'url("/lovable-uploads/6ac39ef2-1e8c-4c30-9ed1-969beac61a04.png")',
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat"
-        }}>
-
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         {/* Floating Top Navigation */}
         <div className="absolute top-12 left-6 right-6 flex items-center justify-between z-20">
           {/* Back Arrow */}
@@ -61,29 +60,29 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
             onClick={prev}
             disabled={current === 0}
             className={`w-10 h-10 flex items-center justify-start text-white transition-opacity ${
-            current === 0 ? "opacity-0 cursor-default" : "hover:opacity-80"}`
-            }>
-
+              current === 0 ? "opacity-0 cursor-default" : "hover:opacity-80"
+            }`}
+          >
             <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
 
           {/* Segmented Progress Steps */}
           <div className="flex-1 flex gap-2 mx-4 max-w-[180px]">
-            {slides.map((_, i) =>
-            <div
-              key={i}
-              className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${
-              i <= current ? "bg-white" : "bg-white/30"}`
-              } />
-
-            )}
+            {slides.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${
+                  i <= current ? "bg-white" : "bg-white/30"
+                }`}
+              />
+            ))}
           </div>
 
           {/* Skip Button */}
           <button
             onClick={onComplete}
-            className="w-10 text-right text-white text-sm font-bold tracking-wider hover:opacity-80 transition-opacity">
-
+            className="w-10 text-right text-white text-sm font-bold tracking-wider hover:opacity-80 transition-opacity"
+          >
             Skip
           </button>
         </div>
@@ -100,14 +99,14 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
         <div className="mt-auto pt-6">
           <button
             onClick={isLast ? onComplete : next}
-            className="w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity">
-
+            className="w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
+          >
             {isLast ? "Profile Setup" : "Let's Start!"}
           </button>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 });
 
 Onboarding.displayName = "Onboarding";
