@@ -24,7 +24,7 @@ const menuItems = [
   { icon: faCreditCard, label: "Subscription" },
 ];
 
-const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onNavigateAccount: () => void }) => {
+const AccountHub = ({ onSignOut, onBack }: { onSignOut: () => void; onBack: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Explorer");
@@ -147,7 +147,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           {/* Avatar */}
           <Avatar
             className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={onNavigateAccount}
+            onClick={onBack}
           >
             <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
             <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
@@ -157,18 +157,16 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
       {/* Title Group */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        {/* Decreased font size by 6px: text-4xl (36px) -> text-3xl (30px) */}
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
-        {/* Decreased font size by 6px: text-[17px] -> text-[11px] */}
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Account Hub</h1>
+        <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your account and settings.</p>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        {/* We can drop upcoming trips or flight cards right in here */}
+        {/* Account hub content goes here */}
       </div>
     </div>
   );
 };
 
-export default HomePage;
+export default AccountHub;
