@@ -12,6 +12,7 @@ import {
   faUserGroup,
   faCreditCard,
   faRightFromBracket,
+  faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 
@@ -52,7 +53,9 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
         setInitials(fi + li || "U");
 
         setUserName(data.first_name || "Explorer");
-        setFullName([data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer");
+        setFullName(
+          [data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer"
+        );
       }
     };
     loadAvatar();
@@ -75,29 +78,36 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           </SheetTrigger>
           <SheetContent
             side="left"
-            // The [&>button]:hidden class removes the default shadcn "X" close button
-            className="w-[85%] sm:max-w-sm p-0 bg-[#345C5A] border-none rounded-r-3xl flex flex-col [&>button]:hidden"
+            className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
             {/* Profile header */}
-            <div className="flex items-center gap-4 px-6 pt-10 pb-4">
-              <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
+            <div className="flex items-center gap-4 px-6 pt-10 pb-6">
+              <Avatar className="h-16 w-16 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-lg font-bold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-[#F2F3F3]/70 text-sm font-medium">Hello,</p>
-                <p className="text-white text-lg font-semibold truncate">{fullName}</p>
+                <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
+                <p className="text-[#2E4A4A] text-lg font-semibold truncate">{fullName}</p>
               </div>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+              >
+                <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="h-px bg-white/10 mx-6" />
+            <div className="h-px bg-[#E5E7EB] mx-6" />
 
             {/* Nav items */}
-            <nav className="flex-1 px-6 pt-4 flex flex-col gap-1">
+            <nav className="flex-1 px-6 pt-6 flex flex-col gap-2">
               {menuItems.map((item) => (
                 <button
                   key={item.label}
-                  className="flex items-center gap-5 py-3 text-[#F2F3F3] hover:text-white hover:bg-white/10 rounded-xl px-2 transition-colors"
+                  className="flex items-center gap-5 py-4 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
                 >
                   <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
                   <span className="text-base font-semibold">{item.label}</span>
@@ -106,14 +116,14 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
             </nav>
 
             {/* Logout at bottom */}
-            <div className="mt-auto pb-6">
-              <div className="h-px bg-white/10 mx-6" />
+            <div className="mt-auto">
+              <div className="h-px bg-[#E5E7EB] mx-6" />
               <button
                 onClick={() => {
                   setSheetOpen(false);
                   onSignOut();
                 }}
-                className="flex items-center gap-5 px-8 pt-6 pb-2 text-[#F2F3F3] hover:text-red-400 transition-colors w-full"
+                className="flex items-center gap-5 px-8 py-6 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
               >
                 <FontAwesomeIcon icon={faRightFromBracket} className="w-5 h-5" />
                 <span className="text-base font-semibold">Logout</span>
@@ -147,7 +157,9 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
       {/* Title Group */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-1 tracking-tight">Welcome, {userName}!</h1>
+        {/* Decreased font size by 6px: text-4xl (36px) -> text-3xl (30px) */}
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
+        {/* Decreased font size by 6px: text-[17px] -> text-[11px] */}
         <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
       </div>
 
