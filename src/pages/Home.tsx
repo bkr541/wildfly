@@ -76,7 +76,7 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
+            className="w-[85%] sm:max-w-sm p-0 bg-[#345C5A] border-none rounded-r-3xl flex flex-col"
           >
             {/* Profile header */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-4">
@@ -85,25 +85,25 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
                 <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-lg font-bold">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
-                <p className="text-[#2E4A4A] text-lg font-semibold truncate">{fullName}</p>
+                <p className="text-[#F2F3F3]/70 text-sm font-medium">Hello,</p>
+                <p className="text-white text-lg font-semibold truncate">{fullName}</p>
               </div>
               <button
                 onClick={() => setSheetOpen(false)}
-                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+                className="text-[#F2F3F3]/70 hover:text-white transition-colors"
               >
                 <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="h-px bg-[#E5E7EB] mx-6" />
+            <div className="h-px bg-white/10 mx-6" />
 
             {/* Nav items */}
             <nav className="flex-1 px-6 pt-4 flex flex-col gap-1">
               {menuItems.map((item) => (
                 <button
                   key={item.label}
-                  className="flex items-center gap-5 py-3 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
+                  className="flex items-center gap-5 py-3 text-[#F2F3F3] hover:text-white hover:bg-white/10 rounded-xl px-2 transition-colors"
                 >
                   <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
                   <span className="text-base font-semibold">{item.label}</span>
@@ -113,13 +113,13 @@ const HomePage = ({ onSignOut, onNavigateAccount }: { onSignOut: () => void; onN
 
             {/* Logout at bottom */}
             <div className="mt-auto pb-6">
-              <div className="h-px bg-[#E5E7EB] mx-6" />
+              <div className="h-px bg-white/10 mx-6" />
               <button
                 onClick={() => {
                   setSheetOpen(false);
                   onSignOut();
                 }}
-                className="flex items-center gap-5 px-8 pt-6 pb-2 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+                className="flex items-center gap-5 px-8 pt-6 pb-2 text-[#F2F3F3] hover:text-red-400 transition-colors w-full"
               >
                 <FontAwesomeIcon icon={faRightFromBracket} className="w-5 h-5" />
                 <span className="text-base font-semibold">Logout</span>
