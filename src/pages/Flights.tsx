@@ -18,6 +18,10 @@ import {
   faPlaneDeparture,
   faPlaneArrival,
   faCalendarDays,
+  faArrowRight,
+  faRepeat,
+  faSun,
+  faRoute,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
@@ -33,11 +37,11 @@ const menuItems = [
 
 type TripType = "one-way" | "round-trip" | "day-trip" | "multi-day";
 
-const tripOptions: { value: TripType; label: string }[] = [
-  { value: "one-way", label: "One Way" },
-  { value: "round-trip", label: "Round Trip" },
-  { value: "day-trip", label: "Day Trip" },
-  { value: "multi-day", label: "Multi Day" },
+const tripOptions: { value: TripType; label: string; icon: any }[] = [
+  { value: "one-way", label: "One Way", icon: faArrowRight },
+  { value: "round-trip", label: "Round Trip", icon: faRepeat },
+  { value: "day-trip", label: "Day Trip", icon: faSun },
+  { value: "multi-day", label: "Multi Day", icon: faRoute },
 ];
 
 interface Airport {
@@ -64,8 +68,10 @@ const AirportSearchbox = ({
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const shouldShow = query.trim().length > 2;
+
   const filtered = useMemo(() => {
-    if (!query.trim()) return airports.slice(0, 30);
+    if (!shouldShow) return [];
     const q = query.toLowerCase();
     return airports
       .filter(
@@ -74,7 +80,7 @@ const AirportSearchbox = ({
           a.iata_code.toLowerCase().includes(q)
       )
       .slice(0, 30);
-  }, [query, airports]);
+  }, [query, airports, shouldShow]);
 
   return (
     <div className="relative">
@@ -104,7 +110,7 @@ const AirportSearchbox = ({
           className="flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]"
         />
       </div>
-      {open && filtered.length > 0 && (
+      {open && shouldShow && filtered.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-48 overflow-y-auto z-50">
           {filtered.map((a) => (
             <button
@@ -266,19 +272,28 @@ const FlightsPage = ({
       {/* ── Flight Search Form ─────────────────────────────── */}
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
         {/* Trip Type Switch */}
-        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6]">
+        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
+          {/* Animated background pill */}
+          <div
+            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            style={{
+              width: `calc((100% - 12px) / ${tripOptions.length})`,
+              left: `calc(6px + ${tripOptions.findIndex((o) => o.value === tripType)} * ((100% - 12px) / ${tripOptions.length}))`,
+            }}
+          />
           {tripOptions.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setTripType(opt.value)}
               className={cn(
-                "flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200",
+                "flex-1 py-2.5 text-xs font-semibold rounded-xl transition-colors duration-200 relative z-10 flex items-center justify-center gap-1.5",
                 tripType === opt.value
-                  ? "bg-[#345C5A] text-white shadow-sm"
+                  ? "text-white"
                   : "text-[#6B7B7B] hover:text-[#2E4A4A]"
               )}
             >
+              <FontAwesomeIcon icon={opt.icon} className="w-3 h-3" />
               {opt.label}
             </button>
           ))}
