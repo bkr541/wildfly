@@ -64,7 +64,7 @@ const FlightsPage = ({
 
   const handleMenuClick = (label: string) => {
     setSheetOpen(false);
-    if (label === "Home") onNavigate("home");
+    if (label === "Home") setTimeout(() => onNavigate("home"), 300);
   };
 
   return (
@@ -110,7 +110,7 @@ const FlightsPage = ({
             <div className="mt-auto">
               <div className="h-px bg-[#E5E7EB] mx-6" />
               <button
-                onClick={() => { setSheetOpen(false); onSignOut(); }}
+                onClick={() => { setSheetOpen(false); setTimeout(() => onSignOut(), 300); }}
                 type="button"
                 className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
               >

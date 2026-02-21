@@ -115,7 +115,9 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
                   type="button"
                   onClick={() => {
                     setSheetOpen(false);
-                    if (item.label === "Flights") onNavigate("flights");
+                    if (item.label === "Flights") {
+                      setTimeout(() => onNavigate("flights"), 300);
+                    }
                   }}
                   className="flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
                 >
@@ -131,7 +133,7 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
               <button
                 onClick={() => {
                   setSheetOpen(false);
-                  onSignOut();
+                  setTimeout(() => onSignOut(), 300);
                 }}
                 type="button"
                 className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
