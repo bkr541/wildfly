@@ -378,7 +378,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   }}
                   onBlur={() => setIsHomeFocused(false)}
                   placeholder="Search for your home city..."
-                  className={`${homeCityError ? inputError : inputBase} pl-11 ${homeCity ? "pr-11" : ""}`}
+                  className={`${homeCityError ? inputError : inputBase} pl-11 ${homeCity ? "pr-11 text-[#345C5A] font-medium" : ""}`}
                 />
                 {homeCity && (
                   <FontAwesomeIcon
@@ -448,12 +448,14 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                 {/* Chips */}
                 {favoriteCities.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-xs text-[#6B7B7B] mb-2">Selected Cities: {favoriteCities.length}</p>
+                    <p className="text-xs text-[#6B7B7B] mb-3">
+                      Selected Cities: <span className="font-bold text-[#2E4A4A]">{favoriteCities.length}</span>
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {favoriteCities.map((loc) => (
                         <span
                           key={loc.id}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#345C5A]/10 text-[#345C5A] text-sm font-medium"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#345C5A]/10 border border-[#345C5A]/30 text-[#345C5A] text-sm font-medium"
                         >
                           {formatLocationDisplay(loc)}
                           <button
