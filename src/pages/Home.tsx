@@ -8,6 +8,7 @@ import { faBell } from "@fortawesome/free-regular-svg-icons";
 const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
+  const [userName, setUserName] = useState("Explorer");
 
   useEffect(() => {
     const loadAvatar = async () => {
@@ -15,11 +16,14 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Added 'username' to the select query
       const { data } = await supabase
         .from("user_info")
-        .select("image_file, first_name, last_name")
+        .select("image_file, first_name, last_name, username")
         .eq("auth_user_id", user.id)
         .maybeSingle();
+
       if (data) {
         if (data.image_file && data.image_file.startsWith("http")) {
           setAvatarUrl(data.image_file);
@@ -27,6 +31,9 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
         const fi = (data.first_name?.[0] || "").toUpperCase();
         const li = (data.last_name?.[0] || "").toUpperCase();
         setInitials(fi + li || "U");
+
+        // Set the user's name for the welcome message
+        setUserName(data.username || data.first_name || "Explorer");
       }
     };
     loadAvatar();
@@ -65,7 +72,18 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10"></div>
+      {/* Title Group */}
+      <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
+        <h1 className="text-4xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
+        <p className="text-[17px] text-[#6B7B7B] leading-relaxed">
+          This is your homepage where you'll find all things wild.
+        </p>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
+        {/* We can drop upcoming trips or flight cards right in here */}
+      </div>
     </div>
   );
 };
