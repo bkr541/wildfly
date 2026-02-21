@@ -1,6 +1,6 @@
 import { useState, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -41,64 +41,67 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
   };
 
   return (
-    <div ref={ref} className="relative flex flex-col min-h-screen overflow-hidden">
-      {/* Background image */}
+    <div ref={ref} className="relative flex flex-col h-[100dvh] bg-white overflow-hidden">
+      {/* Top 60% - Image Background */}
       <div
-        className="absolute inset-0 transition-all duration-500 bg-background"
+        className="relative h-[60%] w-full transition-all duration-500 ease-in-out"
         style={{
           backgroundImage: `url(${slides[current].background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
-      />
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-
-      {/* Content pinned to bottom */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-8 pb-16">
-        <h1 className="text-3xl font-bold text-foreground mb-3">{slides[current].title}</h1>
-        <p className="text-muted-foreground text-base mb-10">{slides[current].subtitle}</p>
-
-        {/* Navigation row */}
-        <div className="flex items-center justify-between">
-          {/* Left arrow */}
+      >
+        {/* Floating Top Navigation */}
+        <div className="absolute top-12 left-6 right-6 flex items-center justify-between z-20">
+          {/* Back Arrow */}
           <button
             onClick={prev}
             disabled={current === 0}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-foreground disabled:opacity-20 transition-opacity"
+            className={`w-10 h-10 flex items-center justify-start text-white transition-opacity ${
+              current === 0 ? "opacity-0 cursor-default" : "hover:opacity-80"
+            }`}
           >
             <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
 
-          {/* Dots */}
-          <div className="flex gap-2">
+          {/* Segmented Progress Steps */}
+          <div className="flex-1 flex gap-2 mx-4 max-w-[180px]">
             {slides.map((_, i) => (
-              <span
+              <div
                 key={i}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i === current ? "bg-foreground" : "bg-foreground/30"
+                className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${
+                  i <= current ? "bg-white" : "bg-white/30"
                 }`}
               />
             ))}
           </div>
 
-          {/* Right arrow or Profile Setup button */}
-          {isLast ? (
-            <button
-              onClick={onComplete}
-              className="px-5 py-2.5 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
-            >
-              Profile Setup
-            </button>
-          ) : (
-            <button
-              onClick={next}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:opacity-80 transition-opacity"
-            >
-              <FontAwesomeIcon icon={faChevronRight} className="w-6 h-6" />
-            </button>
-          )}
+          {/* Skip Button */}
+          <button
+            onClick={onComplete}
+            className="w-10 text-right text-white text-sm font-bold tracking-wider hover:opacity-80 transition-opacity"
+          >
+            Skip
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom 40% - White Content Card */}
+      <div className="flex-1 bg-white rounded-t-[2rem] -mt-6 relative z-10 flex flex-col px-8 pt-10 pb-12 text-center shadow-sm">
+        <div className="flex-1 flex flex-col justify-start animate-fade-in">
+          <h1 className="text-2xl font-bold text-[#2E4A4A] mb-4">{slides[current].title}</h1>
+          <p className="text-[15px] text-[#6B7B7B] leading-relaxed">{slides[current].subtitle}</p>
+        </div>
+
+        {/* Main Action Button */}
+        <div className="mt-auto pt-6">
+          <button
+            onClick={isLast ? onComplete : next}
+            className="w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
+          >
+            {isLast ? "Profile Setup" : "Let's Start!"}
+          </button>
         </div>
       </div>
     </div>
