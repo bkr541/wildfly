@@ -127,6 +127,7 @@ const MainApp = () => {
   }, []);
 
   const handleSignIn = (onboarding: boolean) => {
+    setCurrentPage("home");
     setIsSignedIn(true);
     setNeedsOnboarding(onboarding);
     setShowProfileSetup(false);
