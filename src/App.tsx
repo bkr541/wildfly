@@ -7,6 +7,7 @@ import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
 import ProfileSetup from "./components/ProfileSetup";
 import HomePage from "./pages/Home";
+import AccountHub from "./pages/AccountHub";
 import AdminImport from "./pages/AdminImport";
 
 const MainApp = () => {
@@ -15,6 +16,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [currentPage, setCurrentPage] = useState<"home" | "account">("home");
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -158,7 +160,13 @@ const MainApp = () => {
           />
         )}
 
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && <HomePage onSignOut={handleSignOut} />}
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "home" && (
+          <HomePage onSignOut={handleSignOut} onNavigateAccount={() => setCurrentPage("account")} />
+        )}
+
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "account" && (
+          <AccountHub onSignOut={handleSignOut} onBack={() => setCurrentPage("home")} />
+        )}
       </div>
     </div>
   );
