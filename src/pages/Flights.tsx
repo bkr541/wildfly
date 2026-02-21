@@ -154,6 +154,8 @@ const FlightsPage = ({
   const [arrival, setArrival] = useState<Airport | null>(null);
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
+  const [depDateOpen, setDepDateOpen] = useState(false);
+  const [retDateOpen, setRetDateOpen] = useState(false);
 
   const [searchAll, setSearchAll] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
@@ -349,7 +351,7 @@ const FlightsPage = ({
           {/* Departure Date */}
           <div>
             <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Departure Date</label>
-            <Popover>
+            <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
@@ -359,7 +361,7 @@ const FlightsPage = ({
                   )}
                 >
                   <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
-                  <span className="text-sm">
+                  <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                     {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                   </span>
                 </button>
@@ -368,7 +370,10 @@ const FlightsPage = ({
                 <Calendar
                   mode="single"
                   selected={departureDate}
-                  onSelect={setDepartureDate}
+                  onSelect={(date) => {
+                    setDepartureDate(date);
+                    setDepDateOpen(false);
+                  }}
                   disabled={(date) => date < new Date()}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
@@ -381,7 +386,7 @@ const FlightsPage = ({
           {showReturnDate && (
             <div>
               <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Return Date</label>
-              <Popover>
+              <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -391,7 +396,7 @@ const FlightsPage = ({
                     )}
                   >
                     <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
-                    <span className="text-sm">
+                    <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                       {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                     </span>
                   </button>
@@ -400,7 +405,10 @@ const FlightsPage = ({
                   <Calendar
                     mode="single"
                     selected={arrivalDate}
-                    onSelect={setArrivalDate}
+                    onSelect={(date) => {
+                      setArrivalDate(date);
+                      setRetDateOpen(false);
+                    }}
                     disabled={(date) =>
                       date < (departureDate || new Date())
                     }
