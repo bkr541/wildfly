@@ -20,21 +20,22 @@ const MainApp = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
 
     const hydrateFromSession = async (session: Session | null) => {
+      // No user -> show AuthPage
       if (!session?.user) {
         if (!isMounted) return;
         setIsSignedIn(false);
         setNeedsOnboarding(false);
         setShowProfileSetup(false);
-        setCheckingSession(false);
         return;
       }
 
       const user = session.user;
 
       try {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("user_info")
           .select("onboarding_complete")
           .eq("auth_user_id", user.id)
@@ -42,76 +43,122 @@ const MainApp = () => {
 
         if (!isMounted) return;
 
+        // If profile lookup fails, send user through onboarding as a safe fallback.
+        if (profileError) {
+          setIsSignedIn(true);
+          setNeedsOnboarding(true);
+          return;
+        }
+
         if (!profile) {
-          // No user_info row — create one so the user isn't stuck
+          // No user_info row -> create one
           await supabase.from("user_info").insert({
             auth_user_id: user.id,
             email: user.email ?? "",
             onboarding_complete: "No",
             image_file: "",
           });
+
+          if (!isMounted) return;
           setIsSignedIn(true);
           setNeedsOnboarding(true);
-        } else {
-          setIsSignedIn(true);
-          setNeedsOnboarding(profile.onboarding_complete === "No");
+          return;
         }
+
+        setIsSignedIn(true);
+        // Rule: if onboarding_complete !== "Yes", go to onboarding.
+        setNeedsOnboarding(profile.onboarding_complete !== "Yes");
       } catch {
         if (!isMounted) return;
         setIsSignedIn(true);
         setNeedsOnboarding(true);
-      } finally {
-        if (isMounted) setCheckingSession(false);
       }
     };
 
-    // 1. Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted) hydrateFromSession(session);
-    });
-
-    // 2. Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isMounted) return;
-      if (["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED", "INITIAL_SESSION"].includes(event)) {
-        hydrateFromSession(session);
+    const init = async () => {
+      // ✅ FOR NOW: Always require AuthPage on every launch/refresh.
+      // This clears any persisted Supabase session from storage.
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // ignore
       }
-    });
+
+      if (!isMounted) return;
+
+      // Known logged-out state after forcing sign-out.
+      setIsSignedIn(false);
+      setNeedsOnboarding(false);
+      setShowProfileSetup(false);
+
+      // Listen for sign-in events AFTER the forced sign-out.
+      const sub = supabase.auth.onAuthStateChange((event, session) => {
+        if (!isMounted) return;
+
+        if (event === "SIGNED_OUT") {
+          setIsSignedIn(false);
+          setNeedsOnboarding(false);
+          setShowProfileSetup(false);
+          return;
+        }
+
+        if (["SIGNED_IN", "USER_UPDATED", "TOKEN_REFRESHED"].includes(event)) {
+          hydrateFromSession(session);
+        }
+      });
+
+      subscription = sub.data.subscription;
+
+      // Session check is "done" once sign-out is forced + listeners attached.
+      setCheckingSession(false);
+    };
+
+    init();
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
   const handleSignIn = (onboarding: boolean) => {
     setIsSignedIn(true);
     setNeedsOnboarding(onboarding);
+    setShowProfileSetup(false);
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     setIsSignedIn(false);
     setNeedsOnboarding(false);
+    setShowProfileSetup(false);
   };
 
   return (
     <div className="flex justify-center min-h-screen bg-background">
       <div className="w-full max-w-[768px] relative">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+
         {splashDone && checkingSession && (
           <div className="flex items-center justify-center min-h-screen bg-background" />
         )}
+
         {splashDone && !checkingSession && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
+
         {splashDone && !checkingSession && isSignedIn && needsOnboarding && !showProfileSetup && (
           <Onboarding onComplete={() => setShowProfileSetup(true)} />
         )}
+
         {splashDone && !checkingSession && isSignedIn && showProfileSetup && (
-          <ProfileSetup onComplete={() => { setNeedsOnboarding(false); setShowProfileSetup(false); }} />
+          <ProfileSetup
+            onComplete={() => {
+              setNeedsOnboarding(false);
+              setShowProfileSetup(false);
+            }}
+          />
         )}
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && (
-          <HomePage onSignOut={handleSignOut} />
-        )}
+
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && <HomePage onSignOut={handleSignOut} />}
       </div>
     </div>
   );
