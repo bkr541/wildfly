@@ -17,10 +17,9 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Added 'username' to the select query
       const { data } = await supabase
         .from("user_info")
-        .select("image_file, first_name, last_name, username")
+        .select("image_file, first_name, last_name")
         .eq("auth_user_id", user.id)
         .maybeSingle();
 
@@ -32,8 +31,8 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
         const li = (data.last_name?.[0] || "").toUpperCase();
         setInitials(fi + li || "U");
 
-        // Set the user's name for the welcome message
-        setUserName(data.username || data.first_name || "Explorer");
+        // Display first_name instead of username
+        setUserName(data.first_name || "Explorer");
       }
     };
     loadAvatar();
@@ -74,10 +73,10 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* Title Group */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        <h1 className="text-4xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
-        <p className="text-[17px] text-[#6B7B7B] leading-relaxed">
-          This is your homepage where you'll find all things wild.
-        </p>
+        {/* Decreased font size by 6px: text-4xl (36px) -> text-3xl (30px) */}
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Hi, {userName}!</h1>
+        {/* Decreased font size by 6px: text-[17px] -> text-[11px] */}
+        <p className="text-[11px] text-[#6B7B7B] leading-relaxed">Feeling a little wild today? Let's go explore.</p>
       </div>
 
       {/* Main Content Area */}
