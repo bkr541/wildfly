@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { Check, X } from "lucide-react";
@@ -37,6 +37,7 @@ const PasswordStrengthInput = ({
   error,
   inputClassName,
 }: PasswordStrengthInputProps) => {
+  const [isFocused, setIsFocused] = useState(false);
   const strength = requirements.map((req) => ({
     met: req.regex.test(value),
     text: req.text,
@@ -70,6 +71,8 @@ const PasswordStrengthInput = ({
           type={showPassword ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder="••••••••"
           className={inputClassName}
         />
@@ -88,8 +91,8 @@ const PasswordStrengthInput = ({
       </div>
       {error && <p className="text-destructive text-xs mt-1">{error}</p>}
 
-      {/* Strength elements - only show when there is a value */}
-      {value.length > 0 && (
+      {/* Strength elements - only show when focused and not yet strong */}
+      {isFocused && value.length > 0 && !isPasswordStrong(value) && (
         <>
           <div
             className="mt-3 flex gap-1.5"
