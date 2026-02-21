@@ -420,6 +420,14 @@ const FlightsPage = ({
             </div>
           )}
         </div>
+        {/* Search Button */}
+        <button
+          type="button"
+          onClick={() => onNavigate("flight-results")}
+          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all"
+        >
+          Search Flights
+        </button>
       </div>
     </div>
   );
