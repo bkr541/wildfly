@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 
 const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
@@ -45,9 +45,14 @@ const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
           <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
         </button>
 
-        {/* Right Side: Notifications & Avatar */}
+        {/* Right Side: Search, Notifications & Avatar */}
         <div className="flex items-center gap-5 h-12">
-          {/* Notification Icon (Now Outline) */}
+          {/* Search Icon */}
+          <button className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative">
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
+          </button>
+
+          {/* Notification Icon (Outline) */}
           <button className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative">
             <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
           </button>
