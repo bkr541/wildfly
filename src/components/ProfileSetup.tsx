@@ -211,7 +211,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   const firstName = user?.first_name || "User";
 
-  // Updated style constants based on the new mockup
+  // Style constants
   const inputBase =
     "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-none focus:ring-2 focus:ring-[#345C5A]/20";
   const inputError =
@@ -244,28 +244,38 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-[#F2F3F3]">
       {/* Header */}
-      <div className="flex items-center px-6 pt-10 pb-2">
-        {step > 0 && (
-          <button onClick={() => setStep((s) => s - 1)} className="mr-3 text-[#2E4A4A]">
-            <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
-          </button>
-        )}
-        <div className="flex gap-1.5 flex-1 justify-center">
+      <div className="flex items-center justify-between px-6 pt-10 pb-4">
+        {/* Left Side: Back Button Space */}
+        <div className="w-8 h-8 flex items-center justify-start">
+          {step > 0 && (
+            <button
+              onClick={() => setStep((s) => s - 1)}
+              className="text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+
+        {/* Center: Progress Bar */}
+        <div className="flex gap-1.5 flex-1 justify-center max-w-[200px]">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`h-1 rounded-full flex-1 max-w-[60px] transition-colors ${i <= step ? "bg-[#345C5A]" : "bg-[#DDE0E0]"}`}
+              className={`h-1 rounded-full flex-1 transition-colors ${i <= step ? "bg-[#345C5A]" : "bg-[#DDE0E0]"}`}
             />
           ))}
         </div>
-        {step === 0 && <div className="w-6" />}
+
+        {/* Right Side: Empty Spacer for perfect centering */}
+        <div className="w-8 h-8" />
       </div>
 
       <div className="flex-1 px-6 pb-6 flex flex-col">
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Profile</h1>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Profile</h1>
             <p className="text-[#6B7B7B] text-base mb-8">Let's start off by learning a little more about you.</p>
 
             {/* Avatar */}
@@ -328,7 +338,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 2: Destinations ===================== */}
         {step === 1 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Destinations</h1>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Destinations</h1>
             <p className="text-[#6B7B7B] text-base mb-8">
               Tell us where you call home and your favorite places to explore.
             </p>
@@ -437,7 +447,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Friends</h1>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Friends</h1>
             <p className="text-[#6B7B7B] text-base mb-8">
               Find your travel buddies, make a crew, and explore together.
             </p>
