@@ -121,7 +121,7 @@ const AccountHub = ({ onSignOut, onBack }: { onSignOut: () => void; onBack: () =
               <button
                 onClick={() => {
                   setSheetOpen(false);
-                  onSignOut();
+                  setTimeout(() => onSignOut(), 300);
                 }}
                 className="flex items-center gap-5 px-8 py-6 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
               >
