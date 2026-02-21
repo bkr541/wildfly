@@ -10,7 +10,8 @@ const slides = [
   {
     background: "/assets/onboarding/background1.png",
     title: "Less Headache, More Confidence",
-    subtitle: "We understand that booking can be a wild ride sometimes. Wildfly was made to help that.",
+    subtitle:
+      "We understand that sometimes booking a flight can be kind of wild, and not in a good way. Wildfly was made to take the worry out of booking and help you enjoy the experience of flying wild.",
   },
   {
     background: "/assets/onboarding/background2.png",
@@ -49,7 +50,7 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
         style={{
           backgroundImage: `url(${slides[current].background})`,
           backgroundSize: "cover",
-          backgroundPosition: "top center",
+          backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
