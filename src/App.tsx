@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
@@ -20,44 +21,61 @@ const MainApp = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const checkProfile = async (userId: string) => {
+    const hydrateFromSession = async (session: Session | null) => {
+      if (!session?.user) {
+        if (!isMounted) return;
+        setIsSignedIn(false);
+        setNeedsOnboarding(false);
+        setShowProfileSetup(false);
+        setCheckingSession(false);
+        return;
+      }
+
+      const user = session.user;
+
       try {
         const { data: profile } = await supabase
           .from("user_info")
           .select("onboarding_complete")
-          .eq("auth_user_id", userId)
+          .eq("auth_user_id", user.id)
           .maybeSingle();
 
         if (!isMounted) return;
-        setIsSignedIn(true);
-        setNeedsOnboarding(!profile || profile.onboarding_complete === "No");
+
+        if (!profile) {
+          // No user_info row — create one so the user isn't stuck
+          await supabase.from("user_info").insert({
+            auth_user_id: user.id,
+            email: user.email ?? "",
+            onboarding_complete: "No",
+            image_file: "",
+          });
+          setIsSignedIn(true);
+          setNeedsOnboarding(true);
+        } else {
+          setIsSignedIn(true);
+          setNeedsOnboarding(profile.onboarding_complete === "No");
+        }
       } catch {
         if (!isMounted) return;
         setIsSignedIn(true);
         setNeedsOnboarding(true);
+      } finally {
+        if (isMounted) setCheckingSession(false);
       }
     };
 
-    // Initial session check
+    // 1. Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      if (session?.user) {
-        checkProfile(session.user.id);
-      } else {
-        setCheckingSession(false);
-      }
+      if (isMounted) hydrateFromSession(session);
     });
 
-    // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2. Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
-      if (session?.user) {
-        checkProfile(session.user.id);
-      } else {
-        setIsSignedIn(false);
-        setNeedsOnboarding(false);
+      if (["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED", "INITIAL_SESSION"].includes(event)) {
+        hydrateFromSession(session);
       }
-      setCheckingSession(false);
     });
 
     return () => {
@@ -77,22 +95,21 @@ const MainApp = () => {
     setNeedsOnboarding(false);
   };
 
-  if (checkingSession && !splashDone) {
-    // Splash handles the wait
-  }
-
   return (
     <div className="flex justify-center min-h-screen bg-background">
       <div className="w-full max-w-[768px] relative">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-        {splashDone && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
-        {splashDone && isSignedIn && needsOnboarding && !showProfileSetup && (
+        {splashDone && checkingSession && (
+          <div className="flex items-center justify-center min-h-screen bg-background" />
+        )}
+        {splashDone && !checkingSession && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
+        {splashDone && !checkingSession && isSignedIn && needsOnboarding && !showProfileSetup && (
           <Onboarding onComplete={() => setShowProfileSetup(true)} />
         )}
-        {splashDone && isSignedIn && showProfileSetup && (
+        {splashDone && !checkingSession && isSignedIn && showProfileSetup && (
           <ProfileSetup onComplete={() => { setNeedsOnboarding(false); setShowProfileSetup(false); }} />
         )}
-        {splashDone && isSignedIn && !needsOnboarding && (
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && (
           <HomePage onSignOut={handleSignOut} />
         )}
       </div>
