@@ -155,6 +155,7 @@ const FlightsPage = ({
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
 
+  const [searchAll, setSearchAll] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   useEffect(() => {
@@ -317,6 +318,31 @@ const FlightsPage = ({
           onChange={setArrival}
           airports={airports}
         />
+
+        {/* Search All Destinations Toggle */}
+        <div className="flex items-center justify-end gap-2">
+          <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
+            Search All Destinations
+          </label>
+          <button
+            id="search-all"
+            type="button"
+            role="switch"
+            aria-checked={searchAll}
+            onClick={() => setSearchAll(!searchAll)}
+            className={cn(
+              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]"
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                searchAll ? "translate-x-5" : "translate-x-0"
+              )}
+            />
+          </button>
+        </div>
 
         {/* Date Pickers */}
         <div className={cn("grid gap-4", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
