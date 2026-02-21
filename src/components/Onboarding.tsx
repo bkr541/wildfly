@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
@@ -30,7 +30,7 @@ const slides = [
   },
 ];
 
-const Onboarding = ({ onComplete }: OnboardingProps) => {
+const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, ref) => {
   const [current, setCurrent] = useState(0);
   const isLast = current === slides.length - 1;
 
@@ -41,7 +41,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden">
+    <div ref={ref} className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Background image */}
       <div
         className="absolute inset-0 transition-all duration-500 bg-background"
@@ -103,6 +103,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       </div>
     </div>
   );
-};
+});
+
+Onboarding.displayName = "Onboarding";
 
 export default Onboarding;
