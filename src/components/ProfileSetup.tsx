@@ -299,7 +299,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             {/* Fields */}
             <div className="space-y-5">
               <div className="form-group">
-                <label className={labelStyle}>Username *</label>
+                <label className={labelStyle}>
+                  Username <span className="text-red-500">*</span>
+                </label>
                 <input
                   value={username}
                   onChange={(e) => {
@@ -345,7 +347,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
             {/* Home City */}
             <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className={labelStyle}>Home City *</label>
+              <label className={labelStyle}>
+                Home City <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faMagnifyingGlass}
