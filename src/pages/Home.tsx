@@ -15,7 +15,7 @@ const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        <h1 className="text-3xl font-bold text-foreground mb-3">Hello there! 👋</h1>
+        
         <p className="text-muted-foreground text-center max-w-xs">
           You're signed in. Start exploring and building your experience.
         </p>
