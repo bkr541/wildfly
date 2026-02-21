@@ -5,7 +5,7 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const requirements = [
-  { regex: /.{12,}/, text: "At least 12 characters" },
+  { regex: /.{8,}/, text: "At least 8 characters" },
   { regex: /[a-z]/, text: "At least 1 lowercase letter" },
   { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
   { regex: /[0-9]/, text: "At least 1 number" },
@@ -88,48 +88,51 @@ const PasswordStrengthInput = ({
       </div>
       {error && <p className="text-destructive text-xs mt-1">{error}</p>}
 
-      {/* Strength bar */}
-      <div
-        className="mt-3 flex gap-1.5"
-        role="progressbar"
-        aria-valuenow={strengthScore}
-        aria-valuemin={0}
-        aria-valuemax={requirements.length}
-      >
-        {Array.from({ length: requirements.length }).map((_, index) => (
-          <span
-            key={index}
-            className={cn(
-              "h-1.5 w-full rounded-full transition-colors",
-              index < strengthScore ? getColor(strengthScore) : "bg-border"
-            )}
-          />
-        ))}
-      </div>
+      {/* Strength elements - only show when there is a value */}
+      {value.length > 0 && (
+        <>
+          <div
+            className="mt-3 flex gap-1.5"
+            role="progressbar"
+            aria-valuenow={strengthScore}
+            aria-valuemin={0}
+            aria-valuemax={requirements.length}
+          >
+            {Array.from({ length: requirements.length }).map((_, index) => (
+              <span
+                key={index}
+                className={cn(
+                  "h-1.5 w-full rounded-full transition-colors",
+                  index < strengthScore ? getColor(strengthScore) : "bg-border"
+                )}
+              />
+            ))}
+          </div>
 
-      {/* Strength text + requirements */}
-      <p className="mt-2 text-sm font-medium text-foreground">
-        {getText(strengthScore)}. Must contain:
-      </p>
-      <ul className="mt-1.5 space-y-1">
-        {strength.map((req, index) => (
-          <li key={index} className="flex items-center gap-2">
-            {req.met ? (
-              <Check size={14} className="text-green-500 shrink-0" />
-            ) : (
-              <X size={14} className="text-muted-foreground shrink-0" />
-            )}
-            <span
-              className={cn(
-                "text-xs",
-                req.met ? "text-green-500" : "text-muted-foreground"
-              )}
-            >
-              {req.text}
-            </span>
-          </li>
-        ))}
-      </ul>
+          <p className="mt-2 text-sm font-medium text-foreground">
+            {getText(strengthScore)}. Must contain:
+          </p>
+          <ul className="mt-1.5 space-y-1">
+            {strength.map((req, index) => (
+              <li key={index} className="flex items-center gap-2">
+                {req.met ? (
+                  <Check size={14} className="text-green-500 shrink-0" />
+                ) : (
+                  <X size={14} className="text-muted-foreground shrink-0" />
+                )}
+                <span
+                  className={cn(
+                    "text-xs",
+                    req.met ? "text-green-500" : "text-muted-foreground"
+                  )}
+                >
+                  {req.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 };
