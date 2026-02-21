@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 
-const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
+const HomePage = ({ onSignOut }: { onSignOut: () => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Explorer");
@@ -13,15 +13,15 @@ const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
   useEffect(() => {
     const loadAvatar = async () => {
       const {
-        data: { user }
+        data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase.
-      from("user_info").
-      select("image_file, first_name, last_name").
-      eq("auth_user_id", user.id).
-      maybeSingle();
+      const { data } = await supabase
+        .from("user_info")
+        .select("image_file, first_name, last_name")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
 
       if (data) {
         if (data.image_file && data.image_file.startsWith("http")) {
@@ -74,7 +74,7 @@ const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
       {/* Title Group */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
         {/* Decreased font size by 6px: text-4xl (36px) -> text-3xl (30px) */}
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Hi, {userName}!</h1>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
         {/* Decreased font size by 6px: text-[17px] -> text-[11px] */}
         <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
       </div>
@@ -83,8 +83,8 @@ const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
         {/* We can drop upcoming trips or flight cards right in here */}
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 export default HomePage;
