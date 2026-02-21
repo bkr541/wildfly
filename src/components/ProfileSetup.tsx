@@ -60,7 +60,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Load user data
   useEffect(() => {
     const loadUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
       if (!authUser) return;
       const { data } = await supabase
         .from("user_info")
@@ -93,7 +95,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   }, []);
 
   const searchLocations = useCallback(async (query: string, setter: (r: LocationOption[]) => void) => {
-    if (query.length < 3) { setter([]); return; }
+    if (query.length < 3) {
+      setter([]);
+      return;
+    }
     const { data } = await supabase
       .from("locations")
       .select("id, city, state_code, name")
@@ -126,28 +131,30 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     setHomeCitySearch(formatLocationDisplay(loc));
     setShowHomeCityDropdown(false);
     // Remove from favorites if it was selected
-    setFavoriteCities(prev => prev.filter(f => f.id !== loc.id));
+    setFavoriteCities((prev) => prev.filter((f) => f.id !== loc.id));
   };
 
   const addFavorite = (loc: LocationOption) => {
     if (favoriteCities.length >= 5) return;
     if (homeCity && loc.id === homeCity.id) return;
-    if (favoriteCities.some(f => f.id === loc.id)) return;
-    setFavoriteCities(prev => [...prev, loc]);
+    if (favoriteCities.some((f) => f.id === loc.id)) return;
+    setFavoriteCities((prev) => [...prev, loc]);
     setFavSearch("");
     setShowFavDropdown(false);
   };
 
   const removeFavorite = (id: number) => {
-    setFavoriteCities(prev => prev.filter(f => f.id !== id));
+    setFavoriteCities((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
     if (!authUser) return;
-    const path = `${authUser.id}/avatar.${file.name.split('.').pop()}`;
+    const path = `${authUser.id}/avatar.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (!error) {
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
@@ -158,7 +165,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   // Screen 1: Continue
   const handleScreen1Continue = async () => {
-    if (!username.trim()) { setUsernameError("Username is required"); return; }
+    if (!username.trim()) {
+      setUsernameError("Username is required");
+      return;
+    }
     if (!user) return;
     setSaving(true);
     const updates: Record<string, any> = { username: username.trim() };
@@ -171,16 +181,19 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   // Screen 2: Continue
   const handleScreen2Continue = async () => {
-    if (!homeCity) { setHomeCityError("Home City is required"); return; }
+    if (!homeCity) {
+      setHomeCityError("Home City is required");
+      return;
+    }
     if (!user) return;
     setSaving(true);
     await supabase.from("user_info").update({ home_location_id: homeCity.id }).eq("id", user.id);
     // Sync user_locations: delete all then insert current favorites
     await supabase.from("user_locations").delete().eq("user_id", user.id);
     if (favoriteCities.length > 0) {
-      await supabase.from("user_locations").insert(
-        favoriteCities.map(f => ({ user_id: user.id, location_id: f.id }))
-      );
+      await supabase
+        .from("user_locations")
+        .insert(favoriteCities.map((f) => ({ user_id: user.id, location_id: f.id })));
     }
     setSaving(false);
     setStep(2);
@@ -198,13 +211,19 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   const firstName = user?.first_name || "User";
 
-  const inputBase = "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all border border-border focus:ring-2 focus:ring-ring";
-  const inputError = "w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder:text-muted-foreground outline-none transition-all border border-destructive focus:ring-2 focus:ring-destructive";
+  // Updated style constants based on the new mockup
+  const inputBase =
+    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-none focus:ring-2 focus:ring-[#345C5A]/20";
+  const inputError =
+    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] outline-none transition-all border-2 border-red-500 focus:ring-2 focus:ring-red-500";
+  const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2";
+  const buttonStyle =
+    "w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50";
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="flex items-center justify-center min-h-screen bg-[#F2F3F3]">
+        <p className="text-[#6B7B7B]">Loading...</p>
       </div>
     );
   }
@@ -212,28 +231,31 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Interstitial
   if (showInterstitial) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background animate-fade-in px-8">
-        <div className="w-20 h-20 rounded-full bg-accent-blue/20 flex items-center justify-center mb-8 animate-scale-in">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F2F3F3] animate-fade-in px-8">
+        <div className="w-20 h-20 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-8 animate-scale-in">
           <span className="text-4xl">✈️</span>
         </div>
-        <h1 className="text-3xl font-bold text-foreground mb-3 text-center">You're All Set!</h1>
-        <p className="text-muted-foreground text-lg text-center">It's time to get wild</p>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-3 text-center">You're All Set!</h1>
+        <p className="text-[#6B7B7B] text-lg text-center">Welcome to Wildfly</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-[#F2F3F3]">
       {/* Header */}
       <div className="flex items-center px-6 pt-10 pb-2">
         {step > 0 && (
-          <button onClick={() => setStep(s => s - 1)} className="mr-3 text-foreground">
+          <button onClick={() => setStep((s) => s - 1)} className="mr-3 text-[#2E4A4A]">
             <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
         )}
         <div className="flex gap-1.5 flex-1 justify-center">
-          {[0, 1, 2].map(i => (
-            <div key={i} className={`h-1 rounded-full flex-1 max-w-[60px] transition-colors ${i <= step ? "bg-accent-blue" : "bg-border"}`} />
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full flex-1 max-w-[60px] transition-colors ${i <= step ? "bg-[#345C5A]" : "bg-[#DDE0E0]"}`}
+            />
           ))}
         </div>
         {step === 0 && <div className="w-6" />}
@@ -243,53 +265,60 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Profile</h1>
-            <p className="text-muted-foreground text-sm mb-8">Let's start off by learning a little more about you.</p>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Profile</h1>
+            <p className="text-[#6B7B7B] text-base mb-8">Let's start off by learning a little more about you.</p>
 
             {/* Avatar */}
-            <div className="flex flex-col items-center mb-6">
-              <label className="relative w-24 h-24 rounded-full bg-secondary flex items-center justify-center cursor-pointer overflow-hidden group">
+            <div className="flex flex-col items-center mb-8">
+              <label className="relative w-32 h-32 rounded-full bg-[#E3E6E6] flex items-center justify-center cursor-pointer overflow-hidden group">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <FontAwesomeIcon
+                    icon={faCamera}
+                    className="w-10 h-10 text-[#345C5A] group-hover:opacity-80 transition-opacity"
+                  />
                 )}
-                <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <FontAwesomeIcon icon={faCamera} className="w-6 h-6 text-foreground" />
+                <div className="absolute inset-0 bg-[#F2F3F3]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-[#345C5A]" />
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </label>
-              <p className="text-foreground font-semibold mt-3">{user?.first_name} {user?.last_name}</p>
             </div>
 
             {/* Fields */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="form-group">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Username *</label>
+                <label className={labelStyle}>Username *</label>
                 <input
                   value={username}
-                  onChange={e => { setUsername(e.target.value); setUsernameError(""); }}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameError("");
+                  }}
                   placeholder="username"
                   className={usernameError ? inputError : inputBase}
                 />
-                {usernameError && <p className="text-destructive text-xs mt-1">{usernameError}</p>}
+                {usernameError && <p className="text-red-500 text-xs mt-1">{usernameError}</p>}
               </div>
               <div className="form-group">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Date of Birth</label>
-                <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={inputBase} />
+                <label className={labelStyle}>Date of Birth</label>
+                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className={inputBase} />
               </div>
               <div className="form-group">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Mobile Number</label>
-                <input type="tel" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" className={inputBase} />
+                <label className={labelStyle}>Mobile Number</label>
+                <input
+                  type="tel"
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  className={inputBase}
+                />
               </div>
             </div>
 
-            <div className="mt-auto pt-6">
-              <button
-                onClick={handleScreen1Continue}
-                disabled={saving}
-                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
+            <div className="mt-auto pt-8">
+              <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Continue"}
               </button>
             </div>
@@ -299,27 +328,36 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 2: Destinations ===================== */}
         {step === 1 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Destinations</h1>
-            <p className="text-muted-foreground text-sm mb-8">Tell us where you call home and your favorite places to explore.</p>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Destinations</h1>
+            <p className="text-[#6B7B7B] text-base mb-8">
+              Tell us where you call home and your favorite places to explore.
+            </p>
 
             {/* Home City */}
             <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">Home City *</label>
+              <label className={labelStyle}>Home City *</label>
               <div className="relative">
-                 <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <FontAwesomeIcon
+                  icon={faMagnifyingGlass}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
+                />
                 <input
                   value={homeCitySearch}
-                  onChange={e => handleHomeCitySearch(e.target.value)}
+                  onChange={(e) => handleHomeCitySearch(e.target.value)}
                   onFocus={() => homeCitySearch.length >= 3 && setShowHomeCityDropdown(true)}
                   placeholder="Search for your home city..."
-                  className={`${homeCityError ? inputError : inputBase} pl-10`}
+                  className={`${homeCityError ? inputError : inputBase} pl-11`}
                 />
               </div>
-              {homeCityError && <p className="text-destructive text-xs mt-1">{homeCityError}</p>}
+              {homeCityError && <p className="text-red-500 text-xs mt-1">{homeCityError}</p>}
               {showHomeCityDropdown && homeCityResults.length > 0 && (
-                <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {homeCityResults.map(loc => (
-                    <button key={loc.id} onClick={() => selectHomeCity(loc)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  {homeCityResults.map((loc) => (
+                    <button
+                      key={loc.id}
+                      onClick={() => selectHomeCity(loc)}
+                      className="w-full text-left px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                    >
                       {formatLocationDisplay(loc)}
                     </button>
                   ))}
@@ -330,26 +368,33 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             {/* Favorite Cities - only show when home city selected */}
             {homeCity && (
               <div ref={favCityRef} className="form-group relative mb-4">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                <label className={labelStyle}>
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>
                 <div className="relative">
-                  <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <FontAwesomeIcon
+                    icon={faMagnifyingGlass}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
+                  />
                   <input
                     value={favSearch}
-                    onChange={e => handleFavSearch(e.target.value)}
+                    onChange={(e) => handleFavSearch(e.target.value)}
                     onFocus={() => favSearch.length >= 3 && setShowFavDropdown(true)}
                     placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
                     disabled={favoriteCities.length >= 5}
-                    className={`${inputBase} pl-10 disabled:opacity-50`}
+                    className={`${inputBase} pl-11 disabled:opacity-50`}
                   />
                 </div>
                 {showFavDropdown && favResults.length > 0 && (
-                  <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {favResults
-                      .filter(loc => loc.id !== homeCity.id && !favoriteCities.some(f => f.id === loc.id))
-                      .map(loc => (
-                        <button key={loc.id} onClick={() => addFavorite(loc)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                      .filter((loc) => loc.id !== homeCity.id && !favoriteCities.some((f) => f.id === loc.id))
+                      .map((loc) => (
+                        <button
+                          key={loc.id}
+                          onClick={() => addFavorite(loc)}
+                          className="w-full text-left px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                        >
                           {formatLocationDisplay(loc)}
                         </button>
                       ))}
@@ -358,13 +403,19 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
                 {/* Chips */}
                 {favoriteCities.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground mb-2">Selected Cities: {favoriteCities.length}</p>
+                  <div className="mt-4">
+                    <p className="text-xs text-[#6B7B7B] mb-2">Selected Cities: {favoriteCities.length}</p>
                     <div className="flex flex-wrap gap-2">
-                      {favoriteCities.map(loc => (
-                        <span key={loc.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-foreground text-sm">
+                      {favoriteCities.map((loc) => (
+                        <span
+                          key={loc.id}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E3E6E6] text-[#2E4A4A] text-sm font-medium"
+                        >
                           {formatLocationDisplay(loc)}
-                          <button onClick={() => removeFavorite(loc.id)} className="hover:text-destructive transition-colors">
+                          <button
+                            onClick={() => removeFavorite(loc.id)}
+                            className="hover:text-red-500 transition-colors"
+                          >
                             <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
                           </button>
                         </span>
@@ -375,12 +426,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             )}
 
-            <div className="mt-auto pt-6">
-              <button
-                onClick={handleScreen2Continue}
-                disabled={saving}
-                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
+            <div className="mt-auto pt-8">
+              <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Continue"}
               </button>
             </div>
@@ -390,28 +437,29 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-2xl font-bold text-foreground mt-6 mb-1">{firstName}'s Friends</h1>
-            <p className="text-muted-foreground text-sm mb-8">Find your travel buddies, make a crew, and explore together.</p>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-6 mb-1">{firstName}'s Friends</h1>
+            <p className="text-[#6B7B7B] text-base mb-8">
+              Find your travel buddies, make a crew, and explore together.
+            </p>
 
-            <div className="relative mb-4">
-              <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative mb-5">
+              <FontAwesomeIcon
+                icon={faMagnifyingGlass}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
+              />
               <input
                 disabled
                 placeholder="Find Friends"
-                className={`${inputBase} pl-10 opacity-50 cursor-not-allowed`}
+                className={`${inputBase} pl-11 opacity-50 cursor-not-allowed`}
               />
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50">
-              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              <p className="text-muted-foreground text-sm">This feature is coming soon</p>
+            <div className="flex items-center gap-4 p-5 rounded-xl bg-[#E3E6E6]/50 border border-[#DDE0E0]">
+              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-[#6B7B7B] flex-shrink-0" />
+              <p className="text-[#6B7B7B] text-sm font-medium">This feature is coming soon</p>
             </div>
 
-            <div className="mt-auto pt-6">
-              <button
-                onClick={handleStartFlying}
-                disabled={saving}
-                className="w-full py-3 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
+            <div className="mt-auto pt-8">
+              <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Start Flying"}
               </button>
             </div>
