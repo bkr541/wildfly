@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCamera, faXmark, faMagnifyingGlass, faUsers } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronLeft,
+  faCamera,
+  faXmark,
+  faMagnifyingGlass,
+  faUsers,
+  faLocationDot,
+  faCircleCheck,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -52,6 +60,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [favResults, setFavResults] = useState<LocationOption[]>([]);
   const [showFavDropdown, setShowFavDropdown] = useState(false);
   const [homeCityError, setHomeCityError] = useState("");
+
+  // Focus states for visual styling
+  const [isHomeFocused, setIsHomeFocused] = useState(false);
+  const [isFavFocused, setIsFavFocused] = useState(false);
 
   const homeCityRef = useRef<HTMLDivElement>(null);
   const favCityRef = useRef<HTMLDivElement>(null);
@@ -213,10 +225,12 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   // Style constants
   const inputBase =
-    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-none focus:ring-2 focus:ring-[#345C5A]/20";
+    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-2 border-transparent focus:border-[#345C5A] focus:bg-white";
   const inputError =
-    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] outline-none transition-all border-2 border-red-500 focus:ring-2 focus:ring-red-500";
+    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] outline-none transition-all border-2 border-red-500 focus:border-red-500 focus:bg-white";
+
   const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2";
+  const labelBase = "block text-[11px] font-bold tracking-[0.15em] uppercase mb-2 transition-colors";
   const buttonStyle =
     "w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50";
 
@@ -347,21 +361,31 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
             {/* Home City */}
             <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className={labelStyle}>
+              <label className={`${labelBase} ${isHomeFocused ? "text-[#345C5A]" : "text-[#6B7B7B]"}`}>
                 Home City <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faMagnifyingGlass}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isHomeFocused ? "text-[#345C5A]" : "text-[#849494]"}`}
                 />
                 <input
                   value={homeCitySearch}
                   onChange={(e) => handleHomeCitySearch(e.target.value)}
-                  onFocus={() => homeCitySearch.length >= 3 && setShowHomeCityDropdown(true)}
+                  onFocus={() => {
+                    setIsHomeFocused(true);
+                    if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true);
+                  }}
+                  onBlur={() => setIsHomeFocused(false)}
                   placeholder="Search for your home city..."
-                  className={`${homeCityError ? inputError : inputBase} pl-11`}
+                  className={`${homeCityError ? inputError : inputBase} pl-11 ${homeCity ? "pr-11" : ""}`}
                 />
+                {homeCity && (
+                  <FontAwesomeIcon
+                    icon={faCircleCheck}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#345C5A]"
+                  />
+                )}
               </div>
               {homeCityError && <p className="text-red-500 text-xs mt-1">{homeCityError}</p>}
               {showHomeCityDropdown && homeCityResults.length > 0 && (
@@ -370,8 +394,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                     <button
                       key={loc.id}
                       onClick={() => selectHomeCity(loc)}
-                      className="w-full text-left px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                      className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
                     >
+                      <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
                       {formatLocationDisplay(loc)}
                     </button>
                   ))}
@@ -382,18 +407,22 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             {/* Favorite Cities - only show when home city selected */}
             {homeCity && (
               <div ref={favCityRef} className="form-group relative mb-4">
-                <label className={labelStyle}>
+                <label className={`${labelBase} ${isFavFocused ? "text-[#345C5A]" : "text-[#6B7B7B]"}`}>
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faMagnifyingGlass}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
+                    className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isFavFocused ? "text-[#345C5A]" : "text-[#849494]"}`}
                   />
                   <input
                     value={favSearch}
                     onChange={(e) => handleFavSearch(e.target.value)}
-                    onFocus={() => favSearch.length >= 3 && setShowFavDropdown(true)}
+                    onFocus={() => {
+                      setIsFavFocused(true);
+                      if (favSearch.length >= 3) setShowFavDropdown(true);
+                    }}
+                    onBlur={() => setIsFavFocused(false)}
                     placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
                     disabled={favoriteCities.length >= 5}
                     className={`${inputBase} pl-11 disabled:opacity-50`}
@@ -407,8 +436,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                         <button
                           key={loc.id}
                           onClick={() => addFavorite(loc)}
-                          className="w-full text-left px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                          className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
                         >
+                          <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
                           {formatLocationDisplay(loc)}
                         </button>
                       ))}
@@ -423,7 +453,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                       {favoriteCities.map((loc) => (
                         <span
                           key={loc.id}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E3E6E6] text-[#2E4A4A] text-sm font-medium"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#345C5A]/10 text-[#345C5A] text-sm font-medium"
                         >
                           {formatLocationDisplay(loc)}
                           <button
