@@ -6,12 +6,12 @@ const HomePage = ({ onSignOut }: {onSignOut: () => void;}) => {
 
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
         
-        <button
-          onClick={onSignOut}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+        
 
-          Sign Out
-        </button>
+
+
+
+
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
