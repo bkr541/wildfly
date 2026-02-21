@@ -60,24 +60,29 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Load user data
   useEffect(() => {
     const loadUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
-      const { data } = await supabase
-        .from("user_info")
-        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
-        .eq("auth_user_id", authUser.id)
-        .maybeSingle();
-      if (data) {
-        setUser(data as UserData);
-        const defaultUsername = `${data.first_name || ""}${data.last_name || ""}`.replace(/\s/g, "");
-        setUsername(data.username || defaultUsername);
-        setDob(data.dob || "");
-        setMobileNumber((data as any).mobile_number || "");
-        if (data.image_file && data.image_file.startsWith("http")) {
-          setAvatarUrl(data.image_file);
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) { setLoading(false); return; }
+        const { data } = await supabase
+          .from("user_info")
+          .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
+          .eq("auth_user_id", authUser.id)
+          .maybeSingle();
+        if (data) {
+          setUser(data as UserData);
+          const defaultUsername = `${data.first_name || ""}${data.last_name || ""}`.replace(/\s/g, "");
+          setUsername(data.username || defaultUsername);
+          setDob(data.dob || "");
+          setMobileNumber((data as any).mobile_number || "");
+          if (data.image_file && data.image_file.startsWith("http")) {
+            setAvatarUrl(data.image_file);
+          }
         }
+      } catch (err) {
+        console.error("ProfileSetup loadUser error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadUser();
   }, []);
