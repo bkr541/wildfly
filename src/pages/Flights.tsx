@@ -64,7 +64,8 @@ const FlightsPage = ({
 
   const handleMenuClick = (label: string) => {
     setSheetOpen(false);
-    if (label === "Home") setTimeout(() => onNavigate("home"), 300);
+    const map: Record<string, string> = { Home: "home", Destinations: "destinations" };
+    if (map[label]) setTimeout(() => onNavigate(map[label]), 300);
   };
 
   return (
