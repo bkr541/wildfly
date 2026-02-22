@@ -23,6 +23,7 @@ import {
   faRepeat,
   faSun,
   faRoute,
+  faArrowRightArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
@@ -63,12 +64,14 @@ const AirportSearchbox = ({
   value,
   onChange,
   airports,
+  containerClassName,
 }: {
   label: string;
   icon: any;
   value: Airport | null;
   onChange: (a: Airport | null) => void;
   airports: Airport[];
+  containerClassName?: string;
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -110,10 +113,10 @@ const AirportSearchbox = ({
   }, [query, airports, shouldShow]);
 
   return (
-    <div className="relative">
+    <div className={cn("relative", containerClassName)}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">{label}</label>
       <div
-        className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] focus-within:border-[#345C5A] transition-colors cursor-text"
+        className="flex items-center gap-3 bg-transparent transition-colors cursor-text"
         onClick={() => {
           inputRef.current?.focus();
           setOpen(true);
@@ -139,7 +142,7 @@ const AirportSearchbox = ({
       </div>
 
       {open && shouldShow && Object.keys(groupedAirports).length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
           {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
             <div key={cityGroup} className="mb-2 last:mb-0">
               {/* Group Header */}
@@ -359,23 +362,44 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
           })}
         </div>
 
-        {/* Departure Airport */}
-        <AirportSearchbox
-          label="Departure"
-          icon={faPlaneDeparture}
-          value={departure}
-          onChange={setDeparture}
-          airports={airports}
-        />
+        {/* Grouped Departure & Arrival Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] relative flex flex-col">
+          {/* Departure Airport */}
+          <AirportSearchbox
+            label="Departure"
+            icon={faPlaneDeparture}
+            value={departure}
+            onChange={setDeparture}
+            airports={airports}
+            containerClassName="p-4"
+          />
 
-        {/* Arrival Airport */}
-        <AirportSearchbox
-          label="Arrival"
-          icon={faPlaneArrival}
-          value={arrival}
-          onChange={setArrival}
-          airports={airports}
-        />
+          {/* Divider */}
+          <div className="h-px bg-[#E3E6E6] mx-4" />
+
+          {/* Arrival Airport */}
+          <AirportSearchbox
+            label="Arrival"
+            icon={faPlaneArrival}
+            value={arrival}
+            onChange={setArrival}
+            airports={airports}
+            containerClassName="p-4"
+          />
+
+          {/* Swap Button */}
+          <button
+            type="button"
+            className="absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md hover:bg-[#2E4A4A] transition-colors z-10"
+            onClick={() => {
+              const temp = departure;
+              setDeparture(arrival);
+              setArrival(temp);
+            }}
+          >
+            <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4 h-4 rotate-90" />
+          </button>
+        </div>
 
         {/* Search All Destinations Toggle */}
         <div className="flex items-center justify-end gap-2">
@@ -405,21 +429,15 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
         {/* Date Pickers */}
         <div className={cn("grid gap-4", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
           {/* Departure Date */}
-          <div>
-            <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Departure Date</label>
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
+            <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Departure Date</label>
             <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
               <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                    !departureDate && "text-[#9CA3AF]",
-                  )}
-                >
-                  <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
+                <button type="button" className="w-full flex items-center justify-between text-left outline-none">
                   <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                     {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                   </span>
+                  <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -440,21 +458,15 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
 
           {/* Return Date — only for Round Trip / Multi Day */}
           {showReturnDate && (
-            <div>
-              <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Return Date</label>
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
+              <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Return Date</label>
               <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                 <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                      !arrivalDate && "text-[#9CA3AF]",
-                    )}
-                  >
-                    <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
+                  <button type="button" className="w-full flex items-center justify-between text-left outline-none">
                     <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                       {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                     </span>
+                    <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -474,11 +486,12 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             </div>
           )}
         </div>
+
         {/* Search Button */}
         <button
           type="button"
           onClick={() => onNavigate("flight-results")}
-          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all"
+          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2"
         >
           Search Flights
         </button>
