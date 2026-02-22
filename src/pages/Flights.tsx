@@ -197,6 +197,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
   const [retDateOpen, setRetDateOpen] = useState(false);
 
   const [searchAll, setSearchAll] = useState(false);
+  const [loading, setLoading] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   useEffect(() => {
@@ -490,10 +491,35 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
         {/* Search Button */}
         <button
           type="button"
-          onClick={() => onNavigate("flight-results")}
-          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2"
+          disabled={loading}
+          onClick={async () => {
+            if (!departure || !departureDate) return;
+            const originCode = departure.iata_code;
+            const destinationCode = arrival?.iata_code || "";
+            const formattedDate = format(departureDate, "yyyy-MM-dd") + " 00:00:00";
+            const encodedDate = encodeURIComponent(formattedDate);
+            const targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodedDate}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+
+            setLoading(true);
+            try {
+              const { data, error } = await supabase.functions.invoke("scrape-frontier-flights", {
+                body: { targetUrl },
+              });
+              if (error) {
+                console.error("Edge function error:", error);
+              } else {
+                const flights = data?.data?.json?.flights || data?.json?.flights || [];
+                console.log("Extracted flights:", flights);
+              }
+            } catch (err) {
+              console.error("Failed to invoke edge function:", err);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60"
         >
-          Search Flights
+          {loading ? "Searching..." : "Search Flights"}
         </button>
       </div>
     </div>
