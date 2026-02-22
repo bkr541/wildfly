@@ -40,7 +40,6 @@ Deno.serve(async (req) => {
         maxAge: 0,
         proxy: "auto",
         formats: [
-          "markdown",
           {
             type: "json",
             prompt: "Extract ALL flight options shown on the page. Return them as flights[]. For each flight: origin, destination, depart_time, arrive_time, duration, stops. For fares: extract numeric amounts ONLY (no $), Standard/Regular -> fares.standard, Discount Den -> fares.discount_den, GoWild -> fares.go_wild. Set fares.currency to USD. If a fare shows $0.00 return 0. If a fare is missing/unavailable, return -1. Do not invent flights.",
