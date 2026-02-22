@@ -348,11 +348,17 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                 type="button"
                 onClick={() => setTripType(opt.value)}
                 className={cn(
-                  "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                  "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center overflow-hidden",
                   isActive ? "text-white flex-[2.5]" : "text-[#6B7B7B] hover:text-[#2E4A4A] flex-1",
                 )}
               >
-                <FontAwesomeIcon icon={opt.icon} className="w-4 h-4 shrink-0" />
+                <FontAwesomeIcon
+                  icon={opt.icon}
+                  className={cn(
+                    "w-4 h-4 shrink-0 transition-all duration-300",
+                    isActive ? "absolute left-3.5" : "relative",
+                  )}
+                />
                 {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
               </button>
             );
