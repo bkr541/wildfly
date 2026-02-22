@@ -1,1 +1,4 @@
 project_id = "ejgxmkglklyumyycpvgi"
+
+[functions.scrape-frontier-flights]
+verify_jwt = false
