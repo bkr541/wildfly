@@ -159,12 +159,12 @@ const AirportSearchbox = ({
                     setQuery("");
                     setOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 pl-9"
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 pl-9 overflow-hidden"
                 >
-                  <div className="flex items-center text-[#2E4A4A]">
-                    <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] -ml-5" />
-                    <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
-                    <span className="ml-2">{a.name}</span>
+                  <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
+                    <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0 -ml-5" />
+                    <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
+                    <span className="ml-2 truncate">{a.name}</span>
                   </div>
                 </button>
               ))}
