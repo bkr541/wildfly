@@ -16,13 +16,10 @@ import {
   faCreditCard,
   faRightFromBracket,
   faChevronLeft,
-  faPlaneDeparture,
-  faPlaneArrival,
   faCalendarDays,
-  faArrowRight,
-  faRepeat,
-  faSun,
-  faRoute,
+  faArrowRightArrowLeft,
+  faChevronDown,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
@@ -38,11 +35,11 @@ const menuItems = [
 
 type TripType = "one-way" | "round-trip" | "day-trip" | "multi-day";
 
-const tripOptions: { value: TripType; label: string; icon: any }[] = [
-  { value: "one-way", label: "One Way", icon: faArrowRight },
-  { value: "round-trip", label: "Round Trip", icon: faRepeat },
-  { value: "day-trip", label: "Day Trip", icon: faSun },
-  { value: "multi-day", label: "Multi Day", icon: faRoute },
+const tripOptions: { value: TripType; label: string }[] = [
+  { value: "one-way", label: "One Way" },
+  { value: "round-trip", label: "Round Trip" },
+  { value: "day-trip", label: "Day Trip" },
+  { value: "multi-day", label: "Multi Day" },
 ];
 
 interface Airport {
@@ -56,16 +53,14 @@ interface Airport {
   };
 }
 
-/* ── Airport Searchbox ─────────────────────────────────────── */
-const AirportSearchbox = ({
+/* ── New Airport Searchbox (Matches Design) ────────────────── */
+const AirportSearchboxNew = ({
   label,
-  icon,
   value,
   onChange,
   airports,
 }: {
   label: string;
-  icon: any;
   value: Airport | null;
   onChange: (a: Airport | null) => void;
   airports: Airport[];
@@ -74,14 +69,13 @@ const AirportSearchbox = ({
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const shouldShow = query.trim().length > 2;
+  const shouldShow = query.trim().length > 1;
 
   // Filter and Group Airports
   const groupedAirports = useMemo(() => {
     if (!shouldShow) return {};
     const q = query.toLowerCase();
 
-    // 1. Filter matching airports
     const filteredList = airports
       .filter(
         (a) =>
@@ -91,12 +85,10 @@ const AirportSearchbox = ({
       )
       .slice(0, 30);
 
-    // 2. Group them by city and state
     return filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
         const state = airport.locations?.state_code;
-        // Group key (e.g., "Chicago, IL") or fallback to "Other"
         const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
 
         if (!acc[groupKey]) {
@@ -109,69 +101,74 @@ const AirportSearchbox = ({
     );
   }, [query, airports, shouldShow]);
 
-  return (
-    <div className="relative">
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">{label}</label>
-      <div
-        className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] focus-within:border-[#345C5A] transition-colors cursor-text"
-        onClick={() => {
-          inputRef.current?.focus();
-          setOpen(true);
-        }}
-      >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A]" />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search airport or city..."
-          value={open ? query : value ? `${value.iata_code} – ${value.name}` : ""}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            if (!open) setOpen(true);
-          }}
-          onFocus={() => {
-            setOpen(true);
-            setQuery("");
-          }}
-          onBlur={() => setTimeout(() => setOpen(false), 200)}
-          className="flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]"
-        />
-      </div>
-
-      {open && shouldShow && Object.keys(groupedAirports).length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
-          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
-            <div key={cityGroup} className="mb-2 last:mb-0">
-              {/* Group Header */}
-              <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
-                <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
-                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
-              </div>
-
-              {/* Indented Airport Items */}
-              {cityAirports.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onChange(a);
-                    setQuery("");
-                    setOpen(false);
-                  }}
-                  className="w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden"
-                >
-                  <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                    <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
-                    <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
-                    <span className="ml-2 truncate">{a.name}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ))}
+  // Edit Mode (Search Input)
+  if (open) {
+    return (
+      <div className="relative p-2">
+        <div className="flex items-center gap-3 bg-[#F2F3F3] rounded-xl px-4 py-3">
+          <FontAwesomeIcon icon={faMagnifyingGlass} className="w-4 h-4 text-[#9CA3AF]" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search airport or city..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onBlur={() => setTimeout(() => setOpen(false), 200)}
+            autoFocus
+            className="flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]"
+          />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
+          >
+            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-[#9CA3AF] hover:text-[#2E4A4A]" />
+          </button>
         </div>
-      )}
+
+        {shouldShow && Object.keys(groupedAirports).length > 0 && (
+          <div className="absolute left-2 right-2 top-full mt-1 bg-white rounded-xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
+            {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
+              <div key={cityGroup} className="mb-2 last:mb-0">
+                <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
+                  <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
+                  {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
+                </div>
+                {cityAirports.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      onChange(a);
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                    className="w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden"
+                  >
+                    <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
+                      <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
+                      <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
+                      <span className="ml-2 truncate">{a.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Display Mode
+  return (
+    <div className="p-5 cursor-pointer hover:bg-[#F9FAFA] transition-colors rounded-2xl" onClick={() => setOpen(true)}>
+      <p className="text-xs text-[#9CA3AF] mb-1">{label}</p>
+      <p className="text-xl font-bold text-[#2E4A4A] truncate">
+        {value ? `${value.name.split("–")[0].trim()} (${value.iata_code})` : "Select Airport"}
+      </p>
     </div>
   );
 };
@@ -193,7 +190,6 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
   const [depDateOpen, setDepDateOpen] = useState(false);
   const [retDateOpen, setRetDateOpen] = useState(false);
 
-  const [searchAll, setSearchAll] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   useEffect(() => {
@@ -230,15 +226,20 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
 
   const handleMenuClick = (label: string) => {
     setSheetOpen(false);
-    const map: Record<string, string> = { Home: "home", Destinations: "destinations" };
+    const map: Record<string, string> = {
+      Home: "home",
+      Destinations: "destinations",
+    };
     if (map[label]) setTimeout(() => onNavigate(map[label]), 300);
   };
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
+      {/* Background Elements */}
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
+      {/* Header */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
@@ -253,6 +254,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
+            {/* ... Drawer Content ... */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-6">
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
@@ -324,102 +326,74 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
         </div>
       </header>
 
-      <div className="px-6 pt-2 pb-4 relative z-10 animate-fade-in">
+      {/* Page Title */}
+      <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Flights</h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
       </div>
 
-      {/* ── Flight Search Form ─────────────────────────────── */}
-      <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
-        {/* Trip Type Switch */}
-        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
-          <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
-            style={{
-              width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
-              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${tripOptions.length - 1 + 2.5})`,
-            }}
-          />
-          {tripOptions.map((opt) => {
-            const isActive = tripType === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setTripType(opt.value)}
-                className={cn(
-                  "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
-                  isActive ? "text-white flex-[2.5]" : "text-[#9CA3AF] hover:text-[#6B7B7B] flex-1",
-                )}
-              >
-                <FontAwesomeIcon icon={opt.icon} className="w-4 h-4 shrink-0 transition-transform duration-300" />
-                {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
-              </button>
-            );
-          })}
-        </div>
+      {/* ── Flight Search Form Card ────────────────────────── */}
+      <div className="px-6 pb-8 relative z-10 animate-fade-in">
+        <div className="bg-white rounded-[32px] shadow-xl p-6">
+          {/* Trip Type Tabs */}
+          <div className="bg-[#F2F3F3] rounded-full p-1 flex mb-6">
+            {tripOptions.map((opt) => {
+              const isActive = tripType === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTripType(opt.value)}
+                  className={cn(
+                    "flex-1 py-3 text-sm font-bold rounded-full transition-all duration-200 text-center",
+                    isActive ? "bg-white text-[#2E4A4A] shadow-sm" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Departure Airport */}
-        <AirportSearchbox
-          label="Departure"
-          icon={faPlaneDeparture}
-          value={departure}
-          onChange={setDeparture}
-          airports={airports}
-        />
+          {/* Airports Container */}
+          <div className="bg-white border border-[#E3E6E6] rounded-2xl relative mb-6">
+            {/* Departure */}
+            <div className="border-b border-[#E3E6E6]">
+              <AirportSearchboxNew label="From" value={departure} onChange={setDeparture} airports={airports} />
+            </div>
+            {/* Arrival */}
+            <div>
+              <AirportSearchboxNew label="To" value={arrival} onChange={setArrival} airports={airports} />
+            </div>
+            {/* Swap Button */}
+            <button
+              type="button"
+              className="absolute right-8 top-1/2 -translate-y-1/2 bg-[#345C5A] text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity z-10"
+              onClick={() => {
+                const temp = departure;
+                setDeparture(arrival);
+                setArrival(temp);
+              }}
+            >
+              <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-5 h-5 rotate-90" />
+            </button>
+          </div>
 
-        {/* Arrival Airport */}
-        <AirportSearchbox
-          label="Arrival"
-          icon={faPlaneArrival}
-          value={arrival}
-          onChange={setArrival}
-          airports={airports}
-        />
-
-        {/* Search All Destinations Toggle */}
-        <div className="flex items-center justify-end gap-2">
-          <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
-            Search All Destinations
-          </label>
-          <button
-            id="search-all"
-            type="button"
-            role="switch"
-            aria-checked={searchAll}
-            onClick={() => setSearchAll(!searchAll)}
-            className={cn(
-              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
-              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
-            )}
-          >
-            <span
-              className={cn(
-                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                searchAll ? "translate-x-5" : "translate-x-0",
-              )}
-            />
-          </button>
-        </div>
-
-        {/* Date Pickers */}
-        <div className={cn("grid gap-4", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
-          {/* Departure Date */}
-          <div>
-            <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Departure Date</label>
+          {/* Date & Travelers Row */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Departure Date */}
             <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className={cn(
-                    "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                    !departureDate && "text-[#9CA3AF]",
-                  )}
+                  className="bg-white border border-[#E3E6E6] rounded-2xl p-4 text-left hover:border-[#345C5A] transition-colors"
                 >
-                  <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
-                  <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
-                    {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
-                  </span>
+                  <p className="text-xs text-[#9CA3AF] mb-1">Departure</p>
+                  <div className="flex items-center justify-between">
+                    <p className={cn("text-lg font-bold", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                      {departureDate ? format(departureDate, "EEE, dd MMM") : "Select date"}
+                    </p>
+                    <FontAwesomeIcon icon={faCalendarDays} className="w-5 h-5 text-[#2E4A4A]" />
+                  </div>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -436,25 +410,22 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                 />
               </PopoverContent>
             </Popover>
-          </div>
 
-          {/* Return Date — only for Round Trip / Multi Day */}
-          {showReturnDate && (
-            <div>
-              <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">Return Date</label>
+            {/* Return Date or Travelers */}
+            {showReturnDate ? (
               <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className={cn(
-                      "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                      !arrivalDate && "text-[#9CA3AF]",
-                    )}
+                    className="bg-white border border-[#E3E6E6] rounded-2xl p-4 text-left hover:border-[#345C5A] transition-colors"
                   >
-                    <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
-                    <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
-                      {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
-                    </span>
+                    <p className="text-xs text-[#9CA3AF] mb-1">Return</p>
+                    <div className="flex items-center justify-between">
+                      <p className={cn("text-lg font-bold", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                        {arrivalDate ? format(arrivalDate, "EEE, dd MMM") : "Select date"}
+                      </p>
+                      <FontAwesomeIcon icon={faCalendarDays} className="w-5 h-5 text-[#2E4A4A]" />
+                    </div>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -471,17 +442,46 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                   />
                 </PopoverContent>
               </Popover>
+            ) : (
+              // Static Travelers (for one-way/day-trip layout match)
+              <button
+                type="button"
+                className="bg-white border border-[#E3E6E6] rounded-2xl p-4 text-left flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-xs text-[#9CA3AF] mb-1">Travelers</p>
+                  <p className="text-lg font-bold text-[#2E4A4A]">2 Adults</p>
+                </div>
+                <FontAwesomeIcon icon={faChevronDown} className="w-5 h-5 text-[#2E4A4A]" />
+              </button>
+            )}
+          </div>
+
+          {/* Travelers Row (for Round Trip) */}
+          {showReturnDate && (
+            <div className="mb-6">
+              <button
+                type="button"
+                className="w-full bg-white border border-[#E3E6E6] rounded-2xl p-4 text-left flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-xs text-[#9CA3AF] mb-1">Travelers</p>
+                  <p className="text-lg font-bold text-[#2E4A4A]">2 Adults</p>
+                </div>
+                <FontAwesomeIcon icon={faChevronDown} className="w-5 h-5 text-[#2E4A4A]" />
+              </button>
             </div>
           )}
+
+          {/* Search Button */}
+          <button
+            type="button"
+            onClick={() => onNavigate("flight-results")}
+            className="w-full py-5 bg-black text-white font-bold text-xl rounded-full shadow-md hover:opacity-90 transition-opacity"
+          >
+            Find Flights
+          </button>
         </div>
-        {/* Search Button */}
-        <button
-          type="button"
-          onClick={() => onNavigate("flight-results")}
-          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all"
-        >
-          Search Flights
-        </button>
       </div>
     </div>
   );
