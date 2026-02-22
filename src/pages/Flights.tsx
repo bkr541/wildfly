@@ -336,8 +336,8 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
           <div
             className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
-              width: `calc((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5})`,
-              left: `calc(6px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${tripOptions.length - 1 + 2.5})`,
+              width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
+              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${tripOptions.length - 1 + 2.5})`,
             }}
           />
           {tripOptions.map((opt) => {
@@ -349,7 +349,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                 onClick={() => setTripType(opt.value)}
                 className={cn(
                   "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
-                  isActive ? "text-white flex-[2.5]" : "text-[#6B7B7B] hover:text-[#2E4A4A] flex-1",
+                  isActive ? "text-white flex-[2.5]" : "text-[#9CA3AF] hover:text-[#6B7B7B] flex-1",
                 )}
               >
                 <FontAwesomeIcon icon={opt.icon} className="w-4 h-4 shrink-0 transition-transform duration-300" />
