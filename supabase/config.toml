@@ -1,4 +1,4 @@
 project_id = "ejgxmkglklyumyycpvgi"
 
-[functions.scrape-frontier-flights]
+[functions.getSingleRoute]
 verify_jwt = false
