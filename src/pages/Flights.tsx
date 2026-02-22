@@ -75,10 +75,13 @@ const AirportSearchbox = ({
 
   const shouldShow = query.trim().length > 2;
 
-  const filtered = useMemo(() => {
-    if (!shouldShow) return [];
+  // Filter and Group Airports
+  const groupedAirports = useMemo(() => {
+    if (!shouldShow) return {};
     const q = query.toLowerCase();
-    return airports
+
+    // 1. Filter matching airports
+    const filteredList = airports
       .filter(
         (a) =>
           a.name.toLowerCase().includes(q) ||
@@ -86,6 +89,23 @@ const AirportSearchbox = ({
           (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
       )
       .slice(0, 30);
+
+    // 2. Group them by city and state
+    return filteredList.reduce(
+      (acc, airport) => {
+        const city = airport.locations?.city;
+        const state = airport.locations?.state_code;
+        // Group key (e.g., "Chicago, IL") or fallback to "Other"
+        const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
+
+        if (!acc[groupKey]) {
+          acc[groupKey] = [];
+        }
+        acc[groupKey].push(airport);
+        return acc;
+      },
+      {} as Record<string, Airport[]>,
+    );
   }, [query, airports, shouldShow]);
 
   return (
@@ -102,7 +122,7 @@ const AirportSearchbox = ({
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search airport..."
+          placeholder="Search airport or city..."
           value={open ? query : value ? `${value.iata_code} – ${value.name}` : ""}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -116,30 +136,38 @@ const AirportSearchbox = ({
           className="flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]"
         />
       </div>
-      {open && shouldShow && filtered.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-48 overflow-y-auto z-50">
-          {filtered.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                onChange(a);
-                setQuery("");
-                setOpen(false);
-              }}
-              className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#F2F3F3] transition-colors first:rounded-t-2xl last:rounded-b-2xl flex flex-col gap-0.5"
-            >
-              <div className="flex items-center text-[#2E4A4A]">
-                <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
-                <span className="ml-2">{a.name}</span>
+
+      {open && shouldShow && Object.keys(groupedAirports).length > 0 && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
+          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
+            <div key={cityGroup} className="mb-2 last:mb-0">
+              {/* Group Header */}
+              <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
+                <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 opacity-60" />
+                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </div>
-              {a.locations && (
-                <span className="text-xs text-[#6B7B7B]">
-                  {a.locations.city}, {a.locations.state_code} • {a.locations.region}
-                </span>
-              )}
-            </button>
+
+              {/* Indented Airport Items */}
+              {cityAirports.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    onChange(a);
+                    setQuery("");
+                    setOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 pl-9"
+                >
+                  <div className="flex items-center text-[#2E4A4A]">
+                    <FontAwesomeIcon icon={faPlane} className="w-3 h-3 mr-2 text-[#9CA3AF] -ml-5" />
+                    <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
+                    <span className="ml-2">{a.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}
