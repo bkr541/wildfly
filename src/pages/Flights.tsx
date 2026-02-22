@@ -11,6 +11,7 @@ import {
   faHouse,
   faPlane,
   faLocationDot,
+  faTreeCity,
   faUserGroup,
   faCreditCard,
   faRightFromBracket,
@@ -143,7 +144,7 @@ const AirportSearchbox = ({
             <div key={cityGroup} className="mb-2 last:mb-0">
               {/* Group Header */}
               <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
-                <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 opacity-60" />
+                <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
                 {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </div>
 
@@ -161,7 +162,7 @@ const AirportSearchbox = ({
                   className="w-full text-left px-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 pl-9"
                 >
                   <div className="flex items-center text-[#2E4A4A]">
-                    <FontAwesomeIcon icon={faPlane} className="w-3 h-3 mr-2 text-[#9CA3AF] -ml-5" />
+                    <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] -ml-5" />
                     <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
                     <span className="ml-2">{a.name}</span>
                   </div>
