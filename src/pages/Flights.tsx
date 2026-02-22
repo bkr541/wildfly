@@ -180,7 +180,7 @@ const AirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
-const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string) => void }) => {
+const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string, data?: string) => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -508,8 +508,8 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
               if (error) {
                 console.error("Edge function error:", error);
               } else {
-                const flights = data?.data?.json?.flights || data?.json?.flights || [];
-                console.log("Extracted flights:", flights);
+                console.log("Scrape response:", data);
+                onNavigate("flight-results", JSON.stringify(data, null, 2));
               }
             } catch (err) {
               console.error("Failed to invoke edge function:", err);

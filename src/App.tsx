@@ -20,6 +20,7 @@ const MainApp = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results">("home");
+  const [flightResultsData, setFlightResultsData] = useState<string>("");
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -173,7 +174,10 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flights" && (
-          <FlightsPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
+          <FlightsPage onSignOut={handleSignOut} onNavigate={(page: string, data?: string) => {
+            if (page === "flight-results" && data) setFlightResultsData(data);
+            setCurrentPage(page as any);
+          }} />
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "destinations" && (
@@ -181,7 +185,7 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <FlightDestResults onBack={() => setCurrentPage("flights")} />
+          <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
         )}
       </div>
     </div>

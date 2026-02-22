@@ -3,8 +3,10 @@ import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 
 const FlightDestResults = ({
   onBack,
+  responseData,
 }: {
   onBack: () => void;
+  responseData: string;
 }) => {
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
@@ -30,8 +32,12 @@ const FlightDestResults = ({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        {/* Results will go here */}
+      <div className="flex-1 flex flex-col px-6 pb-6 relative z-10">
+        <textarea
+          readOnly
+          value={responseData}
+          className="w-full flex-1 min-h-[300px] rounded-2xl border border-[#345C5A]/20 bg-white p-4 text-sm font-mono text-[#2E4A4A] resize-none focus:outline-none"
+        />
       </div>
     </div>
   );
