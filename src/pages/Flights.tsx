@@ -48,6 +48,11 @@ interface Airport {
   id: number;
   name: string;
   iata_code: string;
+  locations?: {
+    city: string;
+    state_code: string;
+    region: string;
+  };
 }
 
 /* ── Airport Searchbox ─────────────────────────────────────── */
@@ -77,7 +82,8 @@ const AirportSearchbox = ({
       .filter(
         (a) =>
           a.name.toLowerCase().includes(q) ||
-          a.iata_code.toLowerCase().includes(q)
+          a.iata_code.toLowerCase().includes(q) ||
+          (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
       )
       .slice(0, 30);
   }, [query, airports, shouldShow]);
@@ -122,10 +128,17 @@ const AirportSearchbox = ({
                 setQuery("");
                 setOpen(false);
               }}
-              className="w-full text-left px-4 py-2.5 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#F2F3F3] transition-colors first:rounded-t-2xl last:rounded-b-2xl flex flex-col gap-0.5"
             >
-              <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
-              <span className="ml-2">{a.name}</span>
+              <div className="flex items-center text-[#2E4A4A]">
+                <span className="font-semibold text-[#345C5A]">{a.iata_code}</span>
+                <span className="ml-2">{a.name}</span>
+              </div>
+              {a.locations && (
+                <span className="text-xs text-[#6B7B7B]">
+                  {a.locations.city}, {a.locations.state_code} • {a.locations.region}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -135,13 +148,7 @@ const AirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
-const FlightsPage = ({
-  onSignOut,
-  onNavigate,
-}: {
-  onSignOut: () => void;
-  onNavigate: (page: string) => void;
-}) => {
+const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string) => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -162,7 +169,9 @@ const FlightsPage = ({
 
   useEffect(() => {
     const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase
         .from("user_info")
@@ -181,9 +190,9 @@ const FlightsPage = ({
     const loadAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("id, name, iata_code")
+        .select("id, name, iata_code, locations(city, state_code, region)")
         .order("name");
-      if (data) setAirports(data);
+      if (data) setAirports(data as unknown as Airport[]);
     };
 
     loadProfile();
@@ -204,11 +213,17 @@ const FlightsPage = ({
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
-            <button type="button" className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
+            <button
+              type="button"
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            >
               <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col">
+          <SheetContent
+            side="left"
+            className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
+          >
             <div className="flex items-center gap-4 px-6 pt-10 pb-6">
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
@@ -218,7 +233,11 @@ const FlightsPage = ({
                 <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
                 <p className="text-[#2E4A4A] text-lg font-semibold truncate">{fullName}</p>
               </div>
-              <button onClick={() => setSheetOpen(false)} className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors" type="button">
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+                type="button"
+              >
                 <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
               </button>
             </div>
@@ -239,7 +258,10 @@ const FlightsPage = ({
             <div className="mt-auto">
               <div className="h-px bg-[#E5E7EB] mx-6" />
               <button
-                onClick={() => { setSheetOpen(false); setTimeout(() => onSignOut(), 300); }}
+                onClick={() => {
+                  setSheetOpen(false);
+                  setTimeout(() => onSignOut(), 300);
+                }}
                 type="button"
                 className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
               >
@@ -251,10 +273,16 @@ const FlightsPage = ({
         </Sheet>
 
         <div className="flex items-center gap-5 h-12">
-          <button type="button" className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative">
+          <button
+            type="button"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+          >
             <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
           </button>
-          <button type="button" className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative">
+          <button
+            type="button"
+            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+          >
             <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
           </button>
           <Avatar
@@ -276,7 +304,6 @@ const FlightsPage = ({
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
         {/* Trip Type Switch */}
         <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
-          {/* Animated background pill */}
           <div
             className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
@@ -293,7 +320,7 @@ const FlightsPage = ({
                 onClick={() => setTripType(opt.value)}
                 className={cn(
                   "flex-1 py-2.5 text-xs font-semibold rounded-xl transition-colors duration-200 relative z-10 flex items-center justify-center gap-1.5",
-                  isActive ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
+                  isActive ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]",
                 )}
               >
                 <FontAwesomeIcon icon={opt.icon} className="w-3 h-3" />
@@ -334,13 +361,13 @@ const FlightsPage = ({
             onClick={() => setSearchAll(!searchAll)}
             className={cn(
               "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
-              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]"
+              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
             )}
           >
             <span
               className={cn(
                 "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                searchAll ? "translate-x-5" : "translate-x-0"
+                searchAll ? "translate-x-5" : "translate-x-0",
               )}
             />
           </button>
@@ -357,7 +384,7 @@ const FlightsPage = ({
                   type="button"
                   className={cn(
                     "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                    !departureDate && "text-[#9CA3AF]"
+                    !departureDate && "text-[#9CA3AF]",
                   )}
                 >
                   <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
@@ -392,7 +419,7 @@ const FlightsPage = ({
                     type="button"
                     className={cn(
                       "w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#E3E6E6] hover:border-[#345C5A] transition-colors text-left",
-                      !arrivalDate && "text-[#9CA3AF]"
+                      !arrivalDate && "text-[#9CA3AF]",
                     )}
                   >
                     <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
@@ -409,9 +436,7 @@ const FlightsPage = ({
                       setArrivalDate(date);
                       setRetDateOpen(false);
                     }}
-                    disabled={(date) =>
-                      date < (departureDate || new Date())
-                    }
+                    disabled={(date) => date < (departureDate || new Date())}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
