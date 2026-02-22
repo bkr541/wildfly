@@ -502,7 +502,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
 
             setLoading(true);
             try {
-              const { data, error } = await supabase.functions.invoke("scrape-frontier-flights", {
+              const { data, error } = await supabase.functions.invoke("getSingleRoute", {
                 body: { targetUrl },
               });
               if (error) {
