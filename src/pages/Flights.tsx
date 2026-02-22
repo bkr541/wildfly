@@ -496,13 +496,23 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             if (!departure || !departureDate) return;
             const originCode = departure.iata_code;
             const destinationCode = arrival?.iata_code || "";
-            const formattedDate = format(departureDate, "yyyy-MM-dd") + " 00:00:00";
-            const encodedDate = encodeURIComponent(formattedDate);
-            const targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodedDate}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+            const depFormatted = format(departureDate, "yyyy-MM-dd");
+
+            let targetUrl: string;
+            let functionName: string;
+
+            if (tripType === "round-trip" && arrivalDate) {
+              const retFormatted = format(arrivalDate, "yyyy-MM-dd");
+              targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+              functionName = "getRoundTripRoute";
+            } else {
+              targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+              functionName = "getSingleRoute";
+            }
 
             setLoading(true);
             try {
-              const { data, error } = await supabase.functions.invoke("getSingleRoute", {
+              const { data, error } = await supabase.functions.invoke(functionName, {
                 body: { targetUrl },
               });
               if (error) {
