@@ -110,7 +110,6 @@ const AirportSearchbox = ({
       (acc, airport) => {
         const city = airport.locations?.city;
         const state = airport.locations?.state_code;
-        // Group key (e.g., "Chicago, IL") or fallback to "Other"
         const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
 
         if (!acc[groupKey]) acc[groupKey] = [];
@@ -166,13 +165,11 @@ const AirportSearchbox = ({
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
           {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
             <div key={cityGroup} className="mb-2 last:mb-0">
-              {/* Group Header */}
               <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
                 <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
                 {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </div>
 
-              {/* Indented Airport Items */}
               {cityAirports.map((a) => (
                 <button
                   key={a.id}
@@ -415,7 +412,7 @@ const FlightsPage = ({
               value={arrival}
               onChange={setArrival}
               airports={airports}
-              containerClassName="p-4"
+              containerClassName="pt-4 px-4 pb-2" // reduced bottom padding to tighten spacing to toggle
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
             />
@@ -438,8 +435,8 @@ const FlightsPage = ({
             </button>
           </div>
 
-          {/* Toggle (no separator line above/below) */}
-          <div className="flex items-center justify-end gap-2 px-4 py-3">
+          {/* Toggle (smaller + less whitespace above) */}
+          <div className="flex items-center justify-end gap-2 px-4 pt-0 pb-3">
             <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
               Search All Destinations
             </label>
@@ -456,14 +453,14 @@ const FlightsPage = ({
                 });
               }}
               className={cn(
-                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+                "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
                 searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
               )}
             >
               <span
                 className={cn(
-                  "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                  searchAll ? "translate-x-5" : "translate-x-0",
+                  "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                  searchAll ? "translate-x-4" : "translate-x-0",
                 )}
               />
             </button>
