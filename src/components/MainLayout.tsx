@@ -82,8 +82,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
-            {/* Sidebar profile header */}
-            <div className="flex items-center gap-4 px-6 pt-10 pb-6">
+            {/* Sidebar profile header - pb-2 reduces space above separator */}
+            <div className="flex items-center gap-4 px-6 pt-10 pb-2">
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
                 <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
@@ -103,7 +103,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
 
             <div className="h-px bg-[#E5E7EB] mx-6" />
 
-            <nav className="flex-1 px-6 pt-4 flex flex-col justify-start gap-1">
+            {/* nav pt-2 reduces space below separator */}
+            <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-1">
               {menuItems.map((item) => (
                 <button
                   key={item.label}
@@ -134,10 +135,9 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
           </SheetContent>
         </Sheet>
 
-        {/* Right: search, bell, avatar (conditionally hidden) */}
+        {/* Right: search, bell, avatar */}
         {!hideHeaderRight && (
           <div className="flex items-center gap-5 h-12">
-            {/* Sliding Search Box Group */}
             <div className="relative flex items-center h-12">
               <div
                 className={cn(
@@ -167,7 +167,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
               </button>
             </div>
 
-            {/* Notification Icon: Collapses when search is open */}
             <div
               className={cn(
                 "flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden",
@@ -193,7 +192,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
         )}
       </header>
 
-      {/* Page content */}
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
