@@ -41,11 +41,13 @@ function formatTime(iso: string): string {
 
 const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
+  // NEW: State to track expanded individual flight details
+  const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
 
-  const { flights, departureDate, arrivalDate, firecrawlRequestBody } = useMemo(() => {
+  const { flights, departureDate, arrivalDate } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
@@ -132,18 +134,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     return earliest.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   }, [selectedGroup]);
 
-  const nonstopCount = useMemo(() => {
-    if (!selectedGroup) return 0;
-    return selectedGroup.flights.filter((f) => f.legs.length === 1).length;
-  }, [selectedGroup]);
-
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      {/* Synchronized Header - pt-6 for smaller top gap */}
       <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
         <button
           type="button"
@@ -157,7 +152,6 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       </header>
 
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
-        {/* Route Summary Text - text-sm instead of text-lg */}
         {groups.length > 0 && origin && (
           <div className="flex items-center gap-1.5 px-1 opacity-80">
             <span className="text-sm font-semibold text-[#6B7B7B] uppercase tracking-wider">{origin}</span>
@@ -168,7 +162,6 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           </div>
         )}
 
-        {/* Scaled-down Destination Circles (w-16 instead of w-20) */}
         {groups.length > 0 && (
           <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             {groups.map((group) => {
@@ -176,7 +169,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
               return (
                 <button
                   key={group.destination}
-                  onClick={() => setSelectedDest(isSelected ? null : group.destination)}
+                  onClick={() => {
+                    setSelectedDest(isSelected ? null : group.destination);
+                    setExpandedDest(null);
+                    setExpandedFlightKey(null);
+                  }}
                   className="flex flex-col items-center gap-1 shrink-0"
                 >
                   <div
@@ -203,71 +200,19 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           </div>
         )}
 
-        {/* Selected Highlight Card - Tightened padding and font */}
-        {selectedGroup && (
-          <div className="rounded-xl bg-white shadow-sm border border-[#E3E6E6] p-4 flex flex-col gap-3 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-[#F2F3F3] pb-2">
-              <span className="text-lg font-bold text-[#2E4A4A]">
-                {origin} <span className="text-[#6B7B7B] font-normal mx-0.5">→</span> {selectedGroup.destination}
-              </span>
-              {selectedGroup.hasGoWild && (
-                <span className="text-[10px] font-bold bg-[#E8F1F1] text-[#345C5A] px-2 py-0.5 rounded-md uppercase tracking-tight">
-                  GoWild
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-[#F7F8F8] px-3 py-2 rounded-lg flex items-center gap-2.5">
-                <FontAwesomeIcon icon={faLayerGroup} className="w-3.5 h-3.5 text-[#5A9E8F]" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-[#6B7B7B] uppercase font-bold tracking-tighter leading-none">
-                    Options
-                  </span>
-                  <span className="text-sm font-bold text-[#2E4A4A]">{selectedGroup.flights.length}</span>
-                </div>
-              </div>
-              <div className="bg-[#F7F8F8] px-3 py-2 rounded-lg flex items-center gap-2.5">
-                <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#5A9E8F]" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-[#6B7B7B] uppercase font-bold tracking-tighter leading-none">
-                    Nonstop
-                  </span>
-                  <span className="text-sm font-bold text-[#2E4A4A]">{nonstopCount}</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() =>
-                setExpandedDest(expandedDest === selectedGroup.destination ? null : selectedGroup.destination)
-              }
-              className="flex items-center justify-center gap-2 text-xs font-bold text-[#5A9E8F] py-1 hover:bg-[#F7F8F8] rounded-md transition-colors"
-            >
-              <FontAwesomeIcon icon={faPlane} className="w-3 h-3" />
-              <span>{expandedDest === selectedGroup.destination ? "HIDE DETAILS" : "SHOW ALL FLIGHTS"}</span>
-              <FontAwesomeIcon
-                icon={faChevronDown}
-                className={cn(
-                  "w-2.5 h-2.5 transition-transform",
-                  expandedDest === selectedGroup.destination && "rotate-180",
-                )}
-              />
-            </button>
-          </div>
-        )}
-
-        {/* Compact List Cards */}
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
-            const isOpen = expandedDest === group.destination;
+            const isDestOpen = expandedDest === group.destination;
             return (
               <div
                 key={group.destination}
                 className="rounded-xl bg-white shadow-sm border border-[#E8EBEB] overflow-hidden"
               >
                 <button
-                  onClick={() => setExpandedDest(isOpen ? null : group.destination)}
+                  onClick={() => {
+                    setExpandedDest(isDestOpen ? null : group.destination);
+                    setExpandedFlightKey(null);
+                  }}
                   className="w-full flex items-center justify-between px-4 py-3 text-left"
                 >
                   <div className="flex flex-col">
@@ -281,33 +226,99 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                   </div>
                   <FontAwesomeIcon
                     icon={faChevronDown}
-                    className={cn("w-4 h-4 text-[#9CA3AF] transition-transform duration-200", isOpen && "rotate-180")}
+                    className={cn(
+                      "w-4 h-4 text-[#9CA3AF] transition-transform duration-200",
+                      isDestOpen && "rotate-180",
+                    )}
                   />
                 </button>
 
-                {isOpen && (
+                {isDestOpen && (
                   <div className="px-3 pb-3 flex flex-col gap-2 animate-fade-in border-t border-[#F2F3F3] pt-3">
-                    {group.flights.map((flight, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between bg-[#F9FAFA] border border-[#F2F3F3] rounded-lg px-3 py-2.5"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#345C5A] -rotate-45" />
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-[#2E4A4A]">
-                              {formatTime(flight.legs[0]?.departure_time)} →{" "}
-                              {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                              {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-[10px]">(+1)</span>}
+                    {group.flights.map((flight, idx) => {
+                      const flightKey = `${group.destination}-${idx}`;
+                      const isFlightOpen = expandedFlightKey === flightKey;
+                      const isNonstop = flight.legs.length === 1;
+
+                      return (
+                        <div key={idx} className="flex flex-col gap-2">
+                          {/* CHANGED: This is now a button to allow expansion of flight details */}
+                          <button
+                            onClick={() => setExpandedFlightKey(isFlightOpen ? null : flightKey)}
+                            className={cn(
+                              "flex items-center justify-between bg-[#F9FAFA] border rounded-lg px-3 py-2.5 transition-colors text-left w-full",
+                              isFlightOpen ? "border-[#345C5A]/30 bg-white" : "border-[#F2F3F3]",
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#345C5A] -rotate-45" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-[#2E4A4A]">
+                                  {formatTime(flight.legs[0]?.departure_time)} →{" "}
+                                  {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
+                                  {flight.is_plus_one_day && (
+                                    <span className="ml-1 text-[#E89830] text-[10px]">(+1)</span>
+                                  )}
+                                </span>
+                                <span className="text-[10px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-2.5 py-0.5 text-[10px] font-bold text-[#345C5A] uppercase">
+                              {isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}
                             </span>
-                            <span className="text-[10px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
-                          </div>
+                          </button>
+
+                          {/* NEW: Detailed layover/leg information when flight is clicked */}
+                          {isFlightOpen && (
+                            <div className="px-4 py-3 bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] flex flex-col gap-4 animate-fade-in relative ml-2">
+                              {/* Connector line */}
+                              <div className="absolute left-[1.125rem] top-6 bottom-6 w-0.5 border-l-2 border-dashed border-[#E3E6E6]" />
+
+                              {flight.legs.map((leg, legIdx) => (
+                                <div key={legIdx} className="flex flex-col gap-4">
+                                  <div className="flex items-start gap-4 relative z-10">
+                                    <div className="w-2.5 h-2.5 rounded-full border-2 border-[#5A9E8F] bg-white mt-1.5 shrink-0" />
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-bold text-[#2E4A4A]">
+                                        {leg.origin} {formatTime(leg.departure_time)}
+                                      </span>
+                                      <span className="text-[10px] text-[#6B7B7B] font-medium uppercase tracking-tight">
+                                        Departure
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Layover marker if there is another leg */}
+                                  {legIdx < flight.legs.length - 1 && (
+                                    <div className="flex items-center gap-4 py-1 relative z-10">
+                                      <div className="w-2.5 h-2.5 rounded-full border-2 border-[#E89830] bg-white shrink-0" />
+                                      <div className="bg-[#E89830]/5 px-2 py-0.5 rounded text-[10px] font-bold text-[#E89830] uppercase">
+                                        Layover in {leg.destination}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Arrival marker for final leg */}
+                                  {legIdx === flight.legs.length - 1 && (
+                                    <div className="flex items-start gap-4 relative z-10">
+                                      <div className="w-2.5 h-2.5 rounded-full border-2 border-[#5A9E8F] bg-white mt-1.5 shrink-0" />
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-[#2E4A4A]">
+                                          {leg.destination} {formatTime(leg.arrival_time)}
+                                        </span>
+                                        <span className="text-[10px] text-[#6B7B7B] font-medium uppercase tracking-tight">
+                                          Arrival
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-2.5 py-0.5 text-[10px] font-bold text-[#345C5A] uppercase">
-                          {flight.legs.length === 1 ? "Nonstop" : `${flight.legs.length - 1} stop`}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
