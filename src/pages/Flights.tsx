@@ -116,9 +116,10 @@ const AirportSearchbox = ({
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
+      {/* Fixed height so the row doesn't grow when the clear (x) button appears */}
       <div
         className={cn(
-          "flex items-center gap-2.5 bg-transparent transition-colors",
+          "flex items-center gap-2.5 bg-transparent transition-colors h-10",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
         onClick={() => {
@@ -127,7 +128,7 @@ const AirportSearchbox = ({
           setOpen(true);
         }}
       >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A]" />
+        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0" />
 
         <input
           ref={inputRef}
@@ -147,7 +148,7 @@ const AirportSearchbox = ({
           }}
           onBlur={() => setTimeout(() => setOpen(false), 200)}
           className={cn(
-            "flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]",
+            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] min-w-0 truncate",
             disabled && "cursor-not-allowed",
           )}
         />
@@ -164,7 +165,7 @@ const AirportSearchbox = ({
               setOpen(true);
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
-            className="p-1 -mr-1 rounded-lg text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
           >
             <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
           </button>
@@ -407,7 +408,6 @@ const FlightsPage = ({
         {/* Airport + Dates Group */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
           <div className="relative">
-            {/* CHANGED: tighter bottom padding so gap to Arrival matches the Arrival->Dates spacing */}
             <AirportSearchbox
               label="Departure"
               icon={faPlaneDeparture}
@@ -419,7 +419,6 @@ const FlightsPage = ({
 
             <div className="h-px bg-[#E3E6E6] mx-3" />
 
-            {/* CHANGED: top padding reduced to match the date section's top spacing */}
             <AirportSearchbox
               label="Arrival"
               icon={faPlaneArrival}
