@@ -90,10 +90,12 @@ const AirportSearchbox = ({
 
   const shouldShow = query.trim().length > 2;
 
+  // Filter and Group Airports
   const groupedAirports = useMemo(() => {
     if (!shouldShow || disabled) return {};
     const q = query.toLowerCase();
 
+    // 1. Filter matching airports
     const filteredList = airports
       .filter(
         (a) =>
@@ -103,10 +105,12 @@ const AirportSearchbox = ({
       )
       .slice(0, 30);
 
+    // 2. Group them by city and state
     return filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
         const state = airport.locations?.state_code;
+        // Group key (e.g., "Chicago, IL") or fallback to "Other"
         const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
 
         if (!acc[groupKey]) acc[groupKey] = [];
@@ -162,11 +166,13 @@ const AirportSearchbox = ({
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
           {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
             <div key={cityGroup} className="mb-2 last:mb-0">
+              {/* Group Header */}
               <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
                 <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
                 {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </div>
 
+              {/* Indented Airport Items */}
               {cityAirports.map((a) => (
                 <button
                   key={a.id}
@@ -432,9 +438,7 @@ const FlightsPage = ({
             </button>
           </div>
 
-          <div className="h-px bg-[#E3E6E6] mx-4" />
-
-          {/* Toggle moved into this card */}
+          {/* Toggle (no separator line above/below) */}
           <div className="flex items-center justify-end gap-2 px-4 py-3">
             <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
               Search All Destinations
@@ -468,6 +472,7 @@ const FlightsPage = ({
 
         {/* Date Pickers */}
         <div className={cn("grid gap-4", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
+          {/* Departure Date */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
             <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Departure Date</label>
             <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
@@ -495,6 +500,7 @@ const FlightsPage = ({
             </Popover>
           </div>
 
+          {/* Return Date — only for Round Trip / Multi Day */}
           {showReturnDate && (
             <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
               <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Return Date</label>
