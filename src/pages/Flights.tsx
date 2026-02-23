@@ -65,6 +65,8 @@ const AirportSearchbox = ({
   onChange,
   airports,
   containerClassName,
+  disabled = false,
+  placeholder = "Search airport or city...",
 }: {
   label: string;
   icon: any;
@@ -72,16 +74,25 @@ const AirportSearchbox = ({
   onChange: (a: Airport | null) => void;
   airports: Airport[];
   containerClassName?: string;
+  disabled?: boolean;
+  placeholder?: string;
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false);
+      setQuery("");
+    }
+  }, [disabled]);
+
   const shouldShow = query.trim().length > 2;
 
   // Filter and Group Airports
   const groupedAirports = useMemo(() => {
-    if (!shouldShow) return {};
+    if (!shouldShow || disabled) return {};
     const q = query.toLowerCase();
 
     // 1. Filter matching airports
@@ -110,38 +121,50 @@ const AirportSearchbox = ({
       },
       {} as Record<string, Airport[]>,
     );
-  }, [query, airports, shouldShow]);
+  }, [query, airports, shouldShow, disabled]);
+
+  const displayValue = disabled ? "" : open ? query : value ? `${value.iata_code} – ${value.name}` : "";
 
   return (
     <div className={cn("relative", containerClassName)}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">{label}</label>
       <div
-        className="flex items-center gap-3 bg-transparent transition-colors cursor-text"
+        className={cn(
+          "flex items-center gap-3 bg-transparent transition-colors",
+          disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
+        )}
         onClick={() => {
+          if (disabled) return;
           inputRef.current?.focus();
           setOpen(true);
         }}
       >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A]" />
+        <FontAwesomeIcon icon={icon} className={cn("w-4 h-4", disabled ? "text-[#9CA3AF]" : "text-[#345C5A]")} />
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search airport or city..."
-          value={open ? query : value ? `${value.iata_code} – ${value.name}` : ""}
+          placeholder={placeholder}
+          disabled={disabled}
+          value={displayValue}
           onChange={(e) => {
+            if (disabled) return;
             setQuery(e.target.value);
             if (!open) setOpen(true);
           }}
           onFocus={() => {
+            if (disabled) return;
             setOpen(true);
             setQuery("");
           }}
           onBlur={() => setTimeout(() => setOpen(false), 200)}
-          className="flex-1 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF]"
+          className={cn(
+            "flex-1 bg-transparent outline-none text-sm placeholder:text-[#9CA3AF]",
+            disabled ? "text-[#6B7B7B]" : "text-[#2E4A4A]",
+          )}
         />
       </div>
 
-      {open && shouldShow && Object.keys(groupedAirports).length > 0 && (
+      {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
           {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
             <div key={cityGroup} className="mb-2 last:mb-0">
@@ -180,7 +203,13 @@ const AirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
-const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string, data?: string) => void }) => {
+const FlightsPage = ({
+  onSignOut,
+  onNavigate,
+}: {
+  onSignOut: () => void;
+  onNavigate: (page: string, data?: string) => void;
+}) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -386,13 +415,20 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             onChange={setArrival}
             airports={airports}
             containerClassName="p-4"
+            disabled={searchAll}
+            placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
           />
 
           {/* Swap Button */}
           <button
             type="button"
-            className="absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md hover:bg-[#2E4A4A] transition-colors z-10"
+            disabled={searchAll}
+            className={cn(
+              "absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md transition-colors z-10",
+              searchAll ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2E4A4A]",
+            )}
             onClick={() => {
+              if (searchAll) return;
               const temp = departure;
               setDeparture(arrival);
               setArrival(temp);
@@ -412,7 +448,13 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             type="button"
             role="switch"
             aria-checked={searchAll}
-            onClick={() => setSearchAll(!searchAll)}
+            onClick={() => {
+              setSearchAll((prev) => {
+                const next = !prev;
+                if (next) setArrival(null); // ensure destination isn't used while searching all
+                return next;
+              });
+            }}
             className={cn(
               "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
               searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
@@ -495,37 +537,30 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
           onClick={async () => {
             if (!departure || !departureDate) return;
             const originCode = departure.iata_code;
+            const destinationCode = searchAll ? "" : arrival?.iata_code || "";
             const depFormatted = format(departureDate, "yyyy-MM-dd");
+
+            let targetUrl: string;
+            let functionName: string;
+
+            if (tripType === "round-trip" && arrivalDate) {
+              const retFormatted = format(arrivalDate, "yyyy-MM-dd");
+              targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
+                depFormatted + " 00:00:00",
+              )}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+              functionName = "getRoundTripRoute";
+            } else {
+              targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
+                depFormatted + " 00:00:00",
+              )}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+              functionName = "getSingleRoute";
+            }
 
             setLoading(true);
             try {
-              let data, error;
-
-              if (searchAll) {
-                // Search All Destinations — call getAllDestinations
-                ({ data, error } = await supabase.functions.invoke("getAllDestinations", {
-                  body: { departureAirport: originCode, departureDate: depFormatted },
-                }));
-              } else {
-                // Normal route search
-                const destinationCode = arrival?.iata_code || "";
-                let targetUrl: string;
-                let functionName: string;
-
-                if (tripType === "round-trip" && arrivalDate) {
-                  const retFormatted = format(arrivalDate, "yyyy-MM-dd");
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                  functionName = "getRoundTripRoute";
-                } else {
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                  functionName = "getSingleRoute";
-                }
-
-                ({ data, error } = await supabase.functions.invoke(functionName, {
-                  body: { targetUrl },
-                }));
-              }
-
+              const { data, error } = await supabase.functions.invoke(functionName, {
+                body: { targetUrl },
+              });
               if (error) {
                 console.error("Edge function error:", error);
               } else {
