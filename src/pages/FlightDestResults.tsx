@@ -4,6 +4,7 @@ import { faChevronLeft, faChevronDown, faPlane, faClock, faCalendarDays, faLayer
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
+import FlightLegTimeline from "@/components/FlightLegTimeline";
 
 interface ParsedFlight {
   total_duration: string;
@@ -36,6 +37,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
+  const [expandedFlight, setExpandedFlight] = useState<string | null>(null);
 
   const { firecrawlRequestBody, flights, departureDate, arrivalDate } = useMemo(() => {
     try {
@@ -56,24 +58,26 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     return isBlackoutDate(departureDate ?? "") || isBlackoutDate(arrivalDate ?? "");
   }, [departureDate, arrivalDate]);
 
-  // Collect unique IATA codes for destinations
-  const destinationCodes = useMemo(() => {
+  // Collect ALL unique IATA codes (origins, connections, destinations)
+  const allAirportCodes = useMemo(() => {
     const codes = new Set<string>();
     for (const f of flights) {
-      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "";
-      if (dest) codes.add(dest);
+      for (const leg of f.legs) {
+        if (leg.origin) codes.add(leg.origin);
+        if (leg.destination) codes.add(leg.destination);
+      }
     }
     return Array.from(codes);
   }, [flights]);
 
   // Fetch airport city/state info
   useEffect(() => {
-    if (destinationCodes.length === 0) return;
+    if (allAirportCodes.length === 0) return;
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
         .select("iata_code, locations(city, state_code)")
-        .in("iata_code", destinationCodes);
+        .in("iata_code", allAirportCodes);
       if (data) {
         const map: Record<string, { city: string; stateCode: string }> = {};
         for (const a of data as any[]) {
@@ -86,7 +90,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       }
     };
     fetchAirports();
-  }, [destinationCodes]);
+  }, [allAirportCodes]);
 
   // Group flights by destination
   const groups: DestinationGroup[] = useMemo(() => {
@@ -318,28 +322,59 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                         const stops = flight.legs.length - 1;
                         const connectCity = !isNonstop && flight.legs.length >= 2 ? flight.legs[0].destination : null;
 
+                        const flightKey = `${group.destination}-${idx}`;
+                        const isExpanded = expandedFlight === flightKey;
+                        const canExpand = !isNonstop;
+
+                        // Compute layover summary for header
+                        let layoverSummary = "";
+                        if (!isNonstop && flight.legs.length >= 2) {
+                          const layoverMs = new Date(flight.legs[1].departure_time).getTime() - new Date(flight.legs[0].arrival_time).getTime();
+                          if (!isNaN(layoverMs) && layoverMs > 0) {
+                            const lMin = Math.round(layoverMs / 60000);
+                            layoverSummary = `Layover ${Math.floor(lMin / 60)}h ${String(lMin % 60).padStart(2, "0")}m`;
+                          }
+                        }
+
                         return (
                           <div
                             key={idx}
-                            className="flex items-center justify-between rounded-xl bg-[#F5F6F6] border border-[#E8EBEB] px-4 py-3.5"
+                            className="rounded-xl bg-[#F5F6F6] border border-[#E8EBEB] overflow-hidden"
                           >
-                            <div className="flex items-center gap-3.5">
-                              <FontAwesomeIcon icon={faPlane} className="w-5 h-5 text-[#345C5A] -rotate-45" />
-                              <div className="flex flex-col">
-                                <span className="text-base font-semibold text-[#2E4A4A]">
-                                  {depTime} → {arrTime}
-                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-xs font-medium">(+1)</span>}
-                                </span>
-                                <span className="text-sm text-[#6B7B7B]">
-                                  {flight.total_duration || ""}
-                                </span>
+                            <button
+                              type="button"
+                              onClick={() => canExpand && setExpandedFlight(isExpanded ? null : flightKey)}
+                              className={cn(
+                                "w-full flex items-center justify-between px-4 py-3.5 text-left",
+                                canExpand && "cursor-pointer hover:bg-[#EEEEF0] transition-colors"
+                              )}
+                            >
+                              <div className="flex items-center gap-3.5">
+                                <FontAwesomeIcon icon={faPlane} className="w-5 h-5 text-[#345C5A] -rotate-45" />
+                                <div className="flex flex-col">
+                                  <span className="text-base font-semibold text-[#2E4A4A]">
+                                    {depTime} → {arrTime}
+                                    {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-xs font-medium">(+1)</span>}
+                                  </span>
+                                  <span className="text-sm text-[#6B7B7B]">
+                                    {flight.total_duration || ""}
+                                    {!isNonstop && layoverSummary && ` · ${layoverSummary}`}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
 
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-3 py-1 text-xs font-medium text-[#2E4A4A]">
-                              <span className={cn("w-1.5 h-1.5 rounded-full", isNonstop ? "bg-[#5A9E8F]" : "bg-[#6B7B7B]")} />
-                              {isNonstop ? "Nonstop" : `${stops} stop${stops > 1 ? "s" : ""}${connectCity ? ` · ${connectCity}` : ""}`}
-                            </span>
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-3 py-1 text-xs font-medium text-[#2E4A4A]">
+                                <span className={cn("w-1.5 h-1.5 rounded-full", isNonstop ? "bg-[#5A9E8F]" : "bg-[#6B7B7B]")} />
+                                {isNonstop ? "Nonstop" : `${stops} stop${stops > 1 ? "s" : ""}${connectCity ? ` · ${connectCity}` : ""}`}
+                              </span>
+                            </button>
+
+                            {/* Expanded leg timeline */}
+                            {isExpanded && canExpand && (
+                              <div className="px-4 pb-3 border-t border-[#E8EBEB] animate-fade-in">
+                                <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                              </div>
+                            )}
                           </div>
                         );
                       })}
