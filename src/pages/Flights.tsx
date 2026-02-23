@@ -296,15 +296,17 @@ const MultiAirportSearchbox = ({
           setOpen(true);
         }}
       >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0" />
+        {/* Added mr-2 for spacing to the right of the icon */}
+        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
 
         {/* Selected chips inline */}
         {selected.map((a) => (
           <span
             key={a.id}
-            className="inline-flex items-center gap-1.5 bg-white border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+            className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
           >
-            {a.iata_code}
+            {/* Added city and state_code next to IATA code */}
+            {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
@@ -376,9 +378,7 @@ const MultiAirportSearchbox = ({
                       <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
                       <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
                       <span className="ml-2 truncate">{a.name}</span>
-                      {isSelected && (
-                        <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>
-                      )}
+                      {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
                     </div>
                   </button>
                 );
@@ -624,7 +624,6 @@ const FlightsPage = ({
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    {/* CHANGED: fixed height to match airport inputs */}
                     <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
                       <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
@@ -657,7 +656,6 @@ const FlightsPage = ({
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      {/* CHANGED: fixed height to match airport inputs */}
                       <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
                         <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
@@ -692,7 +690,6 @@ const FlightsPage = ({
             Search All Destinations
           </label>
 
-          {/* CHANGED: knob is absolutely positioned so it stays perfectly centered */}
           <button
             id="search-all"
             type="button"
@@ -771,7 +768,6 @@ const FlightsPage = ({
                   : normalizeSingleRouteResponse(data);
                 console.log("Normalized flights:", normalized);
 
-                // Extract the Firecrawl request body if the edge function returned it
                 const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
 
                 const payload = JSON.stringify(
