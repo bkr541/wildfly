@@ -27,7 +27,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { normalizeWildflyFlightData } from "@/utils/flightNormalizer";
 
 const menuItems = [
@@ -181,7 +181,13 @@ const AirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
-const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string, data?: string) => void }) => {
+const FlightsPage = ({
+  onSignOut,
+  onNavigate,
+}: {
+  onSignOut: () => void;
+  onNavigate: (page: string, data?: string) => void;
+}) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -200,6 +206,9 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
+
+  // Use day-level comparisons (midnight) so "today" is selectable.
+  const today = useMemo(() => startOfDay(new Date()), []);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -247,8 +256,14 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
           {/* Animated rings */}
           <div className="relative w-28 h-28 mb-8">
             <div className="absolute inset-0 rounded-full border-4 border-[#345C5A]/20 animate-ping" />
-            <div className="absolute inset-2 rounded-full border-4 border-[#345C5A]/30 animate-ping" style={{ animationDelay: "0.3s" }} />
-            <div className="absolute inset-4 rounded-full border-4 border-[#345C5A]/40 animate-ping" style={{ animationDelay: "0.6s" }} />
+            <div
+              className="absolute inset-2 rounded-full border-4 border-[#345C5A]/30 animate-ping"
+              style={{ animationDelay: "0.3s" }}
+            />
+            <div
+              className="absolute inset-4 rounded-full border-4 border-[#345C5A]/40 animate-ping"
+              style={{ animationDelay: "0.6s" }}
+            />
             <div className="absolute inset-0 flex items-center justify-center">
               <FontAwesomeIcon icon={faPlane} className="w-10 h-10 text-[#345C5A] animate-bounce" />
             </div>
@@ -359,7 +374,9 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
             className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
               width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
-              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${tripOptions.length - 1 + 2.5})`,
+              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex(
+                (o) => o.value === tripType,
+              )} / ${tripOptions.length - 1 + 2.5})`,
             }}
           />
           {tripOptions.map((opt) => {
@@ -467,7 +484,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                     setDepartureDate(date);
                     setDepDateOpen(false);
                   }}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => date < today}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
@@ -496,7 +513,7 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                       setArrivalDate(date);
                       setRetDateOpen(false);
                     }}
-                    disabled={(date) => date < (departureDate || new Date())}
+                    disabled={(date) => date < startOfDay(departureDate ?? today)}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -532,10 +549,14 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
 
                 if (tripType === "round-trip" && arrivalDate) {
                   const retFormatted = format(arrivalDate, "yyyy-MM-dd");
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
+                    depFormatted + " 00:00:00",
+                  )}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
                   functionName = "getRoundTripRoute";
                 } else {
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(depFormatted + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
+                    depFormatted + " 00:00:00",
+                  )}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
                   functionName = "getSingleRoute";
                 }
 
