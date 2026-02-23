@@ -13,8 +13,8 @@ import {
   faRightFromBracket,
   faChevronLeft,
   faCheckCircle,
-  faWallet,
 } from "@fortawesome/free-solid-svg-icons";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -27,9 +27,9 @@ const menuItems = [
 const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string) => void }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
-  const [userName, setUserName] = useState("Explorer");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -51,7 +51,6 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         const fi = (data.first_name?.[0] || "").toUpperCase();
         const li = (data.last_name?.[0] || "").toUpperCase();
         setInitials(fi + li || "U");
-        setUserName(data.first_name || "Explorer");
         setFullName([data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer");
       }
     };
@@ -143,36 +142,54 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         </Sheet>
       </header>
 
+      {/* Reverted Header styled like Home/Flights */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        <h1 className="text-2xl font-bold text-[#2E4A4A] text-center tracking-tight">
-          Subscribe and <br /> Make new Friends
-        </h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-sm text-center mt-1">join to our community!</p>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Subscription</h1>
+        <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your subscription and plan details.</p>
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full">
-        {/* Yearly Toggle */}
-        <div className="flex items-center justify-center mb-6">
-          <label className="flex items-center cursor-pointer">
-            <div className="relative">
-              <input type="checkbox" className="sr-only" defaultChecked />
-              <div className="w-10 h-6 bg-[#E3E6E6] rounded-full shadow-inner"></div>
-              <div className="dot absolute w-4 h-4 bg-[#8B5CF6] rounded-full shadow -left-1 -top-1 transition"></div>
-            </div>
-            <div className="ml-3 text-[#8B5CF6] font-semibold">yearly</div>
-          </label>
+      <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full animate-fade-in">
+        {/* Monthly / Yearly Toggle Switch */}
+        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[240px] mb-8">
+          <div
+            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            style={{
+              width: "calc(50% - 6px)",
+              left: billingCycle === "monthly" ? "6px" : "calc(50% + 0px)",
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            className={cn(
+              "py-2 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              billingCycle === "monthly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+            )}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("yearly")}
+            className={cn(
+              "py-2 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              billingCycle === "yearly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+            )}
+          >
+            Yearly
+          </button>
         </div>
 
         {/* Plan Cards */}
         <div className="flex justify-center gap-4 w-full max-w-md mb-8">
-          {/* Plus+ Plan */}
+          {/* Free Plan */}
           <div className="bg-white rounded-2xl p-4 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative">
             <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-sm font-semibold py-1 px-4 rounded-bl-2xl rounded-tr-2xl">
-              Plus+
+              Free
             </div>
             <div className="mb-2 pt-6">
-              <span className="text-3xl font-bold text-[#2E4A4A]">$25</span>
-              <span className="text-[#6B7B7B]">/mo</span>
+              <span className="text-3xl font-bold text-[#2E4A4A]">$0</span>
+              <span className="text-[#6B7B7B]">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
             <ul className="space-y-2 text-sm text-[#6B7B7B]">
               <li className="flex items-center">
@@ -192,8 +209,8 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
               Gold
             </div>
             <div className="mb-2 pt-6">
-              <span className="text-3xl font-bold text-[#2E4A4A]">$40</span>
-              <span className="text-[#6B7B7B]">/mo</span>
+              <span className="text-3xl font-bold text-[#2E4A4A]">{billingCycle === "yearly" ? "$400" : "$40"}</span>
+              <span className="text-[#6B7B7B]">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
             <ul className="space-y-2 text-sm text-[#6B7B7B]">
               <li className="flex items-center">
@@ -216,25 +233,13 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         <div className="w-full max-w-md">
           <h2 className="text-xl font-bold text-[#2E4A4A] mb-4">Payment Method</h2>
           <div className="space-y-4">
-            {/* Wallet (Paypal Replacement) */}
-            <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors">
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faWallet} className="text-[#003087] w-6 h-6 mr-4" />
-                <div className="flex flex-col items-start">
-                  <span className="text-[#6B7B7B] text-sm">Paypal</span>
-                  <span className="text-[#2E4A4A] font-semibold">$480</span>
-                </div>
-              </div>
-              <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-4 h-4 rotate-180" />
-            </button>
-
-            {/* Generic Credit Card */}
+            {/* Credit Card Only */}
             <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors">
               <div className="flex items-center">
                 <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-6 h-6 mr-4" />
                 <div className="flex flex-col items-start">
                   <span className="text-[#6B7B7B] text-sm">Credit Card</span>
-                  <span className="text-[#2E4A4A] font-semibold">$480</span>
+                  <span className="text-[#2E4A4A] font-semibold">{billingCycle === "yearly" ? "$400" : "$40"}</span>
                 </div>
               </div>
               <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-4 h-4 rotate-180" />
