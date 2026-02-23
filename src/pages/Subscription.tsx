@@ -5,7 +5,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
-  faMagnifyingGlass,
   faHouse,
   faPlane,
   faLocationDot,
@@ -14,7 +13,6 @@ import {
   faRightFromBracket,
   faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import { faBell } from "@fortawesome/free-regular-svg-icons";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -24,7 +22,13 @@ const menuItems = [
   { icon: faCreditCard, label: "Subscription" },
 ];
 
-const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate: (page: string) => void }) => {
+const SubscriptionPage = ({
+  onSignOut,
+  onNavigate,
+}: {
+  onSignOut: () => void;
+  onNavigate: (page: string) => void;
+}) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Explorer");
@@ -32,7 +36,7 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    const loadAvatar = async () => {
+    const loadProfile = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -51,24 +55,20 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
         const fi = (data.first_name?.[0] || "").toUpperCase();
         const li = (data.last_name?.[0] || "").toUpperCase();
         setInitials(fi + li || "U");
-
         setUserName(data.first_name || "Explorer");
         setFullName([data.first_name, data.last_name].filter(Boolean).join(" ") || "Explorer");
       }
     };
 
-    loadAvatar();
+    loadProfile();
   }, []);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {/* Decorative circles */}
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      {/* Header layout */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
-        {/* Left: Menu icon -> Sheet */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <button
@@ -83,9 +83,7 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
-            {/* Sidebar profile header */}
             <div className="flex items-center gap-4 px-6 pt-10 pb-6">
-              {/* ✅ resized to match header avatar */}
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
                 <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
@@ -107,7 +105,6 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
 
             <div className="h-px bg-[#E5E7EB] mx-6" />
 
-            {/* Nav items (tightened spacing) */}
             <nav className="flex-1 px-6 pt-4 flex flex-col justify-start gap-1">
               {menuItems.map((item) => (
                 <button
@@ -116,6 +113,7 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
                   onClick={() => {
                     setSheetOpen(false);
                     const pageMap: Record<string, string> = {
+                      Home: "home",
                       Flights: "flights",
                       Destinations: "destinations",
                       Subscription: "subscription",
@@ -131,7 +129,6 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
               ))}
             </nav>
 
-            {/* Logout at bottom */}
             <div className="mt-auto">
               <div className="h-px bg-[#E5E7EB] mx-6" />
               <button
@@ -148,45 +145,18 @@ const HomePage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavigate
             </div>
           </SheetContent>
         </Sheet>
-
-        {/* Right: Search, Notifications, Avatar */}
-        <div className="flex items-center gap-5 h-12">
-          <button
-            type="button"
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-          >
-            <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
-          </button>
-
-          <button
-            type="button"
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-          >
-            <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
-          </button>
-
-          <Avatar
-            className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => onNavigate("account")}
-          >
-            <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-            <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
-          </Avatar>
-        </div>
       </header>
 
-      {/* Title Group */}
       <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Welcome, {userName}!</h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Feeling a little wild today? Let's go explore.</p>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Subscription</h1>
+        <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your subscription and plan details.</p>
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
-        {/* Add content here */}
+        {/* Add subscription content here */}
       </div>
     </div>
   );
 };
 
-export default HomePage;
+export default SubscriptionPage;
