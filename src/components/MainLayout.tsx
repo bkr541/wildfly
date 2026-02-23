@@ -155,7 +155,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
                 />
               </div>
 
-              {/* Icon Toggle Button: Stays magnifying glass and moves inside when open */}
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -168,12 +167,20 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
               </button>
             </div>
 
-            <button
-              type="button"
-              className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+            {/* Notification Icon: Collapses when search is open */}
+            <div
+              className={cn(
+                "flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden",
+                isSearchOpen ? "w-0 opacity-0 -mr-5" : "w-6 opacity-100",
+              )}
             >
-              <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
-            </button>
+              <button
+                type="button"
+                className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+              >
+                <FontAwesomeIcon icon={faBell} className="w-6 h-6 shrink-0" />
+              </button>
+            </div>
 
             <Avatar
               className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
