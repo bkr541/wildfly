@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
+  faBarsStaggered, // Replaced faBars with faBarsStaggered
   faMagnifyingGlass,
   faHouse,
   faPlane,
@@ -67,14 +67,15 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
-        {/* Left: hamburger + sidebar */}
+        {/* Left: hamburger (staggered) + sidebar */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <button
               type="button"
               className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
             >
-              <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
+              {/* Updated icon here */}
+              <FontAwesomeIcon icon={faBarsStaggered} className="w-6 h-6" />
             </button>
           </SheetTrigger>
 
@@ -82,7 +83,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
-            {/* Sidebar profile header - RESTORED SIZES, REDUCED PADDING */}
+            {/* Sidebar profile header */}
             <div className="flex items-center gap-3 px-6 pt-6 pb-2">
               <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
