@@ -572,7 +572,7 @@ const FlightsPage = ({
                 }
 
                 ({ data, error } = await supabase.functions.invoke(functionName, {
-                  body: { targetUrl },
+                  body: { targetUrl, origin: originCode, destination: destinationCode },
                 }));
               }
 
