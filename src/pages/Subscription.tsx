@@ -142,27 +142,27 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         </Sheet>
       </header>
 
-      {/* Header section with expanded bottom padding */}
-      <div className="px-6 pt-2 pb-8 relative z-10 animate-fade-in">
+      {/* Header section styled like Home/Flights */}
+      <div className="px-6 pt-2 pb-4 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Subscription</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your subscription and plan details.</p>
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-6 pb-12 relative z-10 w-full animate-fade-in">
-        {/* Monthly / Yearly Toggle Switch - Added margin bottom and wider max-width */}
-        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[260px] mb-10">
+      <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full animate-fade-in">
+        {/* Monthly / Yearly Toggle Switch - Compact */}
+        <div className="bg-white rounded-2xl p-1 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[220px] mb-6">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            className="absolute top-1 bottom-1 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
-              width: "calc(50% - 6px)",
-              left: billingCycle === "monthly" ? "6px" : "calc(50% + 0px)",
+              width: "calc(50% - 4px)",
+              left: billingCycle === "monthly" ? "4px" : "calc(50% + 0px)",
             }}
           />
           <button
             type="button"
             onClick={() => setBillingCycle("monthly")}
             className={cn(
-              "py-2.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              "py-1.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
               billingCycle === "monthly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
@@ -172,7 +172,7 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
             type="button"
             onClick={() => setBillingCycle("yearly")}
             className={cn(
-              "py-2.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              "py-1.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
               billingCycle === "yearly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
@@ -180,68 +180,68 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
           </button>
         </div>
 
-        {/* Plan Cards - Increased gap and inner padding */}
-        <div className="flex justify-center gap-5 w-full max-w-md mb-12">
+        {/* Plan Cards - Tighter spacing */}
+        <div className="flex justify-center gap-4 w-full max-w-md mb-6">
           {/* Free Plan */}
-          <div className="bg-white rounded-3xl p-6 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative shadow-sm">
-            <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-xs font-bold py-1.5 px-4 rounded-bl-3xl rounded-tr-3xl">
+          <div className="bg-white rounded-2xl p-4 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative shadow-sm">
+            <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-xs font-bold py-1 px-3 rounded-bl-2xl rounded-tr-xl">
               Free
             </div>
-            <div className="mb-5 pt-4">
+            <div className="mb-3 pt-4">
               <span className="text-3xl font-bold text-[#2E4A4A]">$0</span>
               <span className="text-[#6B7B7B] ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
-            <ul className="space-y-3 text-sm text-[#6B7B7B]">
+            <ul className="space-y-2 text-sm text-[#6B7B7B]">
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2 mt-0.5 shrink-0" />
                 <span>10 Matches</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2 mt-0.5 shrink-0" />
                 <span>Unlimited swipes</span>
               </li>
             </ul>
           </div>
 
           {/* Gold Plan */}
-          <div className="bg-white rounded-3xl p-6 border-2 border-[#FBBF24] flex flex-col items-start w-1/2 relative shadow-sm">
-            <div className="absolute top-0 right-0 bg-[#FBBF24] text-white text-xs font-bold py-1.5 px-4 rounded-bl-3xl rounded-tr-3xl">
+          <div className="bg-white rounded-2xl p-4 border-2 border-[#FBBF24] flex flex-col items-start w-1/2 relative shadow-sm">
+            <div className="absolute top-0 right-0 bg-[#FBBF24] text-white text-xs font-bold py-1 px-3 rounded-bl-2xl rounded-tr-xl">
               Gold
             </div>
-            <div className="mb-5 pt-4">
+            <div className="mb-3 pt-4">
               <span className="text-3xl font-bold text-[#2E4A4A]">{billingCycle === "yearly" ? "$400" : "$40"}</span>
               <span className="text-[#6B7B7B] ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
-            <ul className="space-y-3 text-sm text-[#6B7B7B]">
+            <ul className="space-y-2 text-sm text-[#6B7B7B]">
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
                 <span>10 Matches</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
                 <span>Unlimited swipes</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
                 <span>Video Chat</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Payment Method - Increased bottom margin and inner padding */}
-        <div className="w-full max-w-md pb-6">
-          <h2 className="text-xl font-bold text-[#2E4A4A] mb-5">Payment Method</h2>
-          <div className="space-y-4">
+        {/* Payment Method - Compact layout */}
+        <div className="w-full max-w-md">
+          <h2 className="text-lg font-bold text-[#2E4A4A] mb-3">Payment Method</h2>
+          <div className="space-y-3">
             {/* Credit Card Only */}
-            <button className="flex items-center justify-between w-full bg-white rounded-2xl p-5 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors shadow-sm">
+            <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors shadow-sm">
               <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-[#F2F3F3] flex items-center justify-center mr-4">
-                  <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-5 h-5" />
+                <div className="w-8 h-8 rounded-full bg-[#F2F3F3] flex items-center justify-center mr-3">
+                  <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-4 h-4" />
                 </div>
                 <div className="flex flex-col items-start">
-                  <span className="text-[#6B7B7B] text-sm mb-0.5">Credit Card</span>
-                  <span className="text-[#2E4A4A] font-bold">{billingCycle === "yearly" ? "$400" : "$40"}</span>
+                  <span className="text-[#6B7B7B] text-xs mb-0.5">Credit Card</span>
+                  <span className="text-[#2E4A4A] font-bold text-sm">{billingCycle === "yearly" ? "$400" : "$40"}</span>
                 </div>
               </div>
               <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-4 h-4 rotate-180" />
