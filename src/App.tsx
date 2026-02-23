@@ -12,6 +12,7 @@ import FlightsPage from "./pages/Flights";
 import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
+import SubscriptionPage from "./pages/Subscription";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -19,7 +20,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "subscription">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
@@ -186,6 +187,10 @@ const MainApp = () => {
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
+        )}
+
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "subscription" && (
+          <SubscriptionPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
         )}
       </div>
     </div>
