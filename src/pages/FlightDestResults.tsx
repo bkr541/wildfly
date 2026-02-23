@@ -9,19 +9,22 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
       {/* Header */}
-      <header className="relative flex items-center px-6 pt-10 pb-4 z-10">
+      <header className="relative z-10 grid grid-cols-[40px_1fr_40px] items-center px-6 pt-10 pb-4">
         <button
           type="button"
           onClick={onBack}
           className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
         >
-          <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
+          <FontAwesomeIcon icon={faChevronLeft} className="block w-6 h-6" />
         </button>
 
-        {/* Centered title across full header width (no wrap) */}
-        <h1 className="absolute inset-0 flex items-center justify-center text-xl font-bold text-[#2E4A4A] tracking-tight leading-none whitespace-nowrap pointer-events-none">
+        {/* Match the button height so optical centering lines up */}
+        <h1 className="h-12 flex items-center justify-center text-xl font-bold text-[#2E4A4A] tracking-tight leading-none whitespace-nowrap">
           Flight Results
         </h1>
+
+        {/* Right spacer to keep title truly centered */}
+        <div className="h-12 w-10" />
       </header>
 
       {/* Main content */}
