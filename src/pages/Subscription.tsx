@@ -143,9 +143,9 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         </Sheet>
       </header>
 
-      {/* Header section - slightly smaller text and margins */}
+      {/* Header section - Decreased mb-1 to mb-0 */}
       <div className="px-6 pt-1 pb-3 relative z-10 animate-fade-in">
-        <h1 className="text-2xl font-bold text-[#2E4A4A] mb-1 tracking-tight">Subscription</h1>
+        <h1 className="text-2xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Subscription</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-sm">Manage your subscription and plan details.</p>
       </div>
 
