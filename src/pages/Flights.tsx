@@ -26,7 +26,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
-import { normalizeWildflyFlightData } from "@/utils/flightNormalizer";
+// import { normalizeWildflyFlightData } from "@/utils/flightNormalizer";
 
 const ACTIVE_TRIP_FLEX = 1.7;
 
@@ -580,9 +580,9 @@ const FlightsPage = ({
                 console.error("Edge function error:", error);
               } else {
                 console.log("Scrape response:", data);
-                const normalized = normalizeWildflyFlightData([data]);
-                console.log("Normalized flights:", normalized);
-                onNavigate("flight-results", JSON.stringify(normalized, null, 2));
+                // const normalized = normalizeWildflyFlightData([data]);
+                // console.log("Normalized flights:", normalized);
+                onNavigate("flight-results", JSON.stringify(data, null, 2));
               }
             } catch (err) {
               console.error("Failed to invoke edge function:", err);
