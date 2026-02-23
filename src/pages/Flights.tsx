@@ -28,6 +28,7 @@ import {
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { normalizeWildflyFlightData } from "@/utils/flightNormalizer";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -547,7 +548,9 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
                 console.error("Edge function error:", error);
               } else {
                 console.log("Scrape response:", data);
-                onNavigate("flight-results", JSON.stringify(data, null, 2));
+                const normalized = normalizeWildflyFlightData([data]);
+                console.log("Normalized flights:", normalized);
+                onNavigate("flight-results", JSON.stringify(normalized, null, 2));
               }
             } catch (err) {
               console.error("Failed to invoke edge function:", err);
