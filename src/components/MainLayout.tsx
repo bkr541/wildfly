@@ -82,15 +82,15 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
             side="left"
             className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
           >
-            {/* Sidebar profile header - pb-2 reduces space above separator */}
-            <div className="flex items-center gap-4 px-6 pt-10 pb-2">
-              <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
+            {/* Sidebar profile header - Reduced size and padding */}
+            <div className="flex items-center gap-3.5 px-6 pt-7 pb-2">
+              <Avatar className="h-10 w-10 border-2 border-[#E3E6E6] shadow-sm">
                 <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-sm font-bold">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
-                <p className="text-[#2E4A4A] text-lg font-semibold truncate">{fullName}</p>
+                <p className="text-[#9CA3AF] text-xs font-medium">Hello,</p>
+                <p className="text-[#2E4A4A] text-base font-semibold truncate leading-tight">{fullName}</p>
               </div>
               <button
                 onClick={() => setSheetOpen(false)}
@@ -103,7 +103,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
 
             <div className="h-px bg-[#E5E7EB] mx-6" />
 
-            {/* nav pt-2 reduces space below separator */}
+            {/* nav */}
             <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-1">
               {menuItems.map((item) => (
                 <button
