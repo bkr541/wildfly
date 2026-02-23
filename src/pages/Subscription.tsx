@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { FontAwesomeIcon } from "@fontawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
   faHouse,
@@ -13,8 +13,8 @@ import {
   faRightFromBracket,
   faChevronLeft,
   faCheckCircle,
-} from "@fontawesome/free-solid-svg-icons";
-import { faPaypal, faCcVisa } from "@fontawesome/free-brands-svg-icons";
+  faWallet,
+} from "@fortawesome/free-solid-svg-icons";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -216,10 +216,10 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         <div className="w-full max-w-md">
           <h2 className="text-xl font-bold text-[#2E4A4A] mb-4">Payment Method</h2>
           <div className="space-y-4">
-            {/* Paypal */}
+            {/* Wallet (Paypal Replacement) */}
             <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors">
               <div className="flex items-center">
-                <FontAwesomeIcon icon={faPaypal} className="text-[#003087] w-6 h-6 mr-4" />
+                <FontAwesomeIcon icon={faWallet} className="text-[#003087] w-6 h-6 mr-4" />
                 <div className="flex flex-col items-start">
                   <span className="text-[#6B7B7B] text-sm">Paypal</span>
                   <span className="text-[#2E4A4A] font-semibold">$480</span>
@@ -228,10 +228,10 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
               <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-4 h-4 rotate-180" />
             </button>
 
-            {/* Credit Card */}
+            {/* Generic Credit Card */}
             <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors">
               <div className="flex items-center">
-                <FontAwesomeIcon icon={faCcVisa} className="text-[#FBBF24] w-6 h-6 mr-4" />
+                <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-6 h-6 mr-4" />
                 <div className="flex flex-col items-start">
                   <span className="text-[#6B7B7B] text-sm">Credit Card</span>
                   <span className="text-[#2E4A4A] font-semibold">$480</span>
