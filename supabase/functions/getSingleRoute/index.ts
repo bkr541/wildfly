@@ -10,10 +10,28 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { targetUrl } = await req.json();
+    const { targetUrl, origin, destination } = await req.json();
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ success: false, error: "targetUrl is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate origin
+    const cleanOrigin = (origin ?? "").trim().toUpperCase();
+    if (!/^[A-Z0-9]{3}$/.test(cleanOrigin)) {
+      return new Response(JSON.stringify({ success: false, error: "origin must be a valid 3-character IATA code" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate destination
+    const cleanDestination = (destination ?? "").trim().toUpperCase();
+    if (!/^[A-Z0-9]{3}$/.test(cleanDestination)) {
+      return new Response(JSON.stringify({ success: false, error: "destination must be a valid 3-character IATA code" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -26,6 +44,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const extractionPrompt = `Extract ${cleanOrigin}-${cleanDestination} flights. Return flights[] only per the provided schema. For each flight: include legs[] in order (each leg has origin, destination, departure_time, arrival_time). Include total_duration as a string (e.g. HH:MM or HH:MM:SS, whatever is shown on the page). If the UI shows (+1 day) or similar on the arrival, set is_plus_one_day to true, otherwise false. For fares, extract numbers only (no currency symbols); map displayed fare columns in order to basic, economy, premium, and business. If a fare is unavailable or unlisted, use null.`;
 
     const response = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
@@ -43,105 +63,43 @@ Deno.serve(async (req) => {
         formats: [
           {
             type: "json",
-            prompt:
-              "Extract all flights from the page. Use a legs array for segments: nonstop has one leg, 1-stop has two legs based on the sequence of airport codes. Derive parameters from sourceURL: origin=o1, destination=d1, date=dd1. Normalize departure_time and arrival_time to YYYY-MM-DDTHH:MM:SS format using the dd1 date as base; add +1 day to arrival if (+1 day) is present. Map fare columns in order to basic, economy, premium, and business, using null if Unavailable. Include total_trip_time as HH:MM:SS. Create booking_links by modifying ftype in sourceURL: standard (STD), discount_den (DD), go_wild (GW), and miles (STD).",
+            prompt: extractionPrompt,
             schema: {
               type: "object",
-              additionalProperties: false,
-              required: ["destination_airports", "origin_airports", "flights", "search_parameters", "summary"],
+              required: [],
               properties: {
-                destination_airports: { type: "array", items: { type: "string", pattern: "^[A-Z0-9]{3}$" } },
-                origin_airports: { type: "array", items: { type: "string", pattern: "^[A-Z0-9]{3}$" } },
                 flights: {
                   type: "array",
                   items: {
                     type: "object",
-                    additionalProperties: false,
-                    required: [
-                      "arrival_time",
-                      "booking_links",
-                      "departure_time",
-                      "destination",
-                      "fares",
-                      "flight_type",
-                      "origin",
-                      "segments",
-                      "stops",
-                      "total_trip_time",
-                    ],
+                    required: [],
                     properties: {
-                      arrival_time: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$" },
-                      departure_time: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$" },
-                      destination: { type: "string", pattern: "^[A-Z0-9]{3}$" },
-                      origin: { type: "string", pattern: "^[A-Z0-9]{3}$" },
-                      flight_type: { type: "string", enum: ["NonStop", "Connect"] },
-                      stops: { type: "integer", minimum: 0 },
-                      total_trip_time: { type: "string", pattern: "^\\d{2}:\\d{2}:\\d{2}$" },
-                      booking_links: {
-                        type: "object",
-                        required: ["discount_den", "go_wild", "miles", "standard"],
-                        properties: {
-                          discount_den: { type: ["string", "null"] },
-                          go_wild: { type: ["string", "null"] },
-                          miles: { type: ["string", "null"] },
-                          standard: { type: ["string", "null"] },
-                        },
-                      },
+                      total_duration: { type: "string" },
+                      is_plus_one_day: { type: "boolean" },
                       fares: {
                         type: "object",
-                        required: ["discount_den", "go_wild", "miles", "standard"],
+                        required: ["basic", "economy", "premium", "business"],
                         properties: {
-                          discount_den: { $ref: "#/definitions/fare_info" },
-                          go_wild: { $ref: "#/definitions/fare_info" },
-                          miles: { $ref: "#/definitions/fare_info" },
-                          standard: { $ref: "#/definitions/fare_info" },
+                          basic: { type: ["number", "null"] },
+                          economy: { type: ["number", "null"] },
+                          premium: { type: ["number", "null"] },
+                          business: { type: ["number", "null"] },
                         },
                       },
-                      segments: {
+                      legs: {
                         type: "array",
                         items: {
                           type: "object",
-                          required: ["arrival_airport", "arrival_time", "departure_airport", "departure_time"],
+                          required: [],
                           properties: {
-                            arrival_airport: { type: "string" },
-                            arrival_time: { type: "string" },
-                            departure_airport: { type: "string" },
+                            origin: { type: "string" },
+                            destination: { type: "string" },
                             departure_time: { type: "string" },
-                            carrier_code: { type: ["string", "null"] },
-                            flight_number: { type: ["string", "null"] },
+                            arrival_time: { type: "string" },
                           },
                         },
                       },
                     },
-                  },
-                },
-                search_parameters: {
-                  type: "object",
-                  required: ["date", "destination", "origin"],
-                  properties: {
-                    date: { type: "string" },
-                    destination: { type: "string" },
-                    origin: { type: "string" },
-                  },
-                },
-                summary: {
-                  type: "object",
-                  required: ["total_flights", "search_timestamp"],
-                  properties: {
-                    total_flights: { type: "integer" },
-                    search_timestamp: { type: "string" },
-                  },
-                },
-              },
-              definitions: {
-                fare_info: {
-                  type: "object",
-                  required: ["fare_status", "total"],
-                  properties: {
-                    available_seats: { type: ["integer", "null"] },
-                    fare_status: { type: "integer" },
-                    loyalty_points: { type: ["number", "null"] },
-                    total: { type: ["number", "null"] },
                   },
                 },
               },
