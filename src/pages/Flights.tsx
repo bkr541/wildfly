@@ -407,17 +407,19 @@ const FlightsPage = ({
         {/* Airport + Dates Group */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
           <div className="relative">
+            {/* CHANGED: tighter bottom padding so gap to Arrival matches the Arrival->Dates spacing */}
             <AirportSearchbox
               label="Departure"
               icon={faPlaneDeparture}
               value={departure}
               onChange={setDeparture}
               airports={airports}
-              containerClassName="p-3"
+              containerClassName="px-3 pt-3 pb-2"
             />
 
             <div className="h-px bg-[#E3E6E6] mx-3" />
 
+            {/* CHANGED: top padding reduced to match the date section's top spacing */}
             <AirportSearchbox
               label="Arrival"
               icon={faPlaneArrival}
@@ -426,15 +428,14 @@ const FlightsPage = ({
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="p-3"
+              containerClassName="px-3 pt-2 pb-2"
             />
 
-            {/* NEW: separator under Arrival (matches the one under Departure) */}
             <div className="h-px bg-[#E3E6E6] mx-3" />
           </div>
 
           {/* Dates */}
-          <div className="p-3 pt-2">
+          <div className="px-3 pt-2 pb-3">
             <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
