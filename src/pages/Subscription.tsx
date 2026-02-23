@@ -142,17 +142,17 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         </Sheet>
       </header>
 
-      {/* Header section styled like Home/Flights */}
-      <div className="px-6 pt-2 pb-4 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Subscription</h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your subscription and plan details.</p>
+      {/* Header section - slightly smaller text and margins */}
+      <div className="px-6 pt-1 pb-3 relative z-10 animate-fade-in">
+        <h1 className="text-2xl font-bold text-[#2E4A4A] mb-1 tracking-tight">Subscription</h1>
+        <p className="text-[#6B7B7B] leading-relaxed text-sm">Manage your subscription and plan details.</p>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full animate-fade-in">
-        {/* Monthly / Yearly Toggle Switch - Compact */}
-        <div className="bg-white rounded-2xl p-1 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[220px] mb-6">
+        {/* Monthly / Yearly Toggle Switch - Tighter */}
+        <div className="bg-white rounded-xl p-1 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[200px] mb-5">
           <div
-            className="absolute top-1 bottom-1 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            className="absolute top-1 bottom-1 rounded-lg bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
               width: "calc(50% - 4px)",
               left: billingCycle === "monthly" ? "4px" : "calc(50% + 0px)",
@@ -162,7 +162,7 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
             type="button"
             onClick={() => setBillingCycle("monthly")}
             className={cn(
-              "py-1.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              "py-1.5 px-2 text-xs font-semibold rounded-lg transition-all duration-300 relative z-10 flex-1",
               billingCycle === "monthly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
@@ -172,7 +172,7 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
             type="button"
             onClick={() => setBillingCycle("yearly")}
             className={cn(
-              "py-1.5 px-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10 flex-1",
+              "py-1.5 px-2 text-xs font-semibold rounded-lg transition-all duration-300 relative z-10 flex-1",
               billingCycle === "yearly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
@@ -180,49 +180,49 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
           </button>
         </div>
 
-        {/* Plan Cards - Tighter spacing */}
-        <div className="flex justify-center gap-4 w-full max-w-md mb-6">
+        {/* Plan Cards - Reduced padding, font sizes, and gap */}
+        <div className="flex justify-center gap-3 w-full max-w-md mb-5">
           {/* Free Plan */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative shadow-sm">
-            <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-xs font-bold py-1 px-3 rounded-bl-2xl rounded-tr-xl">
+          <div className="bg-white rounded-2xl p-3 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative shadow-sm">
+            <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">
               Free
             </div>
-            <div className="mb-3 pt-4">
-              <span className="text-3xl font-bold text-[#2E4A4A]">$0</span>
-              <span className="text-[#6B7B7B] ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
+            <div className="mb-2 pt-3">
+              <span className="text-2xl font-bold text-[#2E4A4A]">$0</span>
+              <span className="text-[#6B7B7B] text-xs ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
-            <ul className="space-y-2 text-sm text-[#6B7B7B]">
+            <ul className="space-y-1.5 text-xs text-[#6B7B7B]">
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>10 Matches</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>Unlimited swipes</span>
               </li>
             </ul>
           </div>
 
           {/* Gold Plan */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-[#FBBF24] flex flex-col items-start w-1/2 relative shadow-sm">
-            <div className="absolute top-0 right-0 bg-[#FBBF24] text-white text-xs font-bold py-1 px-3 rounded-bl-2xl rounded-tr-xl">
+          <div className="bg-white rounded-2xl p-3 border-2 border-[#FBBF24] flex flex-col items-start w-1/2 relative shadow-sm">
+            <div className="absolute top-0 right-0 bg-[#FBBF24] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">
               Gold
             </div>
-            <div className="mb-3 pt-4">
-              <span className="text-3xl font-bold text-[#2E4A4A]">{billingCycle === "yearly" ? "$400" : "$40"}</span>
-              <span className="text-[#6B7B7B] ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
+            <div className="mb-2 pt-3">
+              <span className="text-2xl font-bold text-[#2E4A4A]">{billingCycle === "yearly" ? "$400" : "$40"}</span>
+              <span className="text-[#6B7B7B] text-xs ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span>
             </div>
-            <ul className="space-y-2 text-sm text-[#6B7B7B]">
+            <ul className="space-y-1.5 text-xs text-[#6B7B7B]">
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>10 Matches</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>Unlimited swipes</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#FBBF24] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>Video Chat</span>
               </li>
             </ul>
@@ -231,10 +231,10 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
 
         {/* Payment Method - Compact layout */}
         <div className="w-full max-w-md">
-          <h2 className="text-lg font-bold text-[#2E4A4A] mb-3">Payment Method</h2>
-          <div className="space-y-3">
+          <h2 className="text-base font-bold text-[#2E4A4A] mb-2">Payment Method</h2>
+          <div className="space-y-2">
             {/* Credit Card Only */}
-            <button className="flex items-center justify-between w-full bg-white rounded-xl p-4 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors shadow-sm">
+            <button className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors shadow-sm">
               <div className="flex items-center">
                 <div className="w-8 h-8 rounded-full bg-[#F2F3F3] flex items-center justify-center mr-3">
                   <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-4 h-4" />
@@ -244,7 +244,7 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
                   <span className="text-[#2E4A4A] font-bold text-sm">{billingCycle === "yearly" ? "$400" : "$40"}</span>
                 </div>
               </div>
-              <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-4 h-4 rotate-180" />
+              <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-3.5 h-3.5 rotate-180" />
             </button>
           </div>
         </div>
