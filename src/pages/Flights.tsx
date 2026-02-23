@@ -90,11 +90,12 @@ const AirportSearchbox = ({
 
   const shouldShow = query.trim().length > 2;
 
-  // Filter and group airports
+  // Filter and Group Airports
   const groupedAirports = useMemo(() => {
     if (!shouldShow || disabled) return {};
     const q = query.toLowerCase();
 
+    // 1. Filter matching airports
     const filteredList = airports
       .filter(
         (a) =>
@@ -104,6 +105,7 @@ const AirportSearchbox = ({
       )
       .slice(0, 30);
 
+    // 2. Group them by city and state
     return filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
@@ -362,7 +364,7 @@ const FlightsPage = ({
         {/* Trip Type Switch */}
         <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-md transition-all duration-300 ease-in-out"
+            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
             style={{
               width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
               left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
@@ -410,7 +412,7 @@ const FlightsPage = ({
               value={arrival}
               onChange={setArrival}
               airports={airports}
-              containerClassName="pt-4 px-4 pb-2"
+              containerClassName="pt-4 px-4 pb-2" // reduced bottom padding to tighten spacing to toggle
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
             />
@@ -433,12 +435,11 @@ const FlightsPage = ({
             </button>
           </div>
 
-          {/* Toggle (tighter track, less side padding, shadow when on) */}
+          {/* Toggle (smaller + less whitespace above) */}
           <div className="flex items-center justify-end gap-2 px-4 pt-0 pb-3">
             <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
               Search All Destinations
             </label>
-
             <button
               id="search-all"
               type="button"
@@ -452,14 +453,14 @@ const FlightsPage = ({
                 });
               }}
               className={cn(
-                "relative inline-flex h-5 w-8 p-[2px] shrink-0 cursor-pointer rounded-full transition-colors duration-200",
-                searchAll ? "bg-[#345C5A] shadow-sm" : "bg-[#E3E6E6]",
+                "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+                searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
               )}
             >
               <span
                 className={cn(
-                  "pointer-events-none inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200",
-                  searchAll ? "translate-x-[14px] shadow-md" : "translate-x-0 shadow-sm",
+                  "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                  searchAll ? "translate-x-4" : "translate-x-0",
                 )}
               />
             </button>
@@ -496,7 +497,7 @@ const FlightsPage = ({
             </Popover>
           </div>
 
-          {/* Return Date */}
+          {/* Return Date — only for Round Trip / Multi Day */}
           {showReturnDate && (
             <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
               <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Return Date</label>
