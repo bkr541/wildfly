@@ -58,7 +58,7 @@ interface Airport {
   };
 }
 
-/* ── Airport Searchbox ─────────────────────────────────────── */
+/* ── Airport Searchbox (single-select) ────────────────────── */
 const AirportSearchbox = ({
   label,
   icon,
@@ -116,7 +116,6 @@ const AirportSearchbox = ({
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
-      {/* Fixed height so the row doesn't grow when the clear (x) button appears */}
       <div
         className={cn(
           "flex items-center gap-2.5 bg-transparent transition-colors h-10",
@@ -208,6 +207,207 @@ const AirportSearchbox = ({
   );
 };
 
+/* ── Multi-select Airport Searchbox ───────────────────────── */
+const MultiAirportSearchbox = ({
+  label,
+  icon,
+  selected,
+  onChange,
+  airports,
+  containerClassName,
+  disabled = false,
+  placeholder = "Search airport or city...",
+}: {
+  label: string;
+  icon: any;
+  selected: Airport[];
+  onChange: (a: Airport[]) => void;
+  airports: Airport[];
+  containerClassName?: string;
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const shouldShow = query.trim().length > 2;
+  const selectedIds = new Set(selected.map((a) => a.id));
+
+  const groupedAirports = useMemo(() => {
+    if (!shouldShow || disabled) return {};
+    const q = query.toLowerCase();
+
+    const filteredList = airports
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.iata_code.toLowerCase().includes(q) ||
+          (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
+      )
+      .slice(0, 30);
+
+    return filteredList.reduce(
+      (acc, airport) => {
+        const city = airport.locations?.city;
+        const state = airport.locations?.state_code;
+        const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(airport);
+        return acc;
+      },
+      {} as Record<string, Airport[]>,
+    );
+  }, [query, airports, shouldShow, disabled]);
+
+  const addAirport = (a: Airport) => {
+    if (!selectedIds.has(a.id)) {
+      onChange([...selected, a]);
+    }
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
+  const addAreaAirports = (areaAirports: Airport[]) => {
+    const newOnes = areaAirports.filter((a) => !selectedIds.has(a.id));
+    if (newOnes.length > 0) {
+      onChange([...selected, ...newOnes]);
+    }
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
+  const removeAirport = (id: number) => {
+    onChange(selected.filter((a) => a.id !== id));
+  };
+
+  return (
+    <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
+      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
+
+      {/* Selected chips */}
+      {selected.length > 0 && !disabled && (
+        <div className="flex flex-wrap gap-1.5 mb-1.5">
+          {selected.map((a) => (
+            <span
+              key={a.id}
+              className="inline-flex items-center gap-1 bg-[#345C5A]/10 text-[#345C5A] text-xs font-semibold px-2.5 py-1 rounded-full"
+            >
+              {a.iata_code}
+              <button
+                type="button"
+                onClick={() => removeAirport(a.id)}
+                className="hover:text-[#2E4A4A] transition-colors"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "flex items-center gap-2.5 bg-transparent transition-colors h-10",
+          disabled ? "cursor-not-allowed" : "cursor-text",
+        )}
+        onClick={() => {
+          if (disabled) return;
+          inputRef.current?.focus();
+          setOpen(true);
+        }}
+      >
+        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0" />
+
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={selected.length > 0 && !disabled ? "Add another..." : placeholder}
+          disabled={disabled}
+          value={query}
+          onChange={(e) => {
+            if (disabled) return;
+            setQuery(e.target.value);
+            if (!open) setOpen(true);
+          }}
+          onFocus={() => {
+            if (disabled) return;
+            setOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setOpen(false), 200)}
+          className={cn(
+            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] min-w-0 truncate",
+            disabled && "cursor-not-allowed",
+          )}
+        />
+
+        {selected.length > 0 && !disabled && (
+          <button
+            type="button"
+            aria-label="Clear all"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange([]);
+              setQuery("");
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+          >
+            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
+          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
+            <div key={cityGroup} className="mb-2 last:mb-0">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => addAreaAirports(cityAirports)}
+                className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
+              >
+                <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
+                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
+              </button>
+
+              {cityAirports.map((a) => {
+                const isSelected = selectedIds.has(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      if (isSelected) removeAirport(a.id);
+                      else addAirport(a);
+                    }}
+                    className={cn(
+                      "w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
+                      isSelected && "bg-[#345C5A]/5",
+                    )}
+                  >
+                    <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
+                      <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
+                      <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
+                      <span className="ml-2 truncate">{a.name}</span>
+                      {isSelected && (
+                        <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* ── Flights Page ──────────────────────────────────────────── */
 const FlightsPage = ({
   onSignOut,
@@ -224,7 +424,7 @@ const FlightsPage = ({
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
-  const [arrival, setArrival] = useState<Airport | null>(null);
+  const [arrivals, setArrivals] = useState<Airport[]>([]);
 
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
@@ -419,11 +619,11 @@ const FlightsPage = ({
 
             <div className="h-px bg-[#E3E6E6] mx-3" />
 
-            <AirportSearchbox
+            <MultiAirportSearchbox
               label="Arrival"
               icon={faPlaneArrival}
-              value={arrival}
-              onChange={setArrival}
+              selected={arrivals}
+              onChange={setArrivals}
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
@@ -518,7 +718,7 @@ const FlightsPage = ({
             onClick={() =>
               setSearchAll((prev) => {
                 const next = !prev;
-                if (next) setArrival(null);
+                if (next) setArrivals([]);
                 return next;
               })
             }
@@ -556,7 +756,7 @@ const FlightsPage = ({
                   body: requestBody,
                 }));
               } else {
-                const destinationCode = arrival?.iata_code || "";
+                const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "";
                 let targetUrl: string;
                 let functionName: string;
 
