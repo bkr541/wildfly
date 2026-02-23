@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.getRoundTripRoute]
 verify_jwt = false
+
+[functions.getAllDestinations]
+verify_jwt = false
