@@ -13,6 +13,7 @@ import {
   faRightFromBracket,
   faChevronLeft,
   faCheckCircle,
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
@@ -182,9 +183,9 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
 
         {/* Plan Cards - Reduced padding, font sizes, and gap */}
         <div className="flex justify-center gap-3 w-full max-w-md mb-5">
-          {/* Free Plan */}
-          <div className="bg-white rounded-2xl p-3 border-2 border-[#8B5CF6] flex flex-col items-start w-1/2 relative shadow-sm">
-            <div className="absolute top-0 right-0 bg-[#8B5CF6] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">
+          {/* Free Plan (Updated to primary green) */}
+          <div className="bg-white rounded-2xl p-3 border-2 border-[#345C5A] flex flex-col items-start w-1/2 relative shadow-sm">
+            <div className="absolute top-0 right-0 bg-[#345C5A] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">
               Free
             </div>
             <div className="mb-2 pt-3">
@@ -193,11 +194,11 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
             </div>
             <ul className="space-y-1.5 text-xs text-[#6B7B7B]">
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#345C5A] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>10 Matches</span>
               </li>
               <li className="flex items-start">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-[#8B5CF6] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[#345C5A] w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                 <span>Unlimited swipes</span>
               </li>
             </ul>
@@ -233,8 +234,8 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         <div className="w-full max-w-md">
           <h2 className="text-base font-bold text-[#2E4A4A] mb-2">Payment Method</h2>
           <div className="space-y-2">
-            {/* Credit Card Only */}
-            <button className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] hover:border-[#8B5CF6] transition-colors shadow-sm">
+            {/* Credit Card */}
+            <button className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] hover:border-[#345C5A] transition-colors shadow-sm">
               <div className="flex items-center">
                 <div className="w-8 h-8 rounded-full bg-[#F2F3F3] flex items-center justify-center mr-3">
                   <FontAwesomeIcon icon={faCreditCard} className="text-[#FBBF24] w-4 h-4" />
@@ -244,7 +245,18 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
                   <span className="text-[#2E4A4A] font-bold text-sm">{billingCycle === "yearly" ? "$400" : "$40"}</span>
                 </div>
               </div>
-              <FontAwesomeIcon icon={faChevronLeft} className="text-[#8B5CF6] w-3.5 h-3.5 rotate-180" />
+              <FontAwesomeIcon icon={faChevronLeft} className="text-[#345C5A] w-3.5 h-3.5 rotate-180" />
+            </button>
+
+            {/* Add Payment Method */}
+            <button className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] border-dashed hover:border-[#345C5A] transition-colors shadow-sm">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-[#F2F3F3] flex items-center justify-center mr-3">
+                  <FontAwesomeIcon icon={faPlus} className="text-[#9CA3AF] w-4 h-4" />
+                </div>
+                <span className="text-[#2E4A4A] font-semibold text-sm">Add Payment Method</span>
+              </div>
+              <FontAwesomeIcon icon={faChevronLeft} className="text-[#9CA3AF] w-3.5 h-3.5 rotate-180" />
             </button>
           </div>
         </div>
