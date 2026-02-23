@@ -6,9 +6,9 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
   const { requestBodyText, responseText } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
-      if (parsed && typeof parsed === "object" && "requestBody" in parsed && "response" in parsed) {
+      if (parsed && typeof parsed === "object" && "firecrawlRequestBody" in parsed && "response" in parsed) {
         return {
-          requestBodyText: JSON.stringify(parsed.requestBody, null, 2),
+          requestBodyText: JSON.stringify(parsed.firecrawlRequestBody, null, 2),
           responseText: JSON.stringify(parsed.response, null, 2),
         };
       }

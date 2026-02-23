@@ -588,8 +588,11 @@ const FlightsPage = ({
                   : normalizeSingleRouteResponse(data);
                 console.log("Normalized flights:", normalized);
 
+                // Extract the Firecrawl request body if the edge function returned it
+                const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
+
                 const payload = JSON.stringify(
-                  { requestBody, response: normalized },
+                  { firecrawlRequestBody, response: normalized },
                   null,
                   2,
                 );
