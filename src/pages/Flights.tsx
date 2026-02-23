@@ -240,6 +240,23 @@ const FlightsPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; onNavig
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
+      {/* Fullscreen Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3]">
+          {/* Animated rings */}
+          <div className="relative w-28 h-28 mb-8">
+            <div className="absolute inset-0 rounded-full border-4 border-[#345C5A]/20 animate-ping" />
+            <div className="absolute inset-2 rounded-full border-4 border-[#345C5A]/30 animate-ping" style={{ animationDelay: "0.3s" }} />
+            <div className="absolute inset-4 rounded-full border-4 border-[#345C5A]/40 animate-ping" style={{ animationDelay: "0.6s" }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <FontAwesomeIcon icon={faPlane} className="w-10 h-10 text-[#345C5A] animate-bounce" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-[#2E4A4A] tracking-tight mb-2">Searching Flights</p>
+          <p className="text-sm text-[#6B7B7B]">This may take a moment…</p>
+        </div>
+      )}
+
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
