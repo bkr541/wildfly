@@ -118,7 +118,7 @@ const AirportSearchbox = ({
 
       <div
         className={cn(
-          "flex items-center gap-2.5 bg-transparent transition-colors h-10",
+          "flex items-center gap-1.5 bg-transparent transition-colors h-10",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
         onClick={() => {
@@ -127,14 +127,34 @@ const AirportSearchbox = ({
           setOpen(true);
         }}
       >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0" />
+        {/* Added mr-2 for spacing to the right of the icon */}
+        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
+
+        {/* Selected chip for single-select (shows when not searching) */}
+        {value && !open && (
+          <span className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+            {value.iata_code} – {value.locations?.city}, {value.locations?.state_code}
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(null);
+                setQuery("");
+              }}
+              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none"
+            >
+              <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+            </button>
+          </span>
+        )}
 
         <input
           ref={inputRef}
           type="text"
-          placeholder={placeholder}
+          placeholder={value ? "" : placeholder}
           disabled={disabled}
-          value={open ? query : value ? `${value.iata_code} – ${value.name}` : ""}
+          value={open ? query : ""}
           onChange={(e) => {
             if (disabled) return;
             setQuery(e.target.value);
@@ -152,7 +172,7 @@ const AirportSearchbox = ({
           )}
         />
 
-        {showClear && (
+        {showClear && !open && (
           <button
             type="button"
             aria-label={`Clear ${label}`}
@@ -296,7 +316,6 @@ const MultiAirportSearchbox = ({
           setOpen(true);
         }}
       >
-        {/* Added mr-2 for spacing to the right of the icon */}
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
 
         {/* Selected chips inline */}
@@ -305,7 +324,6 @@ const MultiAirportSearchbox = ({
             key={a.id}
             className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
           >
-            {/* Added city and state_code next to IATA code */}
             {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
             <button
               type="button"
