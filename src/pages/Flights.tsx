@@ -441,8 +441,9 @@ const FlightsPage = ({
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none">
-                      <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
+                    {/* CHANGED: fixed height to match airport inputs */}
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                      <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
@@ -473,8 +474,9 @@ const FlightsPage = ({
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none">
-                        <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
+                      {/* CHANGED: fixed height to match airport inputs */}
+                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                        <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
@@ -507,6 +509,7 @@ const FlightsPage = ({
             Search All Destinations
           </label>
 
+          {/* CHANGED: knob is absolutely positioned so it stays perfectly centered */}
           <button
             id="search-all"
             type="button"
@@ -520,13 +523,13 @@ const FlightsPage = ({
               })
             }
             className={cn(
-              "relative inline-flex h-5 w-9 p-0.5 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200",
+              "relative inline-flex items-center h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200",
               searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
             )}
           >
             <span
               className={cn(
-                "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
                 searchAll ? "translate-x-4" : "translate-x-0",
               )}
             />
