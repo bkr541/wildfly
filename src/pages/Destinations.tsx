@@ -1,8 +1,8 @@
 const DestinationsPage = () => {
   return (
     <>
-      <div className="px-6 pt-2 pb-6 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Destinations</h1>
+      <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Destinations</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Discover new places to explore.</p>
       </div>
 
