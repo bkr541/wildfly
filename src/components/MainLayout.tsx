@@ -12,7 +12,6 @@ import {
   faCreditCard,
   faRightFromBracket,
   faChevronLeft,
-  faXmark, // Added for the close button
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -54,7 +53,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
     if (target) setTimeout(() => onNavigate(target), 300);
   };
 
-  // Auto-focus input when it slides out
   useEffect(() => {
     if (isSearchOpen) {
       searchInputRef.current?.focus();
@@ -140,11 +138,11 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
         {!hideHeaderRight && (
           <div className="flex items-center gap-5 h-12">
             {/* Sliding Search Box Group */}
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center h-12">
               <div
                 className={cn(
-                  "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out overflow-hidden h-9",
-                  isSearchOpen ? "w-44 px-3 opacity-100 shadow-sm" : "w-0 opacity-0 px-0 border-transparent",
+                  "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out h-9 overflow-hidden relative",
+                  isSearchOpen ? "w-56 opacity-100 shadow-sm pr-9" : "w-0 opacity-0 border-transparent px-0",
                 )}
               >
                 <input
@@ -153,19 +151,20 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full placeholder:text-[#9CA3AF]"
+                  className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full pl-4 placeholder:text-[#9CA3AF]"
                 />
               </div>
 
+              {/* Icon Toggle Button: Stays magnifying glass and moves inside when open */}
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+                className={cn(
+                  "flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-all duration-300 ease-in-out",
+                  isSearchOpen ? "absolute right-2.5 h-6 w-6" : "h-12 w-10",
+                )}
               >
-                <FontAwesomeIcon
-                  icon={isSearchOpen ? faXmark : faMagnifyingGlass}
-                  className={cn("transition-all duration-200", isSearchOpen ? "w-5 h-5" : "w-[22px] h-[22px]")}
-                />
+                <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
               </button>
             </div>
 
