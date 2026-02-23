@@ -64,7 +64,8 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
+      {/* Removed pb-4 to tighten the space below the menu icon */}
+      <header className="flex items-center justify-between px-6 pt-10 pb-0 relative z-10">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <button
@@ -143,8 +144,8 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
         </Sheet>
       </header>
 
-      {/* Header section - Decreased mb-1 to mb-0 */}
-      <div className="px-6 pt-1 pb-3 relative z-10 animate-fade-in">
+      {/* Set pt-0 to bring the title flush against the header area */}
+      <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
         <h1 className="text-2xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Subscription</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-sm">Manage your subscription and plan details.</p>
       </div>
@@ -183,7 +184,7 @@ const SubscriptionPage = ({ onSignOut, onNavigate }: { onSignOut: () => void; on
 
         {/* Plan Cards - Reduced padding, font sizes, and gap */}
         <div className="flex justify-center gap-3 w-full max-w-md mb-5">
-          {/* Free Plan (Updated to primary green) */}
+          {/* Free Plan */}
           <div className="bg-white rounded-2xl p-3 border-2 border-[#345C5A] flex flex-col items-start w-1/2 relative shadow-sm">
             <div className="absolute top-0 right-0 bg-[#345C5A] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">
               Free
