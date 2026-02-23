@@ -140,7 +140,7 @@ const MainApp = () => {
   };
 
   // Determine if the current page should hide the right header icons
-  const hideHeaderRight = currentPage === "flights" || currentPage === "subscription";
+  const hideHeaderRight = currentPage === "subscription";
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
