@@ -45,8 +45,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const extractionPrompt = `Extract ${cleanOrigin}-${cleanDestination} flights. Return flights[] only per the provided schema. For each flight: include legs[] in order (each leg has origin, destination, departure_time, arrival_time). Include total_duration as a string (e.g. HH:MM or HH:MM:SS, whatever is shown on the page). If the UI shows (+1 day) or similar on the arrival, set is_plus_one_day to true, otherwise false. For fares, extract numbers only (no currency symbols); map displayed fare columns in order to basic, economy, premium, and business. If a fare is unavailable or unlisted, use null.`;
-
     const firecrawlBody = {
       url: targetUrl,
       waitFor: 12000,
@@ -57,46 +55,59 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: extractionPrompt,
+          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Do not invent flights or legs.`,
           schema: {
             type: "object",
-            required: [],
+            additionalProperties: false,
             properties: {
+              anchor: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  origin: { type: "string" },
+                  destination: { type: "string" },
+                },
+                required: ["origin", "destination"],
+              },
               flights: {
                 type: "array",
                 items: {
                   type: "object",
-                  required: [],
+                  additionalProperties: false,
                   properties: {
                     total_duration: { type: "string" },
                     is_plus_one_day: { type: "boolean" },
                     fares: {
                       type: "object",
-                      required: ["basic", "economy", "premium", "business"],
+                      additionalProperties: false,
                       properties: {
                         basic: { type: ["number", "null"] },
                         economy: { type: ["number", "null"] },
                         premium: { type: ["number", "null"] },
                         business: { type: ["number", "null"] },
                       },
+                      required: ["basic", "economy", "premium", "business"],
                     },
                     legs: {
                       type: "array",
                       items: {
                         type: "object",
-                        required: [],
+                        additionalProperties: false,
                         properties: {
                           origin: { type: "string" },
                           destination: { type: "string" },
                           departure_time: { type: "string" },
                           arrival_time: { type: "string" },
                         },
+                        required: ["origin", "destination", "departure_time", "arrival_time"],
                       },
                     },
                   },
+                  required: ["total_duration", "is_plus_one_day", "fares", "legs"],
                 },
               },
             },
+            required: ["anchor", "flights"],
           },
         },
       ],
