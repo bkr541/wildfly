@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fontawesome/react-fontawesome";
 import {
   faBars,
   faHouse,
@@ -13,8 +13,8 @@ import {
   faRightFromBracket,
   faChevronLeft,
   faCheckCircle,
-} from "@fortawesome/free-solid-svg-icons";
-import { faPaypal, faCcVisa } from "@fortawesome/free-brands-svg-icons";
+} from "@fontawesome/free-solid-svg-icons";
+import { faPaypal, faCcVisa } from "@fontawesome/free-brands-svg-icons";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
