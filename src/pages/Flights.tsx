@@ -383,7 +383,7 @@ const FlightsPage = ({
           })}
         </div>
 
-        {/* Airport + Toggle + Dates Group */}
+        {/* Airport + Dates Group */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
           {/* Airports (with swap) */}
           <div className="relative">
@@ -427,42 +427,9 @@ const FlightsPage = ({
             </button>
           </div>
 
-          {/* Toggle + Dates */}
+          {/* Dates */}
           <div className="p-3 pt-2">
-            {/* Right-justified label + smaller toggle */}
-            <div className="flex items-center justify-end gap-2 mb-2">
-              <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
-                Search All Destinations
-              </label>
-
-              <button
-                id="search-all"
-                type="button"
-                role="switch"
-                aria-checked={searchAll}
-                onClick={() =>
-                  setSearchAll((prev) => {
-                    const next = !prev;
-                    if (next) setArrival(null);
-                    return next;
-                  })
-                }
-                className={cn(
-                  "relative inline-flex h-5 w-9 p-0.5 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200",
-                  searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
-                )}
-              >
-                <span
-                  className={cn(
-                    "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                    searchAll ? "translate-x-4" : "translate-x-0",
-                  )}
-                />
-              </button>
-            </div>
-
             <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
-              {/* Departure Date */}
               <div>
                 <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
 
@@ -494,7 +461,6 @@ const FlightsPage = ({
                 </Popover>
               </div>
 
-              {/* Return Date */}
               {showReturnDate && (
                 <div>
                   <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Return Date</label>
@@ -527,6 +493,38 @@ const FlightsPage = ({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Search All Destinations (outside group, below, right-justified) */}
+        <div className="flex items-center justify-end gap-2 -mt-1">
+          <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
+            Search All Destinations
+          </label>
+
+          <button
+            id="search-all"
+            type="button"
+            role="switch"
+            aria-checked={searchAll}
+            onClick={() =>
+              setSearchAll((prev) => {
+                const next = !prev;
+                if (next) setArrival(null);
+                return next;
+              })
+            }
+            className={cn(
+              "relative inline-flex h-5 w-9 p-0.5 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200",
+              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                searchAll ? "translate-x-4" : "translate-x-0",
+              )}
+            />
+          </button>
         </div>
 
         {/* Search Button */}
