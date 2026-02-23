@@ -274,99 +274,72 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
             {groups.map((group) => {
               const isOpen = expandedDest === group.destination;
               const locationLabel = group.city && group.stateCode
-                ? `${group.city}, ${group.stateCode}`
+                ? `${group.stateCode}`
                 : group.city || group.destination;
+              const cityName = group.city || group.destination;
+              const dateLabel = departureDate
+                ? new Date(departureDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+                : "";
 
               return (
-                <div key={group.destination} className="rounded-2xl bg-white shadow-sm border border-[#E3E6E6] overflow-hidden">
+                <div key={group.destination} className="rounded-2xl bg-white shadow-lg border border-[#E8EBEB] overflow-hidden">
                   {/* Card header */}
                   <button
                     type="button"
                     onClick={() => setExpandedDest(isOpen ? null : group.destination)}
-                    className="w-full flex items-start justify-between px-5 py-4 text-left"
+                    className="w-full flex items-start justify-between px-6 py-5 text-left"
                   >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-[#345C5A]">{group.destination}</span>
-                        <span className="text-[#9CA3AF] text-lg font-medium">|</span>
-                        <span className="text-lg text-[#4B5563] font-medium">{locationLabel}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {group.hasGoWild && (
-                          <span className="inline-flex items-center rounded-full bg-[#4A8C5C] px-3 py-0.5 text-xs font-semibold text-white">
-                            GoWild
-                          </span>
-                        )}
-                        {group.hasNonstop && (
-                          <span className="inline-flex items-center rounded-full bg-[#E89830] px-3 py-0.5 text-xs font-semibold text-white">
-                            Non Stop
-                          </span>
-                        )}
-                        {isBlackout && (
-                          <span className="inline-flex items-center rounded-full bg-[#3B3B3B] px-3 py-0.5 text-xs font-semibold text-white">
-                            Blackout
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 shrink-0 ml-4">
-                      <FontAwesomeIcon
-                        icon={faChevronDown}
-                        className={cn("w-4 h-4 text-[#6B7B7B] transition-transform duration-200", isOpen && "rotate-180")}
-                      />
-                      <span className="text-sm text-[#2E4A4A]">
-                        <span className="font-bold text-base">{group.flights.length}</span>{" "}
-                        Available Flight{group.flights.length !== 1 ? "s" : ""}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-2xl font-bold text-[#2E4A4A]">{cityName}</span>
+                      <span className="text-sm text-[#6B7B7B]">
+                        {group.destination} · {locationLabel}
+                      </span>
+                      <span className="text-sm text-[#6B7B7B]">
+                        {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
+                        {dateLabel && ` · ${dateLabel}`}
                       </span>
                     </div>
+
+                    <FontAwesomeIcon
+                      icon={faChevronDown}
+                      className={cn("w-5 h-5 text-[#6B7B7B] mt-2 transition-transform duration-200", isOpen && "rotate-180")}
+                    />
                   </button>
 
                   {/* Expanded flight list */}
                   {isOpen && (
-                    <div className="border-t border-[#E3E6E6] px-4 py-3 flex flex-col gap-2 animate-fade-in">
+                    <div className="px-5 pb-5 flex flex-col gap-2.5 animate-fade-in">
                       {group.flights.map((flight, idx) => {
                         const firstLeg = flight.legs[0];
                         const lastLeg = flight.legs[flight.legs.length - 1];
-                        const origin = firstLeg?.origin ?? "?";
-                        const dest = lastLeg?.destination ?? "?";
                         const depTime = formatTime(firstLeg?.departure_time ?? "");
                         const arrTime = formatTime(lastLeg?.arrival_time ?? "");
                         const isNonstop = flight.legs.length === 1;
                         const stops = flight.legs.length - 1;
+                        const connectCity = !isNonstop && flight.legs.length >= 2 ? flight.legs[0].destination : null;
 
                         return (
                           <div
                             key={idx}
-                            className="flex items-center justify-between rounded-xl bg-[#F7F8F8] border border-[#E3E6E6] px-4 py-3"
+                            className="flex items-center justify-between rounded-xl bg-[#F5F6F6] border border-[#E8EBEB] px-4 py-3.5"
                           >
-                            <div className="flex items-center gap-3">
-                              <FontAwesomeIcon icon={faPlane} className="w-4 h-4 text-[#345C5A]" />
+                            <div className="flex items-center gap-3.5">
+                              <FontAwesomeIcon icon={faPlane} className="w-5 h-5 text-[#345C5A] -rotate-45" />
                               <div className="flex flex-col">
-                                <span className="text-sm font-semibold text-[#2E4A4A]">
-                                  {origin} → {dest}
+                                <span className="text-base font-semibold text-[#2E4A4A]">
+                                  {depTime} → {arrTime}
+                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-xs font-medium">(+1)</span>}
                                 </span>
-                                <span className="text-xs text-[#6B7B7B]">
-                                  {depTime} – {arrTime}
-                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] font-medium">(+1 day)</span>}
+                                <span className="text-sm text-[#6B7B7B]">
+                                  {flight.total_duration || ""}
                                 </span>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              {flight.total_duration && (
-                                <span className="text-xs text-[#6B7B7B]">{flight.total_duration}</span>
-                              )}
-                              <span
-                                className={cn(
-                                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
-                                  isNonstop ? "bg-[#E89830]" : "bg-[#6B7B7B]",
-                                )}
-                              >
-                                {isNonstop ? "Nonstop" : `+${stops} Stop${stops > 1 ? "s" : ""}`}
-                              </span>
-                            </div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-3 py-1 text-xs font-medium text-[#2E4A4A]">
+                              <span className={cn("w-1.5 h-1.5 rounded-full", isNonstop ? "bg-[#5A9E8F]" : "bg-[#6B7B7B]")} />
+                              {isNonstop ? "Nonstop" : `${stops} stop${stops > 1 ? "s" : ""}${connectCity ? ` · ${connectCity}` : ""}`}
+                            </span>
                           </div>
                         );
                       })}
