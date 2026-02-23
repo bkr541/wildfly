@@ -7,7 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
-  faMagnifyingGlass,
   faHouse,
   faPlane,
   faLocationDot,
@@ -25,10 +24,11 @@ import {
   faRoute,
   faArrowRightArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 import { normalizeWildflyFlightData } from "@/utils/flightNormalizer";
+
+const ACTIVE_TRIP_FLEX = 1.7;
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -276,7 +276,7 @@ const FlightsPage = ({
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
+      <header className="flex items-center justify-start px-6 pt-8 pb-2 relative z-10">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <button
@@ -337,32 +337,10 @@ const FlightsPage = ({
             </div>
           </SheetContent>
         </Sheet>
-
-        <div className="flex items-center gap-5 h-12">
-          <button
-            type="button"
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-          >
-            <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
-          </button>
-          <button
-            type="button"
-            className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-          >
-            <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
-          </button>
-          <Avatar
-            className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => onNavigate("account")}
-          >
-            <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-            <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
-          </Avatar>
-        </div>
       </header>
 
-      <div className="px-6 pt-2 pb-4 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-2 tracking-tight">Flights</h1>
+      <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-1 tracking-tight">Flights</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
       </div>
 
@@ -371,12 +349,12 @@ const FlightsPage = ({
         {/* Trip Type Switch */}
         <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-[0_4px_10px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out"
             style={{
-              width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
-              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex(
-                (o) => o.value === tripType,
-              )} / ${tripOptions.length - 1 + 2.5})`,
+              width: `calc(((100% - 12px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX}) - 8px)`,
+              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
+                tripOptions.length - 1 + ACTIVE_TRIP_FLEX
+              })`,
             }}
           />
           {tripOptions.map((opt) => {
@@ -386,9 +364,10 @@ const FlightsPage = ({
                 key={opt.value}
                 type="button"
                 onClick={() => setTripType(opt.value)}
+                style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
                 className={cn(
                   "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
-                  isActive ? "text-white flex-[2.5]" : "text-[#9CA3AF] hover:text-[#6B7B7B] flex-1",
+                  isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
                 <FontAwesomeIcon icon={opt.icon} className="w-4 h-4 shrink-0 transition-transform duration-300" />
@@ -492,7 +471,7 @@ const FlightsPage = ({
             </Popover>
           </div>
 
-          {/* Return Date — only for Round Trip / Multi Day */}
+          {/* Return Date - only for Round Trip / Multi Day */}
           {showReturnDate && (
             <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
               <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Return Date</label>
@@ -537,7 +516,7 @@ const FlightsPage = ({
               let data, error;
 
               if (searchAll) {
-                // Search All Destinations — call getAllDestinations
+                // Search All Destinations - call getAllDestinations
                 ({ data, error } = await supabase.functions.invoke("getAllDestinations", {
                   body: { departureAirport: originCode, departureDate: depFormatted },
                 }));
