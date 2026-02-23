@@ -1,10 +1,17 @@
 import { useMemo, useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronDown, faPlane, faClock, faCalendarDays, faLayerGroup, faMapMarkerAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronLeft,
+  faChevronDown,
+  faPlane,
+  faClock,
+  faCalendarDays,
+  faLayerGroup,
+  faMapMarkerAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
-import FlightLegTimeline from "@/components/FlightLegTimeline";
 
 interface ParsedFlight {
   total_duration: string;
@@ -37,9 +44,8 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
-  const [expandedFlight, setExpandedFlight] = useState<string | null>(null);
 
-  const { firecrawlRequestBody, flights, departureDate, arrivalDate } = useMemo(() => {
+  const { flights, departureDate, arrivalDate, firecrawlRequestBody } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
@@ -53,31 +59,22 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     }
   }, [responseData]);
 
-  // Check blackout
-  const isBlackout = useMemo(() => {
-    return isBlackoutDate(departureDate ?? "") || isBlackoutDate(arrivalDate ?? "");
-  }, [departureDate, arrivalDate]);
-
-  // Collect ALL unique IATA codes (origins, connections, destinations)
-  const allAirportCodes = useMemo(() => {
+  const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
     for (const f of flights) {
-      for (const leg of f.legs) {
-        if (leg.origin) codes.add(leg.origin);
-        if (leg.destination) codes.add(leg.destination);
-      }
+      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "";
+      if (dest) codes.add(dest);
     }
     return Array.from(codes);
   }, [flights]);
 
-  // Fetch airport city/state info
   useEffect(() => {
-    if (allAirportCodes.length === 0) return;
+    if (destinationCodes.length === 0) return;
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
         .select("iata_code, locations(city, state_code)")
-        .in("iata_code", allAirportCodes);
+        .in("iata_code", destinationCodes);
       if (data) {
         const map: Record<string, { city: string; stateCode: string }> = {};
         for (const a of data as any[]) {
@@ -90,9 +87,8 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       }
     };
     fetchAirports();
-  }, [allAirportCodes]);
+  }, [destinationCodes]);
 
-  // Group flights by destination
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
     for (const f of flights) {
@@ -100,29 +96,28 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
     }
-    return Object.entries(grouped).map(([dest, flts]) => ({
-      destination: dest,
-      city: airportMap[dest]?.city ?? "",
-      stateCode: airportMap[dest]?.stateCode ?? "",
-      flights: flts,
-      hasGoWild: flts.some((f) => f.fares.basic != null),
-      hasNonstop: flts.some((f) => f.legs.length === 1),
-    }));
+    return Object.entries(grouped)
+      .map(([dest, flts]) => ({
+        destination: dest,
+        city: airportMap[dest]?.city ?? "",
+        stateCode: airportMap[dest]?.stateCode ?? "",
+        flights: flts,
+        hasGoWild: flts.some((f) => f.fares.basic != null),
+        hasNonstop: flts.some((f) => f.legs.length === 1),
+      }))
+      .sort((a, b) => a.city.localeCompare(b.city));
   }, [flights, airportMap]);
 
-  // Derive origin from first flight
   const origin = useMemo(() => {
     if (flights.length === 0) return "";
     return flights[0].legs[0]?.origin ?? "";
   }, [flights]);
 
-  // Selected destination group
   const selectedGroup = useMemo(() => {
     if (!selectedDest) return null;
     return groups.find((g) => g.destination === selectedDest) ?? null;
   }, [selectedDest, groups]);
 
-  // Earliest departure for selected group
   const earliestDeparture = useMemo(() => {
     if (!selectedGroup) return null;
     let earliest: Date | null = null;
@@ -137,63 +132,69 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     return earliest.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   }, [selectedGroup]);
 
-  // Nonstop count for selected group
   const nonstopCount = useMemo(() => {
     if (!selectedGroup) return 0;
     return selectedGroup.flights.filter((f) => f.legs.length === 1).length;
   }, [selectedGroup]);
 
-  const requestBodyText = firecrawlRequestBody ? JSON.stringify(firecrawlRequestBody, null, 2) : "(not available)";
-  const responseText = JSON.stringify({ flights }, null, 2);
-
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
+      {/* Background Decor */}
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
-      {/* Header */}
-      <header className="relative z-10 grid grid-cols-[40px_1fr_40px] items-center px-6 pt-10 pb-4">
-        <button type="button" onClick={onBack} className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity">
-          <FontAwesomeIcon icon={faChevronLeft} className="block w-6 h-6" />
+      {/* Synchronized Header - pt-6 for smaller top gap */}
+      <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
+        >
+          <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <h1 className="h-12 flex items-center justify-center text-xl font-bold text-[#2E4A4A] tracking-tight leading-none whitespace-nowrap">
-          Flight Results
-        </h1>
-        <div className="h-12 w-10" />
+        <h1 className="text-lg font-bold text-[#2E4A4A] tracking-tight">Flight Results</h1>
+        <div className="w-10" />
       </header>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col px-6 pt-2 pb-6 gap-4 relative z-10">
-        {/* Route summary */}
+      <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
+        {/* Route Summary Text - text-sm instead of text-lg */}
         {groups.length > 0 && origin && (
-          <div className="flex items-baseline gap-2 px-1">
-            <span className="text-lg text-[#6B7B7B]">{origin}</span>
-            <span className="text-lg text-[#6B7B7B]">→</span>
-            <span className="text-lg font-bold text-[#345C5A]">{groups.length} Available Route{groups.length !== 1 ? "s" : ""}</span>
+          <div className="flex items-center gap-1.5 px-1 opacity-80">
+            <span className="text-sm font-semibold text-[#6B7B7B] uppercase tracking-wider">{origin}</span>
+            <span className="text-[#6B7B7B]">→</span>
+            <span className="text-sm font-bold text-[#345C5A] uppercase tracking-wider">
+              {groups.length} Destination{groups.length !== 1 ? "s" : ""} Found
+            </span>
           </div>
         )}
 
-        {/* Horizontal scrolling destination circles */}
+        {/* Scaled-down Destination Circles (w-16 instead of w-20) */}
         {groups.length > 0 && (
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             {groups.map((group) => {
               const isSelected = selectedDest === group.destination;
               return (
                 <button
                   key={group.destination}
-                  type="button"
                   onClick={() => setSelectedDest(isSelected ? null : group.destination)}
-                  className="flex flex-col items-center gap-1.5 shrink-0"
+                  className="flex flex-col items-center gap-1 shrink-0"
                 >
                   <div
                     className={cn(
-                      "w-20 h-20 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md transition-all duration-200 bg-gradient-to-br from-[#5A9E8F] to-[#345C5A]",
-                      isSelected ? "ring-3 ring-[#345C5A] ring-offset-2 scale-105" : "opacity-80 hover:opacity-100 hover:scale-105"
+                      "w-16 h-16 rounded-full flex items-center justify-center text-white text-base font-bold shadow-sm transition-all duration-200",
+                      isSelected
+                        ? "bg-[#345C5A] scale-105 ring-2 ring-offset-2 ring-[#345C5A]"
+                        : "bg-[#345C5A]/80 opacity-70 hover:opacity-100",
                     )}
                   >
                     {group.destination}
                   </div>
-                  <span className={cn("text-xs font-medium transition-colors", isSelected ? "text-[#345C5A]" : "text-[#6B7B7B]")}>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold uppercase transition-colors truncate w-16 text-center",
+                      isSelected ? "text-[#345C5A]" : "text-[#6B7B7B]",
+                    )}
+                  >
                     {group.city || group.destination}
                   </span>
                 </button>
@@ -202,221 +203,133 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           </div>
         )}
 
-        {/* Selected destination location card */}
+        {/* Selected Highlight Card - Tightened padding and font */}
         {selectedGroup && (
-          <div className="rounded-2xl bg-white shadow-sm border border-[#E3E6E6] p-5 flex flex-col gap-4 animate-fade-in">
-            {/* Header */}
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-bold text-[#2E4A4A]">
-                {origin} <span className="text-[#6B7B7B] font-normal">→</span> {selectedGroup.destination}
+          <div className="rounded-xl bg-white shadow-sm border border-[#E3E6E6] p-4 flex flex-col gap-3 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-[#F2F3F3] pb-2">
+              <span className="text-lg font-bold text-[#2E4A4A]">
+                {origin} <span className="text-[#6B7B7B] font-normal mx-0.5">→</span> {selectedGroup.destination}
               </span>
               {selectedGroup.hasGoWild && (
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] text-[#6B7B7B] uppercase tracking-wide">From</span>
-                  <span className="text-sm font-semibold text-[#4A8C5C]">GoWild Pass</span>
-                </div>
+                <span className="text-[10px] font-bold bg-[#E8F1F1] text-[#345C5A] px-2 py-0.5 rounded-md uppercase tracking-tight">
+                  GoWild
+                </span>
               )}
             </div>
 
-            {/* Stats grid */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="rounded-xl border border-[#E3E6E6] bg-[#F7F8F8] px-4 py-3 flex items-center gap-3">
-                <FontAwesomeIcon icon={faLayerGroup} className="w-5 h-5 text-[#5A9E8F]" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-[#F7F8F8] px-3 py-2 rounded-lg flex items-center gap-2.5">
+                <FontAwesomeIcon icon={faLayerGroup} className="w-3.5 h-3.5 text-[#5A9E8F]" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-[#6B7B7B] uppercase tracking-wide">Options</span>
-                  <span className="text-lg font-bold text-[#2E4A4A]">{selectedGroup.flights.length}</span>
+                  <span className="text-[9px] text-[#6B7B7B] uppercase font-bold tracking-tighter leading-none">
+                    Options
+                  </span>
+                  <span className="text-sm font-bold text-[#2E4A4A]">{selectedGroup.flights.length}</span>
                 </div>
               </div>
-              <div className="rounded-xl border border-[#E3E6E6] bg-[#F7F8F8] px-4 py-3 flex items-center gap-3">
-                <FontAwesomeIcon icon={faPlane} className="w-5 h-5 text-[#5A9E8F]" />
+              <div className="bg-[#F7F8F8] px-3 py-2 rounded-lg flex items-center gap-2.5">
+                <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#5A9E8F]" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-[#6B7B7B] uppercase tracking-wide">Nonstop</span>
-                  <span className="text-lg font-bold text-[#2E4A4A]">{nonstopCount}</span>
-                </div>
-              </div>
-              <div className="rounded-xl border border-[#E3E6E6] bg-[#F7F8F8] px-4 py-3 flex items-center gap-3">
-                <FontAwesomeIcon icon={faClock} className="w-5 h-5 text-[#5A9E8F]" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-[#6B7B7B] uppercase tracking-wide">Earliest</span>
-                  <span className="text-lg font-bold text-[#2E4A4A]">{earliestDeparture ?? "-"}</span>
-                </div>
-              </div>
-              <div className="rounded-xl border border-[#E3E6E6] bg-[#F7F8F8] px-4 py-3 flex items-center gap-3">
-                <FontAwesomeIcon icon={faCalendarDays} className="w-5 h-5 text-[#5A9E8F]" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-[#6B7B7B] uppercase tracking-wide">Events</span>
-                  <span className="text-lg font-bold text-[#2E4A4A]">-</span>
+                  <span className="text-[9px] text-[#6B7B7B] uppercase font-bold tracking-tighter leading-none">
+                    Nonstop
+                  </span>
+                  <span className="text-sm font-bold text-[#2E4A4A]">{nonstopCount}</span>
                 </div>
               </div>
             </div>
 
-            {/* Route map placeholder */}
-            <div className="rounded-xl border border-[#E3E6E6] bg-[#F7F8F8] px-4 py-3 flex items-center gap-3">
-              <FontAwesomeIcon icon={faMapMarkerAlt} className="w-5 h-5 text-[#5A9E8F]" />
-              <span className="text-sm font-semibold text-[#5A9E8F] uppercase tracking-wide">Route Map</span>
-              <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 text-[#6B7B7B] ml-auto" />
-            </div>
-
-            {/* Show All Flights button */}
             <button
-              type="button"
-              onClick={() => {
-                setExpandedDest(expandedDest === selectedGroup.destination ? null : selectedGroup.destination);
-              }}
-              className="mx-auto flex items-center gap-2 text-sm font-semibold text-[#5A9E8F] hover:opacity-80 transition-opacity"
+              onClick={() =>
+                setExpandedDest(expandedDest === selectedGroup.destination ? null : selectedGroup.destination)
+              }
+              className="flex items-center justify-center gap-2 text-xs font-bold text-[#5A9E8F] py-1 hover:bg-[#F7F8F8] rounded-md transition-colors"
             >
-              <FontAwesomeIcon icon={faPlane} className="w-4 h-4" />
-              <span>{expandedDest === selectedGroup.destination ? "Hide Flights" : "Show All Flights"}</span>
-              <FontAwesomeIcon icon={faChevronDown} className={cn("w-3 h-3 transition-transform", expandedDest === selectedGroup.destination && "rotate-180")} />
+              <FontAwesomeIcon icon={faPlane} className="w-3 h-3" />
+              <span>{expandedDest === selectedGroup.destination ? "HIDE DETAILS" : "SHOW ALL FLIGHTS"}</span>
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                className={cn(
+                  "w-2.5 h-2.5 transition-transform",
+                  expandedDest === selectedGroup.destination && "rotate-180",
+                )}
+              />
             </button>
           </div>
         )}
 
-        {/* Destination cards */}
-        {groups.length > 0 && (
-          <div className="flex flex-col gap-3">
-            {groups.map((group) => {
-              const isOpen = expandedDest === group.destination;
-              const locationLabel = group.city && group.stateCode
-                ? `${group.stateCode}`
-                : group.city || group.destination;
-              const cityName = group.city || group.destination;
-              const dateLabel = departureDate
-                ? new Date(departureDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-                : "";
+        {/* Compact List Cards */}
+        <div className="flex flex-col gap-2.5">
+          {groups.map((group) => {
+            const isOpen = expandedDest === group.destination;
+            return (
+              <div
+                key={group.destination}
+                className="rounded-xl bg-white shadow-sm border border-[#E8EBEB] overflow-hidden"
+              >
+                <button
+                  onClick={() => setExpandedDest(isOpen ? null : group.destination)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-base font-bold text-[#2E4A4A] leading-tight">
+                      {group.city || group.destination}
+                    </span>
+                    <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
+                      {group.destination} · {group.stateCode || "Domestic"} · {group.flights.length} flight
+                      {group.flights.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={cn("w-4 h-4 text-[#9CA3AF] transition-transform duration-200", isOpen && "rotate-180")}
+                  />
+                </button>
 
-              return (
-                <div key={group.destination} className="rounded-2xl bg-white shadow-lg border border-[#E8EBEB] overflow-hidden">
-                  {/* Card header */}
-                  <button
-                    type="button"
-                    onClick={() => setExpandedDest(isOpen ? null : group.destination)}
-                    className="w-full flex items-start justify-between px-6 py-5 text-left"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <span className="text-2xl font-bold text-[#2E4A4A]">{cityName}</span>
-                      <span className="text-sm text-[#6B7B7B]">
-                        {group.destination} · {locationLabel}
-                      </span>
-                      <span className="text-sm text-[#6B7B7B]">
-                        {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
-                        {dateLabel && ` · ${dateLabel}`}
-                      </span>
-                    </div>
-
-                    <FontAwesomeIcon
-                      icon={faChevronDown}
-                      className={cn("w-5 h-5 text-[#6B7B7B] mt-2 transition-transform duration-200", isOpen && "rotate-180")}
-                    />
-                  </button>
-
-                  {/* Expanded flight list */}
-                  {isOpen && (
-                    <div className="px-5 pb-5 flex flex-col gap-2.5 animate-fade-in">
-                      {group.flights.map((flight, idx) => {
-                        const firstLeg = flight.legs[0];
-                        const lastLeg = flight.legs[flight.legs.length - 1];
-                        const depTime = formatTime(firstLeg?.departure_time ?? "");
-                        const arrTime = formatTime(lastLeg?.arrival_time ?? "");
-                        const isNonstop = flight.legs.length === 1;
-                        const stops = flight.legs.length - 1;
-                        const connectCity = !isNonstop && flight.legs.length >= 2 ? flight.legs[0].destination : null;
-
-                        const flightKey = `${group.destination}-${idx}`;
-                        const isExpanded = expandedFlight === flightKey;
-                        const canExpand = !isNonstop;
-
-                        // Compute layover summary for header
-                        let layoverSummary = "";
-                        if (!isNonstop && flight.legs.length >= 2) {
-                          const layoverMs = new Date(flight.legs[1].departure_time).getTime() - new Date(flight.legs[0].arrival_time).getTime();
-                          if (!isNaN(layoverMs) && layoverMs > 0) {
-                            const lMin = Math.round(layoverMs / 60000);
-                            layoverSummary = `Layover ${Math.floor(lMin / 60)}h ${String(lMin % 60).padStart(2, "0")}m`;
-                          }
-                        }
-
-                        return (
-                          <div
-                            key={idx}
-                            className="rounded-xl bg-[#F5F6F6] border border-[#E8EBEB] overflow-hidden"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => canExpand && setExpandedFlight(isExpanded ? null : flightKey)}
-                              className={cn(
-                                "w-full flex items-center justify-between px-4 py-3.5 text-left",
-                                canExpand && "cursor-pointer hover:bg-[#EEEEF0] transition-colors"
-                              )}
-                            >
-                              <div className="flex items-center gap-3.5">
-                                <FontAwesomeIcon icon={faPlane} className="w-5 h-5 text-[#345C5A] -rotate-45" />
-                                <div className="flex flex-col">
-                                  <span className="text-base font-semibold text-[#2E4A4A]">
-                                    {depTime} → {arrTime}
-                                    {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-xs font-medium">(+1)</span>}
-                                  </span>
-                                  <span className="text-sm text-[#6B7B7B]">
-                                    {flight.total_duration || ""}
-                                    {!isNonstop && layoverSummary && ` · ${layoverSummary}`}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-3 py-1 text-xs font-medium text-[#2E4A4A]">
-                                <span className={cn("w-1.5 h-1.5 rounded-full", isNonstop ? "bg-[#5A9E8F]" : "bg-[#6B7B7B]")} />
-                                {isNonstop ? "Nonstop" : `${stops} stop${stops > 1 ? "s" : ""}${connectCity ? ` · ${connectCity}` : ""}`}
-                              </span>
-                            </button>
-
-                            {/* Expanded leg timeline */}
-                            {isExpanded && canExpand && (
-                              <div className="px-4 pb-3 border-t border-[#E8EBEB] animate-fade-in">
-                                <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                              </div>
-                            )}
+                {isOpen && (
+                  <div className="px-3 pb-3 flex flex-col gap-2 animate-fade-in border-t border-[#F2F3F3] pt-3">
+                    {group.flights.map((flight, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-[#F9FAFA] border border-[#F2F3F3] rounded-lg px-3 py-2.5"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#345C5A] -rotate-45" />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-[#2E4A4A]">
+                              {formatTime(flight.legs[0]?.departure_time)} →{" "}
+                              {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
+                              {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-[10px]">(+1)</span>}
+                            </span>
+                            <span className="text-[10px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8EBEB] px-2.5 py-0.5 text-[10px] font-bold text-[#345C5A] uppercase">
+                          {flight.legs.length === 1 ? "Nonstop" : `${flight.legs.length - 1} stop`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-        {/* Toggle raw results */}
         <button
-          type="button"
-          onClick={() => setShowRaw((v) => !v)}
-          className="text-sm font-semibold text-[#345C5A] underline underline-offset-2 hover:opacity-80 transition-opacity self-center py-2"
+          onClick={() => setShowRaw(!showRaw)}
+          className="text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
         >
-          {showRaw ? "Hide Raw Results" : "Show Raw Results"}
+          {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
         </button>
 
         {showRaw && (
-          <>
-            {/* Request body */}
-            <div>
-              <h2 className="text-sm font-semibold text-[#2E4A4A] mb-1">Request Body</h2>
-              <textarea
-                readOnly
-                value={requestBodyText}
-                className="w-full min-h-[120px] rounded-2xl border border-[#345C5A]/20 bg-white p-4 text-sm font-mono text-[#2E4A4A] resize-none focus:outline-none"
-              />
-            </div>
-
-            {/* Response payload */}
-            <div className="flex-1 flex flex-col">
-              <h2 className="text-sm font-semibold text-[#2E4A4A] mb-1">Response Payload</h2>
-              <textarea
-                readOnly
-                value={responseText}
-                className="w-full flex-1 min-h-[300px] rounded-2xl border border-[#345C5A]/20 bg-white p-4 text-sm font-mono text-[#2E4A4A] resize-none focus:outline-none"
-              />
-            </div>
-          </>
+          <div className="flex flex-col gap-4 animate-fade-in">
+            <textarea
+              readOnly
+              value={JSON.stringify({ flights }, null, 2)}
+              className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+            />
+          </div>
         )}
       </div>
     </div>
