@@ -22,7 +22,7 @@ import {
   faRepeat,
   faSun,
   faRoute,
-  faArrowRightArrowLeft,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
@@ -110,6 +110,8 @@ const AirportSearchbox = ({
     );
   }, [query, airports, shouldShow, disabled]);
 
+  const showClear = !!value && !disabled;
+
   return (
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
@@ -126,6 +128,7 @@ const AirportSearchbox = ({
         }}
       >
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A]" />
+
         <input
           ref={inputRef}
           type="text"
@@ -148,6 +151,24 @@ const AirportSearchbox = ({
             disabled && "cursor-not-allowed",
           )}
         />
+
+        {showClear && (
+          <button
+            type="button"
+            aria-label={`Clear ${label}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(null);
+              setQuery("");
+              setOpen(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            className="p-1 -mr-1 rounded-lg text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+          >
+            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
@@ -385,7 +406,6 @@ const FlightsPage = ({
 
         {/* Airport + Dates Group */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
-          {/* Airports (with swap) */}
           <div className="relative">
             <AirportSearchbox
               label="Departure"
@@ -409,22 +429,8 @@ const FlightsPage = ({
               containerClassName="p-3"
             />
 
-            <button
-              type="button"
-              disabled={searchAll}
-              className={cn(
-                "absolute right-5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md transition-colors z-10",
-                searchAll ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2E4A4A]",
-              )}
-              onClick={() => {
-                if (searchAll) return;
-                const temp = departure;
-                setDeparture(arrival);
-                setArrival(temp);
-              }}
-            >
-              <FontAwesomeIcon icon={faArrowRightArrowLeft} className="w-4 h-4 rotate-90" />
-            </button>
+            {/* NEW: separator under Arrival (matches the one under Departure) */}
+            <div className="h-px bg-[#E3E6E6] mx-3" />
           </div>
 
           {/* Dates */}
