@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import { ProfileProvider } from "@/contexts/ProfileContext";
+import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
@@ -30,7 +32,6 @@ const MainApp = () => {
     let subscription: { unsubscribe: () => void } | null = null;
 
     const hydrateFromSession = async (session: Session | null) => {
-      // No user -> show AuthPage
       if (!session?.user) {
         if (!isMounted) return;
         setIsSignedIn(false);
@@ -50,7 +51,6 @@ const MainApp = () => {
 
         if (!isMounted) return;
 
-        // If profile lookup fails, send user through onboarding as a safe fallback.
         if (profileError) {
           setIsSignedIn(true);
           setNeedsOnboarding(true);
@@ -58,7 +58,6 @@ const MainApp = () => {
         }
 
         if (!profile) {
-          // No user_info row -> create one
           await supabase.from("user_info").insert({
             auth_user_id: user.id,
             email: user.email ?? "",
@@ -73,7 +72,6 @@ const MainApp = () => {
         }
 
         setIsSignedIn(true);
-        // Rule: if onboarding_complete !== "Yes", go to onboarding.
         setNeedsOnboarding(profile.onboarding_complete !== "Yes");
       } catch {
         if (!isMounted) return;
@@ -83,8 +81,6 @@ const MainApp = () => {
     };
 
     const init = async () => {
-      // ✅ FOR NOW: Always require AuthPage on every launch/refresh.
-      // This clears any persisted Supabase session from storage.
       try {
         await supabase.auth.signOut({ scope: "local" });
       } catch {
@@ -93,12 +89,10 @@ const MainApp = () => {
 
       if (!isMounted) return;
 
-      // Known logged-out state after forcing sign-out.
       setIsSignedIn(false);
       setNeedsOnboarding(false);
       setShowProfileSetup(false);
 
-      // Listen for sign-in events AFTER the forced sign-out.
       const sub = supabase.auth.onAuthStateChange((event, session) => {
         if (!isMounted) return;
 
@@ -115,8 +109,6 @@ const MainApp = () => {
       });
 
       subscription = sub.data.subscription;
-
-      // Session check is "done" once sign-out is forced + listeners attached.
       setCheckingSession(false);
     };
 
@@ -142,6 +134,18 @@ const MainApp = () => {
     setShowProfileSetup(false);
   };
 
+  const handleNavigate = (page: string, data?: string) => {
+    if (page === "flight-results" && data) setFlightResultsData(data);
+    setCurrentPage(page as any);
+  };
+
+  // Determine if the current page should hide the right header icons
+  const hideHeaderRight = currentPage === "flights" || currentPage === "subscription";
+
+  // Pages that use the shared MainLayout
+  const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
+    ["home", "account", "flights", "destinations", "subscription"].includes(currentPage);
+
   return (
     <div className="flex justify-center min-h-screen bg-background">
       <div className="w-full max-w-[768px] relative">
@@ -166,31 +170,20 @@ const MainApp = () => {
           />
         )}
 
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "home" && (
-          <HomePage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "account" && (
-          <AccountHub onSignOut={handleSignOut} onBack={() => setCurrentPage("home")} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flights" && (
-          <FlightsPage onSignOut={handleSignOut} onNavigate={(page: string, data?: string) => {
-            if (page === "flight-results" && data) setFlightResultsData(data);
-            setCurrentPage(page as any);
-          }} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "destinations" && (
-          <DestinationsPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
+        {splashDone && !checkingSession && isMainLayoutPage && (
+          <ProfileProvider>
+            <MainLayout onSignOut={handleSignOut} onNavigate={handleNavigate} hideHeaderRight={hideHeaderRight}>
+              {currentPage === "home" && <HomePage />}
+              {currentPage === "account" && <AccountHub />}
+              {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
+              {currentPage === "destinations" && <DestinationsPage />}
+              {currentPage === "subscription" && <SubscriptionPage />}
+            </MainLayout>
+          </ProfileProvider>
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "subscription" && (
-          <SubscriptionPage onSignOut={handleSignOut} onNavigate={(page: string) => setCurrentPage(page as any)} />
         )}
       </div>
     </div>
