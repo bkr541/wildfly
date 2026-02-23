@@ -90,12 +90,10 @@ const AirportSearchbox = ({
 
   const shouldShow = query.trim().length > 2;
 
-  // Filter and Group Airports
   const groupedAirports = useMemo(() => {
     if (!shouldShow || disabled) return {};
     const q = query.toLowerCase();
 
-    // 1. Filter matching airports
     const filteredList = airports
       .filter(
         (a) =>
@@ -105,7 +103,6 @@ const AirportSearchbox = ({
       )
       .slice(0, 30);
 
-    // 2. Group them by city and state
     return filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
@@ -210,7 +207,6 @@ const FlightsPage = ({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fullName, setFullName] = useState("");
 
-  // Flight search state
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
@@ -264,6 +260,10 @@ const FlightsPage = ({
     if (map[label]) setTimeout(() => onNavigate(map[label]), 300);
   };
 
+  const tripPadPx = 4; // matches p-1
+  const tripTotalFlex = tripOptions.length - 1 + 2.5;
+  const tripActiveIndex = tripOptions.findIndex((o) => o.value === tripType);
+
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
@@ -300,7 +300,9 @@ const FlightsPage = ({
                 <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
               </button>
             </div>
+
             <div className="h-px bg-[#E5E7EB] mx-6" />
+
             <nav className="flex-1 px-6 pt-4 flex flex-col justify-start gap-1">
               {menuItems.map((item) => (
                 <button
@@ -314,6 +316,7 @@ const FlightsPage = ({
                 </button>
               ))}
             </nav>
+
             <div className="mt-auto">
               <div className="h-px bg-[#E5E7EB] mx-6" />
               <button
@@ -359,17 +362,14 @@ const FlightsPage = ({
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
       </div>
 
-      {/* ── Flight Search Form ─────────────────────────────── */}
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
         {/* Trip Type Switch */}
-        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
+        <div className="bg-white rounded-2xl p-1 flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out"
+            className="absolute top-1 bottom-1 rounded-xl bg-[#345C5A] shadow-lg transition-all duration-300 ease-in-out"
             style={{
-              width: `calc(((100% - 12px) * 2.5 / ${tripOptions.length - 1 + 2.5}) - 8px)`,
-              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
-                tripOptions.length - 1 + 2.5
-              })`,
+              width: `calc((100% - ${tripPadPx * 2}px) * 2.5 / ${tripTotalFlex})`,
+              left: `calc(${tripPadPx}px + (100% - ${tripPadPx * 2}px) * ${tripActiveIndex} / ${tripTotalFlex})`,
             }}
           />
           {tripOptions.map((opt) => {
@@ -393,7 +393,6 @@ const FlightsPage = ({
 
         {/* Grouped Departure & Arrival Card (with toggle inside) */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] relative flex flex-col overflow-hidden">
-          {/* Inputs area (swap button stays centered on these) */}
           <div className="relative flex flex-col">
             <AirportSearchbox
               label="Departure"
@@ -412,7 +411,7 @@ const FlightsPage = ({
               value={arrival}
               onChange={setArrival}
               airports={airports}
-              containerClassName="pt-4 px-4 pb-2" // reduced bottom padding to tighten spacing to toggle
+              containerClassName="pt-4 px-4 pb-2"
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
             />
@@ -435,11 +434,12 @@ const FlightsPage = ({
             </button>
           </div>
 
-          {/* Toggle (smaller + less whitespace above) */}
+          {/* Search All toggle */}
           <div className="flex items-center justify-end gap-2 px-4 pt-0 pb-3">
             <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
               Search All Destinations
             </label>
+
             <button
               id="search-all"
               type="button"
@@ -453,14 +453,14 @@ const FlightsPage = ({
                 });
               }}
               className={cn(
-                "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
-                searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
+                "relative inline-flex h-5 w-8 p-[2px] shrink-0 cursor-pointer rounded-full transition-colors duration-200",
+                searchAll ? "bg-[#345C5A] shadow-sm" : "bg-[#E3E6E6]",
               )}
             >
               <span
                 className={cn(
-                  "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                  searchAll ? "translate-x-4" : "translate-x-0",
+                  "pointer-events-none inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200",
+                  searchAll ? "translate-x-[14px] shadow-md" : "translate-x-0 shadow-sm",
                 )}
               />
             </button>
@@ -469,7 +469,6 @@ const FlightsPage = ({
 
         {/* Date Pickers */}
         <div className={cn("grid gap-4", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
-          {/* Departure Date */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
             <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Departure Date</label>
             <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
@@ -497,7 +496,6 @@ const FlightsPage = ({
             </Popover>
           </div>
 
-          {/* Return Date — only for Round Trip / Multi Day */}
           {showReturnDate && (
             <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 hover:border-[#345C5A] transition-colors cursor-pointer focus-within:border-[#345C5A]">
               <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">Return Date</label>
