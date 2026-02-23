@@ -391,11 +391,7 @@ const MultiAirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
-const FlightsPage = ({
-  onNavigate,
-}: {
-  onNavigate: (page: string, data?: string) => void;
-}) => {
+const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
@@ -447,8 +443,9 @@ const FlightsPage = ({
         </div>
       )}
 
+      {/* Title Group - Gap decreased to mb-0 to match Home.tsx */}
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-1 tracking-tight">Flights</h1>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Flights</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
       </div>
 
