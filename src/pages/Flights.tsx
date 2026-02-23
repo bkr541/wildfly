@@ -285,30 +285,9 @@ const MultiAirportSearchbox = ({
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
-      {/* Selected chips */}
-      {selected.length > 0 && !disabled && (
-        <div className="flex flex-wrap gap-1.5 mb-1.5">
-          {selected.map((a) => (
-            <span
-              key={a.id}
-              className="inline-flex items-center gap-1 bg-[#345C5A]/10 text-[#345C5A] text-xs font-semibold px-2.5 py-1 rounded-full"
-            >
-              {a.iata_code}
-              <button
-                type="button"
-                onClick={() => removeAirport(a.id)}
-                className="hover:text-[#2E4A4A] transition-colors"
-              >
-                <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
       <div
         className={cn(
-          "flex items-center gap-2.5 bg-transparent transition-colors h-10",
+          "flex items-center flex-wrap gap-1.5 min-h-10 bg-transparent transition-colors",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
         onClick={() => {
@@ -318,6 +297,27 @@ const MultiAirportSearchbox = ({
         }}
       >
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0" />
+
+        {/* Selected chips inline */}
+        {selected.map((a) => (
+          <span
+            key={a.id}
+            className="inline-flex items-center gap-1.5 bg-white border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+          >
+            {a.iata_code}
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.stopPropagation();
+                removeAirport(a.id);
+              }}
+              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none"
+            >
+              <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+            </button>
+          </span>
+        ))}
 
         <input
           ref={inputRef}
@@ -336,27 +336,10 @@ const MultiAirportSearchbox = ({
           }}
           onBlur={() => setTimeout(() => setOpen(false), 200)}
           className={cn(
-            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] min-w-0 truncate",
+            "flex-1 min-w-[100px] h-8 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
             disabled && "cursor-not-allowed",
           )}
         />
-
-        {selected.length > 0 && !disabled && (
-          <button
-            type="button"
-            aria-label="Clear all"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange([]);
-              setQuery("");
-              requestAnimationFrame(() => inputRef.current?.focus());
-            }}
-            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-          >
-            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
-          </button>
-        )}
       </div>
 
       {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
