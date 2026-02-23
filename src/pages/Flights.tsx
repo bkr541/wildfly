@@ -592,7 +592,12 @@ const FlightsPage = ({
                 const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
 
                 const payload = JSON.stringify(
-                  { firecrawlRequestBody, response: normalized },
+                  {
+                    firecrawlRequestBody,
+                    response: normalized,
+                    departureDate: depFormatted,
+                    arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                  },
                   null,
                   2,
                 );
