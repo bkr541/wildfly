@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -12,9 +12,11 @@ import {
   faCreditCard,
   faRightFromBracket,
   faChevronLeft,
+  faXmark, // Added for the close button
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { useProfile } from "@/contexts/ProfileContext";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: faHouse, label: "Home" },
@@ -41,6 +43,9 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }: MainLayoutProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName } = useProfile();
 
   const handleMenuClick = (label: string) => {
@@ -48,6 +53,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
     const target = pageMap[label];
     if (target) setTimeout(() => onNavigate(target), 300);
   };
+
+  // Auto-focus input when it slides out
+  useEffect(() => {
+    if (isSearchOpen) {
+      searchInputRef.current?.focus();
+    }
+  }, [isSearchOpen]);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
@@ -127,18 +139,43 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
         {/* Right: search, bell, avatar (conditionally hidden) */}
         {!hideHeaderRight && (
           <div className="flex items-center gap-5 h-12">
-            <button
-              type="button"
-              className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-            >
-              <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
-            </button>
+            {/* Sliding Search Box Group */}
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out overflow-hidden h-9",
+                  isSearchOpen ? "w-44 px-3 opacity-100 shadow-sm" : "w-0 opacity-0 px-0 border-transparent",
+                )}
+              >
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full placeholder:text-[#9CA3AF]"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+              >
+                <FontAwesomeIcon
+                  icon={isSearchOpen ? faXmark : faMagnifyingGlass}
+                  className={cn("transition-all duration-200", isSearchOpen ? "w-5 h-5" : "w-[22px] h-[22px]")}
+                />
+              </button>
+            </div>
+
             <button
               type="button"
               className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
             >
               <FontAwesomeIcon icon={faBell} className="w-6 h-6" />
             </button>
+
             <Avatar
               className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => onNavigate("account")}
@@ -151,7 +188,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false }
       </header>
 
       {/* Page content */}
-      {children}
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 };
