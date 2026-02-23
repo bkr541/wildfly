@@ -546,12 +546,14 @@ const FlightsPage = ({
             const depFormatted = format(departureDate, "yyyy-MM-dd");
 
             setLoading(true);
+            let requestBody: Record<string, any> = {};
             try {
               let data, error;
 
               if (searchAll) {
+                requestBody = { departureAirport: originCode, departureDate: depFormatted };
                 ({ data, error } = await supabase.functions.invoke("getAllDestinations", {
-                  body: { departureAirport: originCode, departureDate: depFormatted },
+                  body: requestBody,
                 }));
               } else {
                 const destinationCode = arrival?.iata_code || "";
@@ -571,8 +573,9 @@ const FlightsPage = ({
                   functionName = "getSingleRoute";
                 }
 
+                requestBody = { targetUrl, origin: originCode, destination: destinationCode };
                 ({ data, error } = await supabase.functions.invoke(functionName, {
-                  body: { targetUrl, origin: originCode, destination: destinationCode },
+                  body: requestBody,
                 }));
               }
 
@@ -584,7 +587,13 @@ const FlightsPage = ({
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
                 console.log("Normalized flights:", normalized);
-                onNavigate("flight-results", JSON.stringify(normalized, null, 2));
+
+                const payload = JSON.stringify(
+                  { requestBody, response: normalized },
+                  null,
+                  2,
+                );
+                onNavigate("flight-results", payload);
               }
             } catch (err) {
               console.error("Failed to invoke edge function:", err);
