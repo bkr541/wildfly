@@ -429,7 +429,8 @@ const FlightsPage = ({
 
           {/* Toggle + Dates */}
           <div className="p-3 pt-2">
-            <div className="flex items-center justify-between mb-2">
+            {/* Right-justified label + smaller toggle */}
+            <div className="flex items-center justify-end gap-2 mb-2">
               <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
                 Search All Destinations
               </label>
@@ -447,14 +448,14 @@ const FlightsPage = ({
                   })
                 }
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+                  "relative inline-flex h-5 w-9 p-0.5 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200",
                   searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
                 )}
               >
                 <span
                   className={cn(
-                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200",
-                    searchAll ? "translate-x-5" : "translate-x-0",
+                    "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200",
+                    searchAll ? "translate-x-4" : "translate-x-0",
                   )}
                 />
               </button>
@@ -462,12 +463,12 @@ const FlightsPage = ({
 
             <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               {/* Departure Date */}
-              <div className="py-0.5">
+              <div>
                 <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none py-2">
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none">
                       <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
@@ -495,12 +496,12 @@ const FlightsPage = ({
 
               {/* Return Date */}
               {showReturnDate && (
-                <div className="py-0.5">
+                <div>
                   <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Return Date</label>
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none py-2">
+                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none">
                         <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
