@@ -84,12 +84,10 @@ const AirportSearchbox = ({
 
   const shouldShow = query.trim().length > 2;
 
-  // Filter and Group Airports
   const groupedAirports = useMemo(() => {
     if (!shouldShow || disabled) return {};
     const q = query.toLowerCase();
 
-    // 1. Filter matching airports
     const filteredList = airports
       .filter(
         (a) =>
@@ -99,7 +97,6 @@ const AirportSearchbox = ({
       )
       .slice(0, 30);
 
-    // 2. Group them by city and state
     return filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
@@ -115,11 +112,11 @@ const AirportSearchbox = ({
 
   return (
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block">{label}</label>
+      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
       <div
         className={cn(
-          "flex items-center gap-3 bg-transparent transition-colors",
+          "flex items-center gap-2.5 bg-transparent transition-colors",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
         onClick={() => {
@@ -202,11 +199,11 @@ const FlightsPage = ({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fullName, setFullName] = useState("");
 
-  // Flight search state
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
   const [arrival, setArrival] = useState<Airport | null>(null);
+
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
   const [depDateOpen, setDepDateOpen] = useState(false);
@@ -216,7 +213,6 @@ const FlightsPage = ({
   const [loading, setLoading] = useState(false);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
-  // Use day-level comparisons (midnight) so "today" is selectable.
   const today = useMemo(() => startOfDay(new Date()), []);
 
   useEffect(() => {
@@ -259,7 +255,6 @@ const FlightsPage = ({
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {/* Fullscreen Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3]">
           <div className="relative w-28 h-28 mb-8">
@@ -356,7 +351,6 @@ const FlightsPage = ({
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
       </div>
 
-      {/* ── Flight Search Form ─────────────────────────────── */}
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
         {/* Trip Type Switch */}
         <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
@@ -399,10 +393,10 @@ const FlightsPage = ({
               value={departure}
               onChange={setDeparture}
               airports={airports}
-              containerClassName="p-4"
+              containerClassName="p-3"
             />
 
-            <div className="h-px bg-[#E3E6E6] mx-4" />
+            <div className="h-px bg-[#E3E6E6] mx-3" />
 
             <AirportSearchbox
               label="Arrival"
@@ -412,14 +406,14 @@ const FlightsPage = ({
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="p-4"
+              containerClassName="p-3"
             />
 
             <button
               type="button"
               disabled={searchAll}
               className={cn(
-                "absolute right-6 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md transition-colors z-10",
+                "absolute right-5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md transition-colors z-10",
                 searchAll ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2E4A4A]",
               )}
               onClick={() => {
@@ -433,11 +427,9 @@ const FlightsPage = ({
             </button>
           </div>
 
-          <div className="h-px bg-[#E3E6E6] mx-4" />
-
           {/* Toggle + Dates */}
-          <div className="p-4 pt-3">
-            <div className="flex items-center justify-between mb-3">
+          <div className="p-3 pt-2">
+            <div className="flex items-center justify-between mb-2">
               <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
                 Search All Destinations
               </label>
@@ -468,22 +460,21 @@ const FlightsPage = ({
               </button>
             </div>
 
-            <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
+            <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               {/* Departure Date */}
-              <div className="rounded-xl border border-[#E3E6E6] p-3 hover:border-[#345C5A] transition-colors focus-within:border-[#345C5A]">
-                <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">
-                  Departure Date
-                </label>
+              <div className="py-0.5">
+                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center justify-between text-left outline-none">
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none py-2">
+                      <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
-                      <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                     </button>
                   </PopoverTrigger>
+
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
@@ -491,7 +482,6 @@ const FlightsPage = ({
                       onSelect={(date) => {
                         setDepartureDate(date);
                         setDepDateOpen(false);
-                        // If return date exists but is now before new departure date, clear it.
                         if (arrivalDate && date && startOfDay(arrivalDate) < startOfDay(date))
                           setArrivalDate(undefined);
                       }}
@@ -503,22 +493,21 @@ const FlightsPage = ({
                 </Popover>
               </div>
 
-              {/* Return Date (Arrival Date) */}
+              {/* Return Date */}
               {showReturnDate && (
-                <div className="rounded-xl border border-[#E3E6E6] p-3 hover:border-[#345C5A] transition-colors focus-within:border-[#345C5A]">
-                  <label className="text-xs font-semibold text-[#6B7B7B] mb-1.5 block cursor-pointer">
-                    Return Date
-                  </label>
+                <div className="py-0.5">
+                  <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Return Date</label>
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button" className="w-full flex items-center justify-between text-left outline-none">
+                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none py-2">
+                        <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
-                        <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A]" />
                       </button>
                     </PopoverTrigger>
+
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
