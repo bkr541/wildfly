@@ -292,15 +292,15 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                    <img
                      src="/assets/locations/chicago_icon.png"
                      alt={group.city || group.destination}
-                     className="w-10 h-10 rounded-lg object-cover shrink-0"
+                     className="w-12 h-12 rounded-lg object-cover shrink-0"
                    />
                    <div className="flex flex-col flex-1 min-w-0">
-                   <span className="text-base font-bold text-[#2E4A4A] leading-tight">
-                      {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
+                   <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
+                      {group.city || group.destination}{group.stateCode ? <span className="font-normal">, {group.stateCode}</span> : ""}
                     </span>
                     <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
-                      {group.destination} · {group.flights.length} flight
-                      {group.flights.length !== 1 ? "s" : ""}
+                      {group.flights.length} flight
+                      {group.flights.length !== 1 ? "s" : ""} | {group.destination}
                      </span>
                      <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6B7B7B] font-medium">
                        {earliestLabel && (
@@ -426,7 +426,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-[#F2F3F3]/60 border-t border-[#E8EBEB] mt-1 animate-fade-in px-3 py-2">
+                                          <div className="bg-[#F2F3F3]/60 border-t border-[#E8EBEB] animate-fade-in px-3 py-2 rounded-b-lg">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
