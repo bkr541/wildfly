@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -34,6 +35,10 @@ function resetBucket(departureDateStr: string): string {
   const [y, m, d] = departureDateStr.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
 }
+
+const flightLog = getLogger("FlightsPage");
+const cacheLog = getLogger("Cache");
+const edgeLog = getLogger("EdgeFunctions");
 
 const ACTIVE_TRIP_FLEX = 1.7;
 
@@ -534,6 +539,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
             setLoading(true);
             setCreditError(null);
+            const searchStart = performance.now();
+            flightLog.info("Search started", { origin: originCode, dest: searchAll ? "ALL" : destinationCode, tripType, date: depFormatted });
             try {
               // ── Credit check ──
               const { data: creditResult, error: creditErr } = await supabase.rpc(
@@ -546,7 +553,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               );
 
               if (creditErr) {
-                console.error("Credit check error:", creditErr);
+                flightLog.error("Credit check failed", creditErr);
                 setLoading(false);
                 return;
               }
@@ -579,7 +586,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 .maybeSingle();
 
               if (cached?.payload) {
-                // Artificial delay so loading screen feels like a live search
+                cacheLog.info("Cache HIT", { dep: originCode, arr: arrIata });
                 await new Promise((r) => setTimeout(r, 2000));
 
                 // Log to flight_searches
@@ -600,7 +607,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     });
                   }
                 } catch (logErr) {
-                  console.warn("Flight search log failed (non-blocking):", logErr);
+                  flightLog.warn("Flight search log failed (non-blocking)", logErr);
                 }
 
                 const payload = JSON.stringify(
@@ -621,6 +628,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               }
 
               // ── No cache hit – call API ──
+              cacheLog.info("Cache MISS", { dep: originCode, arr: arrIata });
+              const edgeStart = performance.now();
               let data, error;
 
               if (searchAll) {
@@ -651,13 +660,15 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 }));
               }
 
+              edgeLog.info("Edge function complete", { duration: `${(performance.now() - edgeStart).toFixed(0)}ms`, success: !error });
               if (error) {
-                console.error("Edge function error:", error);
+                edgeLog.error("Edge function error", error);
               } else {
+                const normalizeStart = performance.now();
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
-
+                flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, { flights: normalized.flights.length });
                 // ── Write to cache ──
                 try {
                   await (supabase.from("flight_search_cache") as any).upsert(
@@ -673,8 +684,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     },
                     { onConflict: "cache_key,reset_bucket" },
                   );
+                  cacheLog.info("Cache WRITE", { cacheKey, bucket, dep: originCode, arr: searchAll ? "__ALL__" : destinationCode });
                 } catch (cacheErr) {
-                  console.warn("Cache write failed (non-blocking):", cacheErr);
+                  cacheLog.warn("Cache write failed (non-blocking)", cacheErr);
                 }
 
                 // Log to flight_searches
@@ -695,7 +707,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     });
                   }
                 } catch (logErr) {
-                  console.warn("Flight search log failed (non-blocking):", logErr);
+                  flightLog.warn("Flight search log failed (non-blocking)", logErr);
                 }
 
                 const payload = JSON.stringify(
@@ -715,8 +727,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 onNavigate("flight-results", payload);
               }
             } catch (err) {
-              console.error("Failed to invoke edge function:", err);
+              edgeLog.error("Failed to invoke edge function", err);
             } finally {
+              flightLog.info("Search complete", { duration: `${(performance.now() - searchStart).toFixed(0)}ms` });
               setLoading(false);
             }
           }}
