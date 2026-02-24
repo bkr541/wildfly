@@ -9,6 +9,7 @@ export interface DeveloperSettings {
   flags: any;
   logging_enabled: boolean;
   enabled_component_logging: string[];
+  enabled_debug_components: string[];
 }
 
 const DEFAULT_SETTINGS: Omit<DeveloperSettings, "user_id"> = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: Omit<DeveloperSettings, "user_id"> = {
   flags: {},
   logging_enabled: false,
   enabled_component_logging: [],
+  enabled_debug_components: [],
 };
 
 let cachedSettings: DeveloperSettings | null = null;
