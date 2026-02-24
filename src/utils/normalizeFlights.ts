@@ -1,3 +1,7 @@
+import { getLogger } from "@/lib/logger";
+
+const log = getLogger("Normalize");
+
 // ── Types ────────────────────────────────────────────────────
 
 export interface NormalizedFlight {
@@ -69,7 +73,7 @@ export function lowestNonNull(...nums: (number | null | undefined)[]): number | 
  */
 export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsResponse {
   const rawFlights: any[] = raw?.data?.json?.flights || [];
-
+  log.info("normalizeSingleRoute", { inputCount: rawFlights.length });
   const flights: NormalizedFlight[] = rawFlights.map((f: any) => ({
     total_duration: f.total_duration ?? "",
     is_plus_one_day: f.is_plus_one_day ?? false,
@@ -89,6 +93,7 @@ export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsRespons
       : [],
   }));
 
+  log.info("normalizeSingleRoute complete", { outputCount: flights.length });
   return { flights };
 }
 
@@ -99,7 +104,7 @@ export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsRespons
  */
 export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsResponse {
   const rawFlights: any[] = raw?.data?.json?.flights || [];
-
+  log.info("normalizeAllDestinations", { inputCount: rawFlights.length });
   // Deduplicate by composite key
   const seen = new Set<string>();
   const unique: any[] = [];
@@ -139,5 +144,6 @@ export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsRes
     };
   });
 
+  log.info("normalizeAllDestinations complete", { outputCount: flights.length, deduped: rawFlights.length - unique.length });
   return { flights };
 }
