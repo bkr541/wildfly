@@ -54,7 +54,11 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
             {/* Departure stop */}
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center">
-                <FontAwesomeIcon icon={faPlaneDeparture} className="w-3 h-3 text-[#6B7B7B]" />
+                {i === 0 ? (
+                  <FontAwesomeIcon icon={faPlaneDeparture} className="w-3 h-3 text-[#6B7B7B]" />
+                ) : (
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
+                )}
               </div>
               <span className="text-sm font-semibold text-[#2E4A4A]">
                 {leg.origin} <span className="font-normal">{depTime}</span>
@@ -84,10 +88,10 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
               </div>
             ) : (
               <>
-                {/* Connecting airport arrival */}
+              {/* Connecting airport arrival */}
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col items-center">
-                    <FontAwesomeIcon icon={faPlaneArrival} className="w-3 h-3 text-[#6B7B7B]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
                   </div>
                   <span className="text-sm font-semibold text-[#2E4A4A]">
                     {leg.destination} <span className="font-normal">{arrTime}</span>
