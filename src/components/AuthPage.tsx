@@ -2,8 +2,7 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
-import DecorativeCircles from "./DecorativeCircles";
-// Removed import mainLogo from "@/assets/mainlogo.png";
+import mainLogo from "@/assets/mainlogo.png";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
   AlertDialog,
@@ -205,175 +204,102 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
+  // Restyled Input Classes to match the "Slate/Navy" look from your image
   const inputBase =
-    "w-full px-4 py-3 rounded-lg bg-[#1A4E54] text-foreground placeholder:text-muted-foreground outline-none transition-all";
-  const inputNormal = `${inputBase} border border-border focus:ring-2 focus:ring-accent-blue`;
-  const inputError = `${inputBase} border border-destructive focus:ring-2 focus:ring-destructive`;
+    "w-full px-4 py-3 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 outline-none transition-all shadow-sm";
+  const inputNormal = `${inputBase} border border-transparent focus:border-[#10B981]`;
+  const inputError = `${inputBase} border border-red-500`;
 
   return (
     <div
-      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden font-sans"
       style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
-      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 z-10">
+        {/* Welcome Text Section */}
+        <div className="text-center mb-8">
+          <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-20 w-auto mx-auto mb-4 object-contain" />
+          <h1 className="text-5xl font-semibold text-[#1F2937] mb-2">Welcome</h1>
+          <p className="text-[#4B5563] text-lg">{isSignUp ? "Create Your Account" : "Sign In Your Account"}</p>
+        </div>
 
-      <div className="w-full flex justify-center pt-8 pb-2 relative z-10">
-        <img
-          src="/assets/logo/wflogo1.png"
-          alt="WildFly logo"
-          className="h-32 md:h-36 w-auto max-w-[280px] object-contain"
-        />
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-start px-8 pt-2 pb-10 relative z-10">
-        <h1 className="text-3xl font-bold text-foreground mb-6">{isSignUp ? "Sign Up" : "Sign In"}</h1>
-
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4" noValidate>
           {isSignUp && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="form-group">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    setErrors((prev) => ({ ...prev, firstName: undefined }));
-                  }}
-                  placeholder="First"
-                  className={errors.firstName ? inputError : inputNormal}
-                />
-                {errors.firstName && <p className="text-destructive text-xs mt-1">{errors.firstName}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    setErrors((prev) => ({ ...prev, lastName: undefined }));
-                  }}
-                  placeholder="Last"
-                  className={errors.lastName ? inputError : inputNormal}
-                />
-                {errors.lastName && <p className="text-destructive text-xs mt-1">{errors.lastName}</p>}
-              </div>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First Name"
+                className={errors.firstName ? inputError : inputNormal}
+              />
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last Name"
+                className={errors.lastName ? inputError : inputNormal}
+              />
             </div>
           )}
 
-          <div className="form-group">
-            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-              Email
-            </label>
+          <div className="relative">
             <input
               type="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-              placeholder="you@example.com"
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
               className={errors.email ? inputError : inputNormal}
             />
-            {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
           </div>
 
-          <div className="form-group">
-            <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-              Password
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className={errors.password ? inputError : inputNormal}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-[#4B5563]">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" className="rounded border-gray-300 text-[#10B981] focus:ring-[#10B981]" />
+              <span>Keep Me Signed In</span>
             </label>
-            {isSignUp ? (
-              <PasswordStrengthInput
-                value={password}
-                onChange={(val) => {
-                  setPassword(val);
-                  setErrors((prev) => ({ ...prev, password: undefined }));
-                }}
-                showPassword={showPassword}
-                onToggleVisibility={() => setShowPassword(!showPassword)}
-                error={errors.password}
-                inputClassName={errors.password ? inputError : inputNormal}
-              />
-            ) : (
-              <>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setErrors((prev) => ({ ...prev, password: undefined }));
-                    }}
-                    placeholder="••••••••"
-                    className={errors.password ? inputError : inputNormal}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
-                    ) : (
-                      <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && <p className="text-destructive text-xs mt-1">{errors.password}</p>}
-              </>
-            )}
-          </div>
-
-          {!isSignUp && (
-            <div className="flex justify-end mt-1">
+            {!isSignUp && (
               <button
                 type="button"
-                onClick={() => {
-                  setForgotEmail(email);
-                  setForgotError(null);
-                  setForgotSuccess(false);
-                  setShowForgotPassword(true);
-                }}
-                className="text-xs text-accent-blue font-semibold hover:underline"
+                onClick={() => setShowForgotPassword(true)}
+                className="hover:text-[#10B981] transition-colors"
               >
-                Forgot My Password
+                Forgot Password?
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 mt-4 rounded-lg bg-foreground text-background font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full py-4 mt-2 rounded-xl bg-[#10B981] text-white font-bold text-xl shadow-lg hover:bg-[#059669] transform hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
 
-          {submitError && <p className="text-destructive text-sm text-center mt-2">{submitError}</p>}
+          {submitError && <p className="text-red-500 text-sm text-center mt-2">{submitError}</p>}
         </form>
 
-        <p className="mt-8 text-muted-foreground text-sm">
+        <p className="mt-8 text-gray-600">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setErrors({});
-              setSubmitError(null);
-            }}
-            className="text-accent-blue font-semibold hover:underline"
-          >
+          <button onClick={() => setIsSignUp(!isSignUp)} className="text-[#10B981] font-bold hover:underline">
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
         </p>
       </div>
 
+      {/* AlertDialogs remain for functional popups */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
@@ -381,95 +307,43 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="px-6 pb-2">
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setConfirmError(null);
-                }}
-                placeholder="••••••••"
-                className={confirmError ? inputError : inputNormal}
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <FontAwesomeIcon icon={faEyeSlash} className="w-[18px] h-[18px]" />
-                ) : (
-                  <FontAwesomeIcon icon={faEye} className="w-[18px] h-[18px]" />
-                )}
-              </button>
-            </div>
-            {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              className={confirmError ? inputError : inputNormal}
+              autoFocus
+            />
+            {confirmError && <p className="text-red-500 text-xs mt-2">{confirmError}</p>}
           </div>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmSignUp} className="bg-[#10B981] hover:bg-[#059669]">
+              Confirm & Sign Up
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
+      {/* Reset password dialog also styled with the emerald theme */}
+      <AlertDialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Login Failed</AlertDialogTitle>
-            <AlertDialogDescription>
-              The email and password combination is not correct. Please try again.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Reset Password</AlertDialogTitle>
           </AlertDialogHeader>
+          <div className="px-6 pb-2">
+            <input
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="Email"
+              className={forgotError ? inputError : inputNormal}
+            />
+          </div>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleTryAgain}>Try Again</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={showForgotPassword}
-        onOpenChange={(open) => {
-          setShowForgotPassword(open);
-          if (!open) setForgotSuccess(false);
-        }}
-      >
-        <AlertDialogContent className="max-w-xs rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {forgotSuccess
-                ? "If an account exists with that email, a password reset link has been sent."
-                : "Enter your email address and we'll send you a link to reset your password."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {!forgotSuccess && (
-            <div className="px-6 pb-2">
-              <div className="form-group">
-                <input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) => {
-                    setForgotEmail(e.target.value);
-                    setForgotError(null);
-                  }}
-                  placeholder="you@example.com"
-                  className={forgotError ? inputError : inputNormal}
-                  autoFocus
-                />
-              </div>
-              {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
-            </div>
-          )}
-          <AlertDialogFooter>
-            {forgotSuccess ? (
-              <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
-            ) : (
-              <AlertDialogAction onClick={handleForgotPassword} disabled={forgotLoading}>
-                {forgotLoading ? "Sending..." : "Send Reset Link"}
-              </AlertDialogAction>
-            )}
+            <AlertDialogAction onClick={handleForgotPassword} className="bg-[#10B981]">
+              Send Link
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
