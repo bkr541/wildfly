@@ -168,12 +168,13 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-      <div className="flex items-center px-5 pt-0 pb-3">
-        <button onClick={onBack} className="mr-3 text-[#2E4A4A] hover:opacity-80 transition-opacity">
+      <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
+        <button type="button" onClick={onBack} className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity">
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Travel Preferences</h1>
-      </div>
+        <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">Travel Preferences</h1>
+        <div className="w-10" />
+      </header>
 
       <div className="flex-1 px-5 pb-4 space-y-4 overflow-y-auto">
         {/* Home City */}
