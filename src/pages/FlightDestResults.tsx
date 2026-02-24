@@ -33,14 +33,33 @@ interface DestinationGroup {
   hasNonstop: boolean;
 }
 
-function formatTime(iso: string): string {
+function formatTime(raw: string): string {
   try {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    }
+    // Already a formatted time string like "3:01 PM"
+    return raw;
   } catch {
-    return iso;
+    return raw;
   }
+}
+
+/** Parse a time string (ISO or "3:01 PM") into an hour number (0-23), or null */
+function parseHour(raw: string): number | null {
+  const d = new Date(raw);
+  if (!isNaN(d.getTime())) return d.getHours();
+  // Try parsing "H:MM AM/PM"
+  const m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (m) {
+    let h = parseInt(m[1], 10);
+    const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return h;
+  }
+  return null;
 }
 
 const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
@@ -197,16 +216,18 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
 
   const earliestDeparture = useMemo(() => {
     if (!selectedGroup) return null;
-    let earliest: Date | null = null;
+    let earliestH: number | null = null;
     for (const f of selectedGroup.flights) {
       const dep = f.legs[0]?.departure_time;
       if (dep) {
-        const d = new Date(dep);
-        if (!isNaN(d.getTime()) && (!earliest || d < earliest)) earliest = d;
+        const h = parseHour(dep);
+        if (h !== null && (earliestH === null || h < earliestH)) earliestH = h;
       }
     }
-    if (!earliest) return null;
-    return earliest.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    if (earliestH === null) return null;
+    const d = new Date();
+    d.setHours(earliestH, 0, 0, 0);
+    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   }, [selectedGroup]);
 
   return (
@@ -240,13 +261,17 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
             const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
             const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
             let earliestTime: Date | null = null;
-            for (const f of group.flights) {
-              const dep = f.legs[0]?.departure_time;
-              if (dep) {
-                const d = new Date(dep);
-                if (!isNaN(d.getTime()) && (!earliestTime || d < earliestTime)) earliestTime = d;
-              }
-            }
+             for (const f of group.flights) {
+               const dep = f.legs[0]?.departure_time;
+               if (dep) {
+                 const h = parseHour(dep);
+                 if (h !== null) {
+                   const d = new Date();
+                   d.setHours(h, 0, 0, 0);
+                   if (!earliestTime || d < earliestTime) earliestTime = d;
+                 }
+               }
+             }
             const earliestLabel = earliestTime
               ? earliestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
               : null;
@@ -305,15 +330,14 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                   // Group flights by hour, only keep hours with flights
                   const flightsByHour: { hour: number; items: { flight: ParsedFlight; idx: number }[] }[] = [];
                   const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
-                  group.flights.forEach((flight, idx) => {
-                    const dep = flight.legs[0]?.departure_time;
-                    if (!dep) return;
-                    const d = new Date(dep);
-                    if (isNaN(d.getTime())) return;
-                    const h = d.getHours();
-                    if (!hourMap[h]) hourMap[h] = [];
-                    hourMap[h].push({ flight, idx });
-                  });
+                   group.flights.forEach((flight, idx) => {
+                     const dep = flight.legs[0]?.departure_time;
+                     if (!dep) return;
+                     const h = parseHour(dep);
+                     if (h === null) return;
+                     if (!hourMap[h]) hourMap[h] = [];
+                     hourMap[h].push({ flight, idx });
+                   });
                   Object.keys(hourMap)
                     .map(Number)
                     .sort((a, b) => a - b)
