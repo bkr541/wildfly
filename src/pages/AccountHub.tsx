@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,12 @@ import WalletScreen from "@/components/account/WalletScreen";
 import HelpSupportScreen from "@/components/account/HelpSupportScreen";
 import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
 
+interface AccountHubProps {
+  onSubScreenChange?: (title: string | null) => void;
+  /** Ref that parent can use to trigger the back action from outside */
+  backRef?: React.MutableRefObject<(() => void) | null>;
+}
+
 interface MenuItem {
   icon: IconDefinition;
   label: string;
@@ -40,11 +46,38 @@ const baseMenuItems: MenuItem[] = [
   { icon: faShieldHalved, label: "Security & Privacy", key: "security" },
 ];
 
-const AccountHub = () => {
+const screenTitles: Record<string, string> = {
+  "my-account": "My Account",
+  "travel-prefs": "Travel Preferences",
+  "notifications": "Notifications",
+  "appearance": "Appearance",
+  "wallet": "My Wallet",
+  "help": "Help & Support",
+  "security": "Security & Privacy",
+  "developer": "Developer Tools",
+};
+
+const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
+
+  const openScreen = (key: string) => {
+    setActiveScreen(key);
+    onSubScreenChange?.(screenTitles[key] ?? null);
+  };
+
+  const handleBack = useCallback(() => {
+    setActiveScreen(null);
+    onSubScreenChange?.(null);
+  }, [onSubScreenChange]);
+
+  // Expose handleBack to parent via ref
+  useEffect(() => {
+    if (backRef) backRef.current = handleBack;
+    return () => { if (backRef) backRef.current = null; };
+  }, [backRef, handleBack]);
 
   useEffect(() => {
     const check = async () => {
@@ -73,7 +106,7 @@ const AccountHub = () => {
     ...(isDeveloper ? [{ icon: faCode, label: "Developer Tools", key: "developer" }] : []),
   ];
 
-  const handleBack = () => setActiveScreen(null);
+  
 
   // Sub-screens
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
@@ -121,7 +154,7 @@ const AccountHub = () => {
             <button
               key={item.key}
               type="button"
-              onClick={() => setActiveScreen(item.key)}
+              onClick={() => openScreen(item.key)}
               className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
