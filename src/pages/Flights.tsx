@@ -290,64 +290,70 @@ const MultiAirportSearchbox = ({
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
+      {/* Primary container is no-wrap to keep Icon and Clear button at the ends */}
       <div
         className={cn(
-          "flex items-center flex-wrap gap-1.5 min-h-10 bg-transparent transition-colors",
+          "flex items-center gap-1.5 min-h-10 bg-transparent transition-colors",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
-        onClick={() => {
-          if (disabled) return;
-          inputRef.current?.focus();
-          setOpen(true);
-        }}
       >
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
 
-        {selected.map((a) => (
-          <span
-            key={a.id}
-            className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm"
-          >
-            {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
-            <button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={(e) => {
-                e.stopPropagation();
-                removeAirport(a.id);
-              }}
-              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
-            >
-              <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
-            </button>
-          </span>
-        ))}
-
-        {selected.length > 0 && !query && !disabled && (
-          <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5" />
-        )}
-
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={selected.length > 0 || disabled ? "" : placeholder}
-          disabled={disabled}
-          value={query}
-          onChange={(e) => {
+        {/* Content area allows internal wrapping for chips/input */}
+        <div
+          className="flex-1 flex items-center flex-wrap gap-1.5"
+          onClick={() => {
             if (disabled) return;
-            setQuery(e.target.value);
-            if (!open) setOpen(true);
-          }}
-          onFocus={() => {
-            if (disabled) return;
+            inputRef.current?.focus();
             setOpen(true);
           }}
-          onBlur={() => setTimeout(() => setOpen(false), 200)}
-          className={cn(
-            "flex-1 min-w-[100px] h-8 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
-            disabled && "cursor-not-allowed",
+        >
+          {selected.map((a) => (
+            <span
+              key={a.id}
+              className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm"
+            >
+              {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeAirport(a.id);
+                }}
+                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+              </button>
+            </span>
+          ))}
+
+          {selected.length > 0 && !query && !disabled && (
+            <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5" />
           )}
-        />
+
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder={selected.length > 0 || disabled ? "" : placeholder}
+            disabled={disabled}
+            value={query}
+            onChange={(e) => {
+              if (disabled) return;
+              setQuery(e.target.value);
+              if (!open) setOpen(true);
+            }}
+            onFocus={() => {
+              if (disabled) return;
+              setOpen(true);
+            }}
+            onBlur={() => setTimeout(() => setOpen(false), 200)}
+            className={cn(
+              "flex-1 min-w-[100px] h-8 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
+              disabled && "cursor-not-allowed",
+            )}
+          />
+        </div>
 
         {showClear && !open && (
           <button
@@ -468,7 +474,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         </div>
       )}
 
-      {/* Title Group - Gap decreased to mb-0 to match Home.tsx */}
+      {/* Title Group */}
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Flights</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
@@ -680,11 +686,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               if (error) {
                 console.error("Edge function error:", error);
               } else {
-                console.log("Scrape response:", data);
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
-                console.log("Normalized flights:", normalized);
 
                 const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
 
