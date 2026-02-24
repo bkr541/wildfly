@@ -1,3 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlaneDeparture, faPlaneArrival } from "@fortawesome/free-solid-svg-icons";
+
 interface Leg {
   origin: string;
   destination: string;
@@ -51,49 +54,47 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
             {/* Departure stop */}
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full border-2 border-[#6B7B7B] bg-white" />
+                <FontAwesomeIcon icon={faPlaneDeparture} className="w-3 h-3 text-[#6B7B7B]" />
               </div>
               <span className="text-sm font-semibold text-[#2E4A4A]">
                 {leg.origin} <span className="font-normal">{depTime}</span>
               </span>
             </div>
 
-            {/* Flight leg line + label */}
+            {/* Flight leg line + duration in air */}
             <div className="flex items-stretch gap-3 ml-[5px]">
               <div className="w-0.5 border-l-2 border-dashed border-[#C8CDCD] min-h-[28px]" />
               <span className="text-xs text-[#6B7B7B] py-1">
-                Flight · {leg.origin} → {leg.destination}&nbsp;&nbsp;{legDuration}
+                {legDuration}
               </span>
             </div>
 
             {/* Arrival / layover */}
             {!nextLeg ? (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full border-2 border-[#345C5A] bg-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-[#2E4A4A]">
-                      {leg.destination} <span className="font-normal">{arrTime}</span>
-                    </span>
-                    {destCity && <span className="text-xs text-[#6B7B7B]">{destCity}</span>}
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center">
+                  <FontAwesomeIcon icon={faPlaneArrival} className="w-3 h-3 text-[#345C5A]" />
                 </div>
-              </>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-[#2E4A4A]">
+                    {leg.destination} <span className="font-normal">{arrTime}</span>
+                  </span>
+                  {destCity && <span className="text-xs text-[#6B7B7B]">{destCity}</span>}
+                </div>
+              </div>
             ) : (
               <>
                 {/* Connecting airport arrival */}
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full border-2 border-[#6B7B7B] bg-white" />
+                    <FontAwesomeIcon icon={faPlaneArrival} className="w-3 h-3 text-[#6B7B7B]" />
                   </div>
                   <span className="text-sm font-semibold text-[#2E4A4A]">
                     {leg.destination} <span className="font-normal">{arrTime}</span>
                   </span>
                 </div>
 
-            {/* Layover node */}
+                {/* Layover node */}
                 <div className="flex items-stretch gap-3 ml-[5px]">
                   <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px]" />
                   <span className="py-0.5" />
