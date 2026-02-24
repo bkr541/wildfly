@@ -71,8 +71,10 @@ export type Database = {
         Row: {
           created_at: string
           debug_enabled: boolean
+          enabled_component_logging: string[]
           flags: Json
           log_level: string
+          logging_enabled: boolean
           show_raw_payload: boolean
           updated_at: string
           user_id: string
@@ -80,8 +82,10 @@ export type Database = {
         Insert: {
           created_at?: string
           debug_enabled?: boolean
+          enabled_component_logging?: string[]
           flags?: Json
           log_level?: string
+          logging_enabled?: boolean
           show_raw_payload?: boolean
           updated_at?: string
           user_id: string
@@ -89,8 +93,10 @@ export type Database = {
         Update: {
           created_at?: string
           debug_enabled?: boolean
+          enabled_component_logging?: string[]
           flags?: Json
           log_level?: string
+          logging_enabled?: boolean
           show_raw_payload?: boolean
           updated_at?: string
           user_id?: string
