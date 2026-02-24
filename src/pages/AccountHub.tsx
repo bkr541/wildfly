@@ -19,6 +19,10 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import MyAccountScreen from "@/components/account/MyAccountScreen";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
 import NotificationsScreen from "@/components/account/NotificationsScreen";
+import AppearanceScreen from "@/components/account/AppearanceScreen";
+import WalletScreen from "@/components/account/WalletScreen";
+import HelpSupportScreen from "@/components/account/HelpSupportScreen";
+import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
 
 interface MenuItem {
   icon: IconDefinition;
@@ -75,6 +79,10 @@ const AccountHub = () => {
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
+  if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
+  if (activeScreen === "wallet") return <WalletScreen onBack={handleBack} />;
+  if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
+  if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
 
   return (
     <>
