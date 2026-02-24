@@ -235,6 +235,19 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
             const isDestOpen = expandedDest === group.destination;
+            const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
+            const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
+            let earliestTime: Date | null = null;
+            for (const f of group.flights) {
+              const dep = f.legs[0]?.departure_time;
+              if (dep) {
+                const d = new Date(dep);
+                if (!isNaN(d.getTime()) && (!earliestTime || d < earliestTime)) earliestTime = d;
+              }
+            }
+            const earliestLabel = earliestTime
+              ? earliestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+              : null;
             return (
               <div
                 key={group.destination}
@@ -259,8 +272,24 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                     <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
                       {group.destination} · {group.stateCode || "Domestic"} · {group.flights.length} flight
                       {group.flights.length !== 1 ? "s" : ""}
-                    </span>
-                   </div>
+                     </span>
+                     <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6B7B7B] font-medium">
+                       {earliestLabel && (
+                         <span className="flex items-center gap-1">
+                           <FontAwesomeIcon icon={faClock} className="w-3 h-3 text-[#345C5A]" />
+                           Earliest: {earliestLabel}
+                         </span>
+                       )}
+                       <span className="flex items-center gap-1">
+                         <FontAwesomeIcon icon={faLayerGroup} className="w-3 h-3 text-[#345C5A]" />
+                         Nonstop: {nonstopCount}
+                       </span>
+                       <span className="flex items-center gap-1">
+                         <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3 h-3 text-[#345C5A]" />
+                         Go Wild: {goWildCount} available
+                       </span>
+                     </div>
+                    </div>
                    <FontAwesomeIcon
                      icon={faChevronDown}
                      className={cn(
