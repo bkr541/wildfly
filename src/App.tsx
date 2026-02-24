@@ -81,17 +81,42 @@ const MainApp = () => {
     };
 
     const init = async () => {
+      // Check if user has an existing session and remember_me is enabled
+      let shouldKeepSession = false;
       try {
-        await supabase.auth.signOut({ scope: "local" });
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession?.user) {
+          const { data: profile } = await supabase
+            .from("user_info")
+            .select("remember_me")
+            .eq("auth_user_id", existingSession.user.id)
+            .maybeSingle();
+
+          shouldKeepSession = profile?.remember_me === true;
+        }
       } catch {
         // ignore
       }
 
-      if (!isMounted) return;
+      if (!shouldKeepSession) {
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {
+          // ignore
+        }
 
-      setIsSignedIn(false);
-      setNeedsOnboarding(false);
-      setShowProfileSetup(false);
+        if (!isMounted) return;
+
+        setIsSignedIn(false);
+        setNeedsOnboarding(false);
+        setShowProfileSetup(false);
+      } else {
+        // Hydrate from existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted) {
+          await hydrateFromSession(session);
+        }
+      }
 
       const sub = supabase.auth.onAuthStateChange((event, session) => {
         if (!isMounted) return;
@@ -128,6 +153,11 @@ const MainApp = () => {
   };
 
   const handleSignOut = async () => {
+    // Clear remember_me on explicit sign out
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("user_info").update({ remember_me: false }).eq("auth_user_id", user.id);
+    }
     await supabase.auth.signOut({ scope: "local" });
     setIsSignedIn(false);
     setNeedsOnboarding(false);
