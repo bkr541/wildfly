@@ -147,7 +147,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         arrivalDate: parsed.arrivalDate ?? null,
         tripType: parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way",
         departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
-        arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "All",
+        arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "",
         fromCache: parsed.fromCache === true,
       };
     } catch {
