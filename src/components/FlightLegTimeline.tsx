@@ -93,12 +93,22 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
                   </span>
                 </div>
 
-                {/* Layover */}
+            {/* Layover node */}
                 <div className="flex items-stretch gap-3 ml-[5px]">
-                  <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[24px]" />
-                  <span className="text-xs text-[#E89830] font-medium py-1">
-                    Layover {layoverDuration}
+                  <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px]" />
+                  <span className="py-0.5" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-3 h-3 rounded-full border-2 border-[#E89830] bg-[#FFF7ED]" />
+                  </div>
+                  <span className="text-xs text-[#E89830] font-semibold">
+                    Layover · {layoverDuration}
                   </span>
+                </div>
+                <div className="flex items-stretch gap-3 ml-[5px]">
+                  <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px]" />
+                  <span className="py-0.5" />
                 </div>
               </>
             )}
