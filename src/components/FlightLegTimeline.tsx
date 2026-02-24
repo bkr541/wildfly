@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlaneDeparture, faPlaneArrival } from "@fortawesome/free-solid-svg-icons";
+import { faPlaneDeparture, faPlaneArrival, faPlane } from "@fortawesome/free-solid-svg-icons";
 
 interface Leg {
   origin: string;
@@ -23,19 +23,38 @@ function formatTime(iso: string): string {
   }
 }
 
-function calcDuration(startIso: string, endIso: string): string {
-  try {
-    const start = new Date(startIso).getTime();
-    const end = new Date(endIso).getTime();
-    if (isNaN(start) || isNaN(end)) return "";
-    const diffMin = Math.round((end - start) / 60000);
-    if (diffMin < 0) return "";
-    const h = Math.floor(diffMin / 60);
-    const m = diffMin % 60;
-    return `${h}h ${String(m).padStart(2, "0")}m`;
-  } catch {
-    return "";
+/** Parse a time value (ISO or "H:MM AM/PM") to epoch ms, or NaN */
+function parseToMs(raw: string): number {
+  const d = new Date(raw);
+  if (!isNaN(d.getTime())) return d.getTime();
+  // Try "H:MM AM/PM"
+  const m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (m) {
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    const base = new Date();
+    base.setHours(h, min, 0, 0);
+    return base.getTime();
   }
+  return NaN;
+}
+
+function calcDuration(startRaw: string, endRaw: string): string {
+  const start = parseToMs(startRaw);
+  let end = parseToMs(endRaw);
+  if (isNaN(start) || isNaN(end)) return "";
+  // Handle overnight / +1 day
+  if (end < start) end += 24 * 60 * 60 * 1000;
+  const diffMin = Math.round((end - start) / 60000);
+  if (diffMin < 0) return "";
+  const h = Math.floor(diffMin / 60);
+  const m = diffMin % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} hr`;
+  return `${h} hr ${m} min`;
 }
 
 const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
@@ -68,10 +87,13 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
              {/* Flight leg line + duration in air */}
             <div className="flex items-center gap-3 ml-[5px]">
               <div className="w-0.5 border-l-2 border-dashed border-[#C8CDCD] min-h-[28px] self-stretch" />
-              <div className="flex items-center gap-1.5 py-1">
-                <span className="text-[10px] text-[#6B7B7B] font-medium">{legDuration}</span>
-                <span className="text-[#C8CDCD]">———✈</span>
-              </div>
+              {legDuration && (
+                <div className="flex items-center gap-1.5 py-1">
+                  <span className="text-xs text-[#6B7B7B] font-medium">{legDuration}</span>
+                  <span className="text-[#C8CDCD] text-xs">——</span>
+                  <FontAwesomeIcon icon={faPlane} className="w-3 h-3 text-[#C8CDCD]" />
+                </div>
+              )}
             </div>
 
             {/* Arrival / layover */}
