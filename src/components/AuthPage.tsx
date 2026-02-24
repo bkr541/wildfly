@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import DecorativeCircles from "./DecorativeCircles";
-import mainLogo from "@/assets/mainlogo.png";
+// Removed import mainLogo from "@/assets/mainlogo.png";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
   AlertDialog,
@@ -215,14 +215,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
-      {/* Background Overlay to ensure text readability */}
       <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
-      {/* DecorativeCircles removed to prioritize the image background */}
-      {/* <DecorativeCircles /> */}
-
       <div className="w-full flex justify-center pt-8 pb-2 relative z-10">
-        <img src={mainLogo} alt="WildFly logo" className="h-32 md:h-36 w-auto max-w-[280px] object-contain" />
+        <img
+          src="/assets/logo/wflogo1.png"
+          alt="WildFly logo"
+          className="h-32 md:h-36 w-auto max-w-[280px] object-contain"
+        />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-start px-8 pt-2 pb-10 relative z-10">
@@ -374,7 +374,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         </p>
       </div>
 
-      {/* AlertDialogs remain unchanged below */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
