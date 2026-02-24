@@ -283,6 +283,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [creditError, setCreditError] = useState<{ cost: number; remaining_monthly: number; purchased_balance: number } | null>(null);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -488,6 +489,24 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           </button>
         </div>
 
+        {/* Insufficient credits upsell */}
+        {creditError && (
+          <div className="rounded-2xl border border-[#E89830]/30 bg-[#FFF7ED] p-4 flex flex-col gap-2 animate-fade-in">
+            <p className="text-sm font-bold text-[#2E4A4A]">Not enough credits</p>
+            <p className="text-xs text-[#6B7B7B]">
+              This search costs <span className="font-semibold text-[#E89830]">{creditError.cost} credit{creditError.cost !== 1 ? "s" : ""}</span>.
+              You have {creditError.remaining_monthly} monthly + {creditError.purchased_balance} purchased remaining.
+            </p>
+            <button
+              type="button"
+              onClick={() => setCreditError(null)}
+              className="self-end text-xs font-semibold text-[#345C5A] hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Search Button */}
         <button
           type="button"
@@ -510,8 +529,40 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             const cacheKey = await sha256(JSON.stringify(canonicalRequest));
             const bucket = resetBucket(depFormatted);
 
+            const tripTypeMapping = tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way";
+            const arrivalAirportsCount = searchAll ? 0 : arrivals.length;
+
             setLoading(true);
+            setCreditError(null);
             try {
+              // ── Credit check ──
+              const { data: creditResult, error: creditErr } = await supabase.rpc(
+                "consume_search_credits" as any,
+                {
+                  p_trip_type: tripTypeMapping,
+                  p_arrival_airports_count: arrivalAirportsCount,
+                  p_all_destinations: searchAll,
+                } as any,
+              );
+
+              if (creditErr) {
+                console.error("Credit check error:", creditErr);
+                setLoading(false);
+                return;
+              }
+
+              const cr = creditResult as any;
+              if (!cr?.allowed) {
+                setCreditError({
+                  cost: cr?.cost ?? 0,
+                  remaining_monthly: cr?.remaining_monthly ?? 0,
+                  purchased_balance: cr?.purchased_balance ?? 0,
+                });
+                setLoading(false);
+                return;
+              }
+
+              const creditsCost = cr?.cost ?? 0;
               // ── Check cache first ──
               const todayStart = new Date();
               todayStart.setHours(0, 0, 0, 0);
@@ -541,9 +592,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       arrival_airport: searchAll ? null : destinationCode,
                       departure_date: depFormatted,
                       return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                      trip_type: tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way",
+                      trip_type: tripTypeMapping,
                       all_destinations: searchAll ? "Yes" : "No",
                       json_body: cached.payload as any,
+                      credits_cost: creditsCost,
+                      arrival_airports_count: arrivalAirportsCount,
                     });
                   }
                 } catch (logErr) {
@@ -634,9 +687,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       arrival_airport: searchAll ? null : destinationCode,
                       departure_date: depFormatted,
                       return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                      trip_type: tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way",
+                      trip_type: tripTypeMapping,
                       all_destinations: searchAll ? "Yes" : "No",
                       json_body: normalized as any,
+                      credits_cost: creditsCost,
+                      arrival_airports_count: arrivalAirportsCount,
                     });
                   }
                 } catch (logErr) {
