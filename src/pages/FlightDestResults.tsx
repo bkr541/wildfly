@@ -379,10 +379,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
 
                                     return (
                                       <div key={idx} className="flex flex-col gap-1.5">
-                                        <div className={cn(
-                                          "flex items-center bg-[#F9FAFA] border rounded-lg px-2.5 py-2 transition-colors",
-                                          isFlightOpen ? "border-[#345C5A]/30 bg-white" : "border-[#F2F3F3]",
-                                        )}>
+                                         <div className={cn(
+                                          "flex items-center border rounded-lg px-2.5 py-2 transition-colors",
+                                          isFlightOpen ? "border-[#345C5A]/30 bg-white rounded-b-none" : "bg-[#F9FAFA] border-[#F2F3F3]",
+                                         )}>
                                           <button
                                             onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
                                             className="flex items-center justify-between text-left flex-1 min-w-0"
@@ -426,7 +426,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-[#F2F3F3]/60 border-t border-[#E8EBEB] animate-fade-in px-3 py-2 rounded-b-lg">
+                                          <div className="bg-white animate-fade-in px-3 py-2 rounded-b-lg border border-t-0 border-[#345C5A]/30">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
