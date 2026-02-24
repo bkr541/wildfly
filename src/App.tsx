@@ -15,6 +15,7 @@ import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
 import SubscriptionPage from "./pages/Subscription";
+import ItineraryPage from "./pages/Itinerary";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -22,7 +23,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "subscription">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "subscription" | "itinerary">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
@@ -174,7 +175,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "subscription"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "subscription", "itinerary"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-background">
@@ -208,6 +209,7 @@ const MainApp = () => {
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "subscription" && <SubscriptionPage />}
+              {currentPage === "itinerary" && <ItineraryPage />}
             </MainLayout>
           </ProfileProvider>
         )}
