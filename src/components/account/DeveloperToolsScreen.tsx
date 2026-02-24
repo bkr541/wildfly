@@ -24,6 +24,7 @@ const KNOWN_NAMESPACES = [
 const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
+  const [newDebugNs, setNewDebugNs] = useState("");
 
   if (loading || !settings) {
     return (
@@ -43,24 +44,29 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
     toast.success(`Log level set to ${level}`);
   };
 
-  const addNamespace = async (ns: string) => {
+  const addNamespace = async (ns: string, field: "enabled_component_logging" | "enabled_debug_components") => {
     if (!ns.trim()) return;
-    const list = [...settings.enabled_component_logging];
+    const list = [...(settings[field] || [])];
     if (list.includes(ns.trim())) return;
     list.push(ns.trim());
-    await updateSettings({ enabled_component_logging: list });
-    setNewNs("");
+    await updateSettings({ [field]: list });
+    if (field === "enabled_component_logging") setNewNs("");
+    else setNewDebugNs("");
     toast.success(`Added ${ns.trim()}`);
   };
 
-  const removeNamespace = async (ns: string) => {
-    const list = settings.enabled_component_logging.filter((n) => n !== ns);
-    await updateSettings({ enabled_component_logging: list });
+  const removeNamespace = async (ns: string, field: "enabled_component_logging" | "enabled_debug_components") => {
+    const list = (settings[field] || []).filter((n) => n !== ns);
+    await updateSettings({ [field]: list });
     toast.success(`Removed ${ns}`);
   };
 
   const availableSuggestions = KNOWN_NAMESPACES.filter(
     (ns) => !settings.enabled_component_logging.includes(ns)
+  );
+
+  const availableDebugSuggestions = KNOWN_NAMESPACES.filter(
+    (ns) => !(settings.enabled_debug_components || []).includes(ns)
   );
 
   const ToggleRow = ({ label, desc, value, onToggle, border = true }: { label: string; desc: string; value: boolean; onToggle: () => void; border?: boolean }) => (
@@ -93,17 +99,60 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
           />
         </div>
 
-        {/* Debug sub-options (show_raw_payload) */}
+        {/* Debug sub-options */}
         {settings.debug_enabled && (
-          <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden animate-fade-in">
-            <ToggleRow
-              label="Show Raw Payloads"
-              desc="Display full objects instead of summaries"
-              value={settings.show_raw_payload}
-              onToggle={() => toggle("show_raw_payload")}
-              border={false}
-            />
-          </div>
+          <>
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden animate-fade-in">
+              <ToggleRow
+                label="Show Raw Payloads"
+                desc="Display full objects instead of summaries"
+                value={settings.show_raw_payload}
+                onToggle={() => toggle("show_raw_payload")}
+                border={false}
+              />
+            </div>
+
+            {/* Debug Component Filter */}
+            <div className="animate-fade-in">
+              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">
+                Debug Component Filter
+              </h3>
+              <p className="text-xs text-[#6B7B7B] px-1 mb-2">
+                {(settings.enabled_debug_components || []).length === 0
+                  ? "No filter — debug info shown for all components."
+                  : "Debug info only shown for these components."}
+              </p>
+
+              {(settings.enabled_debug_components || []).length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                  {(settings.enabled_debug_components || []).map((ns) => (
+                    <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
+                      {ns}
+                      <button type="button" onClick={() => removeNamespace(ns, "enabled_debug_components")} className="hover:opacity-70">
+                        <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {availableDebugSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                  {availableDebugSuggestions.map((ns) => (
+                    <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_debug_components")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
+                      <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
+                      {ns}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 px-1">
+                <input type="text" value={newDebugNs} onChange={(e) => setNewDebugNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newDebugNs, "enabled_debug_components")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
+                <button type="button" onClick={() => addNamespace(newDebugNs, "enabled_debug_components")} disabled={!newDebugNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Logging master toggle */}
@@ -120,17 +169,11 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
         {/* Logging sub-options */}
         {settings.logging_enabled && (
           <>
-            {/* Log Level */}
             <div className="animate-fade-in">
               <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Log Level</h3>
               <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
                 {LOG_LEVELS.map((level, idx) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setLogLevel(level)}
-                    className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${idx < LOG_LEVELS.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}
-                  >
+                  <button key={level} type="button" onClick={() => setLogLevel(level)} className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${idx < LOG_LEVELS.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}>
                     <span className="flex-1 text-sm font-semibold text-[#2E4A4A] capitalize">{level}</span>
                     <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${settings.log_level === level ? "border-[#345C5A]" : "border-[#D1D5D5]"}`}>
                       {settings.log_level === level && <span className="h-2.5 w-2.5 rounded-full bg-[#345C5A]" />}
@@ -140,11 +183,8 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               </div>
             </div>
 
-            {/* Component Logging Filter */}
             <div className="animate-fade-in">
-              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">
-                Component Log Filter
-              </h3>
+              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Component Log Filter</h3>
               <p className="text-xs text-[#6B7B7B] px-1 mb-2">
                 {settings.enabled_component_logging.length === 0
                   ? "No filter — all namespaces are logged."
@@ -154,12 +194,9 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               {settings.enabled_component_logging.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3 px-1">
                   {settings.enabled_component_logging.map((ns) => (
-                    <span
-                      key={ns}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold"
-                    >
+                    <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                       {ns}
-                      <button type="button" onClick={() => removeNamespace(ns)} className="hover:opacity-70">
+                      <button type="button" onClick={() => removeNamespace(ns, "enabled_component_logging")} className="hover:opacity-70">
                         <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
                       </button>
                     </span>
@@ -170,12 +207,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               {availableSuggestions.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3 px-1">
                   {availableSuggestions.map((ns) => (
-                    <button
-                      key={ns}
-                      type="button"
-                      onClick={() => addNamespace(ns)}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors"
-                    >
+                    <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_component_logging")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
                       <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
                       {ns}
                     </button>
@@ -184,22 +216,8 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               )}
 
               <div className="flex gap-2 px-1">
-                <input
-                  type="text"
-                  value={newNs}
-                  onChange={(e) => setNewNs(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addNamespace(newNs)}
-                  placeholder="Custom namespace..."
-                  className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => addNamespace(newNs)}
-                  disabled={!newNs.trim()}
-                  className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
-                >
-                  Add
-                </button>
+                <input type="text" value={newNs} onChange={(e) => setNewNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newNs, "enabled_component_logging")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
+                <button type="button" onClick={() => addNamespace(newNs, "enabled_component_logging")} disabled={!newNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
             </div>
           </>

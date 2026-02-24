@@ -72,6 +72,7 @@ export type Database = {
           created_at: string
           debug_enabled: boolean
           enabled_component_logging: string[]
+          enabled_debug_components: string[]
           flags: Json
           log_level: string
           logging_enabled: boolean
@@ -83,6 +84,7 @@ export type Database = {
           created_at?: string
           debug_enabled?: boolean
           enabled_component_logging?: string[]
+          enabled_debug_components?: string[]
           flags?: Json
           log_level?: string
           logging_enabled?: boolean
@@ -94,6 +96,7 @@ export type Database = {
           created_at?: string
           debug_enabled?: boolean
           enabled_component_logging?: string[]
+          enabled_debug_components?: string[]
           flags?: Json
           log_level?: string
           logging_enabled?: boolean
