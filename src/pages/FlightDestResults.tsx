@@ -295,11 +295,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                      className="w-10 h-10 rounded-lg object-cover shrink-0"
                    />
                    <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-base font-bold text-[#2E4A4A] leading-tight">
-                      {group.city || group.destination}
+                   <span className="text-base font-bold text-[#2E4A4A] leading-tight">
+                      {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
                     </span>
                     <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
-                      {group.destination} · {group.stateCode || "Domestic"} · {group.flights.length} flight
+                      {group.destination} · {group.flights.length} flight
                       {group.flights.length !== 1 ? "s" : ""}
                      </span>
                      <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6B7B7B] font-medium">
@@ -315,7 +315,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                        </span>
                        <span className="flex items-center gap-1">
                          <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3 h-3 text-[#345C5A]" />
-                         Go Wild: {goWildCount} available
+                         GoWild: {goWildCount} available
                        </span>
                      </div>
                     </div>
@@ -426,7 +426,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-[#F2F3F3]/60 rounded-b-lg border border-t-0 border-[#E8EBEB] -mt-1 mx-0.5 animate-fade-in px-3 py-2">
+                                          <div className="bg-[#F2F3F3]/60 border-t border-[#E8EBEB] mt-1 animate-fade-in px-3 py-2">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
