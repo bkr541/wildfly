@@ -232,43 +232,6 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           </div>
         )}
 
-        {groups.length > 0 && (
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
-            {groups.map((group) => {
-              const isSelected = selectedDest === group.destination;
-              return (
-                <button
-                  key={group.destination}
-                  onClick={() => {
-                    setSelectedDest(isSelected ? null : group.destination);
-                    setExpandedDest(null);
-                    setExpandedFlightKey(null);
-                  }}
-                  className="flex flex-col items-center gap-1 shrink-0"
-                >
-                  <div
-                    className={cn(
-                      "w-16 h-16 rounded-full flex items-center justify-center text-white text-base font-bold shadow-sm transition-all duration-200",
-                      isSelected
-                        ? "bg-[#345C5A] scale-105 ring-2 ring-offset-2 ring-[#345C5A]"
-                        : "bg-[#345C5A]/80 opacity-70 hover:opacity-100",
-                    )}
-                  >
-                    {group.destination}
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[10px] font-bold uppercase transition-colors truncate w-16 text-center",
-                      isSelected ? "text-[#345C5A]" : "text-[#6B7B7B]",
-                    )}
-                  >
-                    {group.city || group.destination}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
