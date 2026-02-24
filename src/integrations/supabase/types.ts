@@ -97,6 +97,45 @@ export type Database = {
         }
         Relationships: []
       }
+      flight_search_cache: {
+        Row: {
+          cache_key: string
+          canonical_request: Json
+          created_at: string
+          error: string | null
+          id: string
+          payload: Json | null
+          provider: string
+          reset_bucket: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cache_key: string
+          canonical_request: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json | null
+          provider?: string
+          reset_bucket: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cache_key?: string
+          canonical_request?: Json
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json | null
+          provider?: string
+          reset_bucket?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flight_searches: {
         Row: {
           all_destinations: string
