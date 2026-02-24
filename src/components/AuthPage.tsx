@@ -71,9 +71,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const validateSignIn = (): boolean => {
     const newErrors: FieldErrors = {};
     if (!email.trim()) {
-      newErrors.email = "Email required";
-    } else if (!emailRegex.test(email.trim())) {
-      newErrors.email = "Invalid email";
+      newErrors.email = "Email or username required";
     }
     if (!password) newErrors.password = "Password required";
     setErrors(newErrors);
@@ -93,8 +91,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     if (!validateSignIn()) return;
     setLoading(true);
     try {
+      // Resolve username to email if input is not an email
+      let loginEmail = email.trim();
+      if (!emailRegex.test(loginEmail)) {
+        const { data: userRow } = await supabase
+          .from("user_info")
+          .select("email")
+          .eq("username", loginEmail)
+          .maybeSingle();
+        if (!userRow?.email) {
+          setShowLoginError(true);
+          setLoading(false);
+          return;
+        }
+        loginEmail = userRow.email;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail,
         password,
       });
       if (authError || !authData.user) {
@@ -264,7 +278,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
           {/* Email Input with Label & Icon */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Email</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">{isSignUp ? "Email" : "Email or Username"}</label>
             <div className="relative">
               <FontAwesomeIcon
                 icon={faEnvelope}
@@ -277,10 +291,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   setEmail(e.target.value);
                   setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                placeholder="Email"
+                placeholder={isSignUp ? "Email" : "Email or Username"}
                 className={errors.email ? inputErrorStyle : inputNormal}
               />
             </div>
+            {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
           </div>
 
           {/* Password Input (Functionality Restored) */}
@@ -324,6 +339,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 </button>
               </div>
             )}
+            {!isSignUp && errors.password && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>}
           </div>
 
           {/* Options Row: Remember Me Toggle & Forgot Password */}
