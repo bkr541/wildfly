@@ -16,6 +16,9 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import MyAccountScreen from "@/components/account/MyAccountScreen";
+import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
+import NotificationsScreen from "@/components/account/NotificationsScreen";
 
 interface MenuItem {
   icon: IconDefinition;
@@ -37,13 +40,13 @@ const AccountHub = () => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
   useEffect(() => {
     const check = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Check developer_allowlist
       const { data: dev } = await supabase
         .from("developer_allowlist")
         .select("user_id")
@@ -51,7 +54,6 @@ const AccountHub = () => {
         .maybeSingle();
       if (dev) setIsDeveloper(true);
 
-      // Get username
       const { data: info } = await supabase
         .from("user_info")
         .select("username")
@@ -66,6 +68,13 @@ const AccountHub = () => {
     ...baseMenuItems,
     ...(isDeveloper ? [{ icon: faCode, label: "Developer Tools", key: "developer" }] : []),
   ];
+
+  const handleBack = () => setActiveScreen(null);
+
+  // Sub-screens
+  if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
+  if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
+  if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
 
   return (
     <>
@@ -104,6 +113,7 @@ const AccountHub = () => {
             <button
               key={item.key}
               type="button"
+              onClick={() => setActiveScreen(item.key)}
               className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
