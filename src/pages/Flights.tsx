@@ -15,7 +15,7 @@ import {
   faSun,
   faRoute,
   faXmark,
-  faPlus, // Added for the new requirement
+  faCirclePlus, // Changed from faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
@@ -321,9 +321,9 @@ const MultiAirportSearchbox = ({
           </span>
         ))}
 
-        {/* Display + icon when items are selected and input is empty */}
+        {/* Updated icon to circle-plus and decreased size to w-3 h-3 */}
         {selected.length > 0 && !query && !disabled && (
-          <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5 text-[#9CA3AF] ml-0.5" />
+          <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5" />
         )}
 
         <input
