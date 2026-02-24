@@ -14,6 +14,7 @@ import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@forta
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
+import FlightLegTimeline from "@/components/FlightLegTimeline";
 
 interface ParsedFlight {
   total_duration: string;
@@ -323,52 +324,9 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                             </div>
                           </div>
 
-                          {/* NEW: Detailed layover/leg information when flight is clicked */}
                           {isFlightOpen && (
-                            <div className="px-4 py-3 bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] flex flex-col gap-4 animate-fade-in relative ml-2">
-                              {/* Connector line */}
-                              <div className="absolute left-[1.125rem] top-6 bottom-6 w-0.5 border-l-2 border-dashed border-[#E3E6E6]" />
-
-                              {flight.legs.map((leg, legIdx) => (
-                                <div key={legIdx} className="flex flex-col gap-4">
-                                  <div className="flex items-start gap-4 relative z-10">
-                                    <div className="w-2.5 h-2.5 rounded-full border-2 border-[#5A9E8F] bg-white mt-1.5 shrink-0" />
-                                    <div className="flex flex-col">
-                                      <span className="text-sm font-bold text-[#2E4A4A]">
-                                        {leg.origin} {formatTime(leg.departure_time)}
-                                      </span>
-                                      <span className="text-[10px] text-[#6B7B7B] font-medium uppercase tracking-tight">
-                                        Departure
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* Layover marker if there is another leg */}
-                                  {legIdx < flight.legs.length - 1 && (
-                                    <div className="flex items-center gap-4 py-1 relative z-10">
-                                      <div className="w-2.5 h-2.5 rounded-full border-2 border-[#E89830] bg-white shrink-0" />
-                                      <div className="bg-[#E89830]/5 px-2 py-0.5 rounded text-[10px] font-bold text-[#E89830] uppercase">
-                                        Layover in {leg.destination}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Arrival marker for final leg */}
-                                  {legIdx === flight.legs.length - 1 && (
-                                    <div className="flex items-start gap-4 relative z-10">
-                                      <div className="w-2.5 h-2.5 rounded-full border-2 border-[#5A9E8F] bg-white mt-1.5 shrink-0" />
-                                      <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-[#2E4A4A]">
-                                          {leg.destination} {formatTime(leg.arrival_time)}
-                                        </span>
-                                        <span className="text-[10px] text-[#6B7B7B] font-medium uppercase tracking-tight">
-                                          Arrival
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                            <div className="bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] animate-fade-in ml-2 px-2 py-1">
+                              <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                             </div>
                           )}
                         </div>
