@@ -279,7 +279,15 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const inputError = `${inputBase} border border-destructive focus:ring-2 focus:ring-destructive`;
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-background overflow-hidden">
+    <div
+      className="relative flex flex-col min-h-screen bg-background overflow-hidden"
+      style={{
+        backgroundImage: "url('/assets/authuser/authuser_background.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <DecorativeCircles />
 
       <div className="w-full flex justify-center pt-8 pb-2 relative z-10">

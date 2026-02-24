@@ -222,15 +222,6 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       </header>
 
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
-        {groups.length > 0 && origin && (
-          <div className="flex items-center gap-1.5 px-1 opacity-80">
-            <span className="text-sm font-semibold text-[#6B7B7B] uppercase tracking-wider">{origin}</span>
-            <span className="text-[#6B7B7B]">→</span>
-            <span className="text-sm font-bold text-[#345C5A] uppercase tracking-wider">
-              {groups.length} Destination{groups.length !== 1 ? "s" : ""} Found
-            </span>
-          </div>
-        )}
 
 
         <div className="flex flex-col gap-2.5">
