@@ -118,17 +118,19 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     }
   }, [userFlights, flightKey, showToast]);
 
-  const { flights, departureDate, arrivalDate } = useMemo(() => {
+  const { flights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
-        firecrawlRequestBody: parsed.firecrawlRequestBody ?? null,
         flights: (parsed.response?.flights ?? []) as ParsedFlight[],
         departureDate: parsed.departureDate ?? null,
         arrivalDate: parsed.arrivalDate ?? null,
+        tripType: parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way",
+        departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
+        arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "All",
       };
     } catch {
-      return { firecrawlRequestBody: null, flights: [], departureDate: null, arrivalDate: null };
+      return { flights: [], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "All" };
     }
   }, [responseData]);
 
@@ -218,7 +220,12 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         >
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <h1 className="text-lg font-bold text-[#2E4A4A] tracking-tight">Flight Results</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="text-lg font-bold text-[#2E4A4A] tracking-tight">Flight Results</h1>
+          <span className="text-[11px] text-[#6B7B7B] font-medium">
+            {tripType} · {origin || departureAirport} → {arrivalAirport || "All"}
+          </span>
+        </div>
         <div className="w-10" />
       </header>
 
@@ -234,13 +241,18 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                 className="rounded-xl bg-white shadow-sm border border-[#E8EBEB] overflow-hidden"
               >
                 <button
-                  onClick={() => {
-                    setExpandedDest(isDestOpen ? null : group.destination);
-                    setExpandedFlightKey(null);
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left"
-                >
-                  <div className="flex flex-col">
+                   onClick={() => {
+                     setExpandedDest(isDestOpen ? null : group.destination);
+                     setExpandedFlightKey(null);
+                   }}
+                   className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                 >
+                   <img
+                     src="/assets/locations/chicago_icon.png"
+                     alt={group.city || group.destination}
+                     className="w-10 h-10 rounded-lg object-cover shrink-0"
+                   />
+                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-base font-bold text-[#2E4A4A] leading-tight">
                       {group.city || group.destination}
                     </span>
@@ -248,10 +260,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       {group.destination} · {group.stateCode || "Domestic"} · {group.flights.length} flight
                       {group.flights.length !== 1 ? "s" : ""}
                     </span>
-                  </div>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={cn(
+                   </div>
+                   <FontAwesomeIcon
+                     icon={faChevronDown}
+                     className={cn(
                       "w-4 h-4 text-[#9CA3AF] transition-transform duration-200",
                       isDestOpen && "rotate-180",
                     )}
@@ -280,7 +292,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                               className="flex items-center justify-between text-left flex-1 min-w-0"
                             >
                               <div className="flex items-center gap-3">
-                                <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5 text-[#345C5A] -rotate-45" />
+                                <img src="/assets/logo/frontier/frontier_logo.png" alt="Frontier" className="w-5 h-5 rounded object-contain shrink-0" />
                                 <div className="flex flex-col">
                                   <span className="text-sm font-bold text-[#2E4A4A]">
                                     {formatTime(flight.legs[0]?.departure_time)} →{" "}
