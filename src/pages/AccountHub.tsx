@@ -23,6 +23,7 @@ import AppearanceScreen from "@/components/account/AppearanceScreen";
 import WalletScreen from "@/components/account/WalletScreen";
 import HelpSupportScreen from "@/components/account/HelpSupportScreen";
 import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
+import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 
 interface AccountHubProps {
   onSubScreenChange?: (title: string | null) => void;
@@ -116,6 +117,7 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
   if (activeScreen === "wallet") return <WalletScreen onBack={handleBack} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
+  if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} />;
 
   return (
     <>
