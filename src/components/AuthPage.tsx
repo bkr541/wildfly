@@ -106,12 +106,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         .select("onboarding_complete")
         .eq("auth_user_id", authData.user.id)
         .maybeSingle();
+
+      // Persist remember_me preference
+      if (profile) {
+        await supabase
+          .from("user_info")
+          .update({ remember_me: rememberMe })
+          .eq("auth_user_id", authData.user.id);
+      }
+
       if (!profile) {
         await supabase.from("user_info").insert({
           auth_user_id: authData.user.id,
           email: email.trim(),
           onboarding_complete: "No",
           image_file: "",
+          remember_me: rememberMe,
         });
         onSignIn(true);
         return;
