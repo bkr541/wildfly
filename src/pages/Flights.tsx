@@ -663,6 +663,31 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
                 const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
 
+                // Log flight search to database
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const tripTypeMap: Record<TripType, string> = {
+                      "one-way": "one_way",
+                      "round-trip": "round_trip",
+                      "day-trip": "day_trip",
+                      "multi-day": "trip_planner",
+                    };
+                    await supabase.from("flight_searches" as any).insert({
+                      user_id: user.id,
+                      departure_airport: originCode,
+                      arrival_airport: searchAll ? null : (arrivals[0]?.iata_code ?? null),
+                      departure_date: depFormatted,
+                      return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                      trip_type: tripTypeMap[tripType],
+                      all_destinations: searchAll ? "Yes" : "No",
+                      json_body: normalized,
+                    } as any);
+                  }
+                } catch (logErr) {
+                  console.error("Failed to log flight search:", logErr);
+                }
+
                 const payload = JSON.stringify(
                   {
                     firecrawlRequestBody,

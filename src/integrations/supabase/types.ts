@@ -97,6 +97,45 @@ export type Database = {
         }
         Relationships: []
       }
+      flight_searches: {
+        Row: {
+          all_destinations: string
+          arrival_airport: string | null
+          departure_airport: string
+          departure_date: string
+          id: string
+          json_body: Json | null
+          return_date: string | null
+          search_timestamp: string
+          trip_type: string
+          user_id: string
+        }
+        Insert: {
+          all_destinations?: string
+          arrival_airport?: string | null
+          departure_airport: string
+          departure_date: string
+          id?: string
+          json_body?: Json | null
+          return_date?: string | null
+          search_timestamp?: string
+          trip_type: string
+          user_id: string
+        }
+        Update: {
+          all_destinations?: string
+          arrival_airport?: string | null
+          departure_airport?: string
+          departure_date?: string
+          id?: string
+          json_body?: Json | null
+          return_date?: string | null
+          search_timestamp?: string
+          trip_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           city: string | null
