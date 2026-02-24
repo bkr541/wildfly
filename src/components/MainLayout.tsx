@@ -10,6 +10,7 @@ import {
   faLocationDot,
   faUserGroup,
   faCreditCard,
+  faCalendarDays,
   faRightFromBracket,
   faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { icon: faHouse, label: "Home" },
   { icon: faPlane, label: "Flights" },
+  { icon: faCalendarDays, label: "Itinerary" },
   { icon: faLocationDot, label: "Destinations" },
   { icon: faUserGroup, label: "Friends" },
   { icon: faCreditCard, label: "Subscription" },
@@ -28,6 +30,7 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   Flights: "flights",
+  Itinerary: "itinerary",
   Destinations: "destinations",
   Subscription: "subscription",
 };
