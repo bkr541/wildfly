@@ -85,7 +85,7 @@ const NotificationsScreen = ({ onBack }: NotificationsScreenProps) => {
         <button onClick={onBack} className="mr-3 text-[#2E4A4A] hover:opacity-80 transition-opacity">
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <h1 className="text-2xl font-bold text-[#2E4A4A] tracking-tight">Notifications</h1>
+        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Notifications</h1>
       </div>
 
       <div className="flex-1 px-5 pb-4">
