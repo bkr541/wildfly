@@ -21,6 +21,20 @@ import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 import { normalizeSingleRouteResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 
+/** SHA-256 hex hash (Web Crypto) */
+async function sha256(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** 12:01 AM on the departure date in UTC – the GoWild reset boundary */
+function resetBucket(departureDateStr: string): string {
+  const [y, m, d] = departureDateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
+}
+
 const ACTIVE_TRIP_FLEX = 1.7;
 
 type TripType = "one-way" | "round-trip" | "day-trip" | "multi-day";
@@ -524,6 +538,35 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
+
+                // ── Write to flight_search_cache ──
+                try {
+                  const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
+                  const canonicalRequest = {
+                    origin: originCode,
+                    destination: searchAll ? "__ALL__" : destinationCode,
+                    departureDate: depFormatted,
+                    returnDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                    tripType,
+                    searchAll,
+                  };
+                  const cacheKey = await sha256(JSON.stringify(canonicalRequest));
+                  const bucket = resetBucket(depFormatted);
+
+                  await (supabase.from("flight_search_cache") as any).upsert(
+                    {
+                      cache_key: cacheKey,
+                      reset_bucket: bucket,
+                      canonical_request: canonicalRequest,
+                      provider: "frontier",
+                      status: "ready",
+                      payload: normalized,
+                    },
+                    { onConflict: "cache_key,reset_bucket" },
+                  );
+                } catch (cacheErr) {
+                  console.warn("Cache write failed (non-blocking):", cacheErr);
+                }
 
                 const payload = JSON.stringify(
                   {
