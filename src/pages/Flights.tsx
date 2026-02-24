@@ -516,12 +516,15 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               const todayStart = new Date();
               todayStart.setHours(0, 0, 0, 0);
 
+              const arrIata = searchAll ? "__ALL__" : destinationCode;
               const { data: cached } = await (supabase.from("flight_search_cache") as any)
                 .select("payload")
-                .eq("cache_key", cacheKey)
-                .eq("reset_bucket", bucket)
+                .eq("dep_iata", originCode)
+                .eq("arr_iata", arrIata)
                 .eq("status", "ready")
                 .gte("created_at", todayStart.toISOString())
+                .order("created_at", { ascending: false })
+                .limit(1)
                 .maybeSingle();
 
               if (cached?.payload) {
