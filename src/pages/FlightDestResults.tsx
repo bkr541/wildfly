@@ -378,59 +378,20 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                     const hasGoing = !!userFlights[goingKey];
 
                                     return (
-                                      <div key={idx} className="flex flex-col gap-1.5">
+                                       <div key={idx} className="flex flex-col">
                                          <div className={cn(
-                                          "flex items-center border rounded-lg px-2.5 py-2 transition-colors",
-                                          isFlightOpen ? "border-[#345C5A]/30 bg-white rounded-b-none" : "bg-[#F9FAFA] border-[#F2F3F3]",
+                                          "flex items-center border px-2.5 py-2 transition-colors",
+                                          isFlightOpen ? "border-[#345C5A]/15 bg-white rounded-t-lg border-b-0" : "bg-[#F9FAFA] border-[#F2F3F3] rounded-lg",
                                          )}>
-                                          <button
-                                            onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
-                                            className="flex items-center justify-between text-left flex-1 min-w-0"
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              <img src="/assets/logo/frontier/frontier_logo.png" alt="Frontier" className="w-5 h-5 rounded object-contain shrink-0" />
-                                              <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-[#2E4A4A]">
-                                                  {formatTime(flight.legs[0]?.departure_time)} → {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                                </span>
-                                                <span className="text-[9px] text-[#6B7B7B] font-medium">
-                                                  {flight.total_duration}
-                                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>}
-                                                </span>
-                                              </div>
-                                            </div>
-                                            <span className="inline-flex items-center rounded-full bg-[#E8EBEB] px-2 py-0.5 text-[9px] font-bold text-[#345C5A] uppercase">
-                                              {isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}
-                                            </span>
-                                          </button>
-                                          <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
-                                              className={cn(
-                                                "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                                                hasAlert ? "bg-[#E89830] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
-                                              )}
-                                            >
-                                              <FontAwesomeIcon icon={faBullhorn} className="w-3 h-3" />
-                                            </button>
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "going"); }}
-                                              className={cn(
-                                                "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                                                hasGoing ? "bg-[#345C5A] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
-                                              )}
-                                            >
-                                              <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />
-                                            </button>
-                                          </div>
+...
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-white animate-fade-in px-3 py-2 rounded-b-lg border border-t-0 border-[#345C5A]/30">
+                                          <div className="bg-white animate-fade-in px-3 py-2 rounded-b-lg border border-t border-t-[#E8EBEB]/50 border-[#345C5A]/15">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
-                                      </div>
+                                       </div>
                                     );
                                   })}
                                 </div>
