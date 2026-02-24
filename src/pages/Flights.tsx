@@ -587,6 +587,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       provider: "frontier",
                       status: "ready",
                       payload: normalized,
+                      dep_iata: originCode,
+                      arr_iata: searchAll ? "__ALL__" : destinationCode,
                     },
                     { onConflict: "cache_key,reset_bucket" },
                   );

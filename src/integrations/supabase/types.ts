@@ -99,9 +99,11 @@ export type Database = {
       }
       flight_search_cache: {
         Row: {
+          arr_iata: string | null
           cache_key: string
           canonical_request: Json
           created_at: string
+          dep_iata: string | null
           error: string | null
           id: string
           payload: Json | null
@@ -111,9 +113,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arr_iata?: string | null
           cache_key: string
           canonical_request: Json
           created_at?: string
+          dep_iata?: string | null
           error?: string | null
           id?: string
           payload?: Json | null
@@ -123,9 +127,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arr_iata?: string | null
           cache_key?: string
           canonical_request?: Json
           created_at?: string
+          dep_iata?: string | null
           error?: string | null
           id?: string
           payload?: Json | null
