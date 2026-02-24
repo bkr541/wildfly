@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCoins, faCreditCard } from "@fortawesome/free-solid-svg-icons";
+import { faCoins, faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import { format } from "date-fns";
 
 interface WalletScreenProps {
@@ -58,13 +58,6 @@ const WalletScreen = ({ onBack }: WalletScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-      <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
-        <button type="button" onClick={onBack} className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity">
-          <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
-        </button>
-        <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">My Wallet</h1>
-        <div className="w-10" />
-      </header>
 
       <div className="flex-1 px-5 pb-4 space-y-4">
         {/* Plan badge */}

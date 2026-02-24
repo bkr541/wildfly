@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
@@ -25,6 +25,8 @@ const MainApp = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "subscription" | "itinerary">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
+  const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
+  const accountBackRef = useRef<(() => void) | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -167,6 +169,7 @@ const MainApp = () => {
 
   const handleNavigate = (page: string, data?: string) => {
     if (page === "flight-results" && data) setFlightResultsData(data);
+    setSubScreenTitle(null);
     setCurrentPage(page as any);
   };
 
@@ -203,9 +206,15 @@ const MainApp = () => {
 
         {splashDone && !checkingSession && isMainLayoutPage && (
           <ProfileProvider>
-            <MainLayout onSignOut={handleSignOut} onNavigate={handleNavigate} hideHeaderRight={hideHeaderRight}>
+            <MainLayout
+              onSignOut={handleSignOut}
+              onNavigate={handleNavigate}
+              hideHeaderRight={hideHeaderRight || !!subScreenTitle}
+              subScreenTitle={subScreenTitle}
+              onSubScreenBack={() => accountBackRef.current?.()}
+            >
               {currentPage === "home" && <HomePage />}
-              {currentPage === "account" && <AccountHub />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "subscription" && <SubscriptionPage />}
