@@ -146,6 +146,8 @@ export type Database = {
         Row: {
           all_destinations: string
           arrival_airport: string | null
+          arrival_airports_count: number | null
+          credits_cost: number | null
           departure_airport: string
           departure_date: string
           id: string
@@ -158,6 +160,8 @@ export type Database = {
         Insert: {
           all_destinations?: string
           arrival_airport?: string | null
+          arrival_airports_count?: number | null
+          credits_cost?: number | null
           departure_airport: string
           departure_date: string
           id?: string
@@ -170,6 +174,8 @@ export type Database = {
         Update: {
           all_destinations?: string
           arrival_airport?: string | null
+          arrival_airports_count?: number | null
+          credits_cost?: number | null
           departure_airport?: string
           departure_date?: string
           id?: string
@@ -217,6 +223,57 @@ export type Database = {
           region?: string | null
           state?: string | null
           state_code?: string | null
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          monthly_allowance_credits: number | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id: string
+          monthly_allowance_credits?: number | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          monthly_allowance_credits?: number | null
+          name?: string
+        }
+        Relationships: []
+      }
+      user_credit_wallet: {
+        Row: {
+          monthly_period_end: string
+          monthly_period_start: string
+          monthly_used: number
+          purchased_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          monthly_period_end?: string
+          monthly_period_start?: string
+          monthly_used?: number
+          purchased_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          monthly_period_end?: string
+          monthly_period_start?: string
+          monthly_used?: number
+          purchased_balance?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -384,11 +441,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          current_period_end: string | null
+          current_period_start: string | null
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_period_end?: string | null
+          current_period_start?: string | null
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_period_end?: string | null
+          current_period_start?: string | null
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      consume_search_credits: {
+        Args: {
+          p_all_destinations: boolean
+          p_arrival_airports_count: number
+          p_trip_type: string
+        }
+        Returns: Json
+      }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
     }
     Enums: {
