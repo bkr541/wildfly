@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlaneDeparture, faPlaneArrival, faPlane } from "@fortawesome/free-solid-svg-icons";
+import { faPlaneDeparture, faPlaneArrival } from "@fortawesome/free-solid-svg-icons";
 
 interface Leg {
   origin: string;
@@ -59,7 +59,7 @@ function calcDuration(startRaw: string, endRaw: string): string {
 
 const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
   return (
-    <div className="pl-2 pr-1 py-2 flex flex-col">
+    <div className="pl-5 pr-1 py-2 flex flex-col">
       {legs.map((leg, i) => {
         const depTime = formatTime(leg.departure_time);
         const arrTime = formatTime(leg.arrival_time);
@@ -90,8 +90,6 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
               {legDuration && (
                 <div className="flex items-center gap-1.5 py-1">
                   <span className="text-xs text-[#6B7B7B] font-medium">{legDuration}</span>
-                  <span className="text-[#C8CDCD] text-xs">——</span>
-                  <FontAwesomeIcon icon={faPlane} className="w-3 h-3 text-[#C8CDCD]" />
                 </div>
               )}
             </div>
