@@ -9,6 +9,7 @@ import {
   faLayerGroup,
   faMapMarkerAlt,
   faBullhorn,
+  faBug,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,7 +119,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     }
   }, [userFlights, flightKey, showToast]);
 
-  const { flights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
+  const { flights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
@@ -128,9 +129,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         tripType: parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way",
         departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
         arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "All",
+        fromCache: parsed.fromCache === true,
       };
     } catch {
-      return { flights: [], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "All" };
+      return { flights: [], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "All", fromCache: false };
     }
   }, [responseData]);
 
@@ -423,6 +425,13 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         >
           {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
         </button>
+
+        {fromCache && (
+          <div className="flex items-center justify-center gap-1.5 -mt-2 pb-1">
+            <FontAwesomeIcon icon={faBug} className="w-3.5 h-3.5 text-green-500" />
+            <span className="text-[10px] font-semibold text-green-600">Loaded from cache</span>
+          </div>
+        )}
 
         {showRaw && (
           <div className="flex flex-col gap-4 animate-fade-in">
