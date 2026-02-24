@@ -54,6 +54,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Remember Me
+  const [rememberMe, setRememberMe] = useState(false);
+
   // Forgot password
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -126,6 +129,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         return;
       }
 
+      // Save remember_me preference
+      await supabase
+        .from("user_info")
+        .update({ remember_me: rememberMe })
+        .eq("auth_user_id", authData.user.id);
+
       const { data: profile } = await supabase
         .from("user_info")
         .select("onboarding_complete")
@@ -138,14 +147,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           email: email.trim(),
           onboarding_complete: "No",
           image_file: "",
+          remember_me: rememberMe,
         });
 
-        // No profile means onboarding is needed
         onSignIn(true);
         return;
       }
 
-      // ✅ Correct rule: anything other than "Yes" goes to onboarding
       onSignIn(profile.onboarding_complete !== "Yes");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -368,8 +376,26 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             )}
           </div>
 
-          {!isSignUp && (
-            <div className="flex justify-end mt-1">
+        {!isSignUp && (
+            <div className="flex items-center justify-between mt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={rememberMe}
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors ${
+                    rememberMe ? "bg-accent-blue" : "bg-input"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none block h-4 w-4 rounded-full bg-foreground shadow-lg transition-transform ${
+                      rememberMe ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+                <span className="text-xs text-muted-foreground font-semibold">Remember Me</span>
+              </label>
               <button
                 type="button"
                 onClick={() => {
