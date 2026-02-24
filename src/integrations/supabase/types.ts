@@ -175,6 +175,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_flights: {
+        Row: {
+          arrival_airport: string
+          arrival_time: string
+          created_at: string
+          departure_airport: string
+          departure_time: string
+          flight_json: Json
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          arrival_airport: string
+          arrival_time: string
+          created_at?: string
+          departure_airport: string
+          departure_time: string
+          flight_json: Json
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          arrival_airport?: string
+          arrival_time?: string
+          created_at?: string
+          departure_airport?: string
+          departure_time?: string
+          flight_json?: Json
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_info: {
         Row: {
           auth_user_id: string | null
