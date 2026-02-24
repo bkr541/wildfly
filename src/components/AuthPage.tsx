@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons"; // Added envelope/lock to match the image icons
+import { faEye, faEyeSlash, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
-import mainLogo from "@/assets/mainlogo.png";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
   AlertDialog,
@@ -48,20 +47,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
-  // LOGIC: Same as your original file
+  // Added state for the toggle/checkbox
+  const [rememberMe, setRememberMe] = useState(false);
+
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
-    if (!firstName.trim()) newErrors.firstName = "First name is required";
-    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!firstName.trim()) newErrors.firstName = "Required";
+    if (!lastName.trim()) newErrors.lastName = "Required";
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email required";
     } else if (!emailRegex.test(email.trim())) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Invalid email";
     }
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password required";
     } else if (!isPasswordStrong(password)) {
-      newErrors.password = "Password does not meet all requirements";
+      newErrors.password = "Too weak";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -70,11 +71,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const validateSignIn = (): boolean => {
     const newErrors: FieldErrors = {};
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email required";
     } else if (!emailRegex.test(email.trim())) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Invalid email";
     }
-    if (!password) newErrors.password = "Password is required";
+    if (!password) newErrors.password = "Password required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -161,7 +162,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         return;
       }
       if (!authData.session) {
-        setSubmitError("Check your email to confirm your account, then sign in.");
+        setSubmitError("Check your email to confirm your account.");
         return;
       }
       onSignIn(true);
@@ -179,16 +180,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   };
 
   const handleForgotPassword = async () => {
-    if (!forgotEmail.trim()) {
-      setForgotError("Email is required");
-      return;
-    }
-    if (!emailRegex.test(forgotEmail.trim())) {
-      setForgotError("Please enter a valid email address");
+    if (!forgotEmail.trim() || !emailRegex.test(forgotEmail.trim())) {
+      setForgotError("Valid email required");
       return;
     }
     setForgotLoading(true);
-    setForgotError(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -199,15 +195,15 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       }
       setForgotSuccess(true);
     } catch {
-      setForgotError("Something went wrong. Please try again.");
+      setForgotError("Error sending reset link.");
     } finally {
       setForgotLoading(false);
     }
   };
 
-  // UI STYLING: Restored functionality + Image design
+  // UI STYLING: Compact Navy/Slate inputs with Emerald accents
   const inputBase =
-    "w-full px-10 py-3 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 outline-none transition-all";
+    "w-full pl-9 pr-10 py-2 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 text-sm outline-none transition-all";
   const inputNormal = `${inputBase} border border-transparent focus:border-[#10B981]`;
   const inputErrorStyle = `${inputBase} border border-red-500 focus:border-red-500`;
 
@@ -216,69 +212,80 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center px-8 z-10">
-        {/* Welcome Text Section */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 z-10">
+        {/* Compact Logo & Header */}
         <div className="text-center mb-6">
-          <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-24 w-auto mx-auto mb-4 object-contain" />
-          <h1 className="text-5xl font-semibold text-[#1F2937] mb-2">Welcome</h1>
-          <p className="text-[#4B5563] text-lg">Sign In Your Account</p>
+          <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-16 w-auto mx-auto mb-2 object-contain" />
+          <h1 className="text-3xl font-bold text-[#1F2937]">Welcome</h1>
+          <p className="text-[#4B5563] text-sm">Sign In Your Account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4" noValidate>
-          {/* First/Last Name for Sign Up */}
+        <form onSubmit={handleSubmit} className="w-full max-w-[320px] space-y-3" noValidate>
+          {/* First/Last Name for Sign Up (Compact Grid) */}
           {isSignUp && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase ml-1">First Name</label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">First Name</label>
                 <input
                   type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First"
-                  className={errors.firstName ? inputErrorStyle : inputNormal}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    setErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
+                  className={
+                    errors.firstName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
+                  }
                 />
-                {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName}</p>}
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Last Name</label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Last Name</label>
                 <input
                   type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last"
-                  className={errors.lastName ? inputErrorStyle : inputNormal}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    setErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
+                  className={
+                    errors.lastName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
+                  }
                 />
-                {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName}</p>}
               </div>
             </div>
           )}
 
-          {/* Email Input */}
+          {/* Email Input with Label & Icon */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Email</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Email</label>
             <div className="relative">
               <FontAwesomeIcon
                 icon={faEnvelope}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
               />
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
                 placeholder="Email"
                 className={errors.email ? inputErrorStyle : inputNormal}
               />
             </div>
-            {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
           </div>
 
           {/* Password Input (Functionality Restored) */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Password</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Password</label>
             {isSignUp ? (
               <PasswordStrengthInput
                 value={password}
-                onChange={(val) => setPassword(val)}
+                onChange={(val) => {
+                  setPassword(val);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
                 showPassword={showPassword}
                 onToggleVisibility={() => setShowPassword(!showPassword)}
                 error={errors.password}
@@ -288,140 +295,156 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faLock}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
                 />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
                   placeholder="Password"
                   className={errors.password ? inputErrorStyle : inputNormal}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
                   tabIndex={-1}
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-[16px] h-[16px]" />
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
-            {errors.password && <p className="text-red-500 text-[10px] mt-1">{errors.password}</p>}
           </div>
 
-          {/* Options Row */}
-          <div className="flex items-center justify-between text-sm text-[#4B5563]">
-            <label className="flex items-center space-x-2 cursor-pointer">
+          {/* Options Row: Remember Me & Forgot Password */}
+          <div className="flex items-center justify-between text-xs text-[#4B5563] pt-1">
+            <label className="flex items-center space-x-1.5 cursor-pointer">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-gray-300 text-[#10B981] focus:ring-[#10B981] bg-[#2D3748]"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-[#10B981] focus:ring-[#10B981] bg-[#2D3748] cursor-pointer"
               />
-              <span className="font-medium">Keep Me Signed In</span>
+              <span className="font-semibold select-none">Keep Me Signed In</span>
             </label>
             {!isSignUp && (
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="font-medium hover:text-[#10B981] transition-colors"
+                className="font-semibold hover:text-[#10B981] transition-colors"
               >
                 Forgot Password?
               </button>
             )}
           </div>
 
+          {/* Submit Button (Compact) */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 mt-2 rounded-xl bg-[#10B981] text-white font-bold text-xl shadow-lg hover:bg-[#059669] transform hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-2.5 mt-2 rounded-lg bg-[#10B981] text-white font-bold text-base shadow-md hover:bg-[#059669] transform active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
 
-          {submitError && <p className="text-red-500 text-sm text-center mt-2">{submitError}</p>}
+          {submitError && <p className="text-red-500 text-[10px] text-center font-bold uppercase">{submitError}</p>}
         </form>
 
-        <p className="mt-8 text-gray-600 font-medium">
+        <p className="mt-6 text-gray-600 text-sm font-medium">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button onClick={() => setIsSignUp(!isSignUp)} className="text-[#10B981] font-bold hover:underline">
+          <button
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setErrors({});
+              setSubmitError(null);
+            }}
+            className="text-[#10B981] font-bold hover:underline"
+          >
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
         </p>
       </div>
 
-      {/* ALERT DIALOGS: Full logic restored from original */}
+      {/* --- ALL ALERT DIALOGS RESTORED --- */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-xs rounded-2xl bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Password</AlertDialogTitle>
-            <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg">Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">Re-enter your password to finish.</AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="px-6 pb-2">
+          <div className="py-2">
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className={confirmError ? "w-full p-2 border border-red-500 rounded" : "w-full p-2 border rounded"}
+                className="w-full p-2 text-sm border rounded bg-gray-50 focus:outline-[#10B981]"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
               >
-                <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="w-3.5 h-3.5" />
               </button>
             </div>
-            {confirmError && <p className="text-red-500 text-xs mt-2">{confirmError}</p>}
+            {confirmError && <p className="text-red-500 text-[10px] mt-1 font-bold">{confirmError}</p>}
           </div>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleConfirmSignUp} className="bg-[#10B981] hover:bg-[#059669]">
-              Confirm & Sign Up
+          <AlertDialogFooter className="flex-row gap-2 mt-2">
+            <AlertDialogAction
+              onClick={handleConfirmSignUp}
+              className="w-full bg-[#10B981] hover:bg-[#059669] text-xs py-1"
+            >
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Login Error Alert */}
       <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
-        <AlertDialogContent className="max-w-xs rounded-2xl bg-white text-center">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 text-center">
           <AlertDialogHeader>
-            <AlertDialogTitle>Login Failed</AlertDialogTitle>
-            <AlertDialogDescription>The email and password combination is not correct.</AlertDialogDescription>
+            <AlertDialogTitle className="text-lg">Login Failed</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Credentials didn't match. Please try again.
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-center">
-            <AlertDialogAction onClick={handleTryAgain} className="bg-[#10B981]">
+          <AlertDialogFooter className="mt-2">
+            <AlertDialogAction onClick={handleTryAgain} className="bg-[#10B981] w-full text-xs py-1">
               Try Again
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Forgot Password Dialog */}
       <AlertDialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-        <AlertDialogContent className="max-w-xs rounded-2xl bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{forgotSuccess ? "Email Sent" : "Reset Password"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {forgotSuccess ? "Check your email for the reset link." : "Enter your email to reset your password."}
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg">{forgotSuccess ? "Success" : "Reset Password"}</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              {forgotSuccess ? "Check your email for instructions." : "Enter your email to receive a reset link."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {!forgotSuccess && (
-            <div className="px-6 pb-2">
+            <div className="py-2">
               <input
                 type="email"
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full p-2 border rounded"
+                className="w-full p-2 text-sm border rounded bg-gray-50 focus:outline-[#10B981]"
               />
+              {forgotError && <p className="text-red-500 text-[10px] mt-1 font-bold">{forgotError}</p>}
             </div>
           )}
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleForgotPassword} className="bg-[#10B981]">
-              {forgotSuccess ? "Done" : "Send Link"}
+          <AlertDialogFooter className="mt-2">
+            <AlertDialogAction onClick={handleForgotPassword} className="bg-[#10B981] w-full text-xs py-1">
+              {forgotSuccess ? "Done" : forgotLoading ? "Sending..." : "Send Link"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
