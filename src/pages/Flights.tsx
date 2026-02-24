@@ -493,14 +493,53 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           type="button"
           disabled={loading}
           onClick={async () => {
-            // Updated validation check for departures array
             if (departures.length === 0 || !departureDate) return;
 
             const originCode = departures[0].iata_code;
             const depFormatted = format(departureDate, "yyyy-MM-dd");
+            const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
+
+            const canonicalRequest = {
+              origin: originCode,
+              destination: searchAll ? "__ALL__" : destinationCode,
+              departureDate: depFormatted,
+              returnDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+              tripType,
+              searchAll,
+            };
+            const cacheKey = await sha256(JSON.stringify(canonicalRequest));
+            const bucket = resetBucket(depFormatted);
 
             setLoading(true);
             try {
+              // ── Check cache first ──
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+
+              const { data: cached } = await (supabase.from("flight_search_cache") as any)
+                .select("payload")
+                .eq("cache_key", cacheKey)
+                .eq("reset_bucket", bucket)
+                .eq("status", "ready")
+                .gte("created_at", todayStart.toISOString())
+                .maybeSingle();
+
+              if (cached?.payload) {
+                const payload = JSON.stringify(
+                  {
+                    response: cached.payload,
+                    departureDate: depFormatted,
+                    arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                    fromCache: true,
+                  },
+                  null,
+                  2,
+                );
+                onNavigate("flight-results", payload);
+                return;
+              }
+
+              // ── No cache hit – call API ──
               let data, error;
 
               if (searchAll) {
@@ -509,7 +548,6 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   body: requestBody,
                 }));
               } else {
-                const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "";
                 let targetUrl: string;
                 let functionName: string;
 
@@ -539,20 +577,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
 
-                // ── Write to flight_search_cache ──
+                // ── Write to cache ──
                 try {
-                  const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
-                  const canonicalRequest = {
-                    origin: originCode,
-                    destination: searchAll ? "__ALL__" : destinationCode,
-                    departureDate: depFormatted,
-                    returnDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                    tripType,
-                    searchAll,
-                  };
-                  const cacheKey = await sha256(JSON.stringify(canonicalRequest));
-                  const bucket = resetBucket(depFormatted);
-
                   await (supabase.from("flight_search_cache") as any).upsert(
                     {
                       cache_key: cacheKey,
@@ -574,6 +600,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     response: normalized,
                     departureDate: depFormatted,
                     arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                    fromCache: false,
                   },
                   null,
                   2,
