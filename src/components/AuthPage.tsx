@@ -208,67 +208,73 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // UI STYLING: Compact Navy/Slate inputs with Emerald accents
+  // UI STYLING: Updated to match floating label pill design
   const inputBase =
-    "w-full pl-9 pr-10 py-2 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 text-sm outline-none transition-all";
-  const inputNormal = `${inputBase} border border-transparent focus:border-[#10B981]`;
-  const inputErrorStyle = `${inputBase} border border-red-500 focus:border-red-500`;
+    "w-full pl-10 pr-10 py-3 rounded-full bg-[#2D3748] text-white placeholder:text-gray-500 text-sm outline-none transition-all border";
+  const inputNormal = `${inputBase} border-gray-500 focus:border-[#10B981]`;
+  const inputErrorStyle = `${inputBase} border-red-500 focus:border-red-500`;
+
+  // Label style that creates the "cutout" effect
+  const floatingLabelStyle =
+    "absolute -top-2 left-6 bg-[#2D3748] px-2 text-[11px] font-medium text-white z-10 rounded-sm";
 
   return (
     <div
-      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden font-sans"
       style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
       <div className="flex-1 flex flex-col items-center justify-center px-6 z-10">
         {/* Compact Logo & Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-10">
           <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-16 w-auto mx-auto mb-2 object-contain" />
           <h1 className="text-3xl font-bold text-[#1F2937]">Welcome</h1>
           <p className="text-[#4B5563] text-sm">Sign In Your Account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-[320px] space-y-3" noValidate>
-          {/* First/Last Name for Sign Up (Compact Grid) */}
+        <form onSubmit={handleSubmit} className="w-full max-w-[340px] space-y-6" noValidate>
+          {/* First/Last Name for Sign Up */}
           {isSignUp && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">First Name</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                <label className={floatingLabelStyle}>First Name</label>
                 <input
                   type="text"
                   value={firstName}
+                  placeholder="e.g. John"
                   onChange={(e) => {
                     setFirstName(e.target.value);
                     setErrors((prev) => ({ ...prev, firstName: undefined }));
                   }}
                   className={
-                    errors.firstName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
+                    errors.firstName ? inputErrorStyle.replace("pl-10", "px-5") : inputNormal.replace("pl-10", "px-5")
                   }
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Last Name</label>
+              <div className="relative">
+                <label className={floatingLabelStyle}>Last Name</label>
                 <input
                   type="text"
                   value={lastName}
+                  placeholder="e.g. Doe"
                   onChange={(e) => {
                     setLastName(e.target.value);
                     setErrors((prev) => ({ ...prev, lastName: undefined }));
                   }}
                   className={
-                    errors.lastName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
+                    errors.lastName ? inputErrorStyle.replace("pl-10", "px-5") : inputNormal.replace("pl-10", "px-5")
                   }
                 />
               </div>
             </div>
           )}
 
-          {/* Email Input with Label & Icon */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Email</label>
+          {/* Email Input */}
+          <div className="relative">
+            <label className={floatingLabelStyle}>Email</label>
             <div className="relative">
               <FontAwesomeIcon
                 icon={faEnvelope}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
               />
               <input
                 type="email"
@@ -277,15 +283,15 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   setEmail(e.target.value);
                   setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                placeholder="Email"
+                placeholder="e. g. email@example.com"
                 className={errors.email ? inputErrorStyle : inputNormal}
               />
             </div>
           </div>
 
-          {/* Password Input (Functionality Restored) */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Password</label>
+          {/* Password Input */}
+          <div className="relative">
+            <label className={floatingLabelStyle}>Password</label>
             {isSignUp ? (
               <PasswordStrengthInput
                 value={password}
@@ -302,22 +308,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faLock}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
                 />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
-                  placeholder="Password"
+                  placeholder="••••••••"
                   className={errors.password ? inputErrorStyle : inputNormal}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
                   tabIndex={-1}
                 >
                   <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-3.5 h-3.5" />
@@ -327,7 +333,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           </div>
 
           {/* Options Row: Remember Me Toggle & Forgot Password */}
-          <div className="flex items-center justify-between text-xs text-[#4B5563] pt-1">
+          <div className="flex items-center justify-between text-xs text-[#4B5563] px-1">
             <label className="flex items-center space-x-2 cursor-pointer">
               <div className="relative inline-flex items-center">
                 <input
@@ -351,11 +357,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             )}
           </div>
 
-          {/* Submit Button (Compact) */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 mt-2 rounded-lg bg-[#10B981] text-white font-bold text-base shadow-md hover:bg-[#059669] transform active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full py-3 mt-4 rounded-full bg-[#10B981] text-white font-bold text-base shadow-lg hover:bg-[#059669] transform active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
@@ -363,7 +369,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           {submitError && <p className="text-red-500 text-[10px] text-center font-bold uppercase">{submitError}</p>}
         </form>
 
-        <p className="mt-6 text-white text-sm font-medium">
+        <p className="mt-8 text-white text-sm font-medium">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             onClick={() => {
