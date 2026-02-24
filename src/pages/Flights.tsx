@@ -528,6 +528,28 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 .maybeSingle();
 
               if (cached?.payload) {
+                // Artificial delay so loading screen feels like a live search
+                await new Promise((r) => setTimeout(r, 2000));
+
+                // Log to flight_searches
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    await supabase.from("flight_searches").insert({
+                      user_id: user.id,
+                      departure_airport: originCode,
+                      arrival_airport: searchAll ? null : destinationCode,
+                      departure_date: depFormatted,
+                      return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                      trip_type: tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way",
+                      all_destinations: searchAll ? "Yes" : "No",
+                      json_body: cached.payload as any,
+                    });
+                  }
+                } catch (logErr) {
+                  console.warn("Flight search log failed (non-blocking):", logErr);
+                }
+
                 const payload = JSON.stringify(
                   {
                     response: cached.payload,
@@ -600,6 +622,25 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   );
                 } catch (cacheErr) {
                   console.warn("Cache write failed (non-blocking):", cacheErr);
+                }
+
+                // Log to flight_searches
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    await supabase.from("flight_searches").insert({
+                      user_id: user.id,
+                      departure_airport: originCode,
+                      arrival_airport: searchAll ? null : destinationCode,
+                      departure_date: depFormatted,
+                      return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
+                      trip_type: tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way",
+                      all_destinations: searchAll ? "Yes" : "No",
+                      json_body: normalized as any,
+                    });
+                  }
+                } catch (logErr) {
+                  console.warn("Flight search log failed (non-blocking):", logErr);
                 }
 
                 const payload = JSON.stringify(
