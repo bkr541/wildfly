@@ -30,34 +30,19 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // Confirm password is ONLY used in the popup dialog (no duplicate inline field)
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
   const [showLoginError, setShowLoginError] = useState(false);
-
-  // Confirm password popup
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
-
-  // Password reveal
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Remember Me
-  const [rememberMe, setRememberMe] = useState(false);
-
-  // Forgot password
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotError, setForgotError] = useState<string | null>(null);
@@ -66,35 +51,30 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
-
     if (!firstName.trim()) newErrors.firstName = "First name is required";
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
-
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!emailRegex.test(email.trim())) {
       newErrors.email = "Please enter a valid email address";
     }
-
     if (!password) {
       newErrors.password = "Password is required";
     } else if (!isPasswordStrong(password)) {
       newErrors.password = "Password does not meet all requirements";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateSignIn = (): boolean => {
     const newErrors: FieldErrors = {};
-
     if (!email.trim()) {
-      newErrors.email = "Email or username is required";
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = "Please enter a valid email address";
     }
-
     if (!password) newErrors.password = "Password is required";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -102,8 +82,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
-
-    // SIGN UP: validate form, then open confirm password popup
     if (isSignUp) {
       if (!validateSignUp()) return;
       setConfirmPassword("");
@@ -111,65 +89,32 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       setShowConfirmDialog(true);
       return;
     }
-
-    // SIGN IN
     if (!validateSignIn()) return;
-
     setLoading(true);
     try {
-      let signInEmail = email.trim();
-
-      // If input doesn't look like an email, treat it as a username
-      if (!emailRegex.test(signInEmail)) {
-        const { data: userRow } = await supabase
-          .from("user_info")
-          .select("email")
-          .eq("username", signInEmail)
-          .maybeSingle();
-
-        if (!userRow) {
-          setShowLoginError(true);
-          setLoading(false);
-          return;
-        }
-        signInEmail = userRow.email;
-      }
-
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: signInEmail,
+        email: email.trim(),
         password,
       });
-
       if (authError || !authData.user) {
         setShowLoginError(true);
         return;
       }
-
-      // Save remember_me preference
-      await supabase
-        .from("user_info")
-        .update({ remember_me: rememberMe })
-        .eq("auth_user_id", authData.user.id);
-
       const { data: profile } = await supabase
         .from("user_info")
         .select("onboarding_complete")
         .eq("auth_user_id", authData.user.id)
         .maybeSingle();
-
       if (!profile) {
         await supabase.from("user_info").insert({
           auth_user_id: authData.user.id,
           email: email.trim(),
           onboarding_complete: "No",
           image_file: "",
-          remember_me: rememberMe,
         });
-
         onSignIn(true);
         return;
       }
-
       onSignIn(profile.onboarding_complete !== "Yes");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -187,17 +132,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       setConfirmError("Passwords do not match");
       return;
     }
-
     setConfirmError(null);
     setShowConfirmDialog(false);
     setLoading(true);
-
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
       });
-
       if (authError) {
         setSubmitError(authError.message);
         return;
@@ -206,7 +148,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError("Sign up failed. Please try again.");
         return;
       }
-
       const { error: profileError } = await supabase.from("user_info").insert({
         auth_user_id: authData.user.id,
         email: email.trim(),
@@ -215,19 +156,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         onboarding_complete: "No",
         image_file: "",
       });
-
       if (profileError) {
         setSubmitError(profileError.message);
         return;
       }
-
-      // ✅ If email confirmation is enabled, session may be null here
       if (!authData.session) {
         setSubmitError("Check your email to confirm your account, then sign in.");
         return;
       }
-
-      // Signup should go directly to onboarding
       onSignIn(true);
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -251,20 +187,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       setForgotError("Please enter a valid email address");
       return;
     }
-
     setForgotLoading(true);
     setForgotError(null);
-
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-
       if (error) {
         setForgotError(error.message);
         return;
       }
-
       setForgotSuccess(true);
     } catch {
       setForgotError("Something went wrong. Please try again.");
@@ -280,15 +212,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col min-h-screen bg-background overflow-hidden"
-      style={{
-        backgroundImage: "url('/assets/authuser/authuser_background.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
+      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
-      <DecorativeCircles />
+      {/* Background Overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+      {/* DecorativeCircles removed to prioritize the image background */}
+      {/* <DecorativeCircles /> */}
 
       <div className="w-full flex justify-center pt-8 pb-2 relative z-10">
         <img src={mainLogo} alt="WildFly logo" className="h-32 md:h-36 w-auto max-w-[280px] object-contain" />
@@ -338,16 +269,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
           <div className="form-group">
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-              {isSignUp ? "Email" : "Email or Username"}
+              Email
             </label>
             <input
-              type={isSignUp ? "email" : "text"}
+              type="email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 setErrors((prev) => ({ ...prev, email: undefined }));
               }}
-              placeholder={isSignUp ? "you@example.com" : "you@example.com or username"}
+              placeholder="you@example.com"
               className={errors.email ? inputError : inputNormal}
             />
             {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
@@ -400,26 +331,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             )}
           </div>
 
-        {!isSignUp && (
-            <div className="flex items-center justify-between mt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={rememberMe}
-                  onClick={() => setRememberMe(!rememberMe)}
-                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors ${
-                    rememberMe ? "bg-accent-blue" : "bg-input"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none block h-4 w-4 rounded-full bg-foreground shadow-lg transition-transform ${
-                      rememberMe ? "translate-x-4" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-                <span className="text-xs text-muted-foreground font-semibold">Remember Me</span>
-              </label>
+          {!isSignUp && (
+            <div className="flex justify-end mt-1">
               <button
                 type="button"
                 onClick={() => {
@@ -461,14 +374,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         </p>
       </div>
 
-      {/* Confirm Password Dialog */}
+      {/* AlertDialogs remain unchanged below */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Password</AlertDialogTitle>
             <AlertDialogDescription>Please re-enter your password to complete registration.</AlertDialogDescription>
           </AlertDialogHeader>
-
           <div className="px-6 pb-2">
             <div className="relative">
               <input
@@ -497,7 +409,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </div>
             {confirmError && <p className="text-destructive text-xs mt-2">{confirmError}</p>}
           </div>
-
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleConfirmSignUp}>Confirm & Sign Up</AlertDialogAction>
           </AlertDialogFooter>
@@ -518,7 +429,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Forgot Password Dialog */}
       <AlertDialog
         open={showForgotPassword}
         onOpenChange={(open) => {
@@ -535,7 +445,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 : "Enter your email address and we'll send you a link to reset your password."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           {!forgotSuccess && (
             <div className="px-6 pb-2">
               <div className="form-group">
@@ -554,7 +463,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               {forgotError && <p className="text-destructive text-xs mt-2">{forgotError}</p>}
             </div>
           )}
-
           <AlertDialogFooter>
             {forgotSuccess ? (
               <AlertDialogAction onClick={() => setShowForgotPassword(false)}>Done</AlertDialogAction>
