@@ -300,121 +300,110 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                 </button>
 
                 {isDestOpen && (() => {
-                  // Compute hour range for timeline
-                  const flightsByHour: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
-                  let minHour = 24, maxHour = 0;
+                  // Group flights by hour, only keep hours with flights
+                  const flightsByHour: { hour: number; items: { flight: ParsedFlight; idx: number }[] }[] = [];
+                  const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
                   group.flights.forEach((flight, idx) => {
                     const dep = flight.legs[0]?.departure_time;
                     if (!dep) return;
                     const d = new Date(dep);
                     if (isNaN(d.getTime())) return;
                     const h = d.getHours();
-                    if (h < minHour) minHour = h;
-                    if (h > maxHour) maxHour = h;
-                    if (!flightsByHour[h]) flightsByHour[h] = [];
-                    flightsByHour[h].push({ flight, idx });
+                    if (!hourMap[h]) hourMap[h] = [];
+                    hourMap[h].push({ flight, idx });
                   });
-                  if (minHour > maxHour) { minHour = 0; maxHour = 23; }
-                  const hours: number[] = [];
-                  for (let h = minHour; h <= maxHour; h++) hours.push(h);
+                  Object.keys(hourMap)
+                    .map(Number)
+                    .sort((a, b) => a - b)
+                    .forEach((h) => flightsByHour.push({ hour: h, items: hourMap[h] }));
 
                   return (
                     <div className="animate-fade-in border-t border-[#F2F3F3] pt-3 pb-3 px-3">
                       <div className="relative flex">
-                        {/* Timeline column */}
-                        <div className="flex flex-col items-center w-14 shrink-0 relative">
-                          <div className="absolute top-3 bottom-3 left-1/2 -translate-x-1/2 w-px bg-[#D1D5DB]" />
-                          {hours.map((h, hi) => (
-                            <div
-                              key={h}
-                              className="relative flex flex-col items-center"
-                              style={{ minHeight: flightsByHour[h]?.length ? `${Math.max(flightsByHour[h].length * 72, 64)}px` : "64px" }}
-                            >
-                              <div className="relative z-10 flex flex-col items-center bg-[#F2F3F3] rounded px-1 py-0.5">
-                                <span className="text-[11px] font-bold text-[#2E4A4A] leading-tight">
-                                  {h === 0 ? "12:00" : h > 12 ? `${h - 12}:00` : `${h}:00`}
-                                </span>
-                                <span className="text-[9px] text-[#6B7B7B] font-medium leading-tight">
-                                  {h < 12 ? "AM" : "PM"}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        {/* Timeline line */}
+                        <div className="absolute left-[28px] top-3 bottom-3 w-px bg-[#D1D5DB]" />
 
-                        {/* Flight cards column */}
-                        <div className="flex-1 flex flex-col ml-1">
-                          {hours.map((h) => {
-                            const items = flightsByHour[h] || [];
+                        <div className="flex flex-col gap-2 w-full">
+                          {flightsByHour.map(({ hour: h, items }) => {
+                            const hourLabel = h === 0 ? "12:00" : h > 12 ? `${h - 12}:00` : `${h}:00`;
+                            const ampm = h < 12 ? "AM" : "PM";
+
                             return (
-                              <div
-                                key={h}
-                                className="flex flex-col gap-1.5"
-                                style={{ minHeight: items.length ? `${Math.max(items.length * 72, 64)}px` : "64px" }}
-                              >
-                                {items.map(({ flight, idx }) => {
-                                  const fKey = `${group.destination}-${idx}`;
-                                  const isFlightOpen = expandedFlightKey === fKey;
-                                  const isNonstop = flight.legs.length === 1;
-                                  const alertKey = flightKey(flight, "alert");
-                                  const goingKey = flightKey(flight, "going");
-                                  const hasAlert = !!userFlights[alertKey];
-                                  const hasGoing = !!userFlights[goingKey];
+                              <div key={h} className="flex gap-2">
+                                {/* Time label */}
+                                <div className="w-14 shrink-0 flex flex-col items-center pt-1">
+                                  <div className="relative z-10 flex flex-col items-center bg-[#F2F3F3] rounded px-1.5 py-0.5">
+                                    <span className="text-[11px] font-bold text-[#2E4A4A] leading-tight">{hourLabel}</span>
+                                    <span className="text-[9px] text-[#6B7B7B] font-medium leading-tight">{ampm}</span>
+                                  </div>
+                                </div>
 
-                                  return (
-                                    <div key={idx} className="flex flex-col gap-1.5">
-                                      <div className={cn(
-                                        "flex items-center bg-[#F9FAFA] border rounded-lg px-2.5 py-2 transition-colors",
-                                        isFlightOpen ? "border-[#345C5A]/30 bg-white" : "border-[#F2F3F3]",
-                                      )}>
-                                        <button
-                                          onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
-                                          className="flex items-center justify-between text-left flex-1 min-w-0"
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <img src="/assets/logo/frontier/frontier_logo.png" alt="Frontier" className="w-5 h-5 rounded object-contain shrink-0" />
-                                            <div className="flex flex-col">
-                                              <span className="text-xs font-bold text-[#2E4A4A]">
-                                                {formatTime(flight.legs[0]?.departure_time)} → {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                                {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-[9px]">(+1)</span>}
-                                              </span>
-                                              <span className="text-[9px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
+                                {/* Flight cards for this hour */}
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                  {items.map(({ flight, idx }) => {
+                                    const fKey = `${group.destination}-${idx}`;
+                                    const isFlightOpen = expandedFlightKey === fKey;
+                                    const isNonstop = flight.legs.length === 1;
+                                    const alertKey = flightKey(flight, "alert");
+                                    const goingKey = flightKey(flight, "going");
+                                    const hasAlert = !!userFlights[alertKey];
+                                    const hasGoing = !!userFlights[goingKey];
+
+                                    return (
+                                      <div key={idx} className="flex flex-col gap-1.5">
+                                        <div className={cn(
+                                          "flex items-center bg-[#F9FAFA] border rounded-lg px-2.5 py-2 transition-colors",
+                                          isFlightOpen ? "border-[#345C5A]/30 bg-white" : "border-[#F2F3F3]",
+                                        )}>
+                                          <button
+                                            onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
+                                            className="flex items-center justify-between text-left flex-1 min-w-0"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <img src="/assets/logo/frontier/frontier_logo.png" alt="Frontier" className="w-5 h-5 rounded object-contain shrink-0" />
+                                              <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-[#2E4A4A]">
+                                                  {formatTime(flight.legs[0]?.departure_time)} → {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
+                                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-[9px]">(+1)</span>}
+                                                </span>
+                                                <span className="text-[9px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
+                                              </div>
                                             </div>
+                                            <span className="inline-flex items-center rounded-full bg-[#E8EBEB] px-2 py-0.5 text-[9px] font-bold text-[#345C5A] uppercase">
+                                              {isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}
+                                            </span>
+                                          </button>
+                                          <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
+                                              className={cn(
+                                                "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
+                                                hasAlert ? "bg-[#E89830] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
+                                              )}
+                                            >
+                                              <FontAwesomeIcon icon={faBullhorn} className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "going"); }}
+                                              className={cn(
+                                                "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
+                                                hasGoing ? "bg-[#345C5A] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
+                                              )}
+                                            >
+                                              <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />
+                                            </button>
                                           </div>
-                                          <span className="inline-flex items-center rounded-full bg-[#E8EBEB] px-2 py-0.5 text-[9px] font-bold text-[#345C5A] uppercase">
-                                            {isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}
-                                          </span>
-                                        </button>
-                                        <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
-                                            className={cn(
-                                              "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                                              hasAlert ? "bg-[#E89830] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
-                                            )}
-                                          >
-                                            <FontAwesomeIcon icon={faBullhorn} className="w-3 h-3" />
-                                          </button>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "going"); }}
-                                            className={cn(
-                                              "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-                                              hasGoing ? "bg-[#345C5A] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
-                                            )}
-                                          >
-                                            <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />
-                                          </button>
                                         </div>
-                                      </div>
 
-                                      {isFlightOpen && (
-                                        <div className="bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] animate-fade-in px-2 py-1">
-                                          <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
+                                        {isFlightOpen && (
+                                          <div className="bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] animate-fade-in px-2 py-1">
+                                            <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
                             );
                           })}
