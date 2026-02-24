@@ -113,18 +113,18 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
             </div>
 
             {/* Debug Component Filter */}
-            <div>
-              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
+              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider mb-2">
                 Debug Component Filter
               </h3>
-              <p className="text-xs text-[#6B7B7B] px-1 mb-2">
+              <p className="text-xs text-[#6B7B7B] mb-2">
                 {(settings.enabled_debug_components || []).length === 0
                   ? "No filter — debug info shown for all components."
                   : "Debug info only shown for these components."}
               </p>
 
               {(settings.enabled_debug_components || []).length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {(settings.enabled_debug_components || []).map((ns) => (
                     <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                       {ns}
@@ -137,7 +137,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               )}
 
               {availableDebugSuggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {availableDebugSuggestions.map((ns) => (
                     <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_debug_components")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
                       <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
@@ -147,7 +147,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 </div>
               )}
 
-              <div className="flex gap-2 px-1">
+              <div className="flex gap-2">
                 <input type="text" value={newDebugNs} onChange={(e) => setNewDebugNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newDebugNs, "enabled_debug_components")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
                 <button type="button" onClick={() => addNamespace(newDebugNs, "enabled_debug_components")} disabled={!newDebugNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
@@ -169,9 +169,9 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
         {/* Logging sub-options — indented */}
         {settings.logging_enabled && (
           <div className="ml-4 space-y-3 animate-fade-in">
-            <div>
-              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Log Level</h3>
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
+              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider mb-2">Log Level</h3>
+              <div className="rounded-xl border border-[#E3E6E6] overflow-hidden">
                 {LOG_LEVELS.map((level, idx) => (
                   <button key={level} type="button" onClick={() => setLogLevel(level)} className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${idx < LOG_LEVELS.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}>
                     <span className="flex-1 text-sm font-semibold text-[#2E4A4A] capitalize">{level}</span>
@@ -183,16 +183,16 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Component Log Filter</h3>
-              <p className="text-xs text-[#6B7B7B] px-1 mb-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
+              <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider mb-2">Component Log Filter</h3>
+              <p className="text-xs text-[#6B7B7B] mb-2">
                 {settings.enabled_component_logging.length === 0
                   ? "No filter — all namespaces are logged."
                   : "Only these namespaces will be logged (errors always pass through)."}
               </p>
 
               {settings.enabled_component_logging.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {settings.enabled_component_logging.map((ns) => (
                     <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                       {ns}
@@ -205,7 +205,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               )}
 
               {availableSuggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 px-1">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {availableSuggestions.map((ns) => (
                     <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_component_logging")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
                       <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
@@ -215,7 +215,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 </div>
               )}
 
-              <div className="flex gap-2 px-1">
+              <div className="flex gap-2">
                 <input type="text" value={newNs} onChange={(e) => setNewNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newNs, "enabled_component_logging")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
                 <button type="button" onClick={() => addNamespace(newNs, "enabled_component_logging")} disabled={!newNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
