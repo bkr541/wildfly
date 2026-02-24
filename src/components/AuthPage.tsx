@@ -210,7 +210,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   // UI STYLING: Compact Navy/Slate inputs with Emerald accents
   const inputBase =
-    "w-full pl-9 pr-10 py-2 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 text-sm outline-none transition-all";
+    "w-full pl-9 pr-10 py-3.5 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 text-sm outline-none transition-all";
   const inputNormal = `${inputBase} border border-transparent focus:border-[#10B981]`;
   const inputErrorStyle = `${inputBase} border border-red-500 focus:border-red-500`;
 
@@ -221,7 +221,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     >
       <div className="flex-1 flex flex-col items-center justify-center px-6 z-10">
         {/* Compact Logo & Header */}
-        <div className="text-center mb-6">
+        <div className="w-full max-w-[320px] mb-6">
           <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-16 w-auto mx-auto mb-2 object-contain" />
           <h1 className="text-3xl font-bold text-[#1F2937]">Welcome</h1>
           <p className="text-[#4B5563] text-sm">Sign In Your Account</p>
