@@ -125,7 +125,7 @@ const AirportSearchbox = ({
                 onChange(null);
                 setQuery("");
               }}
-              className="text-red-400 hover:text-red-600 transition-colors leading-none ml-0.5"
+              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
             >
               <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
             </button>
@@ -284,6 +284,8 @@ const MultiAirportSearchbox = ({
     onChange(selected.filter((a) => a.id !== id));
   };
 
+  const showClear = selected.length > 0 && !disabled;
+
   return (
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
@@ -314,7 +316,7 @@ const MultiAirportSearchbox = ({
                 e.stopPropagation();
                 removeAirport(a.id);
               }}
-              className="text-red-400 hover:text-red-600 transition-colors leading-none ml-0.5"
+              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
             >
               <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
             </button>
@@ -346,6 +348,24 @@ const MultiAirportSearchbox = ({
             disabled && "cursor-not-allowed",
           )}
         />
+
+        {showClear && !open && (
+          <button
+            type="button"
+            aria-label={`Clear all ${label}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange([]);
+              setQuery("");
+              setOpen(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+          >
+            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
