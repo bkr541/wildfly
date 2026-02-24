@@ -109,10 +109,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       // Persist remember_me preference
       if (profile) {
-        await supabase
-          .from("user_info")
-          .update({ remember_me: rememberMe })
-          .eq("auth_user_id", authData.user.id);
+        await supabase.from("user_info").update({ remember_me: rememberMe }).eq("auth_user_id", authData.user.id);
       }
 
       if (!profile) {
@@ -308,7 +305,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
                 />
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -329,16 +326,19 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             )}
           </div>
 
-          {/* Options Row: Remember Me & Forgot Password */}
+          {/* Options Row: Remember Me Toggle & Forgot Password */}
           <div className="flex items-center justify-between text-xs text-[#4B5563] pt-1">
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-[#10B981] focus:ring-[#10B981] bg-[#2D3748] cursor-pointer"
-              />
-              <span className="font-semibold select-none">Keep Me Signed In</span>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <div className="relative inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4 bg-[#2D3748] rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+              </div>
+              <span className="font-semibold select-none">Remember Me</span>
             </label>
             {!isSignUp && (
               <button
@@ -363,7 +363,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           {submitError && <p className="text-red-500 text-[10px] text-center font-bold uppercase">{submitError}</p>}
         </form>
 
-        <p className="mt-6 text-gray-600 text-sm font-medium">
+        <p className="mt-6 text-white text-sm font-medium">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             onClick={() => {
