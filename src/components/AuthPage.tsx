@@ -90,9 +90,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     const newErrors: FieldErrors = {};
 
     if (!email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(email.trim())) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Email or username is required";
     }
 
     if (!password) newErrors.password = "Password is required";
@@ -119,8 +117,26 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
     setLoading(true);
     try {
+      let signInEmail = email.trim();
+
+      // If input doesn't look like an email, treat it as a username
+      if (!emailRegex.test(signInEmail)) {
+        const { data: userRow } = await supabase
+          .from("user_info")
+          .select("email")
+          .eq("username", signInEmail)
+          .maybeSingle();
+
+        if (!userRow) {
+          setShowLoginError(true);
+          setLoading(false);
+          return;
+        }
+        signInEmail = userRow.email;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: signInEmail,
         password,
       });
 
@@ -314,16 +330,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
           <div className="form-group">
             <label className="block text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
-              Email
+              {isSignUp ? "Email" : "Email or Username"}
             </label>
             <input
-              type="email"
+              type={isSignUp ? "email" : "text"}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 setErrors((prev) => ({ ...prev, email: undefined }));
               }}
-              placeholder="you@example.com"
+              placeholder={isSignUp ? "you@example.com" : "you@example.com or username"}
               className={errors.email ? inputError : inputNormal}
             />
             {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
