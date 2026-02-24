@@ -43,173 +43,6 @@ interface Airport {
   };
 }
 
-/* ── Airport Searchbox (single-select) ────────────────────── */
-const AirportSearchbox = ({
-  label,
-  icon,
-  value,
-  onChange,
-  airports,
-  containerClassName,
-  disabled = false,
-  placeholder = "Search airport or city...",
-}: {
-  label: string;
-  icon: any;
-  value: Airport | null;
-  onChange: (a: Airport | null) => void;
-  airports: Airport[];
-  containerClassName?: string;
-  disabled?: boolean;
-  placeholder?: string;
-}) => {
-  const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const shouldShow = query.trim().length > 2;
-
-  const groupedAirports = useMemo(() => {
-    if (!shouldShow || disabled) return {};
-    const q = query.toLowerCase();
-
-    const filteredList = airports
-      .filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          a.iata_code.toLowerCase().includes(q) ||
-          (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
-      )
-      .slice(0, 30);
-
-    return filteredList.reduce(
-      (acc, airport) => {
-        const city = airport.locations?.city;
-        const state = airport.locations?.state_code;
-        const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(airport);
-        return acc;
-      },
-      {} as Record<string, Airport[]>,
-    );
-  }, [query, airports, shouldShow, disabled]);
-
-  const showClear = !!value && !disabled;
-
-  return (
-    <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
-
-      <div
-        className={cn(
-          "flex items-center gap-1.5 bg-transparent transition-colors h-10",
-          disabled ? "cursor-not-allowed" : "cursor-text",
-        )}
-        onClick={() => {
-          if (disabled) return;
-          inputRef.current?.focus();
-          setOpen(true);
-        }}
-      >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
-
-        {value && !open && (
-          <span className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm">
-            {value.iata_code} – {value.locations?.city}, {value.locations?.state_code}
-            <button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-                setQuery("");
-              }}
-              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
-            >
-              <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
-            </button>
-          </span>
-        )}
-
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={value ? "" : placeholder}
-          disabled={disabled}
-          value={open ? query : ""}
-          onChange={(e) => {
-            if (disabled) return;
-            setQuery(e.target.value);
-            if (!open) setOpen(true);
-          }}
-          onFocus={() => {
-            if (disabled) return;
-            setOpen(true);
-            setQuery("");
-          }}
-          onBlur={() => setTimeout(() => setOpen(false), 200)}
-          className={cn(
-            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] min-w-0 truncate",
-            disabled && "cursor-not-allowed",
-          )}
-        />
-
-        {showClear && !open && (
-          <button
-            type="button"
-            aria-label={`Clear ${label}`}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange(null);
-              setQuery("");
-              setOpen(true);
-              requestAnimationFrame(() => inputRef.current?.focus());
-            }}
-            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-          >
-            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
-          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
-            <div key={cityGroup} className="mb-2 last:mb-0">
-              <div className="px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2">
-                <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
-                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
-              </div>
-
-              {cityAirports.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onChange(a);
-                    setQuery("");
-                    setOpen(false);
-                  }}
-                  className="w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden"
-                >
-                  <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                    <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
-                    <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
-                    <span className="ml-2 truncate">{a.name}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 /* ── Multi-select Airport Searchbox ───────────────────────── */
 const MultiAirportSearchbox = ({
   label,
@@ -290,18 +123,17 @@ const MultiAirportSearchbox = ({
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
-      {/* Primary container is no-wrap to keep Icon and Clear button at the ends */}
       <div
         className={cn(
-          "flex items-center gap-1.5 min-h-10 bg-transparent transition-colors",
+          "flex items-center gap-1.5 h-10 bg-transparent transition-colors overflow-hidden",
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
       >
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
 
-        {/* Content area allows internal wrapping for chips/input */}
         <div
-          className="flex-1 flex items-center flex-wrap gap-1.5"
+          className="flex-1 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden no-scrollbar py-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onClick={() => {
             if (disabled) return;
             inputRef.current?.focus();
@@ -311,7 +143,7 @@ const MultiAirportSearchbox = ({
           {selected.map((a) => (
             <span
               key={a.id}
-              className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm whitespace-nowrap shrink-0"
             >
               {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
               <button
@@ -329,7 +161,7 @@ const MultiAirportSearchbox = ({
           ))}
 
           {selected.length > 0 && !query && !disabled && (
-            <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5" />
+            <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5 shrink-0" />
           )}
 
           <input
@@ -349,7 +181,7 @@ const MultiAirportSearchbox = ({
             }}
             onBlur={() => setTimeout(() => setOpen(false), 200)}
             className={cn(
-              "flex-1 min-w-[100px] h-8 bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
+              "flex-1 min-w-[100px] h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
               disabled && "cursor-not-allowed",
             )}
           />
@@ -425,7 +257,9 @@ const MultiAirportSearchbox = ({
 const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
-  const [departure, setDeparture] = useState<Airport | null>(null);
+
+  // Both Departure and Arrivals now use an array state
+  const [departures, setDepartures] = useState<Airport[]>([]);
   const [arrivals, setArrivals] = useState<Airport[]>([]);
 
   const [departureDate, setDepartureDate] = useState<Date>();
@@ -474,7 +308,6 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         </div>
       )}
 
-      {/* Title Group */}
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Flights</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
@@ -515,11 +348,12 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         {/* Airport + Dates Group */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
           <div className="relative">
-            <AirportSearchbox
+            {/* Departure now uses MultiAirportSearchbox */}
+            <MultiAirportSearchbox
               label="Departure"
               icon={faPlaneDeparture}
-              value={departure}
-              onChange={setDeparture}
+              selected={departures}
+              onChange={setDepartures}
               airports={airports}
               containerClassName="px-3 pt-3 pb-2"
             />
@@ -645,17 +479,18 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           type="button"
           disabled={loading}
           onClick={async () => {
-            if (!departure || !departureDate) return;
-            const originCode = departure.iata_code;
+            // Updated validation check for departures array
+            if (departures.length === 0 || !departureDate) return;
+
+            const originCode = departures[0].iata_code;
             const depFormatted = format(departureDate, "yyyy-MM-dd");
 
             setLoading(true);
-            let requestBody: Record<string, any> = {};
             try {
               let data, error;
 
               if (searchAll) {
-                requestBody = { departureAirport: originCode, departureDate: depFormatted };
+                const requestBody = { departureAirport: originCode, departureDate: depFormatted };
                 ({ data, error } = await supabase.functions.invoke("getAllDestinations", {
                   body: requestBody,
                 }));
@@ -677,7 +512,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   functionName = "getSingleRoute";
                 }
 
-                requestBody = { targetUrl, origin: originCode, destination: destinationCode };
+                const requestBody = { targetUrl, origin: originCode, destination: destinationCode };
                 ({ data, error } = await supabase.functions.invoke(functionName, {
                   body: requestBody,
                 }));
@@ -690,11 +525,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
 
-                const firecrawlRequestBody = data?._firecrawlRequestBody ?? null;
-
                 const payload = JSON.stringify(
                   {
-                    firecrawlRequestBody,
+                    firecrawlRequestBody: data?._firecrawlRequestBody ?? null,
                     response: normalized,
                     departureDate: depFormatted,
                     arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
