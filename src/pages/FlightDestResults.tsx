@@ -244,9 +244,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
         <div className="flex flex-col items-center">
-          <h1 className="text-lg font-bold text-[#2E4A4A] tracking-tight">Flight Results</h1>
+          <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">
+            {origin || departureAirport} → {arrivalAirport || "All"}
+          </h1>
           <span className="text-[11px] text-[#6B7B7B] font-medium">
-            {tripType} · {origin || departureAirport} → {arrivalAirport || "All"}
+            {tripType} | {flights.length} Flight{flights.length !== 1 ? "s" : ""} | {destinationCodes.length} Airport{destinationCodes.length !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="w-10" />
@@ -390,9 +392,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                               <div className="flex flex-col">
                                                 <span className="text-xs font-bold text-[#2E4A4A]">
                                                   {formatTime(flight.legs[0]?.departure_time)} → {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] text-[9px]">(+1)</span>}
                                                 </span>
-                                                <span className="text-[9px] text-[#6B7B7B] font-medium">{flight.total_duration}</span>
+                                                <span className="text-[9px] text-[#6B7B7B] font-medium">
+                                                  {flight.total_duration}
+                                                  {flight.is_plus_one_day && <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>}
+                                                </span>
                                               </div>
                                             </div>
                                             <span className="inline-flex items-center rounded-full bg-[#E8EBEB] px-2 py-0.5 text-[9px] font-bold text-[#345C5A] uppercase">
@@ -422,7 +426,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-[#F9FAFA] rounded-lg border border-[#F2F3F3] animate-fade-in px-2 py-1">
+                                          <div className="bg-[#F2F3F3]/60 rounded-b-lg border border-t-0 border-[#E8EBEB] -mt-1 mx-0.5 animate-fade-in px-3 py-2">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
