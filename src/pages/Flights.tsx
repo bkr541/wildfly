@@ -15,7 +15,7 @@ import {
   faSun,
   faRoute,
   faXmark,
-  faCirclePlus, // Changed from faPlus
+  faCirclePlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
@@ -115,7 +115,7 @@ const AirportSearchbox = ({
         <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
 
         {value && !open && (
-          <span className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+          <span className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm">
             {value.iata_code} – {value.locations?.city}, {value.locations?.state_code}
             <button
               type="button"
@@ -125,7 +125,7 @@ const AirportSearchbox = ({
                 onChange(null);
                 setQuery("");
               }}
-              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none"
+              className="text-red-400 hover:text-red-600 transition-colors leading-none ml-0.5"
             >
               <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
             </button>
@@ -304,7 +304,7 @@ const MultiAirportSearchbox = ({
         {selected.map((a) => (
           <span
             key={a.id}
-            className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+            className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm"
           >
             {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
             <button
@@ -314,14 +314,13 @@ const MultiAirportSearchbox = ({
                 e.stopPropagation();
                 removeAirport(a.id);
               }}
-              className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none"
+              className="text-red-400 hover:text-red-600 transition-colors leading-none ml-0.5"
             >
               <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
             </button>
           </span>
         ))}
 
-        {/* Updated icon to circle-plus and decreased size to w-3 h-3 */}
         {selected.length > 0 && !query && !disabled && (
           <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5" />
         )}
