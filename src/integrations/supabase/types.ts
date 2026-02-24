@@ -55,6 +55,48 @@ export type Database = {
           },
         ]
       }
+      developer_allowlist: {
+        Row: {
+          user_id: string
+        }
+        Insert: {
+          user_id: string
+        }
+        Update: {
+          user_id?: string
+        }
+        Relationships: []
+      }
+      developer_settings: {
+        Row: {
+          created_at: string
+          debug_enabled: boolean
+          flags: Json
+          log_level: string
+          show_raw_payload: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          debug_enabled?: boolean
+          flags?: Json
+          log_level?: string
+          show_raw_payload?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          debug_enabled?: boolean
+          flags?: Json
+          log_level?: string
+          show_raw_payload?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           city: string | null
@@ -186,49 +228,38 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
-          id: string
-          notif_gowild_availability: boolean
-          notif_new_feature_announcements: boolean
-          notif_new_route_alerts: boolean
-          notif_pass_sale_alerts: boolean
-          notifications_master: boolean
+          notifications_enabled: boolean
+          notify_gowild_availability: boolean
+          notify_new_features: boolean
+          notify_new_routes: boolean
+          notify_pass_sales: boolean
           theme_preference: string
           updated_at: string
-          user_id: number
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id?: string
-          notif_gowild_availability?: boolean
-          notif_new_feature_announcements?: boolean
-          notif_new_route_alerts?: boolean
-          notif_pass_sale_alerts?: boolean
-          notifications_master?: boolean
+          notifications_enabled?: boolean
+          notify_gowild_availability?: boolean
+          notify_new_features?: boolean
+          notify_new_routes?: boolean
+          notify_pass_sales?: boolean
           theme_preference?: string
           updated_at?: string
-          user_id: number
+          user_id: string
         }
         Update: {
           created_at?: string
-          id?: string
-          notif_gowild_availability?: boolean
-          notif_new_feature_announcements?: boolean
-          notif_new_route_alerts?: boolean
-          notif_pass_sale_alerts?: boolean
-          notifications_master?: boolean
+          notifications_enabled?: boolean
+          notify_gowild_availability?: boolean
+          notify_new_features?: boolean
+          notify_new_routes?: boolean
+          notify_pass_sales?: boolean
           theme_preference?: string
           updated_at?: string
-          user_id?: number
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_info"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
