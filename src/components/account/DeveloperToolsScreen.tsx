@@ -99,10 +99,10 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
           />
         </div>
 
-        {/* Debug sub-options */}
+        {/* Debug sub-options — indented */}
         {settings.debug_enabled && (
-          <>
-            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden animate-fade-in">
+          <div className="ml-4 space-y-3 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
               <ToggleRow
                 label="Show Raw Payloads"
                 desc="Display full objects instead of summaries"
@@ -113,7 +113,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
             </div>
 
             {/* Debug Component Filter */}
-            <div className="animate-fade-in">
+            <div>
               <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">
                 Debug Component Filter
               </h3>
@@ -152,7 +152,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 <button type="button" onClick={() => addNamespace(newDebugNs, "enabled_debug_components")} disabled={!newDebugNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {/* Logging master toggle */}
@@ -166,10 +166,10 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
           />
         </div>
 
-        {/* Logging sub-options */}
+        {/* Logging sub-options — indented */}
         {settings.logging_enabled && (
-          <>
-            <div className="animate-fade-in">
+          <div className="ml-4 space-y-3 animate-fade-in">
+            <div>
               <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Log Level</h3>
               <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
                 {LOG_LEVELS.map((level, idx) => (
@@ -183,7 +183,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
               </div>
             </div>
 
-            <div className="animate-fade-in">
+            <div>
               <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider px-1 mb-2">Component Log Filter</h3>
               <p className="text-xs text-[#6B7B7B] px-1 mb-2">
                 {settings.enabled_component_logging.length === 0
@@ -220,7 +220,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 <button type="button" onClick={() => addNamespace(newNs, "enabled_component_logging")} disabled={!newNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
