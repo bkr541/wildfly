@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faEnvelope, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
@@ -220,15 +220,15 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   // Floating label input style
   const floatingInputBase =
-    "w-full px-4 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
+    "w-full pl-11 pr-4 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
   const floatingInputNormal = `${floatingInputBase} border-gray-200 focus:border-[#10B981]`;
   const floatingInputError = `${floatingInputBase} border-red-400 focus:border-red-400`;
 
   // Password strength input uses same style but needs the icon padding
   const strengthInputNormal =
-    "w-full pl-4 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
+    "w-full pl-11 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
   const strengthInputError =
-    "w-full pl-4 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
+    "w-full pl-11 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
 
   return (
     <div
@@ -242,21 +242,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
           {/* Header */}
-          <h1 className="text-3xl font-extrabold text-[#1F2937] text-center mb-1">Welcome!</h1>
+          <h1 className="text-3xl font-extrabold text-[#1F2937] text-center mb-1">
+            {isSignUp ? "Create Your Account" : "Welcome Back"}
+          </h1>
           <p className="text-center text-sm text-[#6B7280] mb-6">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setErrors({});
-                setSubmitError(null);
-              }}
-              className="text-[#10B981] font-bold hover:underline"
-            >
-              {isSignUp ? "Sign In" : "Sign Up"}
-            </button>
+            {isSignUp ? "Sign up to get started" : "Sign in to your account"}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -265,30 +257,36 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => {
-                      setFirstName(e.target.value);
-                      setErrors((prev) => ({ ...prev, firstName: undefined }));
-                    }}
-                    placeholder="First Name"
-                    className={errors.firstName ? floatingInputError : floatingInputNormal}
-                  />
+                  <div className="relative">
+                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setErrors((prev) => ({ ...prev, firstName: undefined }));
+                      }}
+                      placeholder="First Name"
+                      className={errors.firstName ? floatingInputError : floatingInputNormal}
+                    />
+                  </div>
                   {errors.firstName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => {
-                      setLastName(e.target.value);
-                      setErrors((prev) => ({ ...prev, lastName: undefined }));
-                    }}
-                    placeholder="Last Name"
-                    className={errors.lastName ? floatingInputError : floatingInputNormal}
-                  />
+                  <div className="relative">
+                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setErrors((prev) => ({ ...prev, lastName: undefined }));
+                      }}
+                      placeholder="Last Name"
+                      className={errors.lastName ? floatingInputError : floatingInputNormal}
+                    />
+                  </div>
                   {errors.lastName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>}
                 </div>
               </div>
@@ -299,16 +297,19 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">
                 {isSignUp ? "Email Address" : "Email or Username"}
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setErrors((prev) => ({ ...prev, email: undefined }));
-                }}
-                placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
-                className={errors.email ? floatingInputError : floatingInputNormal}
-              />
+              <div className="relative">
+                <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+                  className={errors.email ? floatingInputError : floatingInputNormal}
+                />
+              </div>
               {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
             </div>
 
@@ -316,19 +317,23 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <div>
               <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
               {isSignUp ? (
-                <PasswordStrengthInput
-                  value={password}
-                  onChange={(val) => {
-                    setPassword(val);
-                    setErrors((prev) => ({ ...prev, password: undefined }));
-                  }}
-                  showPassword={showPassword}
-                  onToggleVisibility={() => setShowPassword(!showPassword)}
-                  error={errors.password}
-                  inputClassName={errors.password ? strengthInputError : strengthInputNormal}
-                />
+                <div className="relative">
+                  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                  <PasswordStrengthInput
+                    value={password}
+                    onChange={(val) => {
+                      setPassword(val);
+                      setErrors((prev) => ({ ...prev, password: undefined }));
+                    }}
+                    showPassword={showPassword}
+                    onToggleVisibility={() => setShowPassword(!showPassword)}
+                    error={errors.password}
+                    inputClassName={errors.password ? strengthInputError : strengthInputNormal}
+                  />
+                </div>
               ) : (
                 <div className="relative">
+                  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
@@ -377,7 +382,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Submit Button - green gradient */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -388,6 +393,21 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
             {submitError && <p className="text-red-500 text-xs text-center font-semibold">{submitError}</p>}
           </form>
+
+          {/* Toggle Sign In / Sign Up - below form */}
+          <p className="text-center text-sm text-[#6B7280] mt-5">
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setErrors({});
+                setSubmitError(null);
+              }}
+              className="text-[#10B981] font-bold hover:underline"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </p>
         </div>
       </div>
 
