@@ -10,12 +10,15 @@ import {
   faMapMarkerAlt,
   faBullhorn,
   faBug,
+  faArrowsSpin,
+  faArrowsTurnToDots,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
+import { fetchDeveloperSettings } from "@/lib/logSettings";
 
 interface ParsedFlight {
   total_duration: string;
@@ -68,6 +71,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
+  const [debugEnabled, setDebugEnabled] = useState(false);
+
+  useEffect(() => {
+    fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
+  }, []);
 
   // user_flights tracking
   const [userFlights, setUserFlights] = useState<Record<string, { id: string; type: string }>>({});
@@ -360,7 +368,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                               <div key={h} className="flex gap-2">
                                 {/* Time label */}
                                 <div className="w-14 shrink-0 flex flex-col items-center pt-1">
-                                  <div className="relative z-10 flex flex-col items-center bg-[#F2F3F3] rounded px-1.5 py-0.5">
+                                  <div className="relative z-10 flex flex-col items-center px-1.5 py-0.5">
                                     <span className="text-[11px] font-bold text-[#2E4A4A] leading-tight">{hourLabel}</span>
                                     <span className="text-[9px] text-[#6B7B7B] font-medium leading-tight">{ampm}</span>
                                   </div>
@@ -399,8 +407,8 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                                 </span>
                                               </div>
                                             </div>
-                                            <span className="inline-flex items-center rounded-full bg-[#E8EBEB] px-2 py-0.5 text-[9px] font-bold text-[#345C5A] uppercase">
-                                              {isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}
+                                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#E8EBEB] text-[#345C5A]" title={isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}>
+                                              <FontAwesomeIcon icon={isNonstop ? faArrowsSpin : faArrowsTurnToDots} className="w-3.5 h-3.5" />
                                             </span>
                                           </button>
                                           <div className="flex items-center gap-1.5 ml-2 shrink-0">
@@ -426,7 +434,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                         </div>
 
                                         {isFlightOpen && (
-                                          <div className="bg-white animate-fade-in px-3 py-2 rounded-b-lg border border-t border-t-[#E8EBEB]/50 border-[#345C5A]/15">
+                                          <div className="bg-white animate-fade-in px-1 py-2 rounded-b-lg border border-t border-t-[#E8EBEB]/50 border-[#345C5A]/15">
                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                           </div>
                                         )}
@@ -447,28 +455,32 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
           })}
         </div>
 
-        <button
-          onClick={() => setShowRaw(!showRaw)}
-          className="text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
-        >
-          {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
-        </button>
+        {debugEnabled && (
+          <>
+            <button
+              onClick={() => setShowRaw(!showRaw)}
+              className="text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
+            >
+              {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
+            </button>
 
-        {fromCache && (
-          <div className="flex items-center justify-center gap-1.5 -mt-2 pb-1">
-            <FontAwesomeIcon icon={faBug} className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-[10px] font-semibold text-green-600">Loaded from cache</span>
-          </div>
-        )}
+            {fromCache && (
+              <div className="flex items-center justify-center gap-1.5 -mt-2 pb-1">
+                <FontAwesomeIcon icon={faBug} className="w-3.5 h-3.5 text-green-500" />
+                <span className="text-[10px] font-semibold text-green-600">Loaded from cache</span>
+              </div>
+            )}
 
-        {showRaw && (
-          <div className="flex flex-col gap-4 animate-fade-in">
-            <textarea
-              readOnly
-              value={JSON.stringify({ flights }, null, 2)}
-              className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
-            />
-          </div>
+            {showRaw && (
+              <div className="flex flex-col gap-4 animate-fade-in">
+                <textarea
+                  readOnly
+                  value={JSON.stringify({ flights }, null, 2)}
+                  className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
