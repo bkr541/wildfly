@@ -265,6 +265,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
         .satyam-container.satyam-error {
           --border-color: #f87171;
+          border: 1.5px solid #f87171;
+        }
+        .satyam-container.satyam-error > button {
+          color: #f87171 !important;
         }
         .satyam-input {
           font-size: 0.875rem;
