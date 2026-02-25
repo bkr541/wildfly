@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faUser } from "@fortawesome/free-regular-svg-icons";
-import { faFingerprint } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faEnvelope, faFingerprint, faUser } from "@fortawesome/free-regular-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
@@ -442,25 +441,34 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {/* Password Input */}
             <div>
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
+
+              {/* Password input stays as a normal "input group" */}
               <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
                 <button type="button" tabIndex={-1}>
                   <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
                 </button>
 
                 {isSignUp ? (
-                  <div className="w-full">
-                    <PasswordStrengthInput
+                  <>
+                    <input
+                      type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(val) => {
-                        setPassword(val);
+                      onChange={(e) => {
+                        setPassword(e.target.value);
                         setErrors((prev) => ({ ...prev, password: undefined }));
                       }}
-                      showPassword={showPassword}
-                      onToggleVisibility={() => setShowPassword(!showPassword)}
-                      error={errors.password}
-                      inputClassName="satyam-input w-full"
+                      placeholder="Enter Password"
+                      className="satyam-input flex-1"
                     />
-                  </div>
+                    <button
+                      type="button"
+                      className="satyam-toggle hover:text-[#10B981] transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                    >
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
+                    </button>
+                  </>
                 ) : (
                   <>
                     <input
@@ -484,6 +492,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   </>
                 )}
               </div>
+
+              {/* Password strength group moved BELOW the input group (Sign Up only) */}
+              {isSignUp && (
+                <div className="mt-3">
+                  <PasswordStrengthInput
+                    value={password}
+                    onChange={(val) => {
+                      setPassword(val);
+                      setErrors((prev) => ({ ...prev, password: undefined }));
+                    }}
+                    showPassword={showPassword}
+                    onToggleVisibility={() => setShowPassword(!showPassword)}
+                    error={errors.password}
+                    inputClassName="hidden"
+                  />
+                </div>
+              )}
+
               {!isSignUp && errors.password && (
                 <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>
               )}
