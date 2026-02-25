@@ -483,7 +483,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {/* Password Input */}
             <div>
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
-              <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
+              <div
+                className={`satyam-container ${errors.password ? "satyam-error" : ""}`}
+                style={isSignUp && password.length > 0 && !errors.password ? { '--border-color': strengthColors[getPasswordStrengthScore(password)] } as React.CSSProperties : undefined}
+              >
                 <button type="button" tabIndex={-1}>
                   <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
                 </button>
