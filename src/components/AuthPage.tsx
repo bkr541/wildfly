@@ -8,6 +8,7 @@ import {
   FingerPrintIcon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
+import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import {
@@ -254,102 +255,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
-      <style>{`
-        .satyam-container button {
-          border: none;
-          background: none;
-          color: #9ca3af;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* ✅ One single source of truth for input background */
-        .satyam-container {
-          --timing: 0.3s;
-          --width-of-input: 100%;
-          --min-height-of-input: 48px;
-          --border-height: 2px;
-
-          /* This is the First Name field color you're seeing */
-          --input-bg: #eef0f3;
-
-          --border-color: #10B981;
-          --border-radius: 4px;
-          --after-border-radius: 4px;
-          position: relative;
-          width: var(--width-of-input);
-          min-height: var(--min-height-of-input);
-          display: flex;
-          align-items: center;
-          padding-inline: 0.8em;
-          border-radius: var(--border-radius);
-          transition: border-radius 0.5s ease;
-          background: var(--input-bg);
-        }
-
-        /* ✅ Force any nested input wrappers to not paint their own background */
-        .satyam-container * {
-          background-color: transparent !important;
-        }
-
-        .satyam-container.satyam-error {
-          --border-color: #f87171;
-          border-bottom: 2px solid #f87171;
-        }
-        .satyam-container.satyam-error > button:not(.satyam-toggle) {
-          color: #f87171 !important;
-        }
-        .satyam-input {
-          font-size: 0.875rem;
-          background-color: transparent;
-          width: 100%;
-          height: 100%;
-          padding-inline: 0.8em;
-          padding-block: 0.7em;
-          border: none;
-          color: #1F2937;
-        }
-        .satyam-container:before {
-          content: "";
-          position: absolute;
-          background: var(--border-color);
-          transform: scaleX(0);
-          transform-origin: center;
-          width: 100%;
-          height: var(--border-height);
-          left: 0;
-          bottom: 0;
-          border-radius: 1px;
-          transition: transform var(--timing) ease;
-        }
-        .satyam-container:focus-within {
-          border-radius: var(--after-border-radius);
-        }
-        .satyam-input:focus {
-          outline: none;
-        }
-        .satyam-container:focus-within:before {
-          transform: scale(1);
-        }
-        .satyam-reset {
-          border: none;
-          background: none;
-          opacity: 0;
-          visibility: hidden;
-          cursor: pointer;
-        }
-        .satyam-input:not(:placeholder-shown) ~ .satyam-reset {
-          opacity: 1;
-          visibility: visible;
-        }
-        .satyam-toggle {
-          border: none;
-          background: none;
-          cursor: pointer;
-        }
-      `}</style>
-
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
         <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
@@ -367,138 +272,56 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {/* First/Last Name for Sign Up */}
             {isSignUp && (
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
-                  <div className={`satyam-container ${errors.firstName ? "satyam-error" : ""}`}>
-                    <button type="button" tabIndex={-1}>
-                      <HugeiconsIcon icon={UserIcon} size={20} color="currentColor" strokeWidth={1.5} />
-                    </button>
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => {
-                        setFirstName(e.target.value);
-                        setErrors((prev) => ({ ...prev, firstName: undefined }));
-                      }}
-                      placeholder="First Name"
-                      className="satyam-input"
-                    />
-                    <button
-                      type="button"
-                      className="satyam-reset hover:text-[#f87171] transition-colors"
-                      onClick={() => setFirstName("")}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
-                  </div>
-                  {errors.firstName && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.firstName}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
-                  <div className={`satyam-container ${errors.lastName ? "satyam-error" : ""}`}>
-                    <button type="button" tabIndex={-1}>
-                      <HugeiconsIcon icon={UserIcon} size={20} color="currentColor" strokeWidth={1.5} />
-                    </button>
-                    <input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => {
-                        setLastName(e.target.value);
-                        setErrors((prev) => ({ ...prev, lastName: undefined }));
-                      }}
-                      placeholder="Last Name"
-                      className="satyam-input"
-                    />
-                    <button
-                      type="button"
-                      className="satyam-reset hover:text-[#f87171] transition-colors"
-                      onClick={() => setLastName("")}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
-                  </div>
-                  {errors.lastName && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.lastName}</p>}
-                </div>
+                <AppInput
+                  icon={UserIcon}
+                  label="First Name"
+                  placeholder="First Name"
+                  value={firstName}
+                  onChange={(e) => { setFirstName(e.target.value); setErrors((prev) => ({ ...prev, firstName: undefined })); }}
+                  clearable
+                  onClear={() => setFirstName("")}
+                  error={errors.firstName}
+                />
+                <AppInput
+                  icon={UserIcon}
+                  label="Last Name"
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChange={(e) => { setLastName(e.target.value); setErrors((prev) => ({ ...prev, lastName: undefined })); }}
+                  clearable
+                  onClear={() => setLastName("")}
+                  error={errors.lastName}
+                />
               </div>
             )}
 
             {/* Email Input */}
-            <div>
-              <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">
-                {isSignUp ? "Email Address" : "Email or Username"}
-              </label>
-              <div className={`satyam-container ${errors.email ? "satyam-error" : ""}`}>
-                <button type="button" tabIndex={-1}>
-                  <HugeiconsIcon icon={Mail01Icon} size={20} color="currentColor" strokeWidth={1.5} />
-                </button>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setErrors((prev) => ({ ...prev, email: undefined }));
-                  }}
-                  placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
-                  className="satyam-input"
-                />
-                <button
-                  type="button"
-                  className="satyam-reset hover:text-[#f87171] transition-colors"
-                  onClick={() => setEmail("")}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-              {errors.email && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.email}</p>}
-            </div>
+            <AppInput
+              icon={Mail01Icon}
+              label={isSignUp ? "Email Address" : "Email or Username"}
+              placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
+              clearable
+              onClear={() => setEmail("")}
+              error={errors.email}
+            />
 
             {/* Password Input */}
             <div>
-              <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
-              <div
-                className={`satyam-container ${errors.password ? "satyam-error" : ""}`}
-                style={
-                  isSignUp && password.length > 0 && !errors.password
-                    ? ({ "--border-color": strengthColors[getPasswordStrengthScore(password)] } as React.CSSProperties)
-                    : undefined
-                }
-              >
-                <button type="button" tabIndex={-1}>
-                  <HugeiconsIcon icon={FingerPrintIcon} size={20} color="currentColor" strokeWidth={1.5} />
-                </button>
-
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: undefined }));
-                  }}
-                  placeholder="Enter Password"
-                  className="satyam-input flex-1"
-                />
-
-                <button
-                  type="button"
-                  className="satyam-toggle hover:text-[#10B981] transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
-                  <HugeiconsIcon icon={showPassword ? ViewOffSlashIcon : ViewIcon} size={20} color="currentColor" strokeWidth={1.5} />
-                </button>
-              </div>
-
+              <AppInput
+                icon={FingerPrintIcon}
+                label="Password"
+                placeholder="Enter Password"
+                isPassword
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: undefined })); }}
+                borderColor={isSignUp && password.length > 0 && !errors.password ? strengthColors[getPasswordStrengthScore(password)] : undefined}
+                error={errors.password}
+              />
               {/* Password strength bar (Sign Up only) */}
               {isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
-
-              {errors.password && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.password}</p>}
             </div>
 
             {/* Remember Me & Forgot Password (Only on Sign In) */}
