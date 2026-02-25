@@ -218,17 +218,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // Floating label input style
+  // Floating label input style - decreased padding (py-3)
   const floatingInputBase =
-    "w-full pl-11 pr-4 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
+    "w-full pl-11 pr-4 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
   const floatingInputNormal = `${floatingInputBase} border-gray-200 focus:border-[#10B981]`;
   const floatingInputError = `${floatingInputBase} border-red-400 focus:border-red-400`;
 
-  // Password strength input uses same style but needs the icon padding
+  // Password strength input uses same style but needs the icon padding - decreased padding (py-3)
   const strengthInputNormal =
-    "w-full pl-11 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
+    "w-full pl-11 pr-10 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
   const strengthInputError =
-    "w-full pl-11 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
+    "w-full pl-11 pr-10 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
 
   return (
     <div
@@ -267,7 +267,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   <div className="relative">
                     <FontAwesomeIcon
                       icon={faUser}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                     />
                     <input
                       type="text"
@@ -289,7 +289,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   <div className="relative">
                     <FontAwesomeIcon
                       icon={faUser}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                     />
                     <input
                       type="text"
@@ -317,7 +317,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faEnvelope}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                 />
                 <input
                   type="email"
@@ -340,7 +340,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faLock}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
                   />
                   <PasswordStrengthInput
                     value={password}
@@ -358,7 +358,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faLock}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -376,7 +376,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
                     tabIndex={-1}
                   >
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-4 h-4" />
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
                   </button>
                 </div>
               )}
@@ -385,21 +385,21 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-sm text-[#6B7280]">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <div className="relative inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm peer-checked:after:translate-x-4"></div>
-                </div>
-                <span className="font-medium select-none text-[#374151]">Remember me</span>
-              </label>
-              {!isSignUp && (
+            {/* Remember Me & Forgot Password (Only on Sign In) */}
+            {!isSignUp && (
+              <div className="flex items-center justify-between text-sm text-[#6B7280]">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="relative inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm peer-checked:after:translate-x-4"></div>
+                  </div>
+                  <span className="font-medium select-none text-[#374151]">Remember me</span>
+                </label>
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(true)}
@@ -407,8 +407,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 >
                   Forgot password?
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
