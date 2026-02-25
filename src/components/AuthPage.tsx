@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faEnvelope, faLock, faUser } from "@fortawesome/free-regular-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
@@ -318,9 +318,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="space-y-4 animate-fade-in"
             noValidate
           >
-            {/* First/Last Name for Sign Up */}
+            {/* First/Last Name for Sign Up (LAST NAME moved below FIRST NAME) */}
             {isSignUp && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-4">
                 <div>
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
                   <div className={`satyam-container ${errors.firstName ? "satyam-error" : ""}`}>
@@ -358,6 +358,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>
                   )}
                 </div>
+
                 <div>
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
                   <div className={`satyam-container ${errors.lastName ? "satyam-error" : ""}`}>
