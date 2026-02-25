@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faUser } from "@fortawesome/free-regular-svg-icons";
-import { faFingerprint, faArrowRightToBracket } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ViewIcon,
+  ViewOffSlashIcon,
+  Mail01Icon,
+  UserIcon,
+  FingerPrintIcon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import {
@@ -365,7 +371,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
                   <div className={`satyam-container ${errors.firstName ? "satyam-error" : ""}`}>
                     <button type="button" tabIndex={-1}>
-                      <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
+                      <HugeiconsIcon icon={UserIcon} size={20} color="currentColor" strokeWidth={1.5} />
                     </button>
                     <input
                       type="text"
@@ -382,14 +388,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       className="satyam-reset hover:text-[#f87171] transition-colors"
                       onClick={() => setFirstName("")}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                     </button>
@@ -401,7 +400,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
                   <div className={`satyam-container ${errors.lastName ? "satyam-error" : ""}`}>
                     <button type="button" tabIndex={-1}>
-                      <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
+                      <HugeiconsIcon icon={UserIcon} size={20} color="currentColor" strokeWidth={1.5} />
                     </button>
                     <input
                       type="text"
@@ -418,14 +417,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       className="satyam-reset hover:text-[#f87171] transition-colors"
                       onClick={() => setLastName("")}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                     </button>
@@ -442,7 +434,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               </label>
               <div className={`satyam-container ${errors.email ? "satyam-error" : ""}`}>
                 <button type="button" tabIndex={-1}>
-                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" />
+                  <HugeiconsIcon icon={Mail01Icon} size={20} color="currentColor" strokeWidth={1.5} />
                 </button>
                 <input
                   type="email"
@@ -459,14 +451,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   className="satyam-reset hover:text-[#f87171] transition-colors"
                   onClick={() => setEmail("")}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
                 </button>
@@ -486,7 +471,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 }
               >
                 <button type="button" tabIndex={-1}>
-                  <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
+                  <HugeiconsIcon icon={FingerPrintIcon} size={20} color="currentColor" strokeWidth={1.5} />
                 </button>
 
                 <input
@@ -506,7 +491,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
+                  <HugeiconsIcon icon={showPassword ? ViewOffSlashIcon : ViewIcon} size={20} color="currentColor" strokeWidth={1.5} />
                 </button>
               </div>
 
@@ -550,7 +535,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
               {!loading && (
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#1a1a1a]">
-                  <FontAwesomeIcon icon={faArrowRightToBracket} className="w-3.5 h-3.5" />
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="currentColor" strokeWidth={2} />
                 </span>
               )}
             </button>
@@ -597,7 +582,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
               >
-                <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="w-3.5 h-3.5" />
+                <HugeiconsIcon icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon} size={14} color="currentColor" strokeWidth={1.5} />
               </button>
             </div>
             {confirmError && <p className="text-red-500 text-[10px] mt-1 font-bold">{confirmError}</p>}

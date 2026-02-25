@@ -1,21 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 import { supabase } from "@/integrations/supabase/client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  faUser,
-  faPlane,
-  faBell,
-  faPalette,
-  faWallet,
-  faCircleQuestion,
-  faShieldHalved,
-  faCode,
-  faPen,
-  faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+  UserIcon,
+  Airplane01Icon,
+  Notification01Icon,
+  PaintBrushIcon,
+  WalletAdd01Icon,
+  HelpCircleIcon,
+  Shield01Icon,
+  SourceCodeIcon,
+  PencilEdit01Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 import MyAccountScreen from "@/components/account/MyAccountScreen";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
 import NotificationsScreen from "@/components/account/NotificationsScreen";
@@ -27,24 +26,23 @@ import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 
 interface AccountHubProps {
   onSubScreenChange?: (title: string | null) => void;
-  /** Ref that parent can use to trigger the back action from outside */
   backRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 interface MenuItem {
-  icon: IconDefinition;
+  icon: any;
   label: string;
   key: string;
 }
 
 const baseMenuItems: MenuItem[] = [
-  { icon: faUser, label: "My Account", key: "my-account" },
-  { icon: faPlane, label: "Travel Preferences", key: "travel-prefs" },
-  { icon: faBell, label: "Notifications", key: "notifications" },
-  { icon: faPalette, label: "Appearance", key: "appearance" },
-  { icon: faWallet, label: "My Wallet", key: "wallet" },
-  { icon: faCircleQuestion, label: "Help & Support", key: "help" },
-  { icon: faShieldHalved, label: "Security & Privacy", key: "security" },
+  { icon: UserIcon, label: "My Account", key: "my-account" },
+  { icon: Airplane01Icon, label: "Travel Preferences", key: "travel-prefs" },
+  { icon: Notification01Icon, label: "Notifications", key: "notifications" },
+  { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
+  { icon: WalletAdd01Icon, label: "My Wallet", key: "wallet" },
+  { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
+  { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
 ];
 
 const screenTitles: Record<string, string> = {
@@ -69,16 +67,15 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
     onSubScreenChange?.(screenTitles[key] ?? null);
   };
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     setActiveScreen(null);
     onSubScreenChange?.(null);
-  }, [onSubScreenChange]);
+  };
 
-  // Expose handleBack to parent via ref
   useEffect(() => {
     if (backRef) backRef.current = handleBack;
     return () => { if (backRef) backRef.current = null; };
-  }, [backRef, handleBack]);
+  }, [backRef]);
 
   useEffect(() => {
     const check = async () => {
@@ -104,12 +101,9 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
 
   const menuItems: MenuItem[] = [
     ...baseMenuItems,
-    ...(isDeveloper ? [{ icon: faCode, label: "Developer Tools", key: "developer" }] : []),
+    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", key: "developer" }] : []),
   ];
 
-  
-
-  // Sub-screens
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
@@ -121,7 +115,6 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
 
   return (
     <>
-      {/* Page title */}
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Account Hub</h1>
         <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your account and settings.</p>
@@ -141,7 +134,7 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
               type="button"
               className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-[#345C5A] text-white flex items-center justify-center shadow-md border-2 border-white hover:bg-[#2E4A4A] transition-colors"
             >
-              <FontAwesomeIcon icon={faPen} className="w-2.5 h-2.5" />
+              <HugeiconsIcon icon={PencilEdit01Icon} size={12} color="currentColor" strokeWidth={1.5} />
             </button>
           </div>
           <h2 className="text-lg font-bold text-[#2E4A4A] leading-tight">{fullName}</h2>
@@ -162,10 +155,10 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
               }`}
             >
               <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center mr-3 shrink-0">
-                <FontAwesomeIcon icon={item.icon} className="w-3.5 h-3.5 text-[#345C5A]" />
+                <HugeiconsIcon icon={item.icon} size={14} color="#345C5A" strokeWidth={1.5} />
               </span>
               <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{item.label}</span>
-              <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-[#C4CACA]" />
+              <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
             </button>
           ))}
         </div>

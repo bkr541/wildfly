@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  faMagnifyingGlass,
-  faCircleCheck,
-  faLocationDot,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
+  Search01Icon,
+  CheckmarkCircle01Icon,
+  Location01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface TravelPreferencesScreenProps {
@@ -56,7 +56,6 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
 
       setUserId(info.id);
 
-      // Load home city
       if (info.home_location_id) {
         const { data: loc } = await supabase
           .from("locations")
@@ -69,7 +68,6 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
         }
       }
 
-      // Load favorites
       const { data: favRows } = await supabase
         .from("user_locations")
         .select("location_id")
@@ -167,13 +165,12 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-
       <div className="flex-1 px-5 pb-4 space-y-4 overflow-y-auto">
         {/* Home City */}
         <div ref={homeRef} className="form-group relative">
           <label className={labelStyle}>Home City</label>
           <div className="relative">
-            <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#849494]" />
+            <HugeiconsIcon icon={Search01Icon} size={14} color="#849494" strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               value={homeCitySearch}
               onChange={(e) => handleHomeSearch(e.target.value)}
@@ -181,13 +178,17 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
               placeholder="Search for your home city..."
               className={`${inputStyle} pl-10 ${homeCity ? "pr-10 text-[#345C5A] font-medium" : ""}`}
             />
-            {homeCity && <FontAwesomeIcon icon={faCircleCheck} className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#345C5A]" />}
+            {homeCity && (
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} color="#345C5A" strokeWidth={1.5} />
+              </div>
+            )}
           </div>
           {showHomeDropdown && homeCityResults.length > 0 && (
             <div className="absolute z-20 w-full mt-1 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-44 overflow-y-auto">
               {homeCityResults.map((loc) => (
                 <button key={loc.id} onClick={() => selectHome(loc)} className="w-full flex items-center px-4 py-2.5 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3]">
-                  <FontAwesomeIcon icon={faLocationDot} className="w-3.5 h-3.5 text-[#849494] mr-3" />
+                  <HugeiconsIcon icon={Location01Icon} size={14} color="#849494" strokeWidth={1.5} className="mr-3 shrink-0" />
                   {fmt(loc)}
                 </button>
               ))}
@@ -199,7 +200,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
         <div ref={favRef} className="form-group relative">
           <label className={labelStyle}>Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}</label>
           <div className="relative">
-            <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#849494]" />
+            <HugeiconsIcon icon={Search01Icon} size={14} color="#849494" strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               value={favSearch}
               onChange={(e) => handleFavSearch(e.target.value)}
@@ -213,7 +214,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
             <div className="absolute z-20 w-full mt-1 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-44 overflow-y-auto">
               {favResults.filter((l) => !homeCity || l.id !== homeCity.id).map((loc) => (
                 <button key={loc.id} onClick={() => addFav(loc)} className="w-full flex items-center px-4 py-2.5 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3]">
-                  <FontAwesomeIcon icon={faLocationDot} className="w-3.5 h-3.5 text-[#849494] mr-3" />
+                  <HugeiconsIcon icon={Location01Icon} size={14} color="#849494" strokeWidth={1.5} className="mr-3 shrink-0" />
                   {fmt(loc)}
                 </button>
               ))}
@@ -225,7 +226,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
                 <span key={loc.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                   {fmt(loc)}
                   <button onClick={() => removeFav(loc.id)} className="hover:opacity-80">
-                    <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+                    <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={1.5} />
                   </button>
                 </span>
               ))}

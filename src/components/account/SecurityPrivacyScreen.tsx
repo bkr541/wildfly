@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKey, faTrash, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SecurityIcon, Delete02Icon, Logout01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface SecurityPrivacyScreenProps {
@@ -33,12 +33,11 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-
       <div className="flex-1 px-5 pb-4 space-y-4 overflow-y-auto">
         {/* Change Password */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 space-y-3">
           <div className="flex items-center gap-2 mb-1">
-            <FontAwesomeIcon icon={faKey} className="w-3.5 h-3.5 text-[#345C5A]" />
+            <HugeiconsIcon icon={SecurityIcon} size={14} color="#345C5A" strokeWidth={1.5} />
             <p className="text-sm font-semibold text-[#2E4A4A]">Change Password</p>
           </div>
           <div>
@@ -57,7 +56,7 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
         {/* Sign Out */}
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#E3E6E6] hover:bg-[#F2F3F3] transition-colors">
           <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <FontAwesomeIcon icon={faRightFromBracket} className="w-3.5 h-3.5 text-[#345C5A]" />
+            <HugeiconsIcon icon={Logout01Icon} size={14} color="#345C5A" strokeWidth={1.5} />
           </span>
           <span className="text-sm font-semibold text-[#2E4A4A]">Sign Out</span>
         </button>
@@ -65,7 +64,7 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
         {/* Delete Account */}
         <button className="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-2xl shadow-sm border border-red-200 hover:bg-red-50 transition-colors">
           <span className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5 text-red-500" />
+            <HugeiconsIcon icon={Delete02Icon} size={14} color="#ef4444" strokeWidth={1.5} />
           </span>
           <span className="text-sm font-semibold text-red-600">Delete Account</span>
         </button>

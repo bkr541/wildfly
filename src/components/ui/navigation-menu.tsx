@@ -1,8 +1,8 @@
 import * as React from "react";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@/lib/utils";
 
@@ -49,11 +49,7 @@ const NavigationMenuTrigger = React.forwardRef<
     {...props}
   >
     {children}{" "}
-    <FontAwesomeIcon
-      icon={faChevronDown}
-      className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180"
-      aria-hidden="true"
-    />
+    <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="currentColor" strokeWidth={1.5} className="relative top-[1px] ml-1 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
   </NavigationMenuPrimitive.Trigger>
 ));
 NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName;
