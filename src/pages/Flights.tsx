@@ -570,22 +570,15 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               const creditsCost = cr?.cost ?? 0;
               // ── Check cache first ──
-              const todayStart = new Date();
-              todayStart.setHours(0, 0, 0, 0);
-
-              const arrIata = searchAll ? "__ALL__" : destinationCode;
               const { data: cached } = await (supabase.from("flight_search_cache") as any)
                 .select("payload")
-                .eq("dep_iata", originCode)
-                .eq("arr_iata", arrIata)
+                .eq("cache_key", cacheKey)
+                .eq("reset_bucket", bucket)
                 .eq("status", "ready")
-                .gte("created_at", todayStart.toISOString())
-                .order("created_at", { ascending: false })
-                .limit(1)
                 .maybeSingle();
 
               if (cached?.payload) {
-                cacheLog.info("Cache HIT", { dep: originCode, arr: arrIata });
+                cacheLog.info("Cache HIT", { dep: originCode, arr: cacheDest });
                 await new Promise((r) => setTimeout(r, 2000));
 
                 // Log to flight_searches
@@ -627,7 +620,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               }
 
               // ── No cache hit – call API ──
-              cacheLog.info("Cache MISS", { dep: originCode, arr: arrIata });
+              cacheLog.info("Cache MISS", { dep: originCode, arr: cacheDest });
               const edgeStart = performance.now();
               let data, error;
 
