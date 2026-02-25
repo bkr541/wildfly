@@ -253,7 +253,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {isSignUp && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
+                  <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
                   <div className="relative">
                     <FontAwesomeIcon
                       icon={faUser}
@@ -275,7 +275,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   )}
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
+                  <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
                   <div className="relative">
                     <FontAwesomeIcon
                       icon={faUser}
@@ -301,7 +301,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
             {/* Email Input */}
             <div>
-              <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">
+              <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">
                 {isSignUp ? "Email Address" : "Email or Username"}
               </label>
               <div className="relative">
@@ -325,7 +325,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
             {/* Password Input */}
             <div>
-              <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
+              <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
               {isSignUp ? (
                 <div className="relative">
                   <FontAwesomeIcon
