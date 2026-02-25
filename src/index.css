@@ -59,6 +59,101 @@
   }
 }
 
+/* ─── AppInput reusable input component ─── */
+.app-input-container {
+  --timing: 0.3s;
+  --input-bg: #eef0f3;
+  --border-color: #10B981;
+  --border-height: 2px;
+  --border-radius: 4px;
+  position: relative;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding-inline: 0.8em;
+  border-radius: var(--border-radius);
+  background: var(--input-bg);
+  transition: border-radius 0.5s ease;
+}
+.app-input-container button {
+  border: none;
+  background: none;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-input-container * {
+  background-color: transparent !important;
+}
+.app-input-container::before {
+  content: "";
+  position: absolute;
+  background: var(--border-color);
+  transform: scaleX(0);
+  transform-origin: center;
+  width: 100%;
+  height: var(--border-height);
+  left: 0;
+  bottom: 0;
+  border-radius: 1px;
+  transition: transform var(--timing) ease;
+}
+.app-input-container:focus-within {
+  border-radius: var(--border-radius);
+}
+.app-input-container:focus-within::before {
+  transform: scale(1);
+}
+.app-input-container.app-input-error {
+  --border-color: #f87171;
+  border-bottom: 2px solid #f87171;
+}
+.app-input-container.app-input-error > button:not(.app-input-toggle) {
+  color: #f87171 !important;
+}
+.app-input {
+  font-size: 0.875rem;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  padding-inline: 0.8em;
+  padding-block: 0.7em;
+  border: none;
+  color: #1F2937;
+}
+.app-input:focus {
+  outline: none;
+}
+.app-input-icon-btn {
+  flex-shrink: 0;
+}
+.app-input-reset {
+  border: none;
+  background: none;
+  opacity: 0;
+  visibility: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.app-input-reset--visible {
+  opacity: 1;
+  visibility: visible;
+}
+.app-input-reset:hover {
+  color: #f87171;
+}
+.app-input-toggle {
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.app-input-toggle:hover {
+  color: #10B981;
+}
+
 @layer utilities {
   /* When an input inside a form-group is focused, color the label to match the focus ring */
   .form-group:focus-within > label,
