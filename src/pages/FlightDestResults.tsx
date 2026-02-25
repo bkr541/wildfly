@@ -300,7 +300,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                    <img
                      src="/assets/locations/chicago_icon.png"
                      alt={group.city || group.destination}
-                     className="w-12 h-12 rounded-lg object-cover shrink-0"
+                     className="w-12 h-12 rounded-lg object-cover shrink-0 hidden"
                    />
                    <div className="flex flex-col flex-1 min-w-0">
                    <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
