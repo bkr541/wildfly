@@ -237,7 +237,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     >
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
-        <img src="/assets/logo/wflogo5.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
+        <img src="/assets/logo/wflogo4.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
       </div>
 
       {/* White card form */}
