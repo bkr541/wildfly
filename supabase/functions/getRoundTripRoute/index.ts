@@ -8,12 +8,46 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authenticate request
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Authentication required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+  if (authError || !user) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Invalid authentication' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { targetUrl } = await req.json();
 
     if (!targetUrl) {
       return new Response(
         JSON.stringify({ success: false, error: 'targetUrl is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate URL domain - only allow gowilder.net
+    try {
+      const parsed = new URL(targetUrl);
+      if (!parsed.hostname.endsWith('gowilder.net')) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid URL domain' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid URL format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

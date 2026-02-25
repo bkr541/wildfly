@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@14.10.0?target=deno";
 
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -11,19 +12,34 @@ const CREDIT_PACKS: Record<string, number> = {
   credit_pack_20: 20,
 };
 
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+  apiVersion: "2023-10-16",
+  httpClient: Stripe.createFetchHttpClient(),
+});
+
 serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   const body = await req.text();
-  // In production, verify Stripe signature here using STRIPE_WEBHOOK_SECRET
+  const signature = req.headers.get("stripe-signature");
 
-  let event: any;
+  if (!signature) {
+    return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), { status: 400 });
+  }
+
+  if (!STRIPE_WEBHOOK_SECRET) {
+    console.error("STRIPE_WEBHOOK_SECRET not configured");
+    return new Response(JSON.stringify({ error: "Webhook secret not configured" }), { status: 500 });
+  }
+
+  let event: Stripe.Event;
   try {
-    event = JSON.parse(body);
-  } catch {
-    return new Response("Invalid JSON", { status: 400 });
+    event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err);
+    return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 });
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -33,7 +49,7 @@ serve(async (req) => {
       // ── Subscription events ──
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        const sub = event.data.object;
+        const sub = event.data.object as Stripe.Subscription;
         const userId = sub.metadata?.user_id;
         if (!userId) break;
 
@@ -50,8 +66,8 @@ serve(async (req) => {
           stripe_customer_id: sub.customer,
           stripe_subscription_id: sub.id,
           stripe_price_id: sub.items?.data?.[0]?.price?.id ?? null,
-          current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+          current_period_start: new Date((sub as any).current_period_start * 1000).toISOString(),
+          current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
 
@@ -59,7 +75,7 @@ serve(async (req) => {
       }
 
       case "customer.subscription.deleted": {
-        const sub = event.data.object;
+        const sub = event.data.object as Stripe.Subscription;
         const userId = sub.metadata?.user_id;
         if (!userId) break;
 
@@ -74,7 +90,7 @@ serve(async (req) => {
 
       // ── Credit pack purchase ──
       case "checkout.session.completed": {
-        const session = event.data.object;
+        const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode !== "payment") break;
 
         const userId = session.metadata?.user_id;

@@ -8,12 +8,47 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authenticate request
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Authentication required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+  if (authError || !user) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Invalid authentication' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { departureAirport, departureDate } = await req.json();
 
     if (!departureAirport || !departureDate) {
       return new Response(
         JSON.stringify({ success: false, error: 'departureAirport and departureDate are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate IATA code format
+    const cleanAirport = (departureAirport as string).trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(cleanAirport)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid airport code format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate date format (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(departureDate)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid date format, expected YYYY-MM-DD' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -34,7 +69,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const targetUrl = `https://gowilder.net/api/flights/search/stream?origin=${departureAirport}&date=${departureDate}&max_workers=3&token=${gowilderToken}`;
+    const targetUrl = `https://gowilder.net/api/flights/search/stream?origin=${cleanAirport}&date=${departureDate}&max_workers=3&token=${gowilderToken}`;
 
     const response = await fetch('https://api.firecrawl.dev/v2/scrape', {
       method: 'POST',
