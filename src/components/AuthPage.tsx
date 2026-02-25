@@ -443,7 +443,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
               <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
                 <button type="button" tabIndex={-1}>
-                  <FontAwesomeIcon icon={faLock} className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
                 </button>
 
                 {isSignUp ? (
