@@ -233,7 +233,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
+      style={{ backgroundImage: "url('/assets/authuser/authuser_background3.png')" }}
     >
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
@@ -258,7 +258,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <div>
                   <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
                   <div className="relative">
-                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <FontAwesomeIcon
+                      icon={faUser}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    />
                     <input
                       type="text"
                       value={firstName}
@@ -270,12 +273,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       className={errors.firstName ? floatingInputError : floatingInputNormal}
                     />
                   </div>
-                  {errors.firstName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>}
+                  {errors.firstName && (
+                    <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
                   <div className="relative">
-                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <FontAwesomeIcon
+                      icon={faUser}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    />
                     <input
                       type="text"
                       value={lastName}
@@ -287,7 +295,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       className={errors.lastName ? floatingInputError : floatingInputNormal}
                     />
                   </div>
-                  {errors.lastName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>}
+                  {errors.lastName && (
+                    <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -298,7 +308,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 {isSignUp ? "Email Address" : "Email or Username"}
               </label>
               <div className="relative">
-                <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <FontAwesomeIcon
+                  icon={faEnvelope}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                />
                 <input
                   type="email"
                   value={email}
@@ -318,7 +331,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
               {isSignUp ? (
                 <div className="relative">
-                  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                  <FontAwesomeIcon
+                    icon={faLock}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10"
+                  />
                   <PasswordStrengthInput
                     value={password}
                     onChange={(val) => {
@@ -333,7 +349,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 </div>
               ) : (
                 <div className="relative">
-                  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <FontAwesomeIcon
+                    icon={faLock}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
@@ -354,7 +373,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   </button>
                 </div>
               )}
-              {!isSignUp && errors.password && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>}
+              {!isSignUp && errors.password && (
+                <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>
+              )}
             </div>
 
             {/* Remember Me & Forgot Password */}
