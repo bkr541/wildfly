@@ -521,15 +521,16 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             const depFormatted = format(departureDate, "yyyy-MM-dd");
             const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
 
+            const cacheOrigin = originCode;
+            const cacheDest = searchAll ? "__ALL__" : destinationCode;
+            const cacheDate = depFormatted;
+            const cacheKey = await sha256(`${cacheOrigin}|${cacheDest}|${cacheDate}`);
+
             const canonicalRequest = {
-              origin: originCode,
-              destination: searchAll ? "__ALL__" : destinationCode,
-              departureDate: depFormatted,
-              returnDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-              tripType,
-              searchAll,
+              origin: cacheOrigin,
+              destination: cacheDest,
+              departureDate: cacheDate,
             };
-            const cacheKey = await sha256(JSON.stringify(canonicalRequest));
             const bucket = resetBucket(depFormatted);
 
             const tripTypeMapping = tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way";
