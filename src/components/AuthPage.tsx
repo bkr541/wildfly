@@ -233,7 +233,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('/assets/authuser/authuser_background3.png')" }}
+      style={{ backgroundImage: "url('/assets/authuser/newbg4.png')" }}
     >
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
@@ -253,7 +253,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             </p>
           </div>
 
-          <form key={isSignUp ? "signup" : "signin"} onSubmit={handleSubmit} className="space-y-4 animate-fade-in" noValidate>
+          <form
+            key={isSignUp ? "signup" : "signin"}
+            onSubmit={handleSubmit}
+            className="space-y-4 animate-fade-in"
+            noValidate
+          >
             {/* First/Last Name for Sign Up */}
             {isSignUp && (
               <div className="grid grid-cols-2 gap-3">
