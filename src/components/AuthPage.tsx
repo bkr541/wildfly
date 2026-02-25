@@ -218,23 +218,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // Sign Up Input styles
-  const floatingInputBase =
-    "w-full pl-11 pr-4 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
-  const floatingInputNormal = `${floatingInputBase} border-gray-200 focus:border-[#10B981]`;
-  const floatingInputError = `${floatingInputBase} border-red-400 focus:border-red-400`;
-
-  const strengthInputNormal =
-    "w-full pl-11 pr-10 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
-  const strengthInputError =
-    "w-full pl-11 pr-10 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
-
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
-      {/* Styles adapted from uiverse.io for the Log In inputs */}
       <style>{`
         .satyam-container button {
           border: none;
@@ -247,7 +235,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         .satyam-container {
           --timing: 0.3s;
           --width-of-input: 100%;
-          --height-of-input: 48px;
+          --min-height-of-input: 48px;
           --border-height: 2px;
           --input-bg: #f9fafb;
           --border-color: #10B981;
@@ -255,7 +243,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           --after-border-radius: 4px;
           position: relative;
           width: var(--width-of-input);
-          height: var(--height-of-input);
+          min-height: var(--min-height-of-input);
           display: flex;
           align-items: center;
           padding-inline: 0.8em;
@@ -335,11 +323,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
-                  <div className="relative">
-                    <FontAwesomeIcon
-                      icon={faUser}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                    />
+                  <div className={`satyam-container ${errors.firstName ? "satyam-error" : ""}`}>
+                    <button type="button" tabIndex={-1}>
+                      <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
+                    </button>
                     <input
                       type="text"
                       value={firstName}
@@ -348,8 +335,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                         setErrors((prev) => ({ ...prev, firstName: undefined }));
                       }}
                       placeholder="First Name"
-                      className={errors.firstName ? floatingInputError : floatingInputNormal}
+                      className="satyam-input"
                     />
+                    <button
+                      type="button"
+                      className="satyam-reset hover:text-[#f87171] transition-colors"
+                      onClick={() => setFirstName("")}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
                   </div>
                   {errors.firstName && (
                     <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>
@@ -357,11 +360,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
-                  <div className="relative">
-                    <FontAwesomeIcon
-                      icon={faUser}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                    />
+                  <div className={`satyam-container ${errors.lastName ? "satyam-error" : ""}`}>
+                    <button type="button" tabIndex={-1}>
+                      <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
+                    </button>
                     <input
                       type="text"
                       value={lastName}
@@ -370,8 +372,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                         setErrors((prev) => ({ ...prev, lastName: undefined }));
                       }}
                       placeholder="Last Name"
-                      className={errors.lastName ? floatingInputError : floatingInputNormal}
+                      className="satyam-input"
                     />
+                    <button
+                      type="button"
+                      className="satyam-reset hover:text-[#f87171] transition-colors"
+                      onClick={() => setLastName("")}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
                   </div>
                   {errors.lastName && (
                     <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>
@@ -385,105 +403,85 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">
                 {isSignUp ? "Email Address" : "Email or Username"}
               </label>
-              {isSignUp ? (
-                <div className="relative">
-                  <FontAwesomeIcon
-                    icon={faEnvelope}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
-                  />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setErrors((prev) => ({ ...prev, email: undefined }));
-                    }}
-                    placeholder="Enter Email Address"
-                    className={errors.email ? floatingInputError : floatingInputNormal}
-                  />
-                </div>
-              ) : (
-                <div className={`satyam-container ${errors.email ? "satyam-error" : ""}`}>
-                  <button type="button" tabIndex={-1}>
-                    <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" />
-                  </button>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setErrors((prev) => ({ ...prev, email: undefined }));
-                    }}
-                    placeholder="Enter Email or Username"
-                    className="satyam-input"
-                  />
-                  <button
-                    type="button"
-                    className="satyam-reset hover:text-[#f87171] transition-colors"
-                    onClick={() => setEmail("")}
+              <div className={`satyam-container ${errors.email ? "satyam-error" : ""}`}>
+                <button type="button" tabIndex={-1}>
+                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" />
+                </button>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+                  className="satyam-input"
+                />
+                <button
+                  type="button"
+                  className="satyam-reset hover:text-[#f87171] transition-colors"
+                  onClick={() => setEmail("")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  </button>
-                </div>
-              )}
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
               {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
             </div>
 
             {/* Password Input */}
             <div>
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
-              {isSignUp ? (
-                <div className="relative">
-                  <FontAwesomeIcon
-                    icon={faLock}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
-                  />
-                  <PasswordStrengthInput
-                    value={password}
-                    onChange={(val) => {
-                      setPassword(val);
-                      setErrors((prev) => ({ ...prev, password: undefined }));
-                    }}
-                    showPassword={showPassword}
-                    onToggleVisibility={() => setShowPassword(!showPassword)}
-                    error={errors.password}
-                    inputClassName={errors.password ? strengthInputError : strengthInputNormal}
-                  />
-                </div>
-              ) : (
-                <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
-                  <button type="button" tabIndex={-1}>
-                    <FontAwesomeIcon icon={faLock} className="w-5 h-5" />
-                  </button>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setErrors((prev) => ({ ...prev, password: undefined }));
-                    }}
-                    placeholder="Enter Password"
-                    className="satyam-input"
-                  />
-                  <button
-                    type="button"
-                    className="satyam-toggle hover:text-[#10B981] transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                  >
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
+              <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
+                <button type="button" tabIndex={-1}>
+                  <FontAwesomeIcon icon={faLock} className="w-5 h-5" />
+                </button>
+
+                {isSignUp ? (
+                  <div className="w-full">
+                    <PasswordStrengthInput
+                      value={password}
+                      onChange={(val) => {
+                        setPassword(val);
+                        setErrors((prev) => ({ ...prev, password: undefined }));
+                      }}
+                      showPassword={showPassword}
+                      onToggleVisibility={() => setShowPassword(!showPassword)}
+                      error={errors.password}
+                      inputClassName="satyam-input w-full"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setErrors((prev) => ({ ...prev, password: undefined }));
+                      }}
+                      placeholder="Enter Password"
+                      className="satyam-input flex-1"
+                    />
+                    <button
+                      type="button"
+                      className="satyam-toggle hover:text-[#10B981] transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                    >
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
               {!isSignUp && errors.password && (
                 <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>
               )}
