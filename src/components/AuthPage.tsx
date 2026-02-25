@@ -232,12 +232,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           align-items: center;
           justify-content: center;
         }
+
+        /* ✅ One single source of truth for input background */
         .satyam-container {
           --timing: 0.3s;
           --width-of-input: 100%;
           --min-height-of-input: 48px;
           --border-height: 2px;
-          --input-bg: #f9fafb;
+
+          /* This is the First Name field color you're seeing */
+          --input-bg: #f3f4f6; /* gray-100-ish (slightly darker than #f9fafb) */
+
           --border-color: #10B981;
           --border-radius: 12px;
           --after-border-radius: 4px;
@@ -251,6 +256,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           transition: border-radius 0.5s ease;
           background: var(--input-bg);
         }
+
+        /* ✅ Force any nested input wrappers to not paint their own background */
+        .satyam-container * {
+          background-color: transparent !important;
+        }
+
         .satyam-container.satyam-error {
           --border-color: #f87171;
         }
@@ -318,7 +329,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="space-y-4 animate-fade-in"
             noValidate
           >
-            {/* First/Last Name for Sign Up (LAST NAME moved below FIRST NAME) */}
+            {/* First/Last Name for Sign Up */}
             {isSignUp && (
               <div className="space-y-4">
                 <div>
@@ -441,59 +452,33 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {/* Password Input */}
             <div>
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
-
-              {/* Password input stays as a normal "input group" */}
               <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
                 <button type="button" tabIndex={-1}>
                   <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
                 </button>
 
-                {isSignUp ? (
-                  <>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setErrors((prev) => ({ ...prev, password: undefined }));
-                      }}
-                      placeholder="Enter Password"
-                      className="satyam-input flex-1"
-                    />
-                    <button
-                      type="button"
-                      className="satyam-toggle hover:text-[#10B981] transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                    >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setErrors((prev) => ({ ...prev, password: undefined }));
-                      }}
-                      placeholder="Enter Password"
-                      className="satyam-input flex-1"
-                    />
-                    <button
-                      type="button"
-                      className="satyam-toggle hover:text-[#10B981] transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                    >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  placeholder="Enter Password"
+                  className="satyam-input flex-1"
+                />
+
+                <button
+                  type="button"
+                  className="satyam-toggle hover:text-[#10B981] transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Password strength group moved BELOW the input group (Sign Up only) */}
+              {/* Password strength UI (Sign Up only) */}
               {isSignUp && (
                 <div className="mt-3">
                   <PasswordStrengthInput
