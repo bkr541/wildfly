@@ -13,7 +13,7 @@ export default {
       },
     },
     fontFamily: {
-        sans: ["Montserrat", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Quicksand", "Montserrat", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       extend: {
       colors: {
