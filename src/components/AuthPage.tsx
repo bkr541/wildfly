@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
@@ -46,8 +46,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
-
-  // Added state for the toggle/checkbox
   const [rememberMe, setRememberMe] = useState(false);
 
   const validateSignUp = (): boolean => {
@@ -91,7 +89,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     if (!validateSignIn()) return;
     setLoading(true);
     try {
-      // Resolve username to email if input is not an email
       let loginEmail = email.trim();
       if (!emailRegex.test(loginEmail)) {
         const { data: userRow } = await supabase
@@ -121,7 +118,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         .eq("auth_user_id", authData.user.id)
         .maybeSingle();
 
-      // Persist remember_me preference
       if (profile) {
         await supabase.from("user_info").update({ remember_me: rememberMe }).eq("auth_user_id", authData.user.id);
       }
@@ -222,68 +218,87 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // UI STYLING: Compact Navy/Slate inputs with Emerald accents
-  const inputBase =
-    "w-full pl-9 pr-10 py-3.5 rounded-lg bg-[#2D3748] text-white placeholder:text-gray-400 text-sm outline-none transition-all";
-  const inputNormal = `${inputBase} border border-transparent focus:border-[#10B981]`;
-  const inputErrorStyle = `${inputBase} border border-red-500 focus:border-red-500`;
+  // Floating label input style
+  const floatingInputBase =
+    "w-full px-4 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
+  const floatingInputNormal = `${floatingInputBase} border-gray-200 focus:border-[#10B981]`;
+  const floatingInputError = `${floatingInputBase} border-red-400 focus:border-red-400`;
+
+  // Password strength input uses same style but needs the icon padding
+  const strengthInputNormal =
+    "w-full pl-4 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
+  const strengthInputError =
+    "w-full pl-4 pr-10 py-4 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-red-400 focus:border-red-400";
 
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/authuser_background.png')" }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center px-6 z-10">
-        {/* Compact Logo & Header */}
-        <div className="w-full max-w-[320px] mb-6">
-          <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-16 w-auto mx-auto mb-2 object-contain" />
-          <h1 className="text-3xl font-bold text-[#1F2937]">Welcome</h1>
-          <p className="text-[#4B5563] text-sm">Sign In Your Account</p>
-        </div>
+      {/* Top section with logo */}
+      <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
+        <img src="/assets/logo/wflogo1.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-[320px] space-y-3" noValidate>
-          {/* First/Last Name for Sign Up (Compact Grid) */}
-          {isSignUp && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">First Name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    setErrors((prev) => ({ ...prev, firstName: undefined }));
-                  }}
-                  className={
-                    errors.firstName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Last Name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    setErrors((prev) => ({ ...prev, lastName: undefined }));
-                  }}
-                  className={
-                    errors.lastName ? inputErrorStyle.replace("pl-9", "px-3") : inputNormal.replace("pl-9", "px-3")
-                  }
-                />
-              </div>
-            </div>
-          )}
+      {/* White card form */}
+      <div className="flex-1 flex flex-col items-center justify-end z-10">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl">
+          {/* Header */}
+          <h1 className="text-3xl font-extrabold text-[#1F2937] text-center mb-1">Welcome!</h1>
+          <p className="text-center text-sm text-[#6B7280] mb-6">
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setErrors({});
+                setSubmitError(null);
+              }}
+              className="text-[#10B981] font-bold hover:underline"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </p>
 
-          {/* Email Input with Label & Icon */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">{isSignUp ? "Email" : "Email or Username"}</label>
-            <div className="relative">
-              <FontAwesomeIcon
-                icon={faEnvelope}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
-              />
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {/* First/Last Name for Sign Up */}
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      setErrors((prev) => ({ ...prev, firstName: undefined }));
+                    }}
+                    placeholder="First Name"
+                    className={errors.firstName ? floatingInputError : floatingInputNormal}
+                  />
+                  {errors.firstName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>}
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      setErrors((prev) => ({ ...prev, lastName: undefined }));
+                    }}
+                    placeholder="Last Name"
+                    className={errors.lastName ? floatingInputError : floatingInputNormal}
+                  />
+                  {errors.lastName && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>}
+                </div>
+              </div>
+            )}
+
+            {/* Email Input */}
+            <div>
+              <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">
+                {isSignUp ? "Email Address" : "Email or Username"}
+              </label>
               <input
                 type="email"
                 value={email}
@@ -291,110 +306,92 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   setEmail(e.target.value);
                   setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                placeholder={isSignUp ? "Email" : "Email or Username"}
-                className={errors.email ? inputErrorStyle : inputNormal}
+                placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+                className={errors.email ? floatingInputError : floatingInputNormal}
               />
+              {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
             </div>
-            {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
-          </div>
 
-          {/* Password Input (Functionality Restored) */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter ml-1">Password</label>
-            {isSignUp ? (
-              <PasswordStrengthInput
-                value={password}
-                onChange={(val) => {
-                  setPassword(val);
-                  setErrors((prev) => ({ ...prev, password: undefined }));
-                }}
-                showPassword={showPassword}
-                onToggleVisibility={() => setShowPassword(!showPassword)}
-                error={errors.password}
-                inputClassName={errors.password ? inputErrorStyle : inputNormal}
-              />
-            ) : (
-              <div className="relative">
-                <FontAwesomeIcon
-                  icon={faLock}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
-                />
-                <input
-                  type="password"
+            {/* Password Input */}
+            <div>
+              <label className="text-xs font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
+              {isSignUp ? (
+                <PasswordStrengthInput
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
+                  onChange={(val) => {
+                    setPassword(val);
                     setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
-                  placeholder="Password"
-                  className={errors.password ? inputErrorStyle : inputNormal}
+                  showPassword={showPassword}
+                  onToggleVisibility={() => setShowPassword(!showPassword)}
+                  error={errors.password}
+                  inputClassName={errors.password ? strengthInputError : strengthInputNormal}
                 />
+              ) : (
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrors((prev) => ({ ...prev, password: undefined }));
+                    }}
+                    placeholder="Enter Password"
+                    className={`${errors.password ? floatingInputError : floatingInputNormal} pr-10`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
+                    tabIndex={-1}
+                  >
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              {!isSignUp && errors.password && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>}
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between text-sm text-[#6B7280]">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <div className="relative inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm peer-checked:after:translate-x-4"></div>
+                </div>
+                <span className="font-medium select-none text-[#374151]">Remember me</span>
+              </label>
+              {!isSignUp && (
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
-                  tabIndex={-1}
+                  onClick={() => setShowForgotPassword(true)}
+                  className="font-semibold text-[#10B981] hover:underline"
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-3.5 h-3.5" />
+                  Forgot password?
                 </button>
-              </div>
-            )}
-            {!isSignUp && errors.password && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>}
-          </div>
+              )}
+            </div>
 
-          {/* Options Row: Remember Me Toggle & Forgot Password */}
-          <div className="flex items-center justify-between text-xs text-[#4B5563] pt-1">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <div className="relative inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-8 h-4 bg-[#2D3748] rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-              </div>
-              <span className="font-semibold select-none">Remember Me</span>
-            </label>
-            {!isSignUp && (
-              <button
-                type="button"
-                onClick={() => setShowForgotPassword(true)}
-                className="font-semibold hover:text-[#10B981] transition-colors"
-              >
-                Forgot Password?
-              </button>
-            )}
-          </div>
+            {/* Submit Button - green gradient */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
+            </button>
 
-          {/* Submit Button (Compact) */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 mt-2 rounded-lg bg-[#10B981] text-white font-bold text-base shadow-md hover:bg-[#059669] transform active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
-          </button>
-
-          {submitError && <p className="text-red-500 text-[10px] text-center font-bold uppercase">{submitError}</p>}
-        </form>
-
-        <p className="mt-6 text-white text-sm font-medium">
-          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setErrors({});
-              setSubmitError(null);
-            }}
-            className="text-[#10B981] font-bold hover:underline"
-          >
-            {isSignUp ? "Sign In" : "Sign Up"}
-          </button>
-        </p>
+            {submitError && <p className="text-red-500 text-xs text-center font-semibold">{submitError}</p>}
+          </form>
+        </div>
       </div>
 
-      {/* --- ALL ALERT DIALOGS RESTORED --- */}
+      {/* --- ALL ALERT DIALOGS --- */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
           <AlertDialogHeader className="space-y-1">
