@@ -235,6 +235,35 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
+      {/* Styles applied specifically for the Log In inputs based on uiverse.io/VijinV/mean-goose-92 */}
+      <style>{`
+        .vijinv-input {
+          width: 100%;
+          background-color: #212121;
+          color: #ffffff;
+          padding: 12px 40px 12px 44px; /* padding for icons */
+          border: 2px solid #212121;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          outline: none;
+          transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+          box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .vijinv-input:focus {
+          border-color: #10B981;
+          background-color: #2a2a2a;
+          box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+          transform: translateY(-2px);
+        }
+        .vijinv-input::placeholder {
+          color: #6b7280;
+        }
+        .vijinv-input-error {
+          border-color: #f87171;
+          box-shadow: 0 0 15px rgba(248, 113, 113, 0.4);
+        }
+      `}</style>
+
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
         <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
@@ -307,7 +336,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faEnvelope}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10 ${
+                    !isSignUp ? "text-gray-400" : "text-gray-400"
+                  }`}
                 />
                 <input
                   type="email"
@@ -317,7 +348,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     setErrors((prev) => ({ ...prev, email: undefined }));
                   }}
                   placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
-                  className={errors.email ? floatingInputError : floatingInputNormal}
+                  className={
+                    isSignUp
+                      ? errors.email
+                        ? floatingInputError
+                        : floatingInputNormal
+                      : `vijinv-input ${errors.email ? "vijinv-input-error" : ""}`
+                  }
                 />
               </div>
               {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
@@ -348,7 +385,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faLock}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -358,12 +395,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       setErrors((prev) => ({ ...prev, password: undefined }));
                     }}
                     placeholder="Enter Password"
-                    className={`${errors.password ? floatingInputError : floatingInputNormal} pr-10`}
+                    className={`vijinv-input ${errors.password ? "vijinv-input-error" : ""}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors z-10"
                     tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
