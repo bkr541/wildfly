@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash, faEnvelope, faUser } from "@fortawesome/free-regular-svg-icons";
 import { faFingerprint } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
-import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
+import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -26,6 +26,32 @@ interface FieldErrors {
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const strengthLabels = ["Too weak", "Too weak", "Weak", "Medium", "Strong", "Very strong"];
+const strengthColors = ["#f87171", "#f87171", "#f97316", "#facc15", "#a3e635", "#22c55e"];
+
+const PasswordStrengthBar = ({ password }: { password: string }) => {
+  const score = getPasswordStrengthScore(password);
+  const total = 5;
+  return (
+    <div className="mt-2">
+      <div className="flex gap-1.5">
+        {Array.from({ length: total }).map((_, i) => (
+          <span
+            key={i}
+            className="h-1.5 w-full rounded-full transition-colors"
+            style={{ backgroundColor: i < score ? strengthColors[score] : "#e5e7eb" }}
+          />
+        ))}
+      </div>
+      <p className="text-[11px] mt-1 ml-0.5 font-medium" style={{ color: strengthColors[score] }}>
+        {strengthLabels[score]}
+      </p>
+    </div>
+  );
+};
+
+
 
 const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -265,7 +291,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
         .satyam-container.satyam-error {
           --border-color: #f87171;
-          border: 1.5px solid #f87171;
+          border-bottom: 2px solid #f87171;
         }
         .satyam-container.satyam-error > button {
           color: #f87171 !important;
@@ -483,24 +509,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 </button>
               </div>
 
-              {/* Password strength UI (Sign Up only) */}
-              {isSignUp && (
-                <div className="mt-3">
-                  <PasswordStrengthInput
-                    value={password}
-                    onChange={(val) => {
-                      setPassword(val);
-                      setErrors((prev) => ({ ...prev, password: undefined }));
-                    }}
-                    showPassword={showPassword}
-                    onToggleVisibility={() => setShowPassword(!showPassword)}
-                    error={errors.password}
-                    inputClassName="hidden"
-                  />
-                </div>
+              {/* Password strength bar (Sign Up only) */}
+              {isSignUp && password.length > 0 && (
+                <PasswordStrengthBar password={password} />
               )}
 
-              {!isSignUp && errors.password && (
+              {errors.password && (
                 <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>
               )}
             </div>
