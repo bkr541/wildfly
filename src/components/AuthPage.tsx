@@ -218,13 +218,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // Floating label input style - decreased padding (py-3)
+  // Sign Up Input styles
   const floatingInputBase =
     "w-full pl-11 pr-4 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border";
   const floatingInputNormal = `${floatingInputBase} border-gray-200 focus:border-[#10B981]`;
   const floatingInputError = `${floatingInputBase} border-red-400 focus:border-red-400`;
 
-  // Password strength input uses same style but needs the icon padding - decreased padding (py-3)
   const strengthInputNormal =
     "w-full pl-11 pr-10 py-3 rounded-xl bg-transparent text-[#1F2937] text-sm outline-none transition-all border border-gray-200 focus:border-[#10B981]";
   const strengthInputError =
@@ -235,6 +234,88 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
+      {/* Styles adapted from uiverse.io for the Log In inputs */}
+      <style>{`
+        .satyam-container button {
+          border: none;
+          background: none;
+          color: #9ca3af;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .satyam-container {
+          --timing: 0.3s;
+          --width-of-input: 100%;
+          --height-of-input: 48px;
+          --border-height: 2px;
+          --input-bg: #f9fafb;
+          --border-color: #10B981;
+          --border-radius: 12px;
+          --after-border-radius: 4px;
+          position: relative;
+          width: var(--width-of-input);
+          height: var(--height-of-input);
+          display: flex;
+          align-items: center;
+          padding-inline: 0.8em;
+          border-radius: var(--border-radius);
+          transition: border-radius 0.5s ease;
+          background: var(--input-bg);
+        }
+        .satyam-container.satyam-error {
+          --border-color: #f87171;
+        }
+        .satyam-input {
+          font-size: 0.875rem;
+          background-color: transparent;
+          width: 100%;
+          height: 100%;
+          padding-inline: 0.5em;
+          padding-block: 0.7em;
+          border: none;
+          color: #1F2937;
+        }
+        .satyam-container:before {
+          content: "";
+          position: absolute;
+          background: var(--border-color);
+          transform: scaleX(0);
+          transform-origin: center;
+          width: 100%;
+          height: var(--border-height);
+          left: 0;
+          bottom: 0;
+          border-radius: 1px;
+          transition: transform var(--timing) ease;
+        }
+        .satyam-container:focus-within {
+          border-radius: var(--after-border-radius);
+        }
+        .satyam-input:focus {
+          outline: none;
+        }
+        .satyam-container:focus-within:before {
+          transform: scale(1);
+        }
+        .satyam-reset {
+          border: none;
+          background: none;
+          opacity: 0;
+          visibility: hidden;
+          cursor: pointer;
+        }
+        .satyam-input:not(:placeholder-shown) ~ .satyam-reset {
+          opacity: 1;
+          visibility: visible;
+        }
+        .satyam-toggle {
+          border: none;
+          background: none;
+          cursor: pointer;
+        }
+      `}</style>
+
       {/* Top section with logo */}
       <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
         <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
@@ -304,22 +385,56 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">
                 {isSignUp ? "Email Address" : "Email or Username"}
               </label>
-              <div className="relative">
-                <FontAwesomeIcon
-                  icon={faEnvelope}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setErrors((prev) => ({ ...prev, email: undefined }));
-                  }}
-                  placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
-                  className={errors.email ? floatingInputError : floatingInputNormal}
-                />
-              </div>
+              {isSignUp ? (
+                <div className="relative">
+                  <FontAwesomeIcon
+                    icon={faEnvelope}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
+                  />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
+                    placeholder="Enter Email Address"
+                    className={errors.email ? floatingInputError : floatingInputNormal}
+                  />
+                </div>
+              ) : (
+                <div className={`satyam-container ${errors.email ? "satyam-error" : ""}`}>
+                  <button type="button" tabIndex={-1}>
+                    <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" />
+                  </button>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
+                    placeholder="Enter Email or Username"
+                    className="satyam-input"
+                  />
+                  <button
+                    type="button"
+                    className="satyam-reset hover:text-[#f87171] transition-colors"
+                    onClick={() => setEmail("")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+              )}
               {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
             </div>
 
@@ -345,11 +460,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   />
                 </div>
               ) : (
-                <div className="relative">
-                  <FontAwesomeIcon
-                    icon={faLock}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                  />
+                <div className={`satyam-container ${errors.password ? "satyam-error" : ""}`}>
+                  <button type="button" tabIndex={-1}>
+                    <FontAwesomeIcon icon={faLock} className="w-5 h-5" />
+                  </button>
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
@@ -358,12 +472,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       setErrors((prev) => ({ ...prev, password: undefined }));
                     }}
                     placeholder="Enter Password"
-                    className={`${errors.password ? floatingInputError : floatingInputNormal} pr-10`}
+                    className="satyam-input"
                   />
                   <button
                     type="button"
+                    className="satyam-toggle hover:text-[#10B981] transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
                     tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-5 h-5" />
