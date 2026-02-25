@@ -259,6 +259,30 @@ export type Database = {
         }
         Relationships: []
       }
+      route_favorites: {
+        Row: {
+          created_at: string
+          dest_iata: string
+          id: string
+          origin_iata: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dest_iata: string
+          id?: string
+          origin_iata: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dest_iata?: string
+          id?: string
+          origin_iata?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_credit_wallet: {
         Row: {
           monthly_period_end: string

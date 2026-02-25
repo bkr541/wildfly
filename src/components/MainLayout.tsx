@@ -13,6 +13,7 @@ import {
   faCalendarDays,
   faRightFromBracket,
   faChevronLeft,
+  faRoute,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -23,6 +24,7 @@ const menuItems = [
   { icon: faPlane, label: "Flights" },
   { icon: faCalendarDays, label: "Itinerary" },
   { icon: faLocationDot, label: "Destinations" },
+  { icon: faRoute, label: "Routes" },
   { icon: faUserGroup, label: "Friends" },
   { icon: faCreditCard, label: "Subscription" },
 ];
@@ -32,6 +34,7 @@ const pageMap: Record<string, string> = {
   Flights: "flights",
   Itinerary: "itinerary",
   Destinations: "destinations",
+  Routes: "routes",
   Subscription: "subscription",
 };
 
