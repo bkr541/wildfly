@@ -386,16 +386,13 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                     const hasGoing = !!userFlights[goingKey];
 
                                     return (
-                                       <div key={idx} className="flex flex-col">
-                                          <div className={cn(
-                                           "flex items-center border px-2.5 py-2 transition-colors",
-                                           isFlightOpen
-                                             ? "bg-white rounded-t-lg border-b-0"
-                                             : "bg-white rounded-lg",
-                                           flight.fares.basic != null
-                                             ? "border-[#10B981]"
-                                             : isFlightOpen ? "border-[#345C5A]/15" : "border-[#E8EBEB]",
-                                          )}>
+                                       <div key={idx} className={cn(
+                                         "flex flex-col rounded-lg border bg-white overflow-hidden transition-colors",
+                                         flight.fares.basic != null
+                                           ? "border-[#10B981]"
+                                           : isFlightOpen ? "border-[#345C5A]/15" : "border-[#E8EBEB]",
+                                       )}>
+                                          <div className="flex items-center px-2.5 py-2">
                                            <button
                                              onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
                                              className="flex items-center justify-between text-left flex-1 min-w-0"
@@ -415,32 +412,32 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                            </button>
                                          </div>
 
-                                         {isFlightOpen && (
-                                           <div className="bg-white animate-fade-in px-1 py-2 rounded-b-lg border border-t border-t-[#E8EBEB]/50 border-[#345C5A]/15">
-                                             <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                             <div className="flex items-center gap-2 px-5 pt-2 pb-1">
-                                               <button
-                                                 onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
-                                                 className={cn(
-                                                   "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
-                                                   hasAlert ? "bg-[#E89830] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
-                                                 )}
-                                               >
-                                                 <FontAwesomeIcon icon={faBullhorn} className="w-3.5 h-3.5" />
-                                               </button>
-                                               <button
-                                                 onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "going"); }}
-                                                 className={cn(
-                                                   "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
-                                                   hasGoing ? "bg-[#345C5A] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
-                                                 )}
-                                               >
-                                                 <FontAwesomeIcon icon={faCalendarDays} className="w-3.5 h-3.5" />
-                                               </button>
-                                             </div>
-                                           </div>
-                                         )}
-                                       </div>
+                                          {isFlightOpen && (
+                                            <div className="bg-white animate-fade-in px-1 py-2 border-t border-[#E8EBEB]/50">
+                                              <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                              <div className="flex items-center gap-2 px-5 pt-2 pb-1">
+                                                <button
+                                                  onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
+                                                  className={cn(
+                                                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
+                                                    hasAlert ? "bg-[#E89830] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
+                                                  )}
+                                                >
+                                                  <FontAwesomeIcon icon={faBullhorn} className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                  onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "going"); }}
+                                                  className={cn(
+                                                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
+                                                    hasGoing ? "bg-[#345C5A] text-white scale-110" : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
+                                                  )}
+                                                >
+                                                  <FontAwesomeIcon icon={faCalendarDays} className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
                                     );
                                   })}
                                 </div>
