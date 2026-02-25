@@ -74,7 +74,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
       {/* Header */}
       {subScreenTitle ? (
-        <header className="flex items-center justify-between px-5 pt-10 pb-4 relative z-10">
+        <header className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
           <button
             type="button"
             onClick={onSubScreenBack}
@@ -86,7 +86,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
           <div className="w-10" />
         </header>
       ) : (
-        <header className="flex items-center justify-between px-6 pt-10 pb-4 relative z-10">
+        <header className="flex items-center justify-between px-6 pt-4 pb-2 relative z-10">
           {/* Left: hamburger (staggered) + sidebar */}
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
