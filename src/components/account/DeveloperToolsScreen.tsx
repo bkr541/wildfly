@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface DeveloperToolsScreenProps {
@@ -129,7 +129,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                     <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                       {ns}
                       <button type="button" onClick={() => removeNamespace(ns, "enabled_debug_components")} className="hover:opacity-70">
-                        <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+                        <HugeiconsIcon icon={Cancel01Icon} size={10} color="currentColor" strokeWidth={1.5} />
                       </button>
                     </span>
                   ))}
@@ -140,7 +140,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 <div className="flex flex-wrap gap-2 mb-3">
                   {availableDebugSuggestions.map((ns) => (
                     <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_debug_components")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
-                      <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
+                      <HugeiconsIcon icon={PlusSignIcon} size={8} color="currentColor" strokeWidth={1.5} />
                       {ns}
                     </button>
                   ))}
@@ -197,7 +197,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                     <span key={ns} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
                       {ns}
                       <button type="button" onClick={() => removeNamespace(ns, "enabled_component_logging")} className="hover:opacity-70">
-                        <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+                        <HugeiconsIcon icon={Cancel01Icon} size={10} color="currentColor" strokeWidth={1.5} />
                       </button>
                     </span>
                   ))}
@@ -208,7 +208,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 <div className="flex flex-wrap gap-2 mb-3">
                   {availableSuggestions.map((ns) => (
                     <button key={ns} type="button" onClick={() => addNamespace(ns, "enabled_component_logging")} className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-dashed border-[#C4CACA] text-[#6B7B7B] text-xs font-medium hover:border-[#345C5A] hover:text-[#345C5A] transition-colors">
-                      <FontAwesomeIcon icon={faPlus} className="w-2 h-2" />
+                      <HugeiconsIcon icon={PlusSignIcon} size={8} color="currentColor" strokeWidth={1.5} />
                       {ns}
                     </button>
                   ))}

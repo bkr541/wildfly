@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSun, faMoon, faCircleHalfStroke } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Sun01Icon, Moon01Icon, EarthIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface AppearanceScreenProps {
@@ -9,9 +9,9 @@ interface AppearanceScreenProps {
 }
 
 const themes = [
-  { key: "light", label: "Light", icon: faSun },
-  { key: "dark", label: "Dark", icon: faMoon },
-  { key: "system", label: "System", icon: faCircleHalfStroke },
+  { key: "light", label: "Light", icon: Sun01Icon },
+  { key: "dark", label: "Dark", icon: Moon01Icon },
+  { key: "system", label: "System", icon: EarthIcon },
 ] as const;
 
 const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
@@ -50,7 +50,6 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-
       <div className="flex-1 px-5 pb-4">
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
           {themes.map((t, idx) => (
@@ -61,7 +60,7 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
               className={`flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors ${idx < themes.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}
             >
               <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center mr-3 shrink-0">
-                <FontAwesomeIcon icon={t.icon} className="w-3.5 h-3.5 text-[#345C5A]" />
+                <HugeiconsIcon icon={t.icon} size={14} color="#345C5A" strokeWidth={1.5} />
               </span>
               <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{t.label}</span>
               <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${selected === t.key ? "border-[#345C5A]" : "border-[#D1D5D5]"}`}>

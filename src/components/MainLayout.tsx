@@ -1,32 +1,32 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  faBarsStaggered, // Replaced faBars with faBarsStaggered
-  faMagnifyingGlass,
-  faHouse,
-  faPlane,
-  faLocationDot,
-  faUserGroup,
-  faCreditCard,
-  faCalendarDays,
-  faRightFromBracket,
-  faChevronLeft,
-  faRoute,
-} from "@fortawesome/free-solid-svg-icons";
-import { faBell } from "@fortawesome/free-regular-svg-icons";
+  Menu01Icon,
+  Search01Icon,
+  Home01Icon,
+  Airplane01Icon,
+  Location01Icon,
+  UserGroupIcon,
+  CreditCardIcon,
+  Calendar03Icon,
+  Logout01Icon,
+  ArrowLeft01Icon,
+  RouteIcon,
+  Notification01Icon,
+} from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { icon: faHouse, label: "Home" },
-  { icon: faPlane, label: "Flights" },
-  { icon: faCalendarDays, label: "Itinerary" },
-  { icon: faLocationDot, label: "Destinations" },
-  { icon: faRoute, label: "Routes" },
-  { icon: faUserGroup, label: "Friends" },
-  { icon: faCreditCard, label: "Subscription" },
+  { icon: Home01Icon, label: "Home" },
+  { icon: Airplane01Icon, label: "Flights" },
+  { icon: Calendar03Icon, label: "Itinerary" },
+  { icon: Location01Icon, label: "Destinations" },
+  { icon: RouteIcon, label: "Routes" },
+  { icon: UserGroupIcon, label: "Friends" },
+  { icon: CreditCardIcon, label: "Subscription" },
 ];
 
 const pageMap: Record<string, string> = {
@@ -42,11 +42,8 @@ interface MainLayoutProps {
   children: ReactNode;
   onSignOut: () => void;
   onNavigate: (page: string, data?: string) => void;
-  /** Hide the right-side header icons (search, bell, avatar). Default false. */
   hideHeaderRight?: boolean;
-  /** When set, replaces the entire header with a centered title + back button. */
   subScreenTitle?: string | null;
-  /** Called when the back button is pressed in sub-screen mode. */
   onSubScreenBack?: () => void;
 }
 
@@ -83,21 +80,21 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             onClick={onSubScreenBack}
             className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
           >
-            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="currentColor" strokeWidth={1.5} />
           </button>
           <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">{subScreenTitle}</h1>
           <div className="w-10" />
         </header>
       ) : (
         <header className="flex items-center justify-between px-6 pt-4 pb-2 relative z-10">
-          {/* Left: hamburger (staggered) + sidebar */}
+          {/* Left: hamburger + sidebar */}
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
                 className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
               >
-                <FontAwesomeIcon icon={faBarsStaggered} className="w-6 h-6" />
+                <HugeiconsIcon icon={Menu01Icon} size={24} color="currentColor" strokeWidth={1.5} />
               </button>
             </SheetTrigger>
 
@@ -120,7 +117,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
                   type="button"
                 >
-                  <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+                  <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="currentColor" strokeWidth={1.5} />
                 </button>
               </div>
 
@@ -134,7 +131,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                     onClick={() => handleMenuClick(item.label)}
                     className="flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
                   >
-                    <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                    <HugeiconsIcon icon={item.icon} size={20} color="currentColor" strokeWidth={1.5} />
                     <span className="text-base font-semibold">{item.label}</span>
                   </button>
                 ))}
@@ -150,7 +147,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   type="button"
                   className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
                 >
-                  <FontAwesomeIcon icon={faRightFromBracket} className="w-5 h-5" />
+                  <HugeiconsIcon icon={Logout01Icon} size={20} color="currentColor" strokeWidth={1.5} />
                   <span className="text-base font-semibold">Logout</span>
                 </button>
               </div>
@@ -185,7 +182,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                     isSearchOpen ? "absolute right-2.5 h-6 w-6" : "h-12 w-10",
                   )}
                 >
-                  <FontAwesomeIcon icon={faMagnifyingGlass} className="w-[22px] h-[22px]" />
+                  <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={1.5} />
                 </button>
               </div>
 
@@ -199,7 +196,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   type="button"
                   className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
                 >
-                  <FontAwesomeIcon icon={faBell} className="w-6 h-6 shrink-0" />
+                  <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
                 </button>
               </div>
 

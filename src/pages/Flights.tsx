@@ -3,21 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  faPlane,
-  faLocationDot,
-  faTreeCity,
-  faPlaneDeparture,
-  faPlaneArrival,
-  faCalendarDays,
-  faArrowRight,
-  faRepeat,
-  faSun,
-  faRoute,
-  faXmark,
-  faCirclePlus,
-} from "@fortawesome/free-solid-svg-icons";
+  Airplane01Icon,
+  Location01Icon,
+  Building04Icon,
+  Calendar03Icon,
+  ArrowRight01Icon,
+  RefreshIcon,
+  Sun01Icon,
+  RouteIcon,
+  Cancel01Icon,
+  AddCircleIcon,
+} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 import { normalizeSingleRouteResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
@@ -45,10 +43,10 @@ const ACTIVE_TRIP_FLEX = 1.7;
 type TripType = "one-way" | "round-trip" | "day-trip" | "multi-day";
 
 const tripOptions: { value: TripType; label: string; icon: any }[] = [
-  { value: "one-way", label: "One Way", icon: faArrowRight },
-  { value: "round-trip", label: "Round Trip", icon: faRepeat },
-  { value: "day-trip", label: "Day Trip", icon: faSun },
-  { value: "multi-day", label: "Multi Day", icon: faRoute },
+  { value: "one-way", label: "One Way", icon: ArrowRight01Icon },
+  { value: "round-trip", label: "Round Trip", icon: RefreshIcon },
+  { value: "day-trip", label: "Day Trip", icon: Sun01Icon },
+  { value: "multi-day", label: "Multi Day", icon: RouteIcon },
 ];
 
 interface Airport {
@@ -148,7 +146,7 @@ const MultiAirportSearchbox = ({
           disabled ? "cursor-not-allowed" : "cursor-text",
         )}
       >
-        <FontAwesomeIcon icon={icon} className="w-4 h-4 text-[#345C5A] shrink-0 mr-2" />
+        <HugeiconsIcon icon={icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
         <div
           className="flex-1 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden no-scrollbar py-1"
@@ -174,13 +172,13 @@ const MultiAirportSearchbox = ({
                 }}
                 className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
               >
-                <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
+                <HugeiconsIcon icon={Cancel01Icon} size={10} color="currentColor" strokeWidth={1.5} />
               </button>
             </span>
           ))}
 
           {selected.length > 0 && !query && !disabled && (
-            <FontAwesomeIcon icon={faCirclePlus} className="w-3 h-3 text-[#9CA3AF] ml-0.5 shrink-0" />
+            <HugeiconsIcon icon={AddCircleIcon} size={12} color="#9CA3AF" strokeWidth={1.5} className="ml-0.5 shrink-0" />
           )}
 
           <input
@@ -220,7 +218,7 @@ const MultiAirportSearchbox = ({
             }}
             className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
           >
-            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={1.5} />
           </button>
         )}
       </div>
@@ -235,7 +233,7 @@ const MultiAirportSearchbox = ({
                 onClick={() => addAreaAirports(cityAirports)}
                 className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
               >
-                <FontAwesomeIcon icon={faTreeCity} className="w-3 h-3 opacity-60" />
+                <HugeiconsIcon icon={Building04Icon} size={12} color="currentColor" strokeWidth={1.5} className="opacity-60" />
                 {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </button>
 
@@ -256,7 +254,7 @@ const MultiAirportSearchbox = ({
                     )}
                   >
                     <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                      <FontAwesomeIcon icon={faLocationDot} className="w-3 h-3 mr-2 text-[#9CA3AF] shrink-0" />
+                      <HugeiconsIcon icon={Location01Icon} size={12} color="#9CA3AF" strokeWidth={1.5} className="mr-2 shrink-0" />
                       <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
                       <span className="ml-2 truncate">{a.name}</span>
                       {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
@@ -320,7 +318,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               style={{ animationDelay: "0.6s" }}
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <FontAwesomeIcon icon={faPlane} className="w-10 h-10 text-[#345C5A] animate-bounce" />
+              <HugeiconsIcon icon={Airplane01Icon} size={40} color="#345C5A" strokeWidth={1.5} className="animate-bounce" />
             </div>
           </div>
           <p className="text-2xl font-bold text-[#2E4A4A] tracking-tight mb-2">Searching Flights</p>
@@ -358,7 +356,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
-                <FontAwesomeIcon icon={opt.icon} className="w-4 h-4 shrink-0 transition-transform duration-300" />
+                <HugeiconsIcon icon={opt.icon} size={16} color="currentColor" strokeWidth={1.5} className="shrink-0 transition-transform duration-300" />
                 {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
               </button>
             );
@@ -371,7 +369,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             {/* Departure now uses MultiAirportSearchbox */}
             <MultiAirportSearchbox
               label="Departure"
-              icon={faPlaneDeparture}
+              icon={Airplane01Icon}
               selected={departures}
               onChange={setDepartures}
               airports={airports}
@@ -382,7 +380,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
             <MultiAirportSearchbox
               label="Arrival"
-              icon={faPlaneArrival}
+              icon={Airplane01Icon}
               selected={arrivals}
               onChange={setArrivals}
               airports={airports}
@@ -403,7 +401,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
                     <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
-                      <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
+                      <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
@@ -435,7 +433,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                       <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
-                        <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#345C5A] shrink-0" />
+                        <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
