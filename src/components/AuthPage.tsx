@@ -293,7 +293,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           --border-color: #f87171;
           border-bottom: 2px solid #f87171;
         }
-        .satyam-container.satyam-error > button {
+        .satyam-container.satyam-error > button:not(.satyam-toggle) {
           color: #f87171 !important;
         }
         .satyam-input {
