@@ -268,7 +268,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           --border-height: 2px;
 
           /* This is the First Name field color you're seeing */
-          --input-bg: #f3f4f6; /* gray-100-ish (slightly darker than #f9fafb) */
+          --input-bg: #eef0f3;
 
           --border-color: #10B981;
           --border-radius: 12px;
