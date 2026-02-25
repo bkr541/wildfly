@@ -244,14 +244,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
           {/* Header */}
-          <h1 className="text-3xl font-extrabold text-[#1F2937] text-center mb-1">
-            {isSignUp ? "Create Your Account" : "Welcome Back"}
-          </h1>
-          <p className="text-center text-sm text-[#6B7280] mb-6">
-            {isSignUp ? "Sign up to get started" : "Sign in to your account"}
-          </p>
+          <div key={isSignUp ? "header-signup" : "header-signin"} className="animate-fade-in">
+            <h1 className="text-3xl font-extrabold text-[#1F2937] text-center mb-1">
+              {isSignUp ? "Create Your Account" : "Welcome Back"}
+            </h1>
+            <p className="text-center text-sm text-[#6B7280] mb-6">
+              {isSignUp ? "Sign up to get started" : "Sign in to your account"}
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form key={isSignUp ? "signup" : "signin"} onSubmit={handleSubmit} className="space-y-4 animate-fade-in" noValidate>
             {/* First/Last Name for Sign Up */}
             {isSignUp && (
               <div className="grid grid-cols-2 gap-3">
