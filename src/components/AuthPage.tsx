@@ -545,12 +545,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
               {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
               {!loading && (
-                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-[#1a1a1a]">
-                  <FontAwesomeIcon icon={faArrowRightToBracket} className="w-4 h-4" />
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#1a1a1a]">
+                  <FontAwesomeIcon icon={faArrowRightToBracket} className="w-3.5 h-3.5" />
                 </span>
               )}
             </button>
