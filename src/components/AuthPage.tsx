@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faEnvelope, faFingerprint, faUser } from "@fortawesome/free-regular-svg-icons";
+import { faEye, faEyeSlash, faEnvelope, faUser } from "@fortawesome/free-regular-svg-icons";
+import { faFingerprint } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthInput, { isPasswordStrong } from "./PasswordStrengthInput";
 import {
