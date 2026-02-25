@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash, faEnvelope, faUser } from "@fortawesome/free-regular-svg-icons";
-import { faFingerprint } from "@fortawesome/free-solid-svg-icons";
+import { faFingerprint, faArrowRightToBracket } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import {
@@ -50,8 +50,6 @@ const PasswordStrengthBar = ({ password }: { password: string }) => {
     </div>
   );
 };
-
-
 
 const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -396,9 +394,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       </svg>
                     </button>
                   </div>
-                  {errors.firstName && (
-                    <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.firstName}</p>
-                  )}
+                  {errors.firstName && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.firstName}</p>}
                 </div>
 
                 <div>
@@ -434,9 +430,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       </svg>
                     </button>
                   </div>
-                  {errors.lastName && (
-                    <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.lastName}</p>
-                  )}
+                  {errors.lastName && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.lastName}</p>}
                 </div>
               </div>
             )}
@@ -485,7 +479,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <label className="text-sm font-semibold text-[#10B981] ml-1 mb-1 block">Password</label>
               <div
                 className={`satyam-container ${errors.password ? "satyam-error" : ""}`}
-                style={isSignUp && password.length > 0 && !errors.password ? { '--border-color': strengthColors[getPasswordStrengthScore(password)] } as React.CSSProperties : undefined}
+                style={
+                  isSignUp && password.length > 0 && !errors.password
+                    ? ({ "--border-color": strengthColors[getPasswordStrengthScore(password)] } as React.CSSProperties)
+                    : undefined
+                }
               >
                 <button type="button" tabIndex={-1}>
                   <FontAwesomeIcon icon={faFingerprint} className="w-5 h-5" />
@@ -513,13 +511,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               </div>
 
               {/* Password strength bar (Sign Up only) */}
-              {isSignUp && password.length > 0 && (
-                <PasswordStrengthBar password={password} />
-              )}
+              {isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
 
-              {errors.password && (
-                <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.password}</p>}
             </div>
 
             {/* Remember Me & Forgot Password (Only on Sign In) */}
@@ -556,9 +550,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
               {!loading && (
                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-[#1a1a1a]">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
+                  <FontAwesomeIcon icon={faArrowRightToBracket} className="w-4 h-4" />
                 </span>
               )}
             </button>
