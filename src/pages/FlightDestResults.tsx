@@ -389,7 +389,12 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                        <div key={idx} className="flex flex-col">
                                           <div className={cn(
                                            "flex items-center border px-2.5 py-2 transition-colors",
-                                           isFlightOpen ? "border-[#345C5A]/15 bg-white rounded-t-lg border-b-0" : "bg-white border-[#E8EBEB] rounded-lg",
+                                           isFlightOpen
+                                             ? "bg-white rounded-t-lg border-b-0"
+                                             : "bg-white rounded-lg",
+                                           flight.fares.basic != null
+                                             ? "border-[#10B981]"
+                                             : isFlightOpen ? "border-[#345C5A]/15" : "border-[#E8EBEB]",
                                           )}>
                                            <button
                                              onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
@@ -407,9 +412,6 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                                  </span>
                                                </div>
                                              </div>
-                                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#E8EBEB] text-[#345C5A]" title={isNonstop ? "Nonstop" : `${flight.legs.length - 1} stop`}>
-                                               <FontAwesomeIcon icon={isNonstop ? faArrowsSpin : faArrowsTurnToDots} className="w-3.5 h-3.5" />
-                                             </span>
                                            </button>
                                          </div>
 
