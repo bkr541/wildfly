@@ -272,7 +272,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
           --border-color: #10B981;
           --border-radius: 12px;
-          --after-border-radius: 4px;
+          --after-border-radius: 12px;
           position: relative;
           width: var(--width-of-input);
           min-height: var(--min-height-of-input);
@@ -301,7 +301,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           background-color: transparent;
           width: 100%;
           height: 100%;
-          padding-inline: 0.5em;
+          padding-inline: 0.8em;
           padding-block: 0.7em;
           border: none;
           color: #1F2937;
@@ -397,7 +397,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     </button>
                   </div>
                   {errors.firstName && (
-                    <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.firstName}</p>
+                    <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.firstName}</p>
                   )}
                 </div>
 
@@ -435,7 +435,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     </button>
                   </div>
                   {errors.lastName && (
-                    <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.lastName}</p>
+                    <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.lastName}</p>
                   )}
                 </div>
               </div>
@@ -477,7 +477,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   </svg>
                 </button>
               </div>
-              {errors.email && <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.email}</p>}
+              {errors.email && <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.email}</p>}
             </div>
 
             {/* Password Input */}
@@ -518,7 +518,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
 
               {errors.password && (
-                <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-bold">{errors.password}</p>
+                <p className="text-red-400 text-xs mt-0.5 ml-1 font-bold">{errors.password}</p>
               )}
             </div>
 
@@ -551,9 +551,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50"
+              className="w-full py-3.5 rounded-full bg-[#1a1a1a] text-white font-bold text-base shadow-lg hover:bg-[#2a2a2a] transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
               {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
+              {!loading && (
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-[#1a1a1a]">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H7M17 7v10" />
+                  </svg>
+                </span>
+              )}
             </button>
 
             {submitError && <p className="text-red-500 text-xs text-center font-semibold">{submitError}</p>}
