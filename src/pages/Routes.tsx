@@ -8,13 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  faRoute, faStar as faStarSolid, faMagnifyingGlass, faPlane,
-  faArrowsRotate, faTriangleExclamation, faLink, faTrash, faChevronDown,
-  faMapLocationDot, faListUl, faHeart,
-} from "@fortawesome/free-solid-svg-icons";
-import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
+  RouteIcon,
+  FavouriteIcon,
+  Search01Icon,
+  Airplane01Icon,
+  RepeatIcon,
+  Alert01Icon,
+  Link01Icon,
+  Delete01Icon,
+  ArrowDown01Icon,
+  MapsIcon,
+  ListViewIcon,
+  FavouriteIcon as StarFilledIcon,
+  HeartAddIcon,
+} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 const LS_ORIGIN_KEY = "routes_lastOrigin";
@@ -56,11 +65,11 @@ const OriginCombobox = ({
         onClick={() => { setOpen(!open); setTimeout(() => ref.current?.focus(), 50); }}
         className="w-full flex items-center gap-2 h-10 bg-white border border-[#E3E6E6] rounded-xl px-3 text-sm text-[#2E4A4A] hover:border-[#345C5A]/30 transition-colors"
       >
-        <FontAwesomeIcon icon={faRoute} className="w-4 h-4 text-[#345C5A] shrink-0" />
+        <HugeiconsIcon icon={RouteIcon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
         <span className="truncate flex-1 text-left">
           {value ? `${value} – ${selectedInfo?.city || selectedInfo?.name || ""}` : "Select origin..."}
         </span>
-        <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 text-[#9CA3AF]" />
+        <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
       </button>
       {open && (
         <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-[#E3E6E6] max-h-72 overflow-y-auto z-50">
@@ -151,7 +160,7 @@ const DestCard = ({
         )}
         {isReciprocal ? (
           <Badge variant="secondary" className="text-[10px] bg-[#E8F1F1] text-[#345C5A] border-[#345C5A]/20 px-2 py-0">
-            <FontAwesomeIcon icon={faArrowsRotate} className="w-2.5 h-2.5 mr-1" />
+            <HugeiconsIcon icon={RepeatIcon} size={10} color="#345C5A" strokeWidth={1.5} className="mr-1" />
             Round-trip
           </Badge>
         ) : (
@@ -171,7 +180,7 @@ const DestCard = ({
               className="h-8 w-8 text-[#345C5A] hover:bg-[#345C5A]/10"
               onClick={onSearch}
             >
-              <FontAwesomeIcon icon={faPlane} className="w-3.5 h-3.5" />
+              <HugeiconsIcon icon={Airplane01Icon} size={14} color="currentColor" strokeWidth={1.5} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Search flights</TooltipContent>
@@ -184,7 +193,7 @@ const DestCard = ({
               className={cn("h-8 w-8", isFav ? "text-yellow-500" : "text-[#9CA3AF] hover:text-yellow-500")}
               onClick={onToggleFav}
             >
-              <FontAwesomeIcon icon={isFav ? faStarSolid : faStarRegular} className="w-3.5 h-3.5" />
+              <HugeiconsIcon icon={isFav ? StarFilledIcon : FavouriteIcon} size={14} color="currentColor" strokeWidth={1.5} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{isFav ? "Remove favorite" : "Add to favorites"}</TooltipContent>
@@ -199,7 +208,7 @@ const DestCard = ({
                 navigator.clipboard.writeText(`${window.location.origin}/routes?origin=${origin}&dest=${destIata}`);
               }}
             >
-              <FontAwesomeIcon icon={faLink} className="w-3 h-3" />
+              <HugeiconsIcon icon={Link01Icon} size={12} color="currentColor" strokeWidth={1.5} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy link</TooltipContent>
@@ -359,7 +368,7 @@ const RouteMap = ({
     <div className="flex flex-col gap-2">
       {hasMissingCoords && (
         <div className="flex items-center gap-2 text-xs text-[#9CA3AF] bg-[#FDF6E3] rounded-lg px-3 py-1.5 border border-yellow-200">
-          <FontAwesomeIcon icon={faTriangleExclamation} className="w-3 h-3 text-yellow-500" />
+          <HugeiconsIcon icon={Alert01Icon} size={12} color="#EAB308" strokeWidth={1.5} />
           Some routes hidden due to missing coordinates.
         </div>
       )}
@@ -490,7 +499,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
           <div className="flex-1 min-w-[140px]">
             <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">Search Destinations</label>
             <div className="relative">
-              <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
+              <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 placeholder="Filter by name or code..."
                 value={destSearch}
@@ -535,7 +544,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
           </div>
           {stats.anomalies.length > 0 && (
             <div className="bg-[#FDF6E3] border border-yellow-200 rounded-full px-3 py-1 text-xs font-semibold text-yellow-700 shadow-sm">
-              <FontAwesomeIcon icon={faTriangleExclamation} className="w-3 h-3 mr-1" />
+              <HugeiconsIcon icon={Alert01Icon} size={12} color="#A16207" strokeWidth={1.5} className="mr-1 inline" />
               Anomalies: {stats.anomalies.length}
             </div>
           )}
@@ -546,15 +555,15 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full bg-white border border-[#E3E6E6] rounded-xl h-11 p-1">
           <TabsTrigger value="list" className="flex-1 rounded-lg text-sm font-semibold data-[state=active]:bg-[#345C5A] data-[state=active]:text-white data-[state=active]:shadow-sm text-[#6B7B7B]">
-            <FontAwesomeIcon icon={faListUl} className="w-3.5 h-3.5 mr-1.5" />
+            <HugeiconsIcon icon={ListViewIcon} size={14} color="currentColor" strokeWidth={1.5} className="mr-1.5" />
             List
           </TabsTrigger>
           <TabsTrigger value="map" className="flex-1 rounded-lg text-sm font-semibold data-[state=active]:bg-[#345C5A] data-[state=active]:text-white data-[state=active]:shadow-sm text-[#6B7B7B]">
-            <FontAwesomeIcon icon={faMapLocationDot} className="w-3.5 h-3.5 mr-1.5" />
+            <HugeiconsIcon icon={MapsIcon} size={14} color="currentColor" strokeWidth={1.5} className="mr-1.5" />
             Map
           </TabsTrigger>
           <TabsTrigger value="favorites" className="flex-1 rounded-lg text-sm font-semibold data-[state=active]:bg-[#345C5A] data-[state=active]:text-white data-[state=active]:shadow-sm text-[#6B7B7B]">
-            <FontAwesomeIcon icon={faHeart} className="w-3.5 h-3.5 mr-1.5" />
+            <HugeiconsIcon icon={HeartAddIcon} size={14} color="currentColor" strokeWidth={1.5} className="mr-1.5" />
             Favorites
           </TabsTrigger>
         </TabsList>
@@ -563,7 +572,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
         <TabsContent value="list" className="mt-3">
           {!origin ? (
             <div className="text-center py-12 text-[#9CA3AF]">
-              <FontAwesomeIcon icon={faRoute} className="w-10 h-10 mb-3 opacity-40" />
+              <HugeiconsIcon icon={RouteIcon} size={40} color="#9CA3AF" strokeWidth={1} className="mb-3 mx-auto opacity-40" />
               <p className="font-semibold">Pick an origin airport to explore routes</p>
             </div>
           ) : (
@@ -619,7 +628,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
         <TabsContent value="map" className="mt-3">
           {!origin ? (
             <div className="text-center py-12 text-[#9CA3AF]">
-              <FontAwesomeIcon icon={faMapLocationDot} className="w-10 h-10 mb-3 opacity-40" />
+              <HugeiconsIcon icon={MapsIcon} size={40} color="#9CA3AF" strokeWidth={1} className="mb-3 mx-auto opacity-40" />
               <p className="font-semibold">Select an origin to view routes on the map</p>
             </div>
           ) : (
@@ -670,7 +679,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
                     onClick={() => setConfirmClear(true)}
                     className="text-xs text-[#9CA3AF] hover:text-red-500"
                   >
-                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3 mr-1" />
+                    <HugeiconsIcon icon={Delete01Icon} size={12} color="currentColor" strokeWidth={1.5} className="mr-1" />
                     Clear all
                   </Button>
                 ) : (
@@ -699,7 +708,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
 
             {favsList.length === 0 ? (
               <div className="text-center py-12 text-[#9CA3AF]">
-                <FontAwesomeIcon icon={faStarRegular} className="w-10 h-10 mb-3 opacity-40" />
+                <HugeiconsIcon icon={FavouriteIcon} size={40} color="#9CA3AF" strokeWidth={1} className="mb-3 mx-auto opacity-40" />
                 <p className="font-semibold">No favorite routes yet</p>
                 <p className="text-xs mt-1">Star a route to save it here</p>
               </div>
