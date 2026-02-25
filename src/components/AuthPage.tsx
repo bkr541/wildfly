@@ -271,8 +271,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           --input-bg: #eef0f3;
 
           --border-color: #10B981;
-          --border-radius: 12px;
-          --after-border-radius: 12px;
+          --border-radius: 4px;
+          --after-border-radius: 4px;
           position: relative;
           width: var(--width-of-input);
           min-height: var(--min-height-of-input);
@@ -551,7 +551,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-full bg-[#1a1a1a] text-white font-bold text-base shadow-lg hover:bg-[#2a2a2a] transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
               {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
               {!loading && (
