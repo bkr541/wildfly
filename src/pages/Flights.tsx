@@ -567,10 +567,10 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
-        {/* Trip Type Switch */}
-        <div className="bg-white rounded-2xl p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
+        {/* Trip Type Switch - Changed to fully rounded corners (pill shape) */}
+        <div className="bg-white rounded-full p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#345C5A] shadow-[0_4px_10px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out"
+            className="absolute top-1.5 bottom-1.5 rounded-full bg-[#345C5A] shadow-[0_4px_10px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out"
             style={{
               width: `calc(((100% - 12px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX}) - 8px)`,
               left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
@@ -587,7 +587,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 onClick={() => setTripType(opt.value)}
                 style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
                 className={cn(
-                  "py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                  "py-2.5 px-3 text-xs font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
                   isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
