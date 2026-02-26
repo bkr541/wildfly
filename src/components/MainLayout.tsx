@@ -15,6 +15,7 @@ import {
   ArrowLeft01Icon,
   RouteIcon,
   Notification01Icon,
+  UserSharingIcon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { icon: Airplane01Icon, label: "Flights" },
+  { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: Calendar03Icon, label: "Itinerary" },
   { icon: Location01Icon, label: "Destinations" },
   { icon: RouteIcon, label: "Routes" },
@@ -32,6 +34,7 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   Flights: "flights",
+  "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   Destinations: "destinations",
   Routes: "routes",
@@ -134,10 +137,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                     key={item.label}
                     type="button"
                     onClick={() => handleMenuClick(item.label)}
-                    className="flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors"
+                    className={cn(
+                      "flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
+                      item.indent && "pl-8 text-sm",
+                    )}
                   >
-                    <HugeiconsIcon icon={item.icon} size={20} color="currentColor" strokeWidth={1.5} />
-                    <span className="text-base font-semibold">{item.label}</span>
+                    <HugeiconsIcon icon={item.icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
+                    <span className={cn("font-semibold", item.indent ? "text-sm" : "text-base")}>{item.label}</span>
                   </button>
                 ))}
               </nav>
