@@ -261,15 +261,41 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         {/* Fixed height prevents the white card from shifting when toggling */}
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
-          <div className="w-full text-left mb-6">
-            <h1 className="text-2xl leading-none text-[#111827] uppercase tracking-[0.09em] flex items-center">
-              {/* ↓ reduced gap to the green square by shrinking padding-right */}
-              <span className="font-[200] inline-block w-[6.25rem] text-right pr-1.5">{headerLeft}</span>
-
-              <span className="font-[600] inline-flex items-center justify-center w-11 h-11 bg-[#10B981] text-white shadow-sm tracking-[0.06em]">
-                {headerRight}
-              </span>
-            </h1>
+          <div className="w-full mb-6">
+            <div className="flex items-center gap-1.5">
+              {(headerLeft + " " + headerRight).split("").map((char, i) => {
+                const fullWord = headerLeft + " " + headerRight;
+                const greenStart = fullWord.length - headerRight.length;
+                const isGreen = i >= greenStart;
+                const isSpace = char === " ";
+                if (isSpace) return <div key={i} className="w-2" />;
+                return (
+                  <div
+                    key={i}
+                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border"
+                    style={{
+                      width: 38,
+                      height: 46,
+                      background: isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+                      borderColor: isGreen ? "#059669" : "#d1d5db",
+                    }}
+                  >
+                    {/* horizontal split line */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isGreen ? "#059669aa" : "#b0b5bdaa" }} />
+                    {/* left hinge dot */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isGreen ? "#d1fae5" : "#e8eaed", borderColor: isGreen ? "#059669" : "#d1d5db" }} />
+                    {/* right hinge dot */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isGreen ? "#d1fae5" : "#e8eaed", borderColor: isGreen ? "#059669" : "#d1d5db" }} />
+                    <span
+                      className="font-black text-xl leading-none select-none"
+                      style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+                    >
+                      {char}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <form
