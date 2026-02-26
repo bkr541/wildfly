@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Wildfly – Offline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      background: #0d2e2c;
+      color: #ffffff;
+      font-family: 'Quicksand', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .icon {
+      font-size: 4rem;
+      animation: bounce 1.4s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    p { color: rgba(255,255,255,0.6); font-size: 0.95rem; max-width: 280px; line-height: 1.6; }
+    button {
+      margin-top: 0.5rem;
+      padding: 0.75rem 2rem;
+      background: #2bb5aa;
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="icon">✈️</div>
+  <h1>You're Offline</h1>
+  <p>Looks like you've lost your connection. Check your Wi-Fi or mobile data and try again.</p>
+  <button onclick="window.location.reload()">Retry</button>
+</body>
+</html>
