@@ -245,10 +245,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   // Split-flap animation state
   const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
-  const targetLeft = isSignUp ? "SIGN" : "_LOG";
-  const targetRight = isSignUp ? "UP" : "IN";
-  const fullTarget = targetLeft + " " + targetRight; // 7 chars
-  const [displayChars, setDisplayChars] = useState<string[]>(Array(7).fill(" "));
+  // Sign in: LOGIN___ (LOGIN + 3 blanks), Sign up: __SIGNUP (2 blanks + SIGNUP)
+  const fullTarget = isSignUp ? "__SIGNUP" : "LOGIN___";
+  const greenStart = isSignUp ? 6 : 3; // IN or UP positions
+  const [displayChars, setDisplayChars] = useState<string[]>(Array(8).fill(" "));
   const prevTargetRef = useRef<string | null>(null);
 
   const runScramble = (target: string[]) => {
@@ -284,7 +284,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     return runScramble(fullTarget.split(""));
   }, [fullTarget]);
 
-  const greenStart = fullTarget.length - targetRight.length;
+  // greenStart already defined above
 
   return (
     <div
