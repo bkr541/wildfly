@@ -264,6 +264,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
+          {/* LOGIN label */}
+          <div className="w-full text-left mb-4">
+            <div className="text-xs uppercase tracking-[0.35em] text-[#111827]">
+              <span className="font-[200]">LOG</span>
+              <span className="font-[600]">IN</span>
+            </div>
+          </div>
+
           <form
             key={isSignUp ? "signup" : "signin"}
             onSubmit={handleSubmit}
@@ -371,14 +379,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center pl-6 pr-1"
               >
-                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
+                <span className="flex-1 text-center uppercase tracking-[0.35em]">
+                  {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
+                </span>
+
                 {!loading && (
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#1a1a1a]">
+                  <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white text-[#1a1a1a]">
                     <HugeiconsIcon
                       icon={isSignUp ? UserAdd01Icon : LoginCircle01Icon}
-                      size={14}
+                      size={18}
                       color="currentColor"
                       strokeWidth={2}
                     />
