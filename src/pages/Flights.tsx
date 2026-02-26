@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -182,7 +181,13 @@ const MultiAirportSearchbox = ({
           ))}
 
           {selected.length > 0 && !query && !disabled && (
-            <HugeiconsIcon icon={AddCircleIcon} size={12} color="#9CA3AF" strokeWidth={1.5} className="ml-0.5 shrink-0" />
+            <HugeiconsIcon
+              icon={AddCircleIcon}
+              size={12}
+              color="#9CA3AF"
+              strokeWidth={1.5}
+              className="ml-0.5 shrink-0"
+            />
           )}
 
           <input
@@ -201,7 +206,10 @@ const MultiAirportSearchbox = ({
               setOpen(true);
               setIsFocused(true);
             }}
-            onBlur={() => { setIsFocused(false); setTimeout(() => setOpen(false), 200); }}
+            onBlur={() => {
+              setIsFocused(false);
+              setTimeout(() => setOpen(false), 200);
+            }}
             className={cn(
               "flex-1 min-w-[100px] h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
               disabled && "cursor-not-allowed",
@@ -238,7 +246,13 @@ const MultiAirportSearchbox = ({
                 onClick={() => addAreaAirports(cityAirports)}
                 className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
               >
-                <HugeiconsIcon icon={Building04Icon} size={12} color="currentColor" strokeWidth={1.5} className="opacity-60" />
+                <HugeiconsIcon
+                  icon={Building04Icon}
+                  size={12}
+                  color="currentColor"
+                  strokeWidth={1.5}
+                  className="opacity-60"
+                />
                 {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
               </button>
 
@@ -259,7 +273,13 @@ const MultiAirportSearchbox = ({
                     )}
                   >
                     <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                      <HugeiconsIcon icon={Location01Icon} size={12} color="#9CA3AF" strokeWidth={1.5} className="mr-2 shrink-0" />
+                      <HugeiconsIcon
+                        icon={Location01Icon}
+                        size={12}
+                        color="#9CA3AF"
+                        strokeWidth={1.5}
+                        className="mr-2 shrink-0"
+                      />
                       <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
                       <span className="ml-2 truncate">{a.name}</span>
                       {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
@@ -278,6 +298,7 @@ const MultiAirportSearchbox = ({
 /* ── Flights Page ──────────────────────────────────────────── */
 /* ── Departure-board searching overlay ───────────────────── */
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const FLAP_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // Used for the header
 const WORD_GAP = 14; // px gap between words
 
 function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boolean; delay?: number }) {
@@ -291,23 +312,37 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
 
     const runCycle = (cycleDelay: number) => {
       word.split("").forEach((finalChar, idx) => {
-        const to = setTimeout(() => {
-          if (!activeRef.current) return;
-          let step = 0;
-          const steps = 6;
-          const iv = setInterval(() => {
-            if (!activeRef.current) { clearInterval(iv); return; }
-            step++;
-            if (step >= steps) {
-              clearInterval(iv);
-              setDisplay(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
-            } else {
-              const r = CHARS[Math.floor(Math.random() * CHARS.length)];
-              setDisplay(prev => { const n = [...prev]; n[idx] = r; return n; });
-            }
-          }, 40);
-          allIntervals.push(iv);
-        }, cycleDelay + delay + idx * 55);
+        const to = setTimeout(
+          () => {
+            if (!activeRef.current) return;
+            let step = 0;
+            const steps = 6;
+            const iv = setInterval(() => {
+              if (!activeRef.current) {
+                clearInterval(iv);
+                return;
+              }
+              step++;
+              if (step >= steps) {
+                clearInterval(iv);
+                setDisplay((prev) => {
+                  const n = [...prev];
+                  n[idx] = finalChar;
+                  return n;
+                });
+              } else {
+                const r = CHARS[Math.floor(Math.random() * CHARS.length)];
+                setDisplay((prev) => {
+                  const n = [...prev];
+                  n[idx] = r;
+                  return n;
+                });
+              }
+            }, 40);
+            allIntervals.push(iv);
+          },
+          cycleDelay + delay + idx * 55,
+        );
         allTimeouts.push(to);
       });
     };
@@ -344,14 +379,22 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
             borderColor: green ? "#059669" : "#d1d5db",
           }}
         >
-          <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-            style={{ background: green ? "#059669aa" : "#b0b5bdaa" }} />
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
-          <span className="font-black text-xl leading-none select-none"
-            style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}>
+          <div
+            className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+            style={{ background: green ? "#059669aa" : "#b0b5bdaa" }}
+          />
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }}
+          />
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }}
+          />
+          <span
+            className="font-black text-xl leading-none select-none"
+            style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+          >
             {char === " " ? "" : char}
           </span>
         </div>
@@ -366,6 +409,115 @@ function SearchingOverlay() {
       <SplitFlapWord word="SEARCHING" delay={0} />
       <SplitFlapWord word="FLIGHTS" green delay={100} />
       <p className="text-sm text-[#6B7B7B] mt-2">This may take a moment…</p>
+    </div>
+  );
+}
+
+// ── Flights Split-flap header (reusable, self-contained) ────────────────────
+function SplitFlapTile({ char, green }: { char: string; green?: boolean }) {
+  const displayChar = char === "_" || char === " " ? "" : char;
+  return (
+    <div
+      className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
+      style={{
+        height: 34,
+        background: green ? "linear-gradient(160deg,#059669 0%,#065F46 100%)" : "#e8eaed",
+        borderColor: green ? "#064E3B" : "#d1d5db",
+      }}
+    >
+      <div
+        className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+        style={{ background: green ? "#064E3Baa" : "#b0b5bdaa" }}
+      />
+      <div
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
+      />
+      <div
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
+      />
+      {displayChar && (
+        <span
+          className="font-black text-lg leading-none select-none"
+          style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+        >
+          {displayChar}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function FlightsSplitFlap() {
+  // "FLIGHTS__" — 9 tiles total (7 green, 2 blank) to match Home's layout width
+  const TARGET = "FLIGHTS__";
+  const GREEN_END = 6; // indices 0-6 are green (F,L,I,G,H,T,S)
+  const [displayChars, setDisplayChars] = useState<string[]>(Array(9).fill(" "));
+  const ran = useRef(false);
+
+  useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+    TARGET.split("").forEach((finalChar, idx) => {
+      const to = setTimeout(() => {
+        const steps = 5;
+        let step = 0;
+        const iv = setInterval(() => {
+          step++;
+          if (step >= steps) {
+            clearInterval(iv);
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = finalChar;
+              return n;
+            });
+          } else {
+            const r = FLAP_CHARS[Math.floor(Math.random() * FLAP_CHARS.length)];
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = r;
+              return n;
+            });
+          }
+        }, 40);
+        intervals.push(iv);
+      }, idx * 55);
+      timeouts.push(to);
+    });
+    return () => {
+      timeouts.forEach(clearTimeout);
+      intervals.forEach(clearInterval);
+    };
+  }, []);
+
+  return (
+    <div className="flex items-center gap-1.5 w-full">
+      {displayChars.map((char, i) => {
+        const isBlank = TARGET[i] === "_";
+        if (isBlank) {
+          return (
+            <div
+              key={i}
+              className="relative flex flex-col items-center justify-center rounded-lg border overflow-hidden flex-1 min-w-0"
+              style={{ height: 34, background: "#e8eaed", borderColor: "#d1d5db", opacity: 0.3 }}
+            >
+              <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px" style={{ background: "#b0b5bdaa" }} />
+              <div
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border"
+                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
+              />
+              <div
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border"
+                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
+              />
+            </div>
+          );
+        }
+        return <SplitFlapTile key={i} char={char} green={i <= GREEN_END} />;
+      })}
     </div>
   );
 }
@@ -385,7 +537,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [creditError, setCreditError] = useState<{ cost: number; remaining_monthly: number; purchased_balance: number } | null>(null);
+  const [creditError, setCreditError] = useState<{
+    cost: number;
+    remaining_monthly: number;
+    purchased_balance: number;
+  } | null>(null);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -407,8 +563,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       {loading && <SearchingOverlay />}
 
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="FLIGHTS" />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Find and track your upcoming flights.</p>
+        <FlightsSplitFlap />
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
@@ -436,7 +591,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
-                <HugeiconsIcon icon={opt.icon} size={16} color="currentColor" strokeWidth={1.5} className="shrink-0 transition-transform duration-300" />
+                <HugeiconsIcon
+                  icon={opt.icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={1.5}
+                  className="shrink-0 transition-transform duration-300"
+                />
                 {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
               </button>
             );
@@ -481,7 +642,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
                     <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
-                      <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
+                      <HugeiconsIcon
+                        icon={Calendar03Icon}
+                        size={16}
+                        color="#345C5A"
+                        strokeWidth={1.5}
+                        className="shrink-0"
+                      />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
@@ -513,7 +680,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                       <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
-                        <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
+                        <HugeiconsIcon
+                          icon={Calendar03Icon}
+                          size={16}
+                          color="#345C5A"
+                          strokeWidth={1.5}
+                          className="shrink-0"
+                        />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
@@ -577,8 +750,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="rounded-2xl border border-[#E89830]/30 bg-[#FFF7ED] p-4 flex flex-col gap-2 animate-fade-in">
             <p className="text-sm font-bold text-[#2E4A4A]">Not enough credits</p>
             <p className="text-xs text-[#6B7B7B]">
-              This search costs <span className="font-semibold text-[#E89830]">{creditError.cost} credit{creditError.cost !== 1 ? "s" : ""}</span>.
-              You have {creditError.remaining_monthly} monthly + {creditError.purchased_balance} purchased remaining.
+              This search costs{" "}
+              <span className="font-semibold text-[#E89830]">
+                {creditError.cost} credit{creditError.cost !== 1 ? "s" : ""}
+              </span>
+              . You have {creditError.remaining_monthly} monthly + {creditError.purchased_balance} purchased remaining.
             </p>
             <button
               type="button"
@@ -613,13 +789,25 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             };
             const bucket = resetBucket(depFormatted);
 
-            const tripTypeMapping = tripType === "round-trip" ? "round_trip" : tripType === "day-trip" ? "day_trip" : tripType === "multi-day" ? "trip_planner" : "one_way";
+            const tripTypeMapping =
+              tripType === "round-trip"
+                ? "round_trip"
+                : tripType === "day-trip"
+                  ? "day_trip"
+                  : tripType === "multi-day"
+                    ? "trip_planner"
+                    : "one_way";
             const arrivalAirportsCount = searchAll ? 0 : arrivals.length;
 
             setLoading(true);
             setCreditError(null);
             const searchStart = performance.now();
-            flightLog.info("Search started", { origin: originCode, dest: searchAll ? "ALL" : destinationCode, tripType, date: depFormatted });
+            flightLog.info("Search started", {
+              origin: originCode,
+              dest: searchAll ? "ALL" : destinationCode,
+              tripType,
+              date: depFormatted,
+            });
             try {
               // ── Credit check ──
               const { data: creditResult, error: creditErr } = await supabase.rpc(
@@ -665,7 +853,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
                 // Log to flight_searches
                 try {
-                  const { data: { user } } = await supabase.auth.getUser();
+                  const {
+                    data: { user },
+                  } = await supabase.auth.getUser();
                   if (user) {
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
@@ -734,7 +924,10 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 }));
               }
 
-              edgeLog.info("Edge function complete", { duration: `${(performance.now() - edgeStart).toFixed(0)}ms`, success: !error });
+              edgeLog.info("Edge function complete", {
+                duration: `${(performance.now() - edgeStart).toFixed(0)}ms`,
+                success: !error,
+              });
               if (error) {
                 edgeLog.error("Edge function error", error);
               } else {
@@ -742,7 +935,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data)
                   : normalizeSingleRouteResponse(data);
-                flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, { flights: normalized.flights.length });
+                flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, {
+                  flights: normalized.flights.length,
+                });
                 // ── Write to cache ──
                 try {
                   await (supabase.from("flight_search_cache") as any).upsert(
@@ -758,14 +953,21 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     },
                     { onConflict: "cache_key,reset_bucket" },
                   );
-                  cacheLog.info("Cache WRITE", { cacheKey, bucket, dep: originCode, arr: searchAll ? "__ALL__" : destinationCode });
+                  cacheLog.info("Cache WRITE", {
+                    cacheKey,
+                    bucket,
+                    dep: originCode,
+                    arr: searchAll ? "__ALL__" : destinationCode,
+                  });
                 } catch (cacheErr) {
                   cacheLog.warn("Cache write failed (non-blocking)", cacheErr);
                 }
 
                 // Log to flight_searches
                 try {
-                  const { data: { user } } = await supabase.auth.getUser();
+                  const {
+                    data: { user },
+                  } = await supabase.auth.getUser();
                   if (user) {
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
