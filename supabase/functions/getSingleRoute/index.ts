@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with searched route: anchor.origin=URL o1, anchor.destination=URL d1. Return flights[] for ALL visible rows. Fares L→R => basic,economy,premium,business (numeric only). is_plus_one_day true if "(+1 day)". Legs: 1 leg for nonstop, 2 legs for 1-stop. flight_numbers: extract the actual flight numbers (e.g. "F9 123") from the radio inputs and put them in a simple array. Nonstop flights get 1 flight number, 1-stop flights get 2 flight numbers in order. Do not invent data.`,
+          prompt: `Return anchor(origin=URL o1, destination=URL d1) and flights[] for visible rows. Fares L→R: basic,economy,premium,business. is_plus_one_day if "(+1 day)". Legs: 1 for nonstop, 2 for 1-stop. CRITICAL: For flight_numbers, look inside the \`segmentflightnumbers\` or \`value\` attribute of the <input type="radio"> tags to find the real flight numbers (e.g., "F9 1264"). For nonstop, return the single flight number. For 1-stop flights, find both flight numbers and return them as a single comma-separated string (e.g., "F9 1168, F9 3321"). Do NOT output fake IDs like "ffd1".`,
           schema: {
             type: "object",
             additionalProperties: false,
@@ -101,10 +101,7 @@ Deno.serve(async (req) => {
                   properties: {
                     total_duration: { type: "string" },
                     is_plus_one_day: { type: "boolean" },
-                    flight_numbers: {
-                      type: "array",
-                      items: { type: "string" },
-                    },
+                    flight_numbers: { type: "string" },
                     fares: {
                       type: "object",
                       additionalProperties: false,
