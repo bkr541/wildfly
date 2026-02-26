@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon } from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
@@ -243,7 +243,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  const headerLeft = isSignUp ? "SIGN" : "LOG";
+  // Always 7 tiles: pad LOG IN with a leading blank so tiles never shift position
+  const headerLeft = isSignUp ? "SIGN" : "_LOG";
   const headerRight = isSignUp ? "UP" : "IN";
 
   return (
@@ -261,15 +262,45 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         {/* Fixed height prevents the white card from shifting when toggling */}
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
-          <div className="w-full text-left mb-6">
-            <h1 className="text-2xl leading-none text-[#111827] uppercase tracking-[0.09em] flex items-center">
-              {/* ↓ reduced gap to the green square by shrinking padding-right */}
-              <span className="font-[200] inline-block w-[6.25rem] text-right pr-1.5">{headerLeft}</span>
-
-              <span className="font-[600] inline-flex items-center justify-center w-11 h-11 bg-[#10B981] text-white shadow-sm tracking-[0.06em]">
-                {headerRight}
-              </span>
-            </h1>
+          <div className="w-full mb-6">
+          <div className="flex items-center gap-1.5">
+            {(headerLeft + " " + headerRight).split("").map((char, i) => {
+              const fullWord = headerLeft + " " + headerRight;
+              const greenStart = fullWord.length - headerRight.length;
+              const isGreen = i >= greenStart;
+              const isSpace = char === " ";
+              const isBlank = char === "_";
+              if (isSpace) return <div key={i} className="w-2" />;
+              return (
+                <div
+                    key={i}
+                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border"
+                    style={{
+                      width: 38,
+                      height: 46,
+                      background: isBlank ? "#f3f4f6" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+                      borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db",
+                      opacity: isBlank ? 0.45 : 1,
+                    }}
+                  >
+                    {/* horizontal split line */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isBlank ? "#d1d5db88" : isGreen ? "#059669aa" : "#b0b5bdaa" }} />
+                    {/* left hinge dot */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
+                    {/* right hinge dot */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
+                    {!isBlank && (
+                      <span
+                        className="font-black text-xl leading-none select-none"
+                        style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+                      >
+                        {char}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <form
@@ -345,6 +376,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       ? strengthColors[getPasswordStrengthScore(password)]
                       : undefined
                   }
+                  strengthLabel={isSignUp && password.length > 0 ? strengthLabels[getPasswordStrengthScore(password)] : undefined}
+                  strengthColor={isSignUp && password.length > 0 ? strengthColors[getPasswordStrengthScore(password)] : undefined}
                   error={errors.password}
                 />
                 {/* Password strength bar removed on Sign Up */}
@@ -382,8 +415,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center px-6"
+                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
               >
+                {!loading && (
+                  <HugeiconsIcon
+                    icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
+                    size={18}
+                    color="currentColor"
+                    strokeWidth={2}
+                  />
+                )}
                 <span className="text-center uppercase tracking-[0.35em]">
                   {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
                 </span>
@@ -404,7 +445,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               }}
               className="text-[#10B981] font-bold hover:underline"
             >
-              {isSignUp ? "Log In" : "Sign Up"}
+              {isSignUp ? "Sign In" : "Sign Up"}
             </button>
           </p>
         </div>
