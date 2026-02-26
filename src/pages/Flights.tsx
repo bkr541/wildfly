@@ -138,13 +138,14 @@ const MultiAirportSearchbox = ({
 
   return (
     <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
+      {label && <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>}
 
       <div
         className={cn(
-          "flex items-center gap-1.5 h-10 bg-transparent transition-colors overflow-hidden",
-          disabled ? "cursor-not-allowed" : "cursor-text",
+          "app-input-container flex items-center gap-1.5 overflow-hidden",
+          disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
         )}
+        style={{ minHeight: 44 }}
       >
         <HugeiconsIcon icon={icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
@@ -364,19 +365,15 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         </div>
 
         {/* Airport + Dates Group */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
-          <div className="relative">
-            {/* Departure now uses MultiAirportSearchbox */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <MultiAirportSearchbox
               label="Departure"
               icon={Airplane01Icon}
               selected={departures}
               onChange={setDepartures}
               airports={airports}
-              containerClassName="px-3 pt-3 pb-2"
             />
-
-            <div className="h-px bg-[#E3E6E6] mx-3" />
 
             <MultiAirportSearchbox
               label="Arrival"
@@ -386,21 +383,18 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="px-3 pt-2 pb-2"
             />
-
-            <div className="h-px bg-[#E3E6E6] mx-3" />
           </div>
 
           {/* Dates */}
-          <div className="px-3 pt-2 pb-3">
+          <div className="pt-2 pb-3 px-0">
             <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                    <button type="button" className="app-input-container w-full flex items-center gap-2.5 text-left outline-none" style={{ minHeight: 44 }}>
                       <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
                       <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
@@ -432,7 +426,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                      <button type="button" className="app-input-container w-full flex items-center gap-2.5 text-left outline-none" style={{ minHeight: 44 }}>
                         <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
                         <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}

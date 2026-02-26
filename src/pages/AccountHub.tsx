@@ -13,7 +13,6 @@ import {
   Shield01Icon,
   SourceCodeIcon,
   PencilEdit01Icon,
-  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import MyAccountScreen from "@/components/account/MyAccountScreen";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
@@ -154,11 +153,10 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
             >
-              <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center mr-3 shrink-0">
+              <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{item.label}</span>
+              <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center ml-3 shrink-0">
                 <HugeiconsIcon icon={item.icon} size={14} color="#345C5A" strokeWidth={1.5} />
               </span>
-              <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{item.label}</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
             </button>
           ))}
         </div>
