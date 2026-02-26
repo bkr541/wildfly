@@ -245,10 +245,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   // Split-flap animation state
   const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
-  // Sign in: LOGIN___ (LOGIN + 3 blanks), Sign up: __SIGNUP (2 blanks + SIGNUP)
-  const fullTarget = isSignUp ? "__SIGNUP" : "LOGIN___";
-  const greenStart = isSignUp ? 6 : 3; // IN or UP positions
-  const [displayChars, setDisplayChars] = useState<string[]>(Array(8).fill(" "));
+  // Sign in: LOGIN____ (LOGIN + 4 blanks), Sign up: ___SIGNUP (3 blanks + SIGNUP) — 9 tiles
+  const fullTarget = isSignUp ? "___SIGNUP" : "LOGIN____";
+  const greenStart = isSignUp ? 7 : 3; // IN or UP positions
+  const [displayChars, setDisplayChars] = useState<string[]>(Array(9).fill(" "));
   const prevTargetRef = useRef<string | null>(null);
 
   const runScramble = (target: string[]) => {
@@ -302,19 +302,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full mb-6">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 w-full">
             {displayChars.map((char, i) => {
               const isGreen = i >= greenStart;
               const isSpace = fullTarget[i] === " ";
               const isBlank = fullTarget[i] === "_";
-              if (isSpace) return <div key={i} className="w-2" />;
+              if (isSpace) return <div key={i} className="w-2 flex-shrink-0" />;
               const displayChar = char === "_" || char === " " ? "" : char;
               return (
                 <div
                     key={i}
-                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
+                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
                     style={{
-                      width: 38,
                       height: 46,
                       background: isBlank ? "#e8eaed" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
                       borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
