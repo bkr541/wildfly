@@ -263,7 +263,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full text-left mb-6">
             <h1 className="text-2xl leading-none text-[#111827] uppercase tracking-[0.09em] flex items-center">
-              <span className="font-[200] inline-block w-[6.25rem] text-right pr-3">{headerLeft}</span>
+              {/* ↓ reduced gap to the green square by shrinking padding-right */}
+              <span className="font-[200] inline-block w-[6.25rem] text-right pr-1.5">{headerLeft}</span>
+
               <span className="font-[600] inline-flex items-center justify-center w-11 h-11 bg-[#10B981] text-white shadow-sm tracking-[0.06em]">
                 {headerRight}
               </span>
