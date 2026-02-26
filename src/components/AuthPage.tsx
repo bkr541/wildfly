@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import {
+  ViewIcon,
+  ViewOffSlashIcon,
+  Mail01Icon,
+  UserIcon,
+  LockPasswordIcon,
+  LoginSquare01Icon,
+  UserAdd01Icon,
+} from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
@@ -262,10 +270,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           step++;
           if (step >= steps) {
             clearInterval(iv);
-            setDisplayChars(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = finalChar;
+              return n;
+            });
           } else {
             const r = CHARS[Math.floor(Math.random() * CHARS.length)];
-            setDisplayChars(prev => { const n = [...prev]; n[idx] = r; return n; });
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = r;
+              return n;
+            });
           }
         }, 40);
         intervals.push(iv);
@@ -284,48 +300,65 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     return runScramble(fullTarget.split(""));
   }, [fullTarget]);
 
-  // greenStart already defined above
-
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
       {/* Top section with logo */}
-      <div className="flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
+      <div className="w-full flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
         <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
       </div>
 
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         {/* Fixed height prevents the white card from shifting when toggling */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full mb-6">
-          <div className="flex items-center gap-1.5 w-full">
-            {displayChars.map((char, i) => {
-              const isGreen = i >= greenStart;
-              const isSpace = fullTarget[i] === " ";
-              const isBlank = fullTarget[i] === "_";
-              if (isSpace) return <div key={i} className="w-2 flex-shrink-0" />;
-              const displayChar = char === "_" || char === " " ? "" : char;
-              return (
-                <div
+            <div className="flex items-center gap-1.5 w-full">
+              {displayChars.map((char, i) => {
+                const isGreen = i >= greenStart;
+                const isSpace = fullTarget[i] === " ";
+                const isBlank = fullTarget[i] === "_";
+                if (isSpace) return <div key={i} className="w-2 flex-shrink-0" />;
+                const displayChar = char === "_" || char === " " ? "" : char;
+                return (
+                  <div
                     key={i}
                     className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
                     style={{
                       height: 46,
-                      background: isBlank ? "#e8eaed" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+                      background: isBlank
+                        ? "#e8eaed"
+                        : isGreen
+                          ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)"
+                          : "#e8eaed",
                       borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
                       opacity: isBlank ? 0.45 : 1,
                     }}
                   >
                     {/* horizontal split line */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isBlank ? "#b0b5bdaa" : isGreen ? "#059669aa" : "#b0b5bdaa" }} />
+                    <div
+                      className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+                      style={{ background: isBlank ? "#b0b5bdaa" : isGreen ? "#059669aa" : "#b0b5bdaa" }}
+                    />
                     {/* left hinge dot */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db" }} />
+                    <div
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+                      style={{
+                        background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed",
+                        borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
+                      }}
+                    />
                     {/* right hinge dot */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db" }} />
+                    <div
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+                      style={{
+                        background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed",
+                        borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
+                      }}
+                    />
                     {displayChar && (
                       <span
                         className="font-black text-xl leading-none select-none"
@@ -384,7 +417,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <AppInput
                 icon={Mail01Icon}
                 label={isSignUp ? "Email Address" : "Email or Username"}
-                placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+                placeholder={isSignUp ? "Email Address" : "Email or Username"}
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -401,7 +434,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 <AppInput
                   icon={LockPasswordIcon}
                   label="Password"
-                  placeholder="Enter Password"
+                  placeholder="Password"
                   isPassword
                   value={password}
                   onChange={(e) => {
@@ -413,8 +446,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       ? strengthColors[getPasswordStrengthScore(password)]
                       : undefined
                   }
-                  strengthLabel={isSignUp && password.length > 0 ? strengthLabels[getPasswordStrengthScore(password)] : undefined}
-                  strengthColor={isSignUp && password.length > 0 ? strengthColors[getPasswordStrengthScore(password)] : undefined}
+                  strengthLabel={
+                    isSignUp && password.length > 0 ? strengthLabels[getPasswordStrengthScore(password)] : undefined
+                  }
+                  strengthColor={
+                    isSignUp && password.length > 0 ? strengthColors[getPasswordStrengthScore(password)] : undefined
+                  }
                   error={errors.password}
                 />
                 {/* Password strength bar removed on Sign Up */}
@@ -447,13 +484,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Submit Button (anchored, so it never jumps) */}
+            {/* Submit Button & Toggle (anchored, so it never jumps) */}
             <div className="pt-2 mt-4">
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
               >
+                <span className="text-center uppercase tracking-[0.35em]">
+                  {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
+                </span>
                 {!loading && (
                   <HugeiconsIcon
                     icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
@@ -462,29 +502,27 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     strokeWidth={2}
                   />
                 )}
-                <span className="text-center uppercase tracking-[0.35em]">
-                  {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
-                </span>
               </button>
 
               {submitError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{submitError}</p>}
+
+              {/* Toggle Sign In / Sign Up - Moved inside the form's anchored base */}
+              <p className="text-center text-sm text-[#6B7280] mt-4 mb-1">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setErrors({});
+                    setSubmitError(null);
+                  }}
+                  className="text-[#10B981] font-bold hover:underline"
+                >
+                  {isSignUp ? "Sign In" : "Sign Up"}
+                </button>
+              </p>
             </div>
           </form>
-
-          {/* Toggle Sign In / Sign Up - below form */}
-          <p className="text-center text-sm text-[#6B7280] mt-5">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setErrors({});
-                setSubmitError(null);
-              }}
-              className="text-[#10B981] font-bold hover:underline"
-            >
-              {isSignUp ? "Sign In" : "Sign Up"}
-            </button>
-          </p>
         </div>
       </div>
 
