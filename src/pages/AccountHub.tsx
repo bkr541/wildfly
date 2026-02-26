@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,8 +117,8 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
   return (
     <>
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Account Hub</h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Manage your account and settings.</p>
+        <SplitFlapHeader word="ACCOUNT" />
+        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Manage your account and settings.</p>
       </div>
 
       <div className="flex-1 flex flex-col px-5 pb-4 gap-4 relative z-10 animate-fade-in">

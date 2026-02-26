@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 
 // ── Split-flap tile (reusable, self-contained) ──────────────────────────────
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
@@ -189,7 +190,7 @@ const HomePage = () => {
     <>
       {/* HOME split-flap header */}
       <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <HomeSplitFlap />
+        <SplitFlapHeader word="HOME" />
         <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Feeling a little wild today? Let's go explore.</p>
       </div>
 
