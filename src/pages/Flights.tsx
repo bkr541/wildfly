@@ -275,6 +275,79 @@ const MultiAirportSearchbox = ({
 };
 
 /* ── Flights Page ──────────────────────────────────────────── */
+/* ── Departure-board searching overlay ───────────────────── */
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const WORD_GAP = 14; // px gap between words
+
+function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boolean; delay?: number }) {
+  const [display, setDisplay] = useState<string[]>(Array(word.length).fill(" "));
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+    word.split("").forEach((finalChar, idx) => {
+      const to = setTimeout(() => {
+        let step = 0;
+        const steps = 6;
+        const iv = setInterval(() => {
+          step++;
+          if (step >= steps) {
+            clearInterval(iv);
+            setDisplay(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
+          } else {
+            const r = CHARS[Math.floor(Math.random() * CHARS.length)];
+            setDisplay(prev => { const n = [...prev]; n[idx] = r; return n; });
+          }
+        }, 40);
+        intervals.push(iv);
+      }, delay + idx * 55);
+      timeouts.push(to);
+    });
+    return () => { timeouts.forEach(clearTimeout); intervals.forEach(clearInterval); };
+  }, []);
+
+  return (
+    <div className="flex gap-1.5">
+      {display.map((char, i) => (
+        <div
+          key={i}
+          className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
+          style={{
+            width: 36,
+            height: 44,
+            background: green ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+            borderColor: green ? "#059669" : "#d1d5db",
+          }}
+        >
+          <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+            style={{ background: green ? "#059669aa" : "#b0b5bdaa" }} />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
+          <span className="font-black text-xl leading-none select-none"
+            style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}>
+            {char === " " ? "" : char}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SearchingOverlay() {
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
+      <SplitFlapWord word="SEARCHING" delay={0} />
+      <SplitFlapWord word="FLIGHTS" green delay={100} />
+      <p className="text-sm text-[#6B7B7B] mt-2">This may take a moment…</p>
+    </div>
+  );
+}
+
 const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
@@ -309,26 +382,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
   return (
     <>
-      {loading && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3]">
-          <div className="relative w-28 h-28 mb-8">
-            <div className="absolute inset-0 rounded-full border-4 border-[#345C5A]/20 animate-ping" />
-            <div
-              className="absolute inset-2 rounded-full border-4 border-[#345C5A]/30 animate-ping"
-              style={{ animationDelay: "0.3s" }}
-            />
-            <div
-              className="absolute inset-4 rounded-full border-4 border-[#345C5A]/40 animate-ping"
-              style={{ animationDelay: "0.6s" }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <HugeiconsIcon icon={Airplane01Icon} size={40} color="#345C5A" strokeWidth={1.5} className="animate-bounce" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-[#2E4A4A] tracking-tight mb-2">Searching Flights</p>
-          <p className="text-sm text-[#6B7B7B]">This may take a moment…</p>
-        </div>
-      )}
+      {loading && <SearchingOverlay />}
 
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
         <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Flights</h1>
