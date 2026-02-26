@@ -567,13 +567,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
-        {/* Trip Type Switch - Changed to fully rounded corners (pill shape) */}
-        <div className="bg-white rounded-full p-1.5 flex shadow-sm border border-[#E3E6E6] relative">
+        {/* Trip Type Switch - Changed to p-[2px] with adjusted CSS math */}
+        <div className="bg-white rounded-full p-[2px] flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-full bg-[#345C5A] shadow-[0_4px_10px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out"
+            className="absolute top-[2px] bottom-[2px] rounded-full bg-[#345C5A] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
             style={{
-              width: `calc(((100% - 12px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX}) - 8px)`,
-              left: `calc(10px + (100% - 12px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
+              width: `calc((100% - 4px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})`,
+              left: `calc(2px + (100% - 4px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
                 tripOptions.length - 1 + ACTIVE_TRIP_FLEX
               })`,
             }}
