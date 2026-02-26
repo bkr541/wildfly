@@ -248,16 +248,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const targetLeft = isSignUp ? "SIGN" : "_LOG";
   const targetRight = isSignUp ? "UP" : "IN";
   const fullTarget = targetLeft + " " + targetRight; // 7 chars
-  const [displayChars, setDisplayChars] = useState<string[]>(fullTarget.split(""));
-  const prevTargetRef = useRef(fullTarget);
+  const [displayChars, setDisplayChars] = useState<string[]>(Array(7).fill(" "));
+  const prevTargetRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (prevTargetRef.current === fullTarget) return;
-    prevTargetRef.current = fullTarget;
-    const target = fullTarget.split("");
+  const runScramble = (target: string[]) => {
     const timeouts: ReturnType<typeof setTimeout>[] = [];
     const intervals: ReturnType<typeof setInterval>[] = [];
-
     target.forEach((finalChar, idx) => {
       const to = setTimeout(() => {
         const steps = 5;
@@ -276,11 +272,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       }, idx * 55);
       timeouts.push(to);
     });
-
     return () => {
       timeouts.forEach(clearTimeout);
       intervals.forEach(clearInterval);
     };
+  };
+
+  useEffect(() => {
+    if (prevTargetRef.current === fullTarget) return;
+    prevTargetRef.current = fullTarget;
+    return runScramble(fullTarget.split(""));
   }, [fullTarget]);
 
   const greenStart = fullTarget.length - targetRight.length;
