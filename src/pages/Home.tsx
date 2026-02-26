@@ -236,7 +236,6 @@ const HomePage = () => {
       {/* HOME split-flap header */}
       <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
         <HomeSplitFlap />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Feeling a little wild today? Let's go explore.</p>
       </div>
 
       {/* Upcoming flights */}
