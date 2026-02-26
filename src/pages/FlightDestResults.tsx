@@ -454,26 +454,56 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         </div>
 
         {debugEnabled && (
-          <>
-          <button
+          <div className="flex flex-col">
+            <button
               onClick={() => setShowRaw(!showRaw)}
               className="flex items-center gap-2 text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
             >
               <FontAwesomeIcon icon={faBug} className={cn("w-3.5 h-3.5", fromCache ? "text-green-500" : "text-[#345C5A]")} />
-              {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
+              {showRaw ? "HIDE DEBUG ELEMENTS" : "SHOW DEBUG ELEMENTS"}
               {fromCache && <span className="text-[10px] font-semibold text-green-600 ml-1">• from cache</span>}
             </button>
 
             {showRaw && (
-              <div className="flex flex-col gap-4 animate-fade-in">
-                <textarea
-                  readOnly
-                  value={JSON.stringify({ flights }, null, 2)}
-                  className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
-                />
+              <div className="flex flex-col gap-4 animate-fade-in pb-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wide px-1">Flights Array</span>
+                  <textarea
+                    readOnly
+                    value={JSON.stringify({ flights }, null, 2)}
+                    className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wide px-1">
+                    Cache Status
+                    {fromCache && <span className="ml-2 text-green-600">• from cache</span>}
+                  </span>
+                  <textarea
+                    readOnly
+                    value={JSON.stringify({ fromCache, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport }, null, 2)}
+                    className="w-full h-28 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wide px-1">Firecrawl Body</span>
+                  <textarea
+                    readOnly
+                    value={(() => { try { return JSON.stringify(JSON.parse(responseData)?.firecrawlRequestBody ?? null, null, 2); } catch { return "N/A"; } })()}
+                    className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wide px-1">Full Raw Response</span>
+                  <textarea
+                    readOnly
+                    value={(() => { try { return JSON.stringify(JSON.parse(responseData), null, 2); } catch { return responseData; } })()}
+                    className="w-full h-60 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
+                  />
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 
