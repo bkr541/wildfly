@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Extract flight_number per leg from the \`segmentflightnumbers\` radio input. Do not invent flights or legs.`,
+          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg; 1-stop rows => 2 legs. Extract flight_number per leg from the \`segmentflightnumbers\` radio input. Do not invent flights or legs.`,
           schema: {
             type: "object",
             additionalProperties: false,
