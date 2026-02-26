@@ -379,8 +379,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Scroll area (only if needed) keeps overall card height constant */}
-            <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-1">
+            {/* Scroll area - Removed flex-1 so it hugs the inputs instead of expanding */}
+            <div className="space-y-4 min-h-0 overflow-y-auto pr-1">
               {/* First/Last Name for Sign Up */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4">
@@ -484,8 +484,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Submit Button & Toggle (anchored, so it never jumps) */}
-            <div className="pt-2 mt-4">
+            {/* Submit Button & Toggle - Now positioned closer to inputs */}
+            <div className="mt-6">
               <button
                 type="submit"
                 disabled={loading}
@@ -506,7 +506,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
               {submitError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{submitError}</p>}
 
-              {/* Toggle Sign In / Sign Up - Moved inside the form's anchored base */}
+              {/* Toggle Sign In / Sign Up */}
               <p className="text-center text-sm text-[#6B7280] mt-4 mb-1">
                 {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
