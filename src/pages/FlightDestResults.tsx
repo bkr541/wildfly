@@ -459,9 +459,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
               onClick={() => setShowRaw(!showRaw)}
               className="flex items-center gap-2 text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
             >
-              <FontAwesomeIcon icon={faBug} className={cn("w-3.5 h-3.5", fromCache ? "text-green-500" : "text-[#345C5A]")} />
               {showRaw ? "HIDE DEBUG ELEMENTS" : "SHOW DEBUG ELEMENTS"}
-              {fromCache && <span className="text-[10px] font-semibold text-green-600 ml-1">• from cache</span>}
             </button>
 
             {showRaw && (
@@ -473,6 +471,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                     value={JSON.stringify({ flights }, null, 2)}
                     className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
                   />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-1" style={{ color: fromCache ? '#16a34a' : '#6B7B7B' }}>
+                    Fetched from cache: {fromCache ? "True" : "No"}
+                  </span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wide px-1">
