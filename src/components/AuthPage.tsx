@@ -371,6 +371,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       ? strengthColors[getPasswordStrengthScore(password)]
                       : undefined
                   }
+                  strengthLabel={isSignUp && password.length > 0 ? strengthLabels[getPasswordStrengthScore(password)] : undefined}
+                  strengthColor={isSignUp && password.length > 0 ? strengthColors[getPasswordStrengthScore(password)] : undefined}
                   error={errors.password}
                 />
                 {/* Password strength bar removed on Sign Up */}

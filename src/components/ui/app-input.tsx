@@ -5,26 +5,20 @@ import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 export interface AppInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
-  /** HugeIcons icon (IconSvgElement) to show on the left */
   icon?: IconSvgElement;
-  /** Label shown above the input */
   label?: string;
-  /** Error message shown below the input */
   error?: string;
-  /** Show a clear (×) button when input has a value */
   clearable?: boolean;
-  /** Callback when clear button is clicked */
   onClear?: () => void;
-  /** If true, renders a password field with show/hide toggle */
   isPassword?: boolean;
-  /** Override input type (default "text", auto-set for password) */
   type?: string;
-  /** Extra class on the outer wrapper */
   wrapperClassName?: string;
-  /** Extra class on the label */
   labelClassName?: string;
-  /** Dynamic border color (e.g. password-strength hex) */
   borderColor?: string;
+  /** When provided and input is focused + has value, replaces the eye icon with this strength label */
+  strengthLabel?: string;
+  /** Color for the strength label text */
+  strengthColor?: string;
 }
 
 const AppInput = React.forwardRef<HTMLInputElement, AppInputProps>(
@@ -40,14 +34,19 @@ const AppInput = React.forwardRef<HTMLInputElement, AppInputProps>(
       wrapperClassName,
       labelClassName,
       borderColor,
+      strengthLabel,
+      strengthColor,
       className,
       value,
       onChange,
+      onFocus,
+      onBlur,
       ...props
     },
     ref
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
+    const [isFocused, setIsFocused] = React.useState(false);
 
     const resolvedType = isPassword ? (showPassword ? "text" : "password") : (type ?? "text");
 
@@ -77,23 +76,37 @@ const AppInput = React.forwardRef<HTMLInputElement, AppInputProps>(
             value={value}
             onChange={onChange}
             className={cn("app-input", className)}
+            onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
+            onBlur={(e) => { setIsFocused(false); onBlur?.(e); }}
             {...props}
           />
 
           {isPassword && (
-            <button
-              type="button"
-              className="app-input-toggle"
-              onClick={() => setShowPassword((p) => !p)}
-              tabIndex={-1}
-            >
-              <HugeiconsIcon
-                icon={showPassword ? ViewOffSlashIcon : ViewIcon}
-                size={20}
-                color="currentColor"
-                strokeWidth={1.5}
-              />
-            </button>
+            <>
+              {/* Show strength label when focused + has value + strengthLabel provided */}
+              {isFocused && hasValue && strengthLabel ? (
+                <span
+                  className="app-input-toggle text-xs font-semibold whitespace-nowrap pointer-events-none select-none"
+                  style={{ color: strengthColor ?? "#6b7280" }}
+                >
+                  {strengthLabel}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="app-input-toggle"
+                  onClick={() => setShowPassword((p) => !p)}
+                  tabIndex={-1}
+                >
+                  <HugeiconsIcon
+                    icon={showPassword ? ViewOffSlashIcon : ViewIcon}
+                    size={20}
+                    color="currentColor"
+                    strokeWidth={1.5}
+                  />
+                </button>
+              )}
+            </>
           )}
 
           {clearable && !isPassword && (
