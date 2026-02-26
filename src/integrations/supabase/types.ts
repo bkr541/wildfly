@@ -196,6 +196,57 @@ export type Database = {
         }
         Relationships: []
       }
+      gowild_snapshots: {
+        Row: {
+          destination_iata: string
+          gowild_avalseats: number | null
+          gowild_flights: number
+          id: number
+          min_fare: number | null
+          min_gowild_fare: number | null
+          nonstop_gowild: number
+          nonstop_total: number
+          observed_at: string
+          observed_date: string
+          origin_iata: string
+          raw_response: Json
+          total_flights: number
+          travel_date: string
+        }
+        Insert: {
+          destination_iata: string
+          gowild_avalseats?: number | null
+          gowild_flights: number
+          id?: number
+          min_fare?: number | null
+          min_gowild_fare?: number | null
+          nonstop_gowild: number
+          nonstop_total: number
+          observed_at?: string
+          observed_date?: string
+          origin_iata: string
+          raw_response: Json
+          total_flights: number
+          travel_date: string
+        }
+        Update: {
+          destination_iata?: string
+          gowild_avalseats?: number | null
+          gowild_flights?: number
+          id?: number
+          min_fare?: number | null
+          min_gowild_fare?: number | null
+          nonstop_gowild?: number
+          nonstop_total?: number
+          observed_at?: string
+          observed_date?: string
+          origin_iata?: string
+          raw_response?: Json
+          total_flights?: number
+          travel_date?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           city: string | null
