@@ -67,6 +67,7 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
         const nextLeg = legs[i + 1];
         const layoverDuration = nextLeg ? calcDuration(leg.arrival_time, nextLeg.departure_time) : null;
         const destCity = airportMap[leg.destination]?.city ?? "";
+        const originCity = airportMap[leg.origin]?.city ?? "";
 
         return (
           <div key={i} className="flex flex-col">
@@ -79,9 +80,12 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
                   <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
                 )}
               </div>
-              <span className="text-sm font-semibold text-[#2E4A4A]">
-                {leg.origin} <span className="font-normal">{depTime}</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-[#2E4A4A]">
+                  {leg.origin} <span className="font-normal">{depTime}</span>
+                </span>
+                {originCity && <span className="text-xs text-[#6B7B7B]">{originCity}</span>}
+              </div>
             </div>
 
              {/* Flight leg line + duration in air */}
@@ -114,10 +118,13 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
                   <div className="flex flex-col items-center">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
                   </div>
-                  <span className="text-sm font-semibold text-[#2E4A4A]">
-                    {leg.destination} <span className="font-normal">{arrTime}</span>
-                  </span>
-                </div>
+                   <div className="flex flex-col">
+                     <span className="text-sm font-semibold text-[#2E4A4A]">
+                       {leg.destination} <span className="font-normal">{arrTime}</span>
+                     </span>
+                     {airportMap[leg.destination]?.city && <span className="text-xs text-[#6B7B7B]">{airportMap[leg.destination].city}</span>}
+                   </div>
+                 </div>
 
                 {/* Layover node */}
                 <div className="flex items-stretch gap-3 ml-[5px]">

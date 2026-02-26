@@ -256,7 +256,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
             {origin || departureAirport} → {arrivalAirport || "All"}
           </h1>
           <span className="text-[11px] text-[#6B7B7B] font-medium">
-            {tripType} | {flights.length} Flight{flights.length !== 1 ? "s" : ""} | {destinationCodes.length} Airport{destinationCodes.length !== 1 ? "s" : ""}
+            {departureDate ? new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : tripType} | {flights.length} Flight{flights.length !== 1 ? "s" : ""} | {destinationCodes.length} Airport{destinationCodes.length !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="w-10" />
@@ -306,10 +306,9 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                    <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
                       {group.city || group.destination}{group.stateCode ? <span className="font-normal">, {group.stateCode}</span> : ""}
                     </span>
-                    <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
-                      {group.flights.length} flight
-                      {group.flights.length !== 1 ? "s" : ""} | {group.destination}
-                     </span>
+                     <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
+                       {group.destination} | {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
+                      </span>
                      <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6B7B7B] font-medium">
                        {earliestLabel && (
                          <span className="flex items-center gap-1">
