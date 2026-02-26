@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     }
 
     const firecrawlBody = {
-      url: targetUrl,
+      url: "https://booking.flyfrontier.com/Flight/InternalSelect?o1=MCO&d1=MIA&dd1=2026-02-26%2000%3A00%3A00&adt=1&umnr=false&loy=false&mon=true&ftype=GW",
       waitFor: 12000,
       timeout: 140000,
       onlyMainContent: false,
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with searched route: anchor.origin=URL o1, anchor.destination=URL d1. Return flights[] for ALL visible rows. Fares L→R => basic,economy,premium,business (numeric). is_plus_one_day true if "(+1 day)". Legs: 1 for nonstop, 2 for 1-stop. CRITICAL: Extract the flight_numbers as a single string exactly as they appear in the \`segmentflightnumbers\` radio input attribute (e.g., "F9~1234" or "F9~1168|F9~3321"). Do not invent data.`,
+          prompt: `Return anchor(o1, d1) and flights[]. flight_numbers: CRITICAL - extract 'F9' codes from radio attributes (e.g. 'F9 123, F9 456'). Fares L->R: basic,economy,premium,business. is_plus_one_day: true if '(+1 day)'. Legs: 1 (nonstop) or 2 (1-stop). Extract origin, dest, and times per leg. Do not invent data.`,
           schema: {
             type: "object",
             additionalProperties: false,
