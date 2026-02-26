@@ -258,12 +258,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px] flex flex-col">
+        {/* Fixed height prevents the white card from shifting when toggling */}
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full text-left mb-6">
             <h1 className="text-3xl leading-none text-[#111827] uppercase tracking-[0.12em] flex items-center">
               <span className="font-[200] inline-block w-[6.25rem] text-right pr-3">{headerLeft}</span>
-
               <span className="font-[600] inline-flex items-center justify-center w-12 h-12 bg-[#10B981] text-white shadow-sm tracking-[0.08em]">
                 {headerRight}
               </span>
@@ -273,11 +273,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           <form
             key={isSignUp ? "signup" : "signin"}
             onSubmit={handleSubmit}
-            className="flex flex-col flex-1 animate-fade-in"
+            className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Top content (keeps button position stable across toggles) */}
-            <div className="space-y-4">
+            {/* Scroll area (only if needed) keeps overall card height constant */}
+            <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-1">
               {/* First/Last Name for Sign Up */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4">
@@ -375,8 +375,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Submit Button (anchored to bottom so position doesn't jump) */}
-            <div className="pt-2 mt-auto">
+            {/* Submit Button (anchored, so it never jumps) */}
+            <div className="pt-2 mt-4">
               <button
                 type="submit"
                 disabled={loading}
