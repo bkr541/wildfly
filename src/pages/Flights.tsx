@@ -570,11 +570,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               const creditsCost = cr?.cost ?? 0;
               // ── Check cache first ──
+              // Cache is valid if: same dep/arr/date (cache_key) AND written within last 6 hours
+              const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
               const { data: cached } = await (supabase.from("flight_search_cache") as any)
-                .select("payload")
+                .select("payload, updated_at")
                 .eq("cache_key", cacheKey)
-                .eq("reset_bucket", bucket)
                 .eq("status", "ready")
+                .gte("updated_at", sixHoursAgo)
                 .maybeSingle();
 
               if (cached?.payload) {
