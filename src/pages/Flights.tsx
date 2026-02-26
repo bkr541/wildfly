@@ -137,13 +137,14 @@ const MultiAirportSearchbox = ({
   const showClear = selected.length > 0 && !disabled;
 
   return (
-    <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
-      {label && <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>}
+    <div className={cn("relative", disabled && "opacity-70")}>
+      {label && <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block px-4 pt-2.5">{label}</label>}
 
       <div
         className={cn(
           "app-input-container flex items-center gap-1.5 overflow-hidden",
-          disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
+          containerClassName,
+          disabled ? "cursor-not-allowed" : "cursor-text",
         )}
         style={{ minHeight: 44 }}
       >
@@ -365,92 +366,95 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         </div>
 
         {/* Airport + Dates Group */}
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <MultiAirportSearchbox
-              label="Departure"
-              icon={Airplane01Icon}
-              selected={departures}
-              onChange={setDepartures}
-              airports={airports}
-            />
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+          {/* Departure airport */}
+          <MultiAirportSearchbox
+            label="Departure"
+            icon={Airplane01Icon}
+            selected={departures}
+            onChange={setDepartures}
+            airports={airports}
+            containerClassName="!rounded-none !bg-transparent before:hidden px-4 pb-2.5"
+          />
 
-            <MultiAirportSearchbox
-              label="Arrival"
-              icon={Airplane01Icon}
-              selected={arrivals}
-              onChange={setArrivals}
-              airports={airports}
-              disabled={searchAll}
-              placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-            />
-          </div>
+          <div className="h-px bg-[#E3E6E6] mx-4" />
 
-          {/* Dates */}
-          <div className="pt-2 pb-3 px-0">
-            <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
-              <div>
-                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
+          {/* Arrival airport */}
+          <MultiAirportSearchbox
+            label="Arrival"
+            icon={Airplane01Icon}
+            selected={arrivals}
+            onChange={setArrivals}
+            airports={airports}
+            disabled={searchAll}
+            placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
+            containerClassName="!rounded-none !bg-transparent before:hidden px-4 pb-2.5"
+          />
 
-                <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
+          <div className="h-px bg-[#E3E6E6] mx-4" />
+
+          {/* Departure date */}
+          <div className={cn("grid", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
+            <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none px-4 py-3 hover:bg-[#F5F7F7] transition-colors">
+                  <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide leading-none mb-0.5">Departure</span>
+                    <span className={cn("text-sm font-medium truncate", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                      {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
+                    </span>
+                  </div>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={departureDate}
+                  onSelect={(date) => {
+                    setDepartureDate(date);
+                    setDepDateOpen(false);
+                    if (arrivalDate && date && startOfDay(arrivalDate) < startOfDay(date))
+                      setArrivalDate(undefined);
+                  }}
+                  disabled={(date) => date < today}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {showReturnDate && (
+              <>
+                <div className="w-px bg-[#E3E6E6] self-stretch" />
+                <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="app-input-container w-full flex items-center gap-2.5 text-left outline-none" style={{ minHeight: 44 }}>
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none px-4 py-3 hover:bg-[#F5F7F7] transition-colors">
                       <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
-                      <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
-                        {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
-                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide leading-none mb-0.5">Return</span>
+                        <span className={cn("text-sm font-medium truncate", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                          {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
+                        </span>
+                      </div>
                     </button>
                   </PopoverTrigger>
-
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={departureDate}
+                      selected={arrivalDate}
                       onSelect={(date) => {
-                        setDepartureDate(date);
-                        setDepDateOpen(false);
-                        if (arrivalDate && date && startOfDay(arrivalDate) < startOfDay(date))
-                          setArrivalDate(undefined);
+                        setArrivalDate(date);
+                        setRetDateOpen(false);
                       }}
-                      disabled={(date) => date < today}
+                      disabled={(date) => date < startOfDay(departureDate ?? today)}
                       initialFocus
-                      className={cn("p-3 pointer-events-auto")}
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
-              </div>
-
-              {showReturnDate && (
-                <div>
-                  <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Return Date</label>
-
-                  <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
-                    <PopoverTrigger asChild>
-                      <button type="button" className="app-input-container w-full flex items-center gap-2.5 text-left outline-none" style={{ minHeight: 44 }}>
-                        <HugeiconsIcon icon={Calendar03Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0" />
-                        <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
-                          {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
-                        </span>
-                      </button>
-                    </PopoverTrigger>
-
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={arrivalDate}
-                        onSelect={(date) => {
-                          setArrivalDate(date);
-                          setRetDateOpen(false);
-                        }}
-                        disabled={(date) => date < startOfDay(departureDate ?? today)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
 
