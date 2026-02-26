@@ -379,8 +379,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Scroll area - Removed flex-1 so it hugs the inputs instead of expanding */}
-            <div className="space-y-4 min-h-0 overflow-y-auto pr-1">
+            {/* FIXED HEIGHT CONTAINER: 
+              h-[270px] locks the height so it accommodates Sign Up fields.
+              When toggled to Sign In, the extra space just sits empty above the button,
+              anchoring the button in the exact same spot.
+            */}
+            <div className="space-y-4 h-[270px] overflow-y-auto pr-1 shrink-0">
               {/* First/Last Name for Sign Up */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4">
@@ -484,7 +488,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            {/* Submit Button & Toggle - Now positioned closer to inputs */}
+            {/* Submit Button & Toggle */}
             <div className="mt-6">
               <button
                 type="submit"
