@@ -281,32 +281,53 @@ const WORD_GAP = 14; // px gap between words
 
 function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boolean; delay?: number }) {
   const [display, setDisplay] = useState<string[]>(Array(word.length).fill(" "));
-  const started = useRef(false);
+  const activeRef = useRef(true);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    const intervals: ReturnType<typeof setInterval>[] = [];
-    word.split("").forEach((finalChar, idx) => {
-      const to = setTimeout(() => {
-        let step = 0;
-        const steps = 6;
-        const iv = setInterval(() => {
-          step++;
-          if (step >= steps) {
-            clearInterval(iv);
-            setDisplay(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
-          } else {
-            const r = CHARS[Math.floor(Math.random() * CHARS.length)];
-            setDisplay(prev => { const n = [...prev]; n[idx] = r; return n; });
-          }
-        }, 40);
-        intervals.push(iv);
-      }, delay + idx * 55);
-      timeouts.push(to);
-    });
-    return () => { timeouts.forEach(clearTimeout); intervals.forEach(clearInterval); };
+    activeRef.current = true;
+    const allTimeouts: ReturnType<typeof setTimeout>[] = [];
+    const allIntervals: ReturnType<typeof setInterval>[] = [];
+
+    const runCycle = (cycleDelay: number) => {
+      word.split("").forEach((finalChar, idx) => {
+        const to = setTimeout(() => {
+          if (!activeRef.current) return;
+          let step = 0;
+          const steps = 6;
+          const iv = setInterval(() => {
+            if (!activeRef.current) { clearInterval(iv); return; }
+            step++;
+            if (step >= steps) {
+              clearInterval(iv);
+              setDisplay(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
+            } else {
+              const r = CHARS[Math.floor(Math.random() * CHARS.length)];
+              setDisplay(prev => { const n = [...prev]; n[idx] = r; return n; });
+            }
+          }, 40);
+          allIntervals.push(iv);
+        }, cycleDelay + delay + idx * 55);
+        allTimeouts.push(to);
+      });
+    };
+
+    // Loop: each cycle takes ~word.length*55 + 400ms pause before repeating
+    const cycleLength = word.length * 55 + 600;
+    let cycle = 0;
+    const schedule = () => {
+      if (!activeRef.current) return;
+      runCycle(cycle * cycleLength);
+      const loopTo = setTimeout(schedule, cycleLength);
+      allTimeouts.push(loopTo);
+      cycle++;
+    };
+    schedule();
+
+    return () => {
+      activeRef.current = false;
+      allTimeouts.forEach(clearTimeout);
+      allIntervals.forEach(clearInterval);
+    };
   }, []);
 
   return (
