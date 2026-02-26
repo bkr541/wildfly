@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     }
 
     const firecrawlBody = {
-      url: "https://booking.flyfrontier.com/Flight/InternalSelect?o1=MCO&d1=MIA&dd1=2026-02-26%2000%3A00%3A00&adt=1&umnr=false&loy=false&mon=true&ftype=GW",
+      url: targetUrl,
       waitFor: 12000,
       timeout: 140000,
       onlyMainContent: false,
