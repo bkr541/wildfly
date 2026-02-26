@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon } from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
@@ -410,8 +410,16 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center px-6"
+                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
               >
+                {!loading && (
+                  <HugeiconsIcon
+                    icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
+                    size={18}
+                    color="currentColor"
+                    strokeWidth={2}
+                  />
+                )}
                 <span className="text-center uppercase tracking-[0.35em]">
                   {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
                 </span>
