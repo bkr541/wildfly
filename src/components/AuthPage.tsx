@@ -243,7 +243,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  const headerLeft = isSignUp ? "SIGN" : "LOG";
+  // Always 7 tiles: pad LOG IN with a leading blank so tiles never shift position
+  const headerLeft = isSignUp ? "SIGN" : "_LOG";
   const headerRight = isSignUp ? "UP" : "IN";
 
   return (
@@ -262,36 +263,40 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full mb-6">
-            <div className="flex items-center gap-1.5">
-              {(headerLeft + " " + headerRight).split("").map((char, i) => {
-                const fullWord = headerLeft + " " + headerRight;
-                const greenStart = fullWord.length - headerRight.length;
-                const isGreen = i >= greenStart;
-                const isSpace = char === " ";
-                if (isSpace) return <div key={i} className="w-2" />;
-                return (
-                  <div
+          <div className="flex items-center gap-1.5">
+            {(headerLeft + " " + headerRight).split("").map((char, i) => {
+              const fullWord = headerLeft + " " + headerRight;
+              const greenStart = fullWord.length - headerRight.length;
+              const isGreen = i >= greenStart;
+              const isSpace = char === " ";
+              const isBlank = char === "_";
+              if (isSpace) return <div key={i} className="w-2" />;
+              return (
+                <div
                     key={i}
                     className="relative flex flex-col items-center justify-center rounded-lg shadow-md border"
                     style={{
                       width: 38,
                       height: 46,
-                      background: isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
-                      borderColor: isGreen ? "#059669" : "#d1d5db",
+                      background: isBlank ? "#f3f4f6" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+                      borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db",
+                      opacity: isBlank ? 0.45 : 1,
                     }}
                   >
                     {/* horizontal split line */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isGreen ? "#059669aa" : "#b0b5bdaa" }} />
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isBlank ? "#d1d5db88" : isGreen ? "#059669aa" : "#b0b5bdaa" }} />
                     {/* left hinge dot */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isGreen ? "#d1fae5" : "#e8eaed", borderColor: isGreen ? "#059669" : "#d1d5db" }} />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
                     {/* right hinge dot */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isGreen ? "#d1fae5" : "#e8eaed", borderColor: isGreen ? "#059669" : "#d1d5db" }} />
-                    <span
-                      className="font-black text-xl leading-none select-none"
-                      style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
-                    >
-                      {char}
-                    </span>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
+                    {!isBlank && (
+                      <span
+                        className="font-black text-xl leading-none select-none"
+                        style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+                      >
+                        {char}
+                      </span>
+                    )}
                   </div>
                 );
               })}
