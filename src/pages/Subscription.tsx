@@ -9,7 +9,7 @@ const SubscriptionPage = () => {
 
   return (
     <>
-      <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
+      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
         <SplitFlapHeader word="SUBSCRIPT" />
         <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Manage your subscription and plan details.</p>
       </div>

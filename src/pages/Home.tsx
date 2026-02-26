@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 
 // ── Split-flap tile (reusable, self-contained) ──────────────────────────────
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
@@ -35,79 +36,6 @@ function SplitFlapTile({ char, green }: { char: string; green?: boolean }) {
           {displayChar}
         </span>
       )}
-    </div>
-  );
-}
-
-function HomeSplitFlap() {
-  // "HOME_____" — 9 tiles, HOME green, rest blank
-  const TARGET = "HOME_____";
-  const GREEN_END = 3; // indices 0-3 are green (H,O,M,E)
-  const [displayChars, setDisplayChars] = useState<string[]>(Array(9).fill(" "));
-  const ran = useRef(false);
-
-  useEffect(() => {
-    if (ran.current) return;
-    ran.current = true;
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    const intervals: ReturnType<typeof setInterval>[] = [];
-    TARGET.split("").forEach((finalChar, idx) => {
-      const to = setTimeout(() => {
-        const steps = 5;
-        let step = 0;
-        const iv = setInterval(() => {
-          step++;
-          if (step >= steps) {
-            clearInterval(iv);
-            setDisplayChars((prev) => {
-              const n = [...prev];
-              n[idx] = finalChar;
-              return n;
-            });
-          } else {
-            const r = CHARS[Math.floor(Math.random() * CHARS.length)];
-            setDisplayChars((prev) => {
-              const n = [...prev];
-              n[idx] = r;
-              return n;
-            });
-          }
-        }, 40);
-        intervals.push(iv);
-      }, idx * 55);
-      timeouts.push(to);
-    });
-    return () => {
-      timeouts.forEach(clearTimeout);
-      intervals.forEach(clearInterval);
-    };
-  }, []);
-
-  return (
-    <div className="flex items-center gap-1.5 w-full">
-      {displayChars.map((char, i) => {
-        const isBlank = TARGET[i] === "_";
-        if (isBlank) {
-          return (
-            <div
-              key={i}
-              className="relative flex flex-col items-center justify-center rounded-lg border overflow-hidden flex-1 min-w-0"
-              style={{ height: 34, background: "#e8eaed", borderColor: "#d1d5db", opacity: 0.3 }}
-            >
-              <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px" style={{ background: "#b0b5bdaa" }} />
-              <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border"
-                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
-              />
-              <div
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border"
-                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
-              />
-            </div>
-          );
-        }
-        return <SplitFlapTile key={i} char={char} green={i <= GREEN_END} />;
-      })}
     </div>
   );
 }
@@ -235,7 +163,7 @@ const HomePage = () => {
     <>
       {/* HOME split-flap header */}
       <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <HomeSplitFlap />
+        <SplitFlapHeader word="HOME" />
       </div>
 
       {/* Upcoming flights */}
