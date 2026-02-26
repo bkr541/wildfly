@@ -17,6 +17,7 @@ import AdminImport from "./pages/AdminImport";
 import SubscriptionPage from "./pages/Subscription";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
+import IOSInstallBanner from "./components/IOSInstallBanner";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -228,6 +229,7 @@ const MainApp = () => {
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
         )}
+        <IOSInstallBanner />
       </div>
     </div>
   );
