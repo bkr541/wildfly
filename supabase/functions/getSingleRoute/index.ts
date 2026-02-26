@@ -12,19 +12,22 @@ Deno.serve(async (req) => {
   // Authenticate request
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
-    return new Response(
-      JSON.stringify({ success: false, error: "Authentication required" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: false, error: "Authentication required" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
   const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
-  const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authError || !user) {
-    return new Response(
-      JSON.stringify({ success: false, error: "Invalid authentication" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: false, error: "Invalid authentication" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -49,10 +52,13 @@ Deno.serve(async (req) => {
     // Validate destination
     const cleanDestination = (destination ?? "").trim().toUpperCase();
     if (!/^[A-Z0-9]{3}$/.test(cleanDestination)) {
-      return new Response(JSON.stringify({ success: false, error: "destination must be a valid 3-character IATA code" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ success: false, error: "destination must be a valid 3-character IATA code" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
@@ -73,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Do not invent flights or legs.`,
+          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Extract flight_number per leg from the \`segmentflightnumbers\` radio input. Do not invent flights or legs.`,
           schema: {
             type: "object",
             additionalProperties: false,
@@ -116,8 +122,9 @@ Deno.serve(async (req) => {
                           destination: { type: "string" },
                           departure_time: { type: "string" },
                           arrival_time: { type: "string" },
+                          flight_number: { type: "string" },
                         },
-                        required: ["origin", "destination", "departure_time", "arrival_time"],
+                        required: ["origin", "destination", "departure_time", "arrival_time", "flight_number"],
                       },
                     },
                   },
