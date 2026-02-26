@@ -266,9 +266,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
           {/* LOGIN label (H1-style) */}
           <div className="w-full text-left mb-6">
-            <h1 className="text-3xl leading-none text-[#111827]">
-              <span className="font-[200] tracking-tight">LOG</span>
-              <span className="font-[600] tracking-tight">IN</span>
+            <h1 className="text-3xl leading-none text-[#111827] uppercase tracking-[0.22em]">
+              <span className="font-[200]">LOG</span>
+              <span className="font-[600]">IN</span>
             </h1>
           </div>
 
