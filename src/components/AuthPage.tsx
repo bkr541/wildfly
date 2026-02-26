@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
@@ -243,9 +243,47 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     }
   };
 
-  // Always 7 tiles: pad LOG IN with a leading blank so tiles never shift position
-  const headerLeft = isSignUp ? "SIGN" : "_LOG";
-  const headerRight = isSignUp ? "UP" : "IN";
+  // Split-flap animation state
+  const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+  const targetLeft = isSignUp ? "SIGN" : "_LOG";
+  const targetRight = isSignUp ? "UP" : "IN";
+  const fullTarget = targetLeft + " " + targetRight; // 7 chars
+  const [displayChars, setDisplayChars] = useState<string[]>(fullTarget.split(""));
+  const prevTargetRef = useRef(fullTarget);
+
+  useEffect(() => {
+    if (prevTargetRef.current === fullTarget) return;
+    prevTargetRef.current = fullTarget;
+    const target = fullTarget.split("");
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    target.forEach((finalChar, idx) => {
+      const to = setTimeout(() => {
+        const steps = 5;
+        let step = 0;
+        const iv = setInterval(() => {
+          step++;
+          if (step >= steps) {
+            clearInterval(iv);
+            setDisplayChars(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
+          } else {
+            const r = CHARS[Math.floor(Math.random() * CHARS.length)];
+            setDisplayChars(prev => { const n = [...prev]; n[idx] = r; return n; });
+          }
+        }, 40);
+        intervals.push(iv);
+      }, idx * 55);
+      timeouts.push(to);
+    });
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      intervals.forEach(clearInterval);
+    };
+  }, [fullTarget]);
+
+  const greenStart = fullTarget.length - targetRight.length;
 
   return (
     <div
@@ -264,37 +302,36 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full mb-6">
           <div className="flex items-center gap-1.5">
-            {(headerLeft + " " + headerRight).split("").map((char, i) => {
-              const fullWord = headerLeft + " " + headerRight;
-              const greenStart = fullWord.length - headerRight.length;
+            {displayChars.map((char, i) => {
               const isGreen = i >= greenStart;
-              const isSpace = char === " ";
-              const isBlank = char === "_";
+              const isSpace = fullTarget[i] === " ";
+              const isBlank = fullTarget[i] === "_";
               if (isSpace) return <div key={i} className="w-2" />;
+              const displayChar = char === "_" || char === " " ? "" : char;
               return (
                 <div
                     key={i}
-                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border"
+                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
                     style={{
                       width: 38,
                       height: 46,
-                      background: isBlank ? "#f3f4f6" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
-                      borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db",
+                      background: isBlank ? "#e8eaed" : isGreen ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+                      borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
                       opacity: isBlank ? 0.45 : 1,
                     }}
                   >
                     {/* horizontal split line */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isBlank ? "#d1d5db88" : isGreen ? "#059669aa" : "#b0b5bdaa" }} />
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isBlank ? "#b0b5bdaa" : isGreen ? "#059669aa" : "#b0b5bdaa" }} />
                     {/* left hinge dot */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db" }} />
                     {/* right hinge dot */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#f3f4f6" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#e5e7eb" : isGreen ? "#059669" : "#d1d5db" }} />
-                    {!isBlank && (
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20" style={{ background: isBlank ? "#e8eaed" : isGreen ? "#d1fae5" : "#e8eaed", borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db" }} />
+                    {displayChar && (
                       <span
                         className="font-black text-xl leading-none select-none"
                         style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
                       >
-                        {char}
+                        {displayChar}
                       </span>
                     )}
                   </div>
