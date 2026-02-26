@@ -82,6 +82,7 @@ const MultiAirportSearchbox = ({
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const shouldShow = query.trim().length > 2;
@@ -137,14 +138,16 @@ const MultiAirportSearchbox = ({
   const showClear = selected.length > 0 && !disabled;
 
   return (
-    <div className={cn("relative", containerClassName, disabled && "opacity-70")}>
+    <div className={cn("relative", containerClassName)}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
       <div
         className={cn(
-          "flex items-center gap-1.5 h-10 bg-transparent transition-colors overflow-hidden",
-          disabled ? "cursor-not-allowed" : "cursor-text",
+          "app-input-container flex items-center gap-1.5 h-10 overflow-hidden",
+          disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
+          isFocused && "focus-within",
         )}
+        style={{ minHeight: 40, padding: "0 0.8em" }}
       >
         <HugeiconsIcon icon={icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
@@ -195,8 +198,9 @@ const MultiAirportSearchbox = ({
             onFocus={() => {
               if (disabled) return;
               setOpen(true);
+              setIsFocused(true);
             }}
-            onBlur={() => setTimeout(() => setOpen(false), 200)}
+            onBlur={() => { setIsFocused(false); setTimeout(() => setOpen(false), 200); }}
             className={cn(
               "flex-1 min-w-[100px] h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
               disabled && "cursor-not-allowed",
