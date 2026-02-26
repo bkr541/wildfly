@@ -5,8 +5,9 @@ import {
   ViewOffSlashIcon,
   Mail01Icon,
   UserIcon,
-  FingerPrintIcon,
-  ArrowRight01Icon,
+  LockPasswordIcon,
+  LoginCircle01Icon,
+  UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
@@ -277,7 +278,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   label="First Name"
                   placeholder="First Name"
                   value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); setErrors((prev) => ({ ...prev, firstName: undefined })); }}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    setErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
                   clearable
                   onClear={() => setFirstName("")}
                   error={errors.firstName}
@@ -287,7 +291,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   label="Last Name"
                   placeholder="Last Name"
                   value={lastName}
-                  onChange={(e) => { setLastName(e.target.value); setErrors((prev) => ({ ...prev, lastName: undefined })); }}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    setErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
                   clearable
                   onClear={() => setLastName("")}
                   error={errors.lastName}
@@ -302,7 +309,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
               type="email"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               clearable
               onClear={() => setEmail("")}
               error={errors.email}
@@ -311,13 +321,20 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             {/* Password Input */}
             <div>
               <AppInput
-                icon={FingerPrintIcon}
+                icon={LockPasswordIcon}
                 label="Password"
                 placeholder="Enter Password"
                 isPassword
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: undefined })); }}
-                borderColor={isSignUp && password.length > 0 && !errors.password ? strengthColors[getPasswordStrengthScore(password)] : undefined}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                borderColor={
+                  isSignUp && password.length > 0 && !errors.password
+                    ? strengthColors[getPasswordStrengthScore(password)]
+                    : undefined
+                }
                 error={errors.password}
               />
               {/* Password strength bar (Sign Up only) */}
@@ -350,18 +367,25 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             )}
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-            >
-              {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
-              {!loading && (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#1a1a1a]">
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="currentColor" strokeWidth={2} />
-                </span>
-              )}
-            </button>
+            <div className={!isSignUp ? "pt-2" : ""}>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-base shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Login"}
+                {!loading && (
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#1a1a1a]">
+                    <HugeiconsIcon
+                      icon={isSignUp ? UserAdd01Icon : LoginCircle01Icon}
+                      size={14}
+                      color="currentColor"
+                      strokeWidth={2}
+                    />
+                  </span>
+                )}
+              </button>
+            </div>
 
             {submitError && <p className="text-red-500 text-xs text-center font-semibold">{submitError}</p>}
           </form>
@@ -405,7 +429,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
               >
-                <HugeiconsIcon icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon} size={14} color="currentColor" strokeWidth={1.5} />
+                <HugeiconsIcon
+                  icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon}
+                  size={14}
+                  color="currentColor"
+                  strokeWidth={1.5}
+                />
               </button>
             </div>
             {confirmError && <p className="text-red-500 text-[10px] mt-1 font-bold">{confirmError}</p>}
