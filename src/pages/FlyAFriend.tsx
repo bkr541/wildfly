@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Airplane01Icon, Location01Icon, Search01Icon } from "@hugeicons/core-free-icons";
@@ -105,8 +106,8 @@ const FlyAFriendPage = () => {
   return (
     <div className="flex flex-col min-h-screen px-5 pt-6 pb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#2E4A4A] leading-tight">Fly a Friend</h2>
-        <p className="text-sm text-[#6B7B7B] mt-1">Search flights for someone special</p>
+        <SplitFlapHeader word="FLYAFRND" />
+        <p className="text-sm text-[#6B7B7B] mt-2">Search flights for someone special</p>
       </div>
 
       <div className="flex flex-col gap-5 flex-1">

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { useAirportDictionary, type AirportInfo } from "@/hooks/useAirportDictionary";
 import { useRouteStats } from "@/hooks/useRouteStats";
 import { useRouteFavorites } from "@/hooks/useRouteFavorites";
@@ -483,8 +484,8 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
     <div className="px-6 pt-0 pb-6 animate-fade-in flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Routes</h1>
-        <p className="text-[#6B7B7B] text-base">Explore direct routes from any origin.</p>
+        <SplitFlapHeader word="ROUTES" />
+        <p className="text-[#6B7B7B] text-base mt-2">Explore direct routes from any origin.</p>
       </div>
 
       {/* Top Controls */}

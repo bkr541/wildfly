@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -406,8 +407,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       {loading && <SearchingOverlay />}
 
       <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-[#2E4A4A] mb-0 tracking-tight">Flights</h1>
-        <p className="text-[#6B7B7B] leading-relaxed text-base">Find and track your upcoming flights.</p>
+        <SplitFlapHeader word="FLIGHTS" />
+        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Find and track your upcoming flights.</p>
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
