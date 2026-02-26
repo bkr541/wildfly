@@ -347,8 +347,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   }
                   error={errors.password}
                 />
-                {/* Password strength bar (Sign Up only) */}
-                {isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
+                {/* Password strength bar removed on Sign Up */}
+                {false && isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
               </div>
 
               {/* Remember Me & Forgot Password (Only on Sign In) */}
