@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ViewIcon,
-  ViewOffSlashIcon,
-  Mail01Icon,
-  UserIcon,
-  LockPasswordIcon,
-  LoginCircle01Icon,
-  UserAdd01Icon,
-} from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffSlashIcon, Mail01Icon, UserIcon, LockPasswordIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
@@ -266,7 +258,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px] flex flex-col">
           {/* Header label */}
           <div className="w-full text-left mb-6">
             <h1 className="text-3xl leading-none text-[#111827] uppercase tracking-[0.12em]">
@@ -278,130 +270,122 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           <form
             key={isSignUp ? "signup" : "signin"}
             onSubmit={handleSubmit}
-            className="space-y-4 animate-fade-in"
+            className="flex flex-col flex-1 animate-fade-in"
             noValidate
           >
-            {/* First/Last Name for Sign Up */}
-            {isSignUp && (
-              <div className="grid grid-cols-2 gap-4">
-                <AppInput
-                  icon={UserIcon}
-                  label="First Name"
-                  placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    setErrors((prev) => ({ ...prev, firstName: undefined }));
-                  }}
-                  clearable
-                  onClear={() => setFirstName("")}
-                  error={errors.firstName}
-                />
-                <AppInput
-                  icon={UserIcon}
-                  label="Last Name"
-                  placeholder="Last Name"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    setErrors((prev) => ({ ...prev, lastName: undefined }));
-                  }}
-                  clearable
-                  onClear={() => setLastName("")}
-                  error={errors.lastName}
-                />
-              </div>
-            )}
+            {/* Top content (keeps button position stable across toggles) */}
+            <div className="space-y-4">
+              {/* First/Last Name for Sign Up */}
+              {isSignUp && (
+                <div className="grid grid-cols-2 gap-4">
+                  <AppInput
+                    icon={UserIcon}
+                    label="First Name"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      setErrors((prev) => ({ ...prev, firstName: undefined }));
+                    }}
+                    clearable
+                    onClear={() => setFirstName("")}
+                    error={errors.firstName}
+                  />
+                  <AppInput
+                    icon={UserIcon}
+                    label="Last Name"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      setErrors((prev) => ({ ...prev, lastName: undefined }));
+                    }}
+                    clearable
+                    onClear={() => setLastName("")}
+                    error={errors.lastName}
+                  />
+                </div>
+              )}
 
-            {/* Email Input */}
-            <AppInput
-              icon={Mail01Icon}
-              label={isSignUp ? "Email Address" : "Email or Username"}
-              placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-              clearable
-              onClear={() => setEmail("")}
-              error={errors.email}
-            />
-
-            {/* Password Input */}
-            <div>
+              {/* Email Input */}
               <AppInput
-                icon={LockPasswordIcon}
-                label="Password"
-                placeholder="Enter Password"
-                isPassword
-                value={password}
+                icon={Mail01Icon}
+                label={isSignUp ? "Email Address" : "Email or Username"}
+                placeholder={isSignUp ? "Enter Email Address" : "Enter Email or Username"}
+                type="email"
+                value={email}
                 onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors((prev) => ({ ...prev, password: undefined }));
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                borderColor={
-                  isSignUp && password.length > 0 && !errors.password
-                    ? strengthColors[getPasswordStrengthScore(password)]
-                    : undefined
-                }
-                error={errors.password}
+                clearable
+                onClear={() => setEmail("")}
+                error={errors.email}
               />
-              {/* Password strength bar (Sign Up only) */}
-              {isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
+
+              {/* Password Input */}
+              <div>
+                <AppInput
+                  icon={LockPasswordIcon}
+                  label="Password"
+                  placeholder="Enter Password"
+                  isPassword
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  borderColor={
+                    isSignUp && password.length > 0 && !errors.password
+                      ? strengthColors[getPasswordStrengthScore(password)]
+                      : undefined
+                  }
+                  error={errors.password}
+                />
+                {/* Password strength bar (Sign Up only) */}
+                {isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
+              </div>
+
+              {/* Remember Me & Forgot Password (Only on Sign In) */}
+              {!isSignUp && (
+                <div className="flex items-center justify-between text-sm text-[#6B7280]">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <div className="relative inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm peer-checked:after:translate-x-4"></div>
+                    </div>
+                    <span className="font-medium select-none text-[#374151]">Remember me</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="font-semibold text-[#10B981] hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Remember Me & Forgot Password (Only on Sign In) */}
-            {!isSignUp && (
-              <div className="flex items-center justify-between text-sm text-[#6B7280]">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <div className="relative inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#10B981] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm peer-checked:after:translate-x-4"></div>
-                  </div>
-                  <span className="font-medium select-none text-[#374151]">Remember me</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="font-semibold text-[#10B981] hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div className={!isSignUp ? "pt-2" : ""}>
+            {/* Submit Button (anchored to bottom so position doesn't jump) */}
+            <div className="pt-2 mt-auto">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center pl-6 pr-1"
+                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center px-6"
               >
-                <span className="flex-1 text-center uppercase tracking-[0.35em]">
+                <span className="text-center uppercase tracking-[0.35em]">
                   {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
                 </span>
-
-                {!loading && (
-                  <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white text-[#1a1a1a]">
-                    <HugeiconsIcon
-                      icon={isSignUp ? UserAdd01Icon : LoginCircle01Icon}
-                      size={18}
-                      color="currentColor"
-                      strokeWidth={2}
-                    />
-                  </span>
-                )}
               </button>
-            </div>
 
-            {submitError && <p className="text-red-500 text-xs text-center font-semibold">{submitError}</p>}
+              {submitError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{submitError}</p>}
+            </div>
           </form>
 
           {/* Toggle Sign In / Sign Up - below form */}
