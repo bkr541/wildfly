@@ -264,12 +264,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-10 shadow-2xl min-h-[480px]">
-          {/* LOGIN label */}
-          <div className="w-full text-left mb-4">
-            <div className="text-xs uppercase tracking-[0.35em] text-[#111827]">
-              <span className="font-[200]">LOG</span>
-              <span className="font-[600]">IN</span>
-            </div>
+          {/* LOGIN label (H1-style) */}
+          <div className="w-full text-left mb-6">
+            <h1 className="text-3xl leading-none text-[#111827]">
+              <span className="font-[200] tracking-tight">LOG</span>
+              <span className="font-[600] tracking-tight">IN</span>
+            </h1>
           </div>
 
           <form
