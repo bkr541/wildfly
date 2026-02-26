@@ -248,8 +248,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const targetLeft = isSignUp ? "SIGN" : "_LOG";
   const targetRight = isSignUp ? "UP" : "IN";
   const fullTarget = targetLeft + " " + targetRight; // 7 chars
-  const [displayChars, setDisplayChars] = useState<string[]>(fullTarget.split(""));
-  const prevTargetRef = useRef(fullTarget);
+  const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+  const [displayChars, setDisplayChars] = useState<string[]>(
+    fullTarget.split("").map(() => SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)])
+  );
+  const prevTargetRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (prevTargetRef.current === fullTarget) return;
