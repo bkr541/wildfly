@@ -79,14 +79,13 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg; 1-stop rows => 2 legs. For each leg, extract the flight_number (e.g., "F9 1234") from the 'segmentflightnumbers' or 'value' attribute of the radio button inputs. Do not invent data.`,
+          prompt: `ALWAYS return an \`anchor\` object with searched route: anchor.origin=URL o1, anchor.destination=URL d1. Return flights[] for ALL visible rows. Fares L→R => basic,economy,premium,business (numeric). is_plus_one_day true if "(+1 day)". Legs: 1 for nonstop, 2 for 1-stop. CRITICAL: Extract the flight_numbers as a single string exactly as they appear in the \`segmentflightnumbers\` radio input attribute (e.g., "F9~1234" or "F9~1168|F9~3321"). Do not invent data.`,
           schema: {
             type: "object",
             additionalProperties: false,
             properties: {
               anchor: {
                 type: "object",
-                additionalProperties: false,
                 properties: {
                   origin: { type: "string" },
                   destination: { type: "string" },
@@ -97,13 +96,12 @@ Deno.serve(async (req) => {
                 type: "array",
                 items: {
                   type: "object",
-                  additionalProperties: false,
                   properties: {
                     total_duration: { type: "string" },
                     is_plus_one_day: { type: "boolean" },
+                    flight_numbers: { type: "string" },
                     fares: {
                       type: "object",
-                      additionalProperties: false,
                       properties: {
                         basic: { type: ["number", "null"] },
                         economy: { type: ["number", "null"] },
@@ -116,19 +114,17 @@ Deno.serve(async (req) => {
                       type: "array",
                       items: {
                         type: "object",
-                        additionalProperties: false,
                         properties: {
                           origin: { type: "string" },
                           destination: { type: "string" },
                           departure_time: { type: "string" },
                           arrival_time: { type: "string" },
-                          flight_number: { type: "string" },
                         },
-                        required: ["origin", "destination", "departure_time", "arrival_time", "flight_number"],
+                        required: ["origin", "destination", "departure_time", "arrival_time"],
                       },
                     },
                   },
-                  required: ["total_duration", "is_plus_one_day", "fares", "legs"],
+                  required: ["total_duration", "is_plus_one_day", "flight_numbers", "fares", "legs"],
                 },
               },
             },
