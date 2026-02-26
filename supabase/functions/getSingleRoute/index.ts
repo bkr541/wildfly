@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Extract raw_flight_numbers exactly as it appears in the \`segmentflightnumbers\` radio input attribute. Do not invent flights or legs.`,
+          prompt: `ALWAYS return an \`anchor\` object with searched route: anchor.origin=URL o1, anchor.destination=URL d1. Return flights[] for ALL visible rows. Fares L→R => basic,economy,premium,business (numeric only). is_plus_one_day true if "(+1 day)". Legs: 1 leg for nonstop, 2 legs for 1-stop. flight_numbers: extract the actual flight numbers (e.g. "F9 123") from the radio inputs and put them in a simple array. Nonstop flights get 1 flight number, 1-stop flights get 2 flight numbers in order. Do not invent data.`,
           schema: {
             type: "object",
             additionalProperties: false,
@@ -101,7 +101,10 @@ Deno.serve(async (req) => {
                   properties: {
                     total_duration: { type: "string" },
                     is_plus_one_day: { type: "boolean" },
-                    raw_flight_numbers: { type: "string" },
+                    flight_numbers: {
+                      type: "array",
+                      items: { type: "string" },
+                    },
                     fares: {
                       type: "object",
                       additionalProperties: false,
@@ -128,7 +131,7 @@ Deno.serve(async (req) => {
                       },
                     },
                   },
-                  required: ["total_duration", "is_plus_one_day", "raw_flight_numbers", "fares", "legs"],
+                  required: ["total_duration", "is_plus_one_day", "flight_numbers", "fares", "legs"],
                 },
               },
             },
