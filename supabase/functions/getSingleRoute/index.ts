@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       formats: [
         {
           type: "json",
-          prompt: `Return anchor(origin=URL o1, destination=URL d1) and flights[] for visible rows. Fares L→R: basic,economy,premium,business. is_plus_one_day if "(+1 day)". Legs: 1 for nonstop, 2 for 1-stop. CRITICAL: For flight_numbers, look inside the \`segmentflightnumbers\` or \`value\` attribute of the <input type="radio"> tags to find the real flight numbers (e.g., "F9 1264"). For nonstop, return the single flight number. For 1-stop flights, find both flight numbers and return them as a single comma-separated string (e.g., "F9 1168, F9 3321"). Do NOT output fake IDs like "ffd1".`,
+          prompt: `ALWAYS return an \`anchor\` object with the searched route: anchor.origin = the URL query param \`o1\` and anchor.destination = the URL query param \`d1\` (IATA codes). Then return flights[] for ALL visible rows (nonstop + 1+ stop). Each row -> one flight. Fares are 4 boxes L→R => basic,economy,premium,business (numeric only, null if missing). is_plus_one_day true only if "(+1 day)" shown. Legs: nonstop => 1 leg from first origin/time to last dest/time; 1-stop rows (4 times + middle airport) => 2 legs origin→mid and mid→dest. Extract flight_number per leg from the \`segmentflightnumbers\` radio input. Do not invent flights or legs.`,
           schema: {
             type: "object",
             additionalProperties: false,
@@ -101,7 +101,6 @@ Deno.serve(async (req) => {
                   properties: {
                     total_duration: { type: "string" },
                     is_plus_one_day: { type: "boolean" },
-                    flight_numbers: { type: "string" },
                     fares: {
                       type: "object",
                       additionalProperties: false,
@@ -123,12 +122,13 @@ Deno.serve(async (req) => {
                           destination: { type: "string" },
                           departure_time: { type: "string" },
                           arrival_time: { type: "string" },
+                          flight_number: { type: "string" },
                         },
-                        required: ["origin", "destination", "departure_time", "arrival_time"],
+                        required: ["origin", "destination", "departure_time", "arrival_time", "flight_number"],
                       },
                     },
                   },
-                  required: ["total_duration", "is_plus_one_day", "flight_numbers", "fares", "legs"],
+                  required: ["total_duration", "is_plus_one_day", "fares", "legs"],
                 },
               },
             },
