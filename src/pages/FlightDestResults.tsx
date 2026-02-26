@@ -166,8 +166,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
     for (const f of flights) {
-      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "";
-      if (dest) codes.add(dest);
+      for (const leg of f.legs) {
+        if (leg.origin) codes.add(leg.origin);
+        if (leg.destination) codes.add(leg.destination);
+      }
     }
     return Array.from(codes);
   }, [flights]);
