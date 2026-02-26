@@ -8,7 +8,7 @@ function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; 
     return (
       <div
         className="relative flex flex-col items-center justify-center rounded-lg border overflow-hidden flex-1 min-w-0"
-        style={{ height: 46, background: "#e8eaed", borderColor: "#d1d5db", opacity: 0.3 }}
+        style={{ height: 34, background: "#e8eaed", borderColor: "#d1d5db", opacity: 0.3 }}
       >
         <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px" style={{ background: "#b0b5bdaa" }} />
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border" style={{ background: "#e8eaed", borderColor: "#d1d5db" }} />
@@ -20,19 +20,19 @@ function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; 
     <div
       className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
       style={{
-        height: 46,
-        background: green ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
-        borderColor: green ? "#059669" : "#d1d5db",
+        height: 34,
+        background: green ? "linear-gradient(160deg,#059669 0%,#065F46 100%)" : "#e8eaed",
+        borderColor: green ? "#064E3B" : "#d1d5db",
       }}
     >
       <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-        style={{ background: green ? "#059669aa" : "#b0b5bdaa" }} />
+        style={{ background: green ? "#064E3Baa" : "#b0b5bdaa" }} />
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
+        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }} />
       <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }} />
+        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }} />
       {displayChar && (
-        <span className="font-black text-xl leading-none select-none"
+        <span className="font-black text-lg leading-none select-none"
           style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}>
           {displayChar}
         </span>

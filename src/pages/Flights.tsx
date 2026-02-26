@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -413,114 +414,8 @@ function SearchingOverlay() {
   );
 }
 
-// ── Flights Split-flap header (reusable, self-contained) ────────────────────
-function SplitFlapTile({ char, green }: { char: string; green?: boolean }) {
-  const displayChar = char === "_" || char === " " ? "" : char;
-  return (
-    <div
-      className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
-      style={{
-        height: 34,
-        background: green ? "linear-gradient(160deg,#059669 0%,#065F46 100%)" : "#e8eaed",
-        borderColor: green ? "#064E3B" : "#d1d5db",
-      }}
-    >
-      <div
-        className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-        style={{ background: green ? "#064E3Baa" : "#b0b5bdaa" }}
-      />
-      <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
-      />
-      <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
-      />
-      {displayChar && (
-        <span
-          className="font-black text-lg leading-none select-none"
-          style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
-        >
-          {displayChar}
-        </span>
-      )}
-    </div>
-  );
-}
 
-function FlightsSplitFlap() {
-  // "FLIGHTS__" — 9 tiles total (7 green, 2 blank) to match Home's layout width
-  const TARGET = "FLIGHTS__";
-  const GREEN_END = 6; // indices 0-6 are green (F,L,I,G,H,T,S)
-  const [displayChars, setDisplayChars] = useState<string[]>(Array(9).fill(" "));
-  const ran = useRef(false);
 
-  useEffect(() => {
-    if (ran.current) return;
-    ran.current = true;
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    const intervals: ReturnType<typeof setInterval>[] = [];
-    TARGET.split("").forEach((finalChar, idx) => {
-      const to = setTimeout(() => {
-        const steps = 5;
-        let step = 0;
-        const iv = setInterval(() => {
-          step++;
-          if (step >= steps) {
-            clearInterval(iv);
-            setDisplayChars((prev) => {
-              const n = [...prev];
-              n[idx] = finalChar;
-              return n;
-            });
-          } else {
-            const r = FLAP_CHARS[Math.floor(Math.random() * FLAP_CHARS.length)];
-            setDisplayChars((prev) => {
-              const n = [...prev];
-              n[idx] = r;
-              return n;
-            });
-          }
-        }, 40);
-        intervals.push(iv);
-      }, idx * 55);
-      timeouts.push(to);
-    });
-    return () => {
-      timeouts.forEach(clearTimeout);
-      intervals.forEach(clearInterval);
-    };
-  }, []);
-
-  return (
-    <div className="flex items-center gap-1.5 w-full">
-      {displayChars.map((char, i) => {
-        const isBlank = TARGET[i] === "_";
-        if (isBlank) {
-          return (
-            <div
-              key={i}
-              className="relative flex flex-col items-center justify-center rounded-lg border overflow-hidden flex-1 min-w-0"
-              style={{ height: 34, background: "#e8eaed", borderColor: "#d1d5db", opacity: 0.3 }}
-            >
-              <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px" style={{ background: "#b0b5bdaa" }} />
-              <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border"
-                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
-              />
-              <div
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border"
-                style={{ background: "#e8eaed", borderColor: "#d1d5db" }}
-              />
-            </div>
-          );
-        }
-        return <SplitFlapTile key={i} char={char} green={i <= GREEN_END} />;
-      })}
-    </div>
-  );
-}
 
 const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
@@ -562,8 +457,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
     <>
       {loading && <SearchingOverlay />}
 
-      <div className="px-6 pt-0 pb-3 relative z-10 animate-fade-in">
-        <FlightsSplitFlap />
+      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
+        <SplitFlapHeader word="FLIGHTS" />
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
