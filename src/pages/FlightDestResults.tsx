@@ -455,19 +455,14 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
 
         {debugEnabled && (
           <>
-            <button
+          <button
               onClick={() => setShowRaw(!showRaw)}
-              className="text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
+              className="flex items-center gap-2 text-xs font-bold text-[#345C5A] opacity-50 hover:opacity-100 transition-opacity self-center py-4"
             >
+              <FontAwesomeIcon icon={faBug} className={cn("w-3.5 h-3.5", fromCache ? "text-green-500" : "text-[#345C5A]")} />
               {showRaw ? "HIDE DEBUG DATA" : "VIEW RAW RESPONSE"}
+              {fromCache && <span className="text-[10px] font-semibold text-green-600 ml-1">• from cache</span>}
             </button>
-
-            {fromCache && (
-              <div className="flex items-center justify-center gap-1.5 -mt-2 pb-1">
-                <FontAwesomeIcon icon={faBug} className="w-3.5 h-3.5 text-green-500" />
-                <span className="text-[10px] font-semibold text-green-600">Loaded from cache</span>
-              </div>
-            )}
 
             {showRaw && (
               <div className="flex flex-col gap-4 animate-fade-in">
