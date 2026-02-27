@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
@@ -31,22 +31,22 @@ function formatDateLabel(createdAt: string) {
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const DURATION = 0.28;
 const EXPAND_DURATION = 0.24;
+const FRONTIER_LOGO = "/assets/logo/frontier/frontier_logo.png";
 
-// 1. Define Animation Variants for the Stagger
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.12, // The "drip" timing between cards
-      delayChildren: 0.1, // Wait for the main container to start opening
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
     },
   },
   exit: {
     opacity: 0,
     transition: {
       staggerChildren: 0.05,
-      staggerDirection: -1, // Collapse from bottom-up for a snappier exit
+      staggerDirection: -1,
     },
   },
 };
@@ -75,6 +75,12 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
   const shouldReduceMotion = useReducedMotion();
   const panelId = useId();
   const triggerId = useId();
+
+  // Preload the logo on mount to ensure it's in the cache
+  useEffect(() => {
+    const img = new Image();
+    img.src = FRONTIER_LOGO;
+  }, []);
 
   const chevronVariants = {
     collapsed: { rotate: 0 },
@@ -169,7 +175,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
               }}
               style={{ overflow: "hidden" }}
             >
-              {/* 2. Parent container uses containerVariants */}
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -186,17 +191,18 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   </motion.div>
                 ) : (
                   flights.map((flight) => (
-                    /* 3. Each child uses itemVariants for the drip effect */
                     <motion.div
                       key={flight.id}
                       variants={itemVariants}
                       className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
                     >
-                      <div className="flex items-center gap-2 mb-3">
+                      {/* FIXED HEIGHT CONTAINER: Prevents layout shift when logo loads */}
+                      <div className="h-4 flex items-center gap-2 mb-3">
                         <img
-                          src="/assets/logo/frontier/frontier_logo.png"
+                          src={FRONTIER_LOGO}
                           alt="Frontier Airlines"
-                          className="h-4 object-contain"
+                          className="h-full w-auto object-contain"
+                          loading="eager"
                         />
                         <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
                       </div>
