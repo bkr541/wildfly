@@ -366,20 +366,20 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       {group.city || group.destination}
                       {group.stateCode ? <span className="font-normal">, {group.stateCode}</span> : ""}
                     </span>
-                    <div className="flex items-center gap-3 mt-1 text-[10px] text-[#6B7B7B] font-medium">
+                    <div className="flex items-center gap-4 mt-1 text-xs text-[#6B7B7B] font-semibold">
                       {earliestLabel && (
-                        <span className="flex items-center gap-1">
-                          <FontAwesomeIcon icon={faClock} className="w-3 h-3 text-[#345C5A]" />
-                          Earliest: {earliestLabel}
+                        <span className="flex items-center gap-1.5">
+                          <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#345C5A]" />
+                          {earliestLabel}
                         </span>
                       )}
-                      <span className="flex items-center gap-1">
-                        <FontAwesomeIcon icon={faLayerGroup} className="w-3 h-3 text-[#345C5A]" />
-                        Nonstop: {nonstopCount}
+                      <span className="flex items-center gap-1.5">
+                        <FontAwesomeIcon icon={faLayerGroup} className="w-3.5 h-3.5 text-[#345C5A]" />
+                        {nonstopCount}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3 h-3 text-[#345C5A]" />
-                        GoWild: {goWildCount} available
+                      <span className="flex items-center gap-1.5">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3.5 h-3.5 text-[#345C5A]" />
+                        {goWildCount}
                       </span>
                     </div>
                   </div>
