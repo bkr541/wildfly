@@ -158,6 +158,8 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                     </div>
                   ))}
                 </>
+              ) : flights.length === 0 ? (
+                <p className="text-xs text-[#6B7B7B] text-center py-1">No upcoming flights</p>
               ) : (
                 flights.map((f) => (
                   <div key={f.id} className="flex items-center gap-2">
