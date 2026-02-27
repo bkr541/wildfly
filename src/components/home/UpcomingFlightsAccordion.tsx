@@ -224,7 +224,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                           <div className="flex-1 flex items-center px-2">
                             <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
                             <span className="mx-2 inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
-                              <FontAwesomeIcon icon={faPlane} rotation={90} className="w-3.5 h-3.5 text-[#2E4A4A]" />
+                              <FontAwesomeIcon icon={faPlane} rotation={45} className="w-3.5 h-3.5 text-[#2E4A4A]" />
                             </span>
                             <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
                           </div>
