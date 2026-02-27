@@ -14,9 +14,9 @@ interface UserFlight {
   created_at: string;
 }
 
-function formatDateLabel(createdAt: string) {
+function formatDateLabel(dateStr: string) {
   try {
-    const d = new Date(createdAt);
+    const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "";
     const today = new Date();
     const tomorrow = new Date(today);
@@ -26,6 +26,16 @@ function formatDateLabel(createdAt: string) {
     return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   } catch {
     return "";
+  }
+}
+
+function formatTime(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr; // fallback: show raw value
+    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  } catch {
+    return dateStr;
   }
 }
 
@@ -196,7 +206,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   </motion.div>
                 ) : (
                   flights.map((flight) => {
-                    const dateLabel = formatDateLabel(flight.created_at);
+                    const dateLabel = formatDateLabel(flight.departure_time);
                     const showDate = dateLabel !== "";
 
                     return (
@@ -240,16 +250,16 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                         {/* Times are aligned on the same top line; date is underneath on a new line */}
                         <div className="flex items-start justify-between">
                           <span className="text-sm font-medium text-[#059669] leading-tight">
-                            <span className="block">{flight.departure_time}</span>
+                            <span className="block">{formatTime(flight.departure_time)}</span>
                             {showDate && (
                               <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">{dateLabel}</span>
                             )}
                           </span>
 
                           <span className="text-sm font-medium text-[#059669] text-right leading-tight">
-                            <span className="block">{flight.arrival_time}</span>
+                            <span className="block">{formatTime(flight.arrival_time)}</span>
                             {showDate && (
-                              <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">{dateLabel}</span>
+                              <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">{formatDateLabel(flight.arrival_time)}</span>
                             )}
                           </span>
                         </div>
