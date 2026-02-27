@@ -160,32 +160,55 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                     </div>
                   ) : (
                     flights.map((flight) => {
-                      const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
-                      const airline = json?.airline || json?.carrier || null;
                       const depTime = flight.departure_time;
                       const arrTime = flight.arrival_time;
                       const dateLabel = formatDateLabel(flight.created_at);
                       return (
                         <div
                           key={flight.id}
-                          className="flex items-start gap-3 rounded-xl border px-4 py-3"
-                          style={{ background: "#ECFDF5", borderColor: "#05966933" }}
+                          className="rounded-2xl border px-5 py-4"
+                          style={{ background: "#F0FAF7", borderColor: "#05966922" }}
                         >
-                          <span className="text-xl mt-0.5">✈️</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-semibold text-[#1a2e2e]">
-                                {flight.departure_airport} → {flight.arrival_airport}
-                              </p>
-                              <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{dateLabel}</span>
+                          {/* Date badge */}
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#059669]">{dateLabel}</span>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#d1fae5] text-[#059669] uppercase tracking-wide">{flight.type}</span>
+                          </div>
+
+                          {/* Route row */}
+                          <div className="flex items-center gap-2">
+                            {/* Departure */}
+                            <div className="flex flex-col items-start flex-1">
+                              <span className="text-[11px] text-[#6B7B7B] mb-0.5">{flight.departure_airport}</span>
+                              <span className="text-3xl font-extrabold text-[#D97706] leading-none tracking-tight">{flight.departure_airport}</span>
+                              <span className="text-[11px] text-[#4B6060] mt-1">{depTime}</span>
                             </div>
-                            {airline && <p className="text-xs text-[#345C5A] mt-0.5">{airline}</p>}
-                            <p className="text-xs text-[#345C5A] mt-0.5 leading-snug">
-                              {depTime} → {arrTime}
-                              <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#d1fae5] text-[#059669] uppercase tracking-wide">
-                                {flight.type}
-                              </span>
-                            </p>
+
+                            {/* Arc path */}
+                            <div className="flex flex-col items-center flex-shrink-0 w-20 relative -mt-3">
+                              <svg viewBox="0 0 80 36" className="w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 30 Q40 2 76 30" stroke="#2E4A4A" strokeWidth="1.5" strokeDasharray="4 3" fill="none"/>
+                                {/* plane icon at midpoint */}
+                                <g transform="translate(36, 10) rotate(-10)">
+                                  <path d="M4 2 L0 6 L1.5 6 L3 4.5 L3 7.5 L4.5 7 L4.5 4.5 L6 6 L7.5 6 L3.5 2 Z" fill="#2E4A4A"/>
+                                </g>
+                              </svg>
+                              {/* origin dot */}
+                              <div className="absolute left-1 bottom-1 w-3.5 h-3.5 rounded-full bg-[#D97706] flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 rounded-full bg-white"/>
+                              </div>
+                              {/* dest dot */}
+                              <div className="absolute right-1 bottom-1 w-3.5 h-3.5 rounded-full bg-[#07444a] flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 rounded-full bg-white"/>
+                              </div>
+                            </div>
+
+                            {/* Arrival */}
+                            <div className="flex flex-col items-end flex-1">
+                              <span className="text-[11px] text-[#6B7B7B] mb-0.5">{flight.arrival_airport}</span>
+                              <span className="text-3xl font-extrabold text-[#07444a] leading-none tracking-tight">{flight.arrival_airport}</span>
+                              <span className="text-[11px] text-[#4B6060] mt-1">{arrTime}</span>
+                            </div>
                           </div>
                         </div>
                       );
