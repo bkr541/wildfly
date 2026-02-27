@@ -212,7 +212,9 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                             className="h-full w-auto object-contain"
                             loading="eager"
                           />
-                          <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
+                          <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">
+                            Frontier Airlines
+                          </span>
                         </div>
 
                         <div className="flex items-center justify-between gap-2 mb-2">
