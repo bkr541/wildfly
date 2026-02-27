@@ -367,9 +367,9 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                     <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
                       {group.destination} | {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
                     </span>
-                    <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
+                    <span className="text-sm font-normal text-[#2E4A4A] leading-tight uppercase">
                       {group.city || group.destination}
-                      {group.stateCode ? <span className="font-normal">, {group.stateCode}</span> : ""}
+                      {group.stateCode ? `, ${group.stateCode}` : ""}
                     </span>
                     <div className="flex items-center gap-4 mt-1 text-xs text-[#6B7B7B] font-semibold">
                       {earliestLabel && (
