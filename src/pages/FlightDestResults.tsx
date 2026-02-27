@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
@@ -89,6 +89,81 @@ function buildFullDateTime(timeStr: string, responseData: string, isArrival = fa
   } catch {
     return timeStr;
   }
+}
+
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function RouteFlapTile({ char, animating }: { char: string; animating: boolean }) {
+  return (
+    <div
+      className="relative flex flex-col items-center justify-center rounded-md shadow-sm border overflow-hidden"
+      style={{
+        width: 28,
+        height: 34,
+        background: animating ? "#e8eaed" : "linear-gradient(160deg,#059669 0%,#065F46 100%)",
+        borderColor: animating ? "#d1d5db" : "#064E3B",
+        transition: "background 0.1s, border-color 0.1s",
+      }}
+    >
+      <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+        style={{ background: animating ? "#b0b5bdaa" : "#064E3Baa" }} />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20"
+        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20"
+        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
+      <span className="font-black text-sm leading-none select-none z-10"
+        style={{ color: animating ? "#6b7280" : "#fff", letterSpacing: "0.04em" }}>
+        {char}
+      </span>
+    </div>
+  );
+}
+
+function RouteFlap({ word }: { word: string }) {
+  const upper = word.toUpperCase().slice(0, 4);
+  const [displayChars, setDisplayChars] = useState<string[]>(upper.split("").map(() => CHARS[Math.floor(Math.random() * CHARS.length)]));
+  const [settled, setSettled] = useState<boolean[]>(Array(upper.length).fill(false));
+  const ran = useRef(false);
+
+  useEffect(() => {
+    ran.current = false;
+    setDisplayChars(upper.split("").map(() => CHARS[Math.floor(Math.random() * CHARS.length)]));
+    setSettled(Array(upper.length).fill(false));
+  }, [word]);
+
+  useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+    upper.split("").forEach((finalChar, idx) => {
+      const to = setTimeout(() => {
+        const steps = 6;
+        let step = 0;
+        const iv = setInterval(() => {
+          step++;
+          if (step >= steps) {
+            clearInterval(iv);
+            setDisplayChars(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
+            setSettled(prev => { const n = [...prev]; n[idx] = true; return n; });
+          } else {
+            setDisplayChars(prev => { const n = [...prev]; n[idx] = CHARS[Math.floor(Math.random() * CHARS.length)]; return n; });
+          }
+        }, 45);
+        intervals.push(iv);
+      }, idx * 70);
+      timeouts.push(to);
+    });
+    return () => { timeouts.forEach(clearTimeout); intervals.forEach(clearInterval); };
+  }, [upper]);
+
+  return (
+    <div className="flex gap-0.5">
+      {upper.split("").map((_, i) => (
+        <RouteFlapTile key={i} char={displayChars[i] ?? ""} animating={!settled[i]} />
+      ))}
+    </div>
+  );
 }
 
 const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
@@ -301,10 +376,12 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         >
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <div className="flex flex-col items-center">
-          <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">
-            {origin || departureAirport} → {arrivalAirport || "All"}
-          </h1>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <RouteFlap word={origin || departureAirport} />
+            <span className="text-[#6B7B7B] font-bold text-base leading-none">→</span>
+            <RouteFlap word={arrivalAirport || "ALL"} />
+          </div>
           <span className="text-[11px] text-[#6B7B7B] font-medium">
             {departureDate
               ? new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", {
