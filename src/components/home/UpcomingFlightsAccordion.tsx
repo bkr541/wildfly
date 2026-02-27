@@ -161,31 +161,55 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   ) : (
                     flights.map((flight) => {
                       const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
-                      const airline = json?.airline || json?.carrier || null;
                       const depTime = flight.departure_time;
                       const arrTime = flight.arrival_time;
                       const dateLabel = formatDateLabel(flight.created_at);
                       return (
                         <div
                           key={flight.id}
-                          className="flex items-start gap-3 rounded-xl border px-4 py-3"
-                          style={{ background: "#ECFDF5", borderColor: "#05966933" }}
+                          className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
                         >
-                          <span className="text-xl mt-0.5">✈️</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-semibold text-[#1a2e2e]">
-                                {flight.departure_airport} → {flight.arrival_airport}
-                              </p>
-                              <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{dateLabel}</span>
-                            </div>
-                            {airline && <p className="text-xs text-[#345C5A] mt-0.5">{airline}</p>}
-                            <p className="text-xs text-[#345C5A] mt-0.5 leading-snug">
-                              {depTime} → {arrTime}
-                              <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#d1fae5] text-[#059669] uppercase tracking-wide">
-                                {flight.type}
+                          {/* Airline header */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <img
+                              src="/assets/logo/frontier/frontier_logo.png"
+                              alt="Frontier Airlines"
+                              className="h-4 object-contain"
+                            />
+                            <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
+                          </div>
+
+                          {/* Route row */}
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex flex-col">
+                              <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                                {flight.departure_airport}
                               </span>
-                            </p>
+                            </div>
+
+                            {/* Arrow */}
+                            <div className="flex-1 flex items-center px-2">
+                              <div className="flex-1 flex items-center gap-1">
+                                <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0">
+                                  <path d="M1 5H9M9 5L6 2M9 5L6 8" stroke="#2E4A4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col items-end">
+                              <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                                {flight.arrival_airport}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Times row */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-[#059669]">{depTime}</span>
+                            <span className="text-sm font-medium text-[#059669]">
+                              {arrTime}{dateLabel && dateLabel !== "Today" ? ` ${dateLabel}` : ""}
+                            </span>
                           </div>
                         </div>
                       );
