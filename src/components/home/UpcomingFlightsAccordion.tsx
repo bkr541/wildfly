@@ -194,57 +194,65 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                     <p className="text-sm text-[#6B7B7B]">No upcoming flights scheduled.</p>
                   </motion.div>
                 ) : (
-                  flights.map((flight) => (
-                    <motion.div
-                      key={flight.id}
-                      variants={itemVariants}
-                      className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
-                    >
-                      {/* FIXED HEIGHT CONTAINER: Prevents layout shift when logo loads */}
-                      <div className="h-4 flex items-center gap-2 mb-3">
-                        <img
-                          src={FRONTIER_LOGO}
-                          alt="Frontier Airlines"
-                          className="h-full w-auto object-contain"
-                          loading="eager"
-                        />
-                        <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
-                      </div>
+                  flights.map((flight) => {
+                    const dateLabel = formatDateLabel(flight.created_at);
+                    const showDate = dateLabel !== "" && dateLabel !== "Today";
 
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                          {flight.departure_airport}
-                        </span>
-
-                        {/* Separator with plane icon centered between the IATA codes */}
-                        <div className="flex-1 flex items-center px-2">
-                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
-                          <span className="mx-2 inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
-                            <FontAwesomeIcon icon={faPlane} rotation={90} className="w-3.5 h-3.5 text-[#2E4A4A]" />
-                          </span>
-                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
+                    return (
+                      <motion.div
+                        key={flight.id}
+                        variants={itemVariants}
+                        className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
+                      >
+                        {/* FIXED HEIGHT CONTAINER: Prevents layout shift when logo loads */}
+                        <div className="h-4 flex items-center gap-2 mb-3">
+                          <img
+                            src={FRONTIER_LOGO}
+                            alt="Frontier Airlines"
+                            className="h-full w-auto object-contain"
+                            loading="eager"
+                          />
+                          <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
                         </div>
 
-                        <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                          {flight.arrival_airport}
-                        </span>
-                      </div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                            {flight.departure_airport}
+                          </span>
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#059669]">{flight.departure_time}</span>
-
-                        {/* Arrival time with date underneath on a new line */}
-                        <span className="text-sm font-medium text-[#059669] text-right leading-tight">
-                          <span className="block">{flight.arrival_time}</span>
-                          {formatDateLabel(flight.created_at) !== "Today" && (
-                            <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">
-                              {formatDateLabel(flight.created_at)}
+                          {/* Separator with plane icon centered between the IATA codes */}
+                          <div className="flex-1 flex items-center px-2">
+                            <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
+                            <span className="mx-2 inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
+                              <FontAwesomeIcon icon={faPlane} rotation={90} className="w-3.5 h-3.5 text-[#2E4A4A]" />
                             </span>
-                          )}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))
+                            <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
+                          </div>
+
+                          <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                            {flight.arrival_airport}
+                          </span>
+                        </div>
+
+                        {/* Times are aligned on the same top line; date is underneath on a new line */}
+                        <div className="flex items-start justify-between">
+                          <span className="text-sm font-medium text-[#059669] leading-tight">
+                            <span className="block">{flight.departure_time}</span>
+                            {showDate && (
+                              <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">{dateLabel}</span>
+                            )}
+                          </span>
+
+                          <span className="text-sm font-medium text-[#059669] text-right leading-tight">
+                            <span className="block">{flight.arrival_time}</span>
+                            {showDate && (
+                              <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">{dateLabel}</span>
+                            )}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })
                 )}
               </motion.div>
             </motion.div>
