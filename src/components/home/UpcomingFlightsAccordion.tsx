@@ -30,7 +30,40 @@ function formatDateLabel(createdAt: string) {
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const DURATION = 0.28;
-const EXPAND_DURATION = 0.24; // Snappier expansion
+const EXPAND_DURATION = 0.24;
+
+// 1. Define Animation Variants for the Stagger
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12, // The "drip" timing between cards
+      delayChildren: 0.1, // Wait for the main container to start opening
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1, // Collapse from bottom-up for a snappier exit
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: EASE },
+  },
+  exit: {
+    opacity: 0,
+    y: 5,
+    transition: { duration: 0.15 },
+  },
+};
 
 interface Props {
   flights: UserFlight[];
@@ -50,7 +83,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
 
   return (
     <motion.div layout className="px-6 pb-4 relative z-10">
-      {/* Header — no background */}
       <button
         id={triggerId}
         aria-expanded={open}
@@ -77,7 +109,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
           </motion.span>
         </div>
 
-        {/* Collapsed preview rows */}
         <AnimatePresence initial={false}>
           {!open && (
             <motion.div
@@ -96,8 +127,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                     </div>
                   ))}
                 </>
-              ) : flights.length === 0 ? (
-                <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
               ) : (
                 flights.map((f) => (
                   <div key={f.id} className="flex items-center gap-2">
@@ -116,8 +145,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         </AnimatePresence>
       </button>
 
-      {/* Expanded flight cards */}
-      <div id={panelId} role="region" aria-labelledby={triggerId} aria-hidden={!open} style={{ overflow: "hidden" }}>
+      <div id={panelId} role="region" aria-labelledby={triggerId} style={{ overflow: "hidden" }}>
         <AnimatePresence initial={false}>
           {open && (
             <motion.div
@@ -128,96 +156,81 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                 opacity: 1,
                 transition: {
                   height: { duration: shouldReduceMotion ? 0.12 : EXPAND_DURATION, ease: EASE },
-                  opacity: { duration: shouldReduceMotion ? 0.12 : EXPAND_DURATION, ease: EASE },
+                  opacity: { duration: shouldReduceMotion ? 0.12 : EXPAND_DURATION },
                 },
               }}
               exit={{
                 height: 0,
                 opacity: 0,
                 transition: {
-                  height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
-                  opacity: { duration: shouldReduceMotion ? 0.08 : 0.18, ease: EASE },
+                  height: { duration: DURATION, ease: EASE },
+                  opacity: { duration: 0.18 },
                 },
               }}
               style={{ overflow: "hidden" }}
             >
+              {/* 2. Parent container uses containerVariants */}
               <motion.div
-                // Removed y: 6 to prevent the "shudder" during expansion
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 1,
-                  transition: {
-                    delay: 0.08, // Subtle stagger so content feels "contained"
-                    duration: 0.2,
-                    ease: EASE,
-                  },
-                }}
-                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
                 className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden flex flex-col gap-2 p-3"
               >
                 {flights.length === 0 ? (
-                  <div className="rounded-xl border border-[#e3e6e6] px-4 py-4 text-center">
+                  <motion.div
+                    variants={itemVariants}
+                    className="rounded-xl border border-[#e3e6e6] px-4 py-4 text-center"
+                  >
                     <p className="text-sm text-[#6B7B7B]">No upcoming flights scheduled.</p>
-                  </div>
+                  </motion.div>
                 ) : (
-                  flights.map((flight) => {
-                    const depTime = flight.departure_time;
-                    const arrTime = flight.arrival_time;
-                    const dateLabel = formatDateLabel(flight.created_at);
-                    return (
-                      <div key={flight.id} className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4">
-                        {/* Airline header */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <img
-                            src="/assets/logo/frontier/frontier_logo.png"
-                            alt="Frontier Airlines"
-                            className="h-4 object-contain"
-                          />
-                          <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
-                        </div>
-
-                        {/* Route row */}
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <div className="flex flex-col">
-                            <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                              {flight.departure_airport}
-                            </span>
-                          </div>
-
-                          {/* Arrow */}
-                          <div className="flex-1 flex items-center px-2">
-                            <div className="flex-1 flex items-center gap-1">
-                              <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0">
-                                <path
-                                  d="M1 5H9M9 5L6 2M9 5L6 8"
-                                  stroke="#2E4A4A"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col items-end">
-                            <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                              {flight.arrival_airport}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Times row */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-[#059669]">{depTime}</span>
-                          <span className="text-sm font-medium text-[#059669]">
-                            {arrTime}
-                            {dateLabel && dateLabel !== "Today" ? ` ${dateLabel}` : ""}
-                          </span>
-                        </div>
+                  flights.map((flight) => (
+                    /* 3. Each child uses itemVariants for the drip effect */
+                    <motion.div
+                      key={flight.id}
+                      variants={itemVariants}
+                      className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <img
+                          src="/assets/logo/frontier/frontier_logo.png"
+                          alt="Frontier Airlines"
+                          className="h-4 object-contain"
+                        />
+                        <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
                       </div>
-                    );
-                  })
+
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                          {flight.departure_airport}
+                        </span>
+                        <div className="flex-1 flex items-center px-2">
+                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path
+                              d="M1 5H9M9 5L6 2M9 5L6 8"
+                              stroke="#2E4A4A"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                          {flight.arrival_airport}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#059669]">{flight.departure_time}</span>
+                        <span className="text-sm font-medium text-[#059669]">
+                          {flight.arrival_time}{" "}
+                          {formatDateLabel(flight.created_at) !== "Today" ? formatDateLabel(flight.created_at) : ""}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
                 )}
               </motion.div>
             </motion.div>
