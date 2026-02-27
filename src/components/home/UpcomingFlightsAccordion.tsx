@@ -232,9 +232,15 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
 
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-[#059669]">{flight.departure_time}</span>
-                        <span className="text-sm font-medium text-[#059669]">
-                          {flight.arrival_time}{" "}
-                          {formatDateLabel(flight.created_at) !== "Today" ? formatDateLabel(flight.created_at) : ""}
+
+                        {/* Arrival time with date underneath on a new line */}
+                        <span className="text-sm font-medium text-[#059669] text-right leading-tight">
+                          <span className="block">{flight.arrival_time}</span>
+                          {formatDateLabel(flight.created_at) !== "Today" && (
+                            <span className="block text-[11px] font-medium text-[#6B7B7B] mt-0.5">
+                              {formatDateLabel(flight.created_at)}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </motion.div>
