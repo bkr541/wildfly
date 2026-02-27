@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { UpcomingFlightsAccordion } from "@/components/home/UpcomingFlightsAccordion";
-import { AlertsAccordion } from "@/components/home/AlertsAccordion";
 import { SplitFlapHeader } from "@/components/SplitFlapHeader";
+import { AlertsAccordion } from "@/components/home/AlertsAccordion";
+import { UpcomingFlightsAccordion } from "@/components/home/UpcomingFlightsAccordion";
 
 interface UserFlight {
   id: string;
@@ -15,33 +15,39 @@ interface UserFlight {
   created_at: string;
 }
 
-export default function Home() {
+const HomePage = () => {
   const [flights, setFlights] = useState<UserFlight[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchFlights() {
+    const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
-
       const { data } = await supabase
         .from("user_flights")
         .select("*")
         .eq("user_id", user.id)
         .order("departure_time", { ascending: true })
         .limit(20);
-
-      setFlights((data as UserFlight[]) ?? []);
+      setFlights(data || []);
       setLoading(false);
-    }
-    fetchFlights();
+    };
+    load();
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 pt-2 pb-8">
-      <SplitFlapHeader word="WILDFLY" />
+    <>
+      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
+        <SplitFlapHeader word="HOME" />
+      </div>
+
       <UpcomingFlightsAccordion flights={flights} loading={loading} />
+
       <AlertsAccordion />
-    </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10" />
+    </>
   );
-}
+};
+
+export default HomePage;

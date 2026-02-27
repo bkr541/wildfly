@@ -45,7 +45,7 @@ export function AlertsAccordion() {
   };
 
   return (
-    <motion.div layout className="px-[18px] pb-4 relative z-10">
+    <motion.div layout className="px-6 pb-4 relative z-10">
       {/* Unified white card — grows to contain expanded cards */}
       <div className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden">
 
