@@ -327,6 +327,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
             const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
             const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
             let earliestTime: Date | null = null;
+            let latestTime: Date | null = null;
             for (const f of group.flights) {
               const dep = f.legs[0]?.departure_time;
               if (dep) {
@@ -335,11 +336,15 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                   const d = new Date();
                   d.setHours(h, 0, 0, 0);
                   if (!earliestTime || d < earliestTime) earliestTime = d;
+                  if (!latestTime || d > latestTime) latestTime = d;
                 }
               }
             }
             const earliestLabel = earliestTime
               ? earliestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+              : null;
+            const latestLabel = latestTime
+              ? latestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
               : null;
             return (
               <div
@@ -371,6 +376,12 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                         <span className="flex items-center gap-1.5">
                           <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#345C5A]" />
                           {earliestLabel}
+                        </span>
+                      )}
+                      {latestLabel && latestLabel !== earliestLabel && (
+                        <span className="flex items-center gap-1.5">
+                          <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#6B7B7B]" />
+                          {latestLabel}
                         </span>
                       )}
                       <span className="flex items-center gap-1.5">
