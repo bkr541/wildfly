@@ -146,12 +146,10 @@ const HomePage = () => {
         setLoading(false);
         return;
       }
-      const now = new Date().toISOString();
       const { data } = await supabase
         .from("user_flights")
         .select("*")
         .eq("user_id", user.id)
-        .gte("departure_time", now)
         .order("departure_time", { ascending: true })
         .limit(20);
       setFlights(data || []);
