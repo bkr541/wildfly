@@ -207,7 +207,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                 initial="hidden"
                 animate="show"
                 exit="exit"
-                className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden flex flex-col gap-2 p-3"
+                className="flex flex-col gap-2"
               >
                 {flights.length === 0 ? (
                   <motion.div
