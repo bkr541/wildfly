@@ -59,22 +59,45 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
-            Upcoming Flights
-            {!loading && (
-              <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
-                {flights.length} {flights.length === 1 ? "flight" : "flights"}
-              </span>
-            )}
-          </h2>
-          <motion.span
-            variants={chevronVariants}
-            animate={open ? "expanded" : "collapsed"}
+          <motion.h2
+            className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest flex items-center gap-2"
+            animate={{ flex: open ? "1 1 0%" : "0 1 auto" }}
             transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
-            className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
           >
-            <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
-          </motion.span>
+            <motion.span
+              animate={{ textAlign: open ? "center" : "left", width: open ? "100%" : "auto" }}
+              transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
+              className="block"
+            >
+              Upcoming Flights
+            </motion.span>
+            <AnimatePresence initial={false}>
+              {!loading && !open && (
+                <motion.span
+                  key="flight-count"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto", transition: { duration: DURATION, ease: EASE } }}
+                  exit={{ opacity: 0, width: 0, transition: { duration: 0.15, ease: EASE } }}
+                  className="text-xs font-medium text-[#6B7B7B] normal-case tracking-normal overflow-hidden whitespace-nowrap"
+                >
+                  {flights.length} {flights.length === 1 ? "flight" : "flights"}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.h2>
+          <AnimatePresence initial={false}>
+            {!open && (
+              <motion.span
+                key="chevron"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: DURATION, ease: EASE } }}
+                exit={{ opacity: 0, transition: { duration: 0.15, ease: EASE } }}
+                className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
+              >
+                <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </button>
 
