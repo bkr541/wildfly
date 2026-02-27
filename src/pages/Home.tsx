@@ -12,6 +12,7 @@ interface UserFlight {
   arrival_time: string;
   type: string;
   flight_json: any;
+  created_at: string;
 }
 
 const HomePage = () => {
