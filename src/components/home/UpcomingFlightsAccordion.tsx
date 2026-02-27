@@ -30,6 +30,7 @@ function formatDateLabel(createdAt: string) {
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const DURATION = 0.28;
+const EXPAND_DURATION = 0.24; // Snappier expansion
 
 interface Props {
   flights: UserFlight[];
@@ -49,7 +50,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
 
   return (
     <motion.div layout className="px-6 pb-4 relative z-10">
-
       {/* Header — no background */}
       <button
         id={triggerId}
@@ -59,94 +59,65 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          <motion.h2
-            className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest flex items-center gap-2"
-            animate={{ flex: open ? "1 1 0%" : "0 1 auto" }}
-            transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
-          >
-            <motion.span
-              animate={{ textAlign: open ? "center" : "left", width: open ? "100%" : "auto" }}
-              transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
-              className="block"
-            >
-              Upcoming Flights
-            </motion.span>
-            <AnimatePresence initial={false}>
-              {!loading && !open && (
-                <motion.span
-                  key="flight-count"
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto", transition: { duration: DURATION, ease: EASE } }}
-                  exit={{ opacity: 0, width: 0, transition: { duration: 0.15, ease: EASE } }}
-                  className="text-xs font-medium text-[#6B7B7B] normal-case tracking-normal overflow-hidden whitespace-nowrap"
-                >
-                  {flights.length} {flights.length === 1 ? "flight" : "flights"}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.h2>
-          <AnimatePresence initial={false}>
-            {!open && (
-              <motion.span
-                key="chevron"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: DURATION, ease: EASE } }}
-                exit={{ opacity: 0, transition: { duration: 0.15, ease: EASE } }}
-                className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
-              >
-                <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
-              </motion.span>
+          <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
+            Upcoming Flights
+            {!loading && (
+              <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
+                {flights.length} {flights.length === 1 ? "flight" : "flights"}
+              </span>
             )}
-          </AnimatePresence>
+          </h2>
+          <motion.span
+            variants={chevronVariants}
+            animate={open ? "expanded" : "collapsed"}
+            transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
+            className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
+          >
+            <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
+          </motion.span>
         </div>
+
+        {/* Collapsed preview rows */}
+        <AnimatePresence initial={false}>
+          {!open && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
+              className="mt-2 flex flex-col gap-1.5"
+            >
+              {loading ? (
+                <>
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
+                      <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
+                    </div>
+                  ))}
+                </>
+              ) : flights.length === 0 ? (
+                <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
+              ) : (
+                flights.map((f) => (
+                  <div key={f.id} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
+                    <span className="text-xs text-[#345C5A] truncate flex-1">
+                      {f.departure_airport} → {f.arrival_airport}
+                    </span>
+                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
+                      {formatDateLabel(f.created_at)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </button>
 
-      {/* Collapsed preview rows — inside white card */}
-      <AnimatePresence initial={false}>
-        {!open && (
-          <motion.div
-            key="preview"
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
-            className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm px-4 py-3 flex flex-col gap-1.5"
-          >
-            {loading ? (
-              <>
-                {[1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
-                    <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
-                  </div>
-                ))}
-              </>
-            ) : flights.length === 0 ? (
-              <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
-            ) : (
-              flights.map((f) => (
-                <div key={f.id} className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
-                  <span className="text-xs text-[#345C5A] truncate flex-1">
-                    {f.departure_airport} → {f.arrival_airport}
-                  </span>
-                  <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
-                    {formatDateLabel(f.created_at)}
-                  </span>
-                </div>
-              ))
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Expanded flight cards — white background only here */}
-      <div
-        id={panelId}
-        role="region"
-        aria-labelledby={triggerId}
-        aria-hidden={!open}
-        style={{ overflow: "hidden" }}
-      >
+      {/* Expanded flight cards */}
+      <div id={panelId} role="region" aria-labelledby={triggerId} aria-hidden={!open} style={{ overflow: "hidden" }}>
         <AnimatePresence initial={false}>
           {open && (
             <motion.div
@@ -156,8 +127,8 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                 height: "auto",
                 opacity: 1,
                 transition: {
-                  height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
-                  opacity: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
+                  height: { duration: shouldReduceMotion ? 0.12 : EXPAND_DURATION, ease: EASE },
+                  opacity: { duration: shouldReduceMotion ? 0.12 : EXPAND_DURATION, ease: EASE },
                 },
               }}
               exit={{
@@ -171,9 +142,17 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
               style={{ overflow: "hidden" }}
             >
               <motion.div
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-                exit={{ opacity: 0, y: shouldReduceMotion ? 0 : 6, transition: { duration: 0.15, ease: EASE } }}
+                // Removed y: 6 to prevent the "shudder" during expansion
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  transition: {
+                    delay: 0.08, // Subtle stagger so content feels "contained"
+                    duration: 0.2,
+                    ease: EASE,
+                  },
+                }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
                 className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden flex flex-col gap-2 p-3"
               >
                 {flights.length === 0 ? (
@@ -182,67 +161,69 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   </div>
                 ) : (
                   flights.map((flight) => {
-                      const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
-                      const depTime = flight.departure_time;
-                      const arrTime = flight.arrival_time;
-                      const dateLabel = formatDateLabel(flight.created_at);
-                      return (
-                        <div
-                          key={flight.id}
-                          className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
-                        >
-                          {/* Airline header */}
-                          <div className="flex items-center gap-2 mb-3">
-                            <img
-                              src="/assets/logo/frontier/frontier_logo.png"
-                              alt="Frontier Airlines"
-                              className="h-4 object-contain"
-                            />
-                            <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
+                    const depTime = flight.departure_time;
+                    const arrTime = flight.arrival_time;
+                    const dateLabel = formatDateLabel(flight.created_at);
+                    return (
+                      <div key={flight.id} className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4">
+                        {/* Airline header */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <img
+                            src="/assets/logo/frontier/frontier_logo.png"
+                            alt="Frontier Airlines"
+                            className="h-4 object-contain"
+                          />
+                          <span className="text-xs font-semibold text-[#2E4A4A] tracking-wide uppercase">Airlines</span>
+                        </div>
+
+                        {/* Route row */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex flex-col">
+                            <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                              {flight.departure_airport}
+                            </span>
                           </div>
 
-                          {/* Route row */}
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="flex flex-col">
-                              <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                                {flight.departure_airport}
-                              </span>
-                            </div>
-
-                            {/* Arrow */}
-                            <div className="flex-1 flex items-center px-2">
-                              <div className="flex-1 flex items-center gap-1">
-                                <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
-                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0">
-                                  <path d="M1 5H9M9 5L6 2M9 5L6 8" stroke="#2E4A4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col items-end">
-                              <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                                {flight.arrival_airport}
-                              </span>
+                          {/* Arrow */}
+                          <div className="flex-1 flex items-center px-2">
+                            <div className="flex-1 flex items-center gap-1">
+                              <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0">
+                                <path
+                                  d="M1 5H9M9 5L6 2M9 5L6 8"
+                                  stroke="#2E4A4A"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </div>
                           </div>
 
-                          {/* Times row */}
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-[#059669]">{depTime}</span>
-                            <span className="text-sm font-medium text-[#059669]">
-                              {arrTime}{dateLabel && dateLabel !== "Today" ? ` ${dateLabel}` : ""}
+                          <div className="flex flex-col items-end">
+                            <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                              {flight.arrival_airport}
                             </span>
                           </div>
                         </div>
-                      );
-                    })
-                  )}
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
+                        {/* Times row */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-[#059669]">{depTime}</span>
+                          <span className="text-sm font-medium text-[#059669]">
+                            {arrTime}
+                            {dateLabel && dateLabel !== "Today" ? ` ${dateLabel}` : ""}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
