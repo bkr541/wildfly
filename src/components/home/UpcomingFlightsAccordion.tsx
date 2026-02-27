@@ -14,9 +14,10 @@ interface UserFlight {
   created_at: string;
 }
 
-function formatDateLabel(dateStr: string) {
+function formatDateLabel(createdAt: string) {
   try {
-    const d = new Date(dateStr);
+    const d = new Date(createdAt);
+    if (isNaN(d.getTime())) return "";
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -195,7 +196,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   </motion.div>
                 ) : (
                   flights.map((flight) => {
-                    const dateLabel = formatDateLabel(flight.departure_time);
+                    const dateLabel = formatDateLabel(flight.created_at);
                     const showDate = dateLabel !== "";
 
                     return (
