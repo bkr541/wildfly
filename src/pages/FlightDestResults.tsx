@@ -96,22 +96,21 @@ const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 function RouteFlapTile({ char, animating }: { char: string; animating: boolean }) {
   return (
     <div
-      className="relative flex flex-col items-center justify-center rounded-md shadow-sm border overflow-hidden"
+      className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
       style={{
-        width: 28,
+        width: 32,
         height: 34,
         background: animating ? "#e8eaed" : "linear-gradient(160deg,#059669 0%,#065F46 100%)",
         borderColor: animating ? "#d1d5db" : "#064E3B",
-        transition: "background 0.1s, border-color 0.1s",
       }}
     >
       <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
         style={{ background: animating ? "#b0b5bdaa" : "#064E3Baa" }} />
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20"
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
         style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20"
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
         style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
-      <span className="font-black text-sm leading-none select-none z-10"
+      <span className="font-black text-lg leading-none select-none z-10"
         style={{ color: animating ? "#6b7280" : "#fff", letterSpacing: "0.04em" }}>
         {char}
       </span>
