@@ -507,7 +507,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               selected={departures}
               onChange={setDepartures}
               airports={airports}
-              containerClassName="px-3 pt-3 pb-2"
+              containerClassName="px-3 pt-3 pb-1"
             />
 
             <MultiAirportSearchbox
@@ -518,13 +518,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="px-3 pt-2 pb-2"
+              containerClassName="px-3 pt-1 pb-1"
             />
           </div>
 
           {/* Dates */}
-          <div className="px-3 pt-2 pb-3">
-            <div className={cn("grid gap-2", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
+          <div className="px-3 pt-1 pb-3">
+            <div className={cn("grid gap-1", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
 
@@ -898,7 +898,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full h-14 px-5 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
+          className="w-full h-14 px-5 bg-[#345C5A] text-white font-semibold text-base rounded-full shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
         >
           <span>{loading ? "Searching..." : "Search Flights"}</span>
           <span className="absolute right-5 flex items-center">
