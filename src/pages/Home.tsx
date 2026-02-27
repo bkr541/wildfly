@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SplitFlapHeader } from "@/components/SplitFlapHeader";
+import { AlertsAccordion } from "@/components/home/AlertsAccordion";
 
 // ── Split-flap tile (reusable, self-contained) ──────────────────────────────
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
@@ -196,32 +197,7 @@ const HomePage = () => {
         )}
       </div>
 
-      {/* Alerts */}
-      <div className="px-6 pb-4 relative z-10">
-        <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest mb-3">Alerts</h2>
-        <div className="flex flex-col gap-2">
-          {[
-            { icon: "🔥", title: "Go Wild sale ends soon", body: "Book by Sunday to lock in $49 fares to Bozeman & Missoula.", time: "2h ago", color: "#FEF3C7", accent: "#D97706" },
-            { icon: "✈️", title: "New route: ORD → BZN", body: "Frontier just added daily nonstops from Chicago starting June 1.", time: "Yesterday", color: "#ECFDF5", accent: "#059669" },
-            { icon: "⚡", title: "Flash deal: ORD → DEN", body: "Round-trip from $79. Only 12 seats left.", time: "3d ago", color: "#EFF6FF", accent: "#3B82F6" },
-          ].map((alert, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 rounded-2xl border px-4 py-3"
-              style={{ background: alert.color, borderColor: alert.accent + "33" }}
-            >
-              <span className="text-xl mt-0.5">{alert.icon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-[#1a2e2e]">{alert.title}</p>
-                  <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
-                </div>
-                <p className="text-xs text-[#345C5A] mt-0.5 leading-snug">{alert.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <AlertsAccordion />
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10" />
