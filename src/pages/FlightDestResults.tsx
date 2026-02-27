@@ -65,6 +65,32 @@ function parseHour(raw: string): number | null {
   return null;
 }
 
+/**
+ * Combine a time-only string like "3:08 PM" with a date from responseData
+ * to produce a full ISO datetime string (e.g. "2025-03-15T15:08:00").
+ */
+function buildFullDateTime(timeStr: string, responseData: string, isArrival = false): string {
+  try {
+    const parsed = JSON.parse(responseData);
+    const dateStr: string | null = isArrival
+      ? (parsed.arrivalDate ?? parsed.departureDate ?? null)
+      : (parsed.departureDate ?? null);
+    if (!dateStr || !timeStr) return timeStr;
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return timeStr;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    const dt = new Date(`${dateStr}T00:00:00`);
+    dt.setHours(h, min, 0, 0);
+    return dt.toISOString();
+  } catch {
+    return timeStr;
+  }
+}
+
 const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
@@ -136,8 +162,8 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         flight_json: flight,
         departure_airport: dep?.origin ?? "",
         arrival_airport: arr?.destination ?? "",
-        departure_time: dep?.departure_time ?? "",
-        arrival_time: arr?.arrival_time ?? "",
+        departure_time: buildFullDateTime(dep?.departure_time ?? "", responseData),
+        arrival_time: buildFullDateTime(arr?.arrival_time ?? "", responseData, true),
       } as any).select("id").single() as any;
       if (inserted) {
         setUserFlights((prev) => ({ ...prev, [key]: { id: inserted.id, type } }));
