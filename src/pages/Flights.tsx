@@ -372,14 +372,14 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
   }, []);
 
   return (
-    <div className="flex gap-1.5">
+    <div className="flex gap-1">
       {display.map((char, i) => (
         <div
           key={i}
           className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
           style={{
-            width: 36,
-            height: 44,
+            width: 28,
+            height: 36,
             background: green ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
             borderColor: green ? "#059669" : "#d1d5db",
           }}
@@ -397,7 +397,7 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
             style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }}
           />
           <span
-            className="font-black text-xl leading-none select-none"
+            className="font-black text-base leading-none select-none"
             style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
           >
             {char === " " ? "" : char}
