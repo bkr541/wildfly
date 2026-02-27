@@ -1,7 +1,7 @@
 import { useState, useId, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faPlane } from "@fortawesome/free-solid-svg-icons";
 
 interface UserFlight {
   id: string;
@@ -121,7 +121,11 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
               key="preview"
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
               animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
+              exit={{
+                opacity: 0,
+                y: shouldReduceMotion ? 0 : -4,
+                transition: { duration: 0.15, ease: EASE },
+              }}
               className="mt-2 flex flex-col gap-1.5"
             >
               {loading ? (
@@ -211,18 +215,16 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                         <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
                           {flight.departure_airport}
                         </span>
+
+                        {/* Separator with plane icon centered between the IATA codes */}
                         <div className="flex-1 flex items-center px-2">
-                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A]" />
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path
-                              d="M1 5H9M9 5L6 2M9 5L6 8"
-                              stroke="#2E4A4A"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
+                          <span className="mx-2 inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
+                            <FontAwesomeIcon icon={faPlane} rotation={90} className="w-3.5 h-3.5 text-[#2E4A4A]" />
+                          </span>
+                          <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
                         </div>
+
                         <span className="text-3xl font-bold text-[#1a2e2e] leading-none tracking-tight">
                           {flight.arrival_airport}
                         </span>
