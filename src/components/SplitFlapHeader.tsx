@@ -46,7 +46,7 @@ function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; 
  * `word` should be the label (e.g. "FLIGHTS"). It is padded to 9 tiles total —
  * the word characters are green, the trailing blanks are faded.
  */
-export function SplitFlapHeader({ word }: { word: string }) {
+export function SplitFlapHeader({ word, gap = "gap-1.5" }: { word: string; gap?: string }) {
   const TILES = 9;
   const upper = word.toUpperCase().slice(0, TILES);
   const padded = upper.padEnd(TILES, "_");
@@ -84,7 +84,7 @@ export function SplitFlapHeader({ word }: { word: string }) {
   }, [padded]);
 
   return (
-    <div className="flex items-center gap-1.5 w-full">
+    <div className={`flex items-center ${gap} w-full`}>
       {displayChars.map((char, i) => {
         const isBlank = padded[i] === "_";
         return (
