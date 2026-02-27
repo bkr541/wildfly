@@ -64,28 +64,60 @@ export function AlertsAccordion() {
 
   return (
     <motion.div layout className="px-6 pb-4 relative z-10">
-      {/* Header / trigger */}
+      {/* Header / trigger — white card when collapsed */}
       <button
         id={triggerId}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between mb-3 group"
+        className="w-full text-left mb-3 group"
       >
-        <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
-          Alerts
-          <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
-            {MOCK_ALERTS.length} new
-          </span>
-        </h2>
-        <motion.span
-          variants={chevronVariants}
-          animate={open ? "expanded" : "collapsed"}
-          transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
-          className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
+        <motion.div
+          layout
+          className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm px-4 py-3"
         >
-          <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
-        </motion.span>
+          {/* Always-visible top row */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
+              Alerts
+              <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
+                {MOCK_ALERTS.length} new
+              </span>
+            </h2>
+            <motion.span
+              variants={chevronVariants}
+              animate={open ? "expanded" : "collapsed"}
+              transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
+              className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
+            >
+              <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
+            </motion.span>
+          </div>
+
+          {/* Collapsed preview — hide when open */}
+          <AnimatePresence initial={false}>
+            {!open && (
+              <motion.div
+                key="preview"
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
+                exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
+                className="mt-2.5 flex flex-col gap-1.5"
+              >
+                {MOCK_ALERTS.map((alert, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: alert.accent }}
+                    />
+                    <span className="text-xs text-[#345C5A] truncate flex-1">{alert.title}</span>
+                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </button>
 
       {/* Expanding panel */}
