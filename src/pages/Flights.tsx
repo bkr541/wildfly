@@ -10,10 +10,11 @@ import {
   Location01Icon,
   Building04Icon,
   Calendar03Icon,
-  ArrowRight01Icon,
-  RefreshIcon,
-  Sun01Icon,
-  RouteIcon,
+  ArrowRight04Icon,
+  CircleArrowReload01Icon,
+  SunCloud01Icon,
+  MapPinpoint01Icon,
+  PlaneIcon,
   Cancel01Icon,
   AddCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -44,10 +45,10 @@ const ACTIVE_TRIP_FLEX = 1.7;
 type TripType = "one-way" | "round-trip" | "day-trip" | "multi-day";
 
 const tripOptions: { value: TripType; label: string; icon: any }[] = [
-  { value: "one-way", label: "One Way", icon: ArrowRight01Icon },
-  { value: "round-trip", label: "Round Trip", icon: RefreshIcon },
-  { value: "day-trip", label: "Day Trip", icon: Sun01Icon },
-  { value: "multi-day", label: "Multi Day", icon: RouteIcon },
+  { value: "one-way", label: "One Way", icon: ArrowRight04Icon },
+  { value: "round-trip", label: "Round Trip", icon: CircleArrowReload01Icon },
+  { value: "day-trip", label: "Day Trip", icon: SunCloud01Icon },
+  { value: "multi-day", label: "Multi Day", icon: MapPinpoint01Icon },
 ];
 
 interface Airport {
@@ -144,11 +145,11 @@ const MultiAirportSearchbox = ({
 
       <div
         className={cn(
-          "app-input-container flex items-center gap-1.5 h-10 overflow-hidden",
+          "app-input-container flex items-center gap-1.5 h-10 overflow-hidden bg-white",
           disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
           isFocused && "focus-within",
         )}
-        style={{ minHeight: 40, padding: "0 0.8em" }}
+        style={{ minHeight: 40, padding: "0 0.8em", backgroundColor: "#fff" }}
       >
         <HugeiconsIcon icon={icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
@@ -414,9 +415,6 @@ function SearchingOverlay() {
   );
 }
 
-
-
-
 const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
@@ -512,8 +510,6 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               containerClassName="px-3 pt-3 pb-2"
             />
 
-            <div className="h-px bg-[#E3E6E6] mx-3" />
-
             <MultiAirportSearchbox
               label="Arrival"
               icon={Airplane01Icon}
@@ -524,8 +520,6 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
               containerClassName="px-3 pt-2 pb-2"
             />
-
-            <div className="h-px bg-[#E3E6E6] mx-3" />
           </div>
 
           {/* Dates */}
@@ -904,9 +898,12 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full py-4 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60"
+          className="w-full h-14 px-5 bg-[#345C5A] text-white font-semibold text-base rounded-2xl shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
         >
-          {loading ? "Searching..." : "Search Flights"}
+          <span>{loading ? "Searching..." : "Search Flights"}</span>
+          <span className="absolute right-5 flex items-center">
+            <HugeiconsIcon icon={PlaneIcon} size={18} color="currentColor" strokeWidth={1.8} className="shrink-0" />
+          </span>
         </button>
       </div>
     </>
