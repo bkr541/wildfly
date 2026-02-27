@@ -6,10 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Airplane01Icon,
+  AirplaneTakeOff01Icon,
+  AirplaneLanding01Icon,
   Location01Icon,
   Building04Icon,
-  Calendar03Icon,
+  CalendarCheckOut02Icon,
+  CalendarCheckIn02Icon,
   ArrowRight04Icon,
   CircleArrowReload01Icon,
   SunCloud01Icon,
@@ -151,7 +153,8 @@ const MultiAirportSearchbox = ({
         )}
         style={{ minHeight: 40, padding: "0 0.8em", backgroundColor: "#fff" }}
       >
-        <HugeiconsIcon icon={icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
+        {/* Increased icon size */}
+        <HugeiconsIcon icon={icon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
         <div
           className="flex-1 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden no-scrollbar py-1"
@@ -503,7 +506,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             {/* Departure now uses MultiAirportSearchbox */}
             <MultiAirportSearchbox
               label="Departure"
-              icon={Airplane01Icon}
+              icon={AirplaneTakeOff01Icon}
               selected={departures}
               onChange={setDepartures}
               airports={airports}
@@ -512,7 +515,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
             <MultiAirportSearchbox
               label="Arrival"
-              icon={Airplane01Icon}
+              icon={AirplaneLanding01Icon}
               selected={arrivals}
               onChange={setArrivals}
               airports={airports}
@@ -532,7 +535,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   <PopoverTrigger asChild>
                     <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
                       <HugeiconsIcon
-                        icon={Calendar03Icon}
+                        icon={CalendarCheckOut02Icon}
                         size={16}
                         color="#345C5A"
                         strokeWidth={1.5}
@@ -570,7 +573,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     <PopoverTrigger asChild>
                       <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
                         <HugeiconsIcon
-                          icon={Calendar03Icon}
+                          icon={CalendarCheckIn02Icon}
                           size={16}
                           color="#345C5A"
                           strokeWidth={1.5}
