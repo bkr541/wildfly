@@ -76,45 +76,45 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
             <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
           </motion.span>
         </div>
-
-        {/* Collapsed preview rows */}
-        <AnimatePresence initial={false}>
-          {!open && (
-            <motion.div
-              key="preview"
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-              animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
-              className="mt-2 flex flex-col gap-1.5"
-            >
-              {loading ? (
-                <>
-                  {[1, 2].map((i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
-                      <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
-                    </div>
-                  ))}
-                </>
-              ) : flights.length === 0 ? (
-                <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
-              ) : (
-                flights.map((f) => (
-                  <div key={f.id} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
-                    <span className="text-xs text-[#345C5A] truncate flex-1">
-                      {f.departure_airport} → {f.arrival_airport}
-                    </span>
-                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
-                      {formatDateLabel(f.created_at)}
-                    </span>
-                  </div>
-                ))
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </button>
+
+      {/* Collapsed preview rows — inside white card */}
+      <AnimatePresence initial={false}>
+        {!open && (
+          <motion.div
+            key="preview"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
+            className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm px-4 py-3 flex flex-col gap-1.5"
+          >
+            {loading ? (
+              <>
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
+                    <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
+                  </div>
+                ))}
+              </>
+            ) : flights.length === 0 ? (
+              <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
+            ) : (
+              flights.map((f) => (
+                <div key={f.id} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
+                  <span className="text-xs text-[#345C5A] truncate flex-1">
+                    {f.departure_airport} → {f.arrival_airport}
+                  </span>
+                  <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
+                    {formatDateLabel(f.created_at)}
+                  </span>
+                </div>
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Expanded flight cards — white background only here */}
       <div
