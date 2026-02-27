@@ -11,20 +11,12 @@ interface UserFlight {
   arrival_time: string;
   type: string;
   flight_json: any;
+  created_at: string;
 }
 
-function formatTime(iso: string) {
+function formatDateLabel(createdAt: string) {
   try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  } catch {
-    return iso;
-  }
-}
-
-function formatDateLabel(iso: string) {
-  try {
-    const d = new Date(iso);
+    const d = new Date(createdAt);
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -115,7 +107,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                         {f.departure_airport} → {f.arrival_airport}
                       </span>
                       <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
-                        {formatDateLabel(f.departure_time)}
+                        {formatDateLabel(f.created_at)}
                       </span>
                     </div>
                   ))
@@ -170,9 +162,9 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                     flights.map((flight) => {
                       const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
                       const airline = json?.airline || json?.carrier || null;
-                      const depTime = formatTime(flight.departure_time);
-                      const arrTime = formatTime(flight.arrival_time);
-                      const dateLabel = formatDateLabel(flight.departure_time);
+                      const depTime = flight.departure_time;
+                      const arrTime = flight.arrival_time;
+                      const dateLabel = formatDateLabel(flight.created_at);
                       return (
                         <div
                           key={flight.id}
