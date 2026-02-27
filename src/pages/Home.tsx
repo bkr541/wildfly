@@ -1,346 +1,446 @@
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flight Cards</title>
+    <style>
+      :root{
+        /* Core surfaces */
+        --bg: #F9FBFA;          /* page */
+        --accentPanel: #C9DED6; /* pale mint */
 
-// ── Split-flap tile (reusable, self-contained) ──────────────────────────────
-const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+        /* Chart + accents */
+        --gold: #E5AA3A;
+        --ink: #1A2321;         /* primary text + segment */
+        --teal: #4C8984;
+        --tealLite: #AEC7C4;
 
-function SplitFlapTile({ char, green }: { char: string; green?: boolean }) {
-  const displayChar = char === "_" || char === " " ? "" : char;
-  return (
-    <div
-      className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
-      style={{
-        height: 34,
-        background: green ? "linear-gradient(160deg,#059669 0%,#065F46 100%)" : "#e8eaed",
-        borderColor: green ? "#064E3B" : "#d1d5db",
-      }}
-    >
-      <div
-        className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-        style={{ background: green ? "#064E3Baa" : "#b0b5bdaa" }}
-      />
-      <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
-      />
-      <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }}
-      />
-      {displayChar && (
-        <span
-          className="font-black text-lg leading-none select-none"
-          style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
-        >
-          {displayChar}
-        </span>
-      )}
-    </div>
-  );
-}
+        /* Neutrals */
+        --mid: #9DA3A2;
+        --dark: #5C6361;
 
-// ── Flight card ─────────────────────────────────────────────────────────────
-interface UserFlight {
-  id: string;
-  departure_airport: string;
-  arrival_airport: string;
-  departure_time: string;
-  arrival_time: string;
-  type: string;
-  flight_json: any;
-}
-
-function formatTime(iso: string) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  } catch {
-    return iso;
-  }
-}
-
-function formatDateLabel(iso: string) {
-  try {
-    const d = new Date(iso);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    if (d.toDateString() === today.toDateString()) return "Today";
-    if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
-    return d.toLocaleDateString("en-US", { month: "short", d: "numeric" } as any);
-  } catch {
-    return "";
-  }
-}
-
-function formatCardDateTime(iso: string) {
-  try {
-    const d = new Date(iso);
-    const date = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-    const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
-    return `${date}, ${time}`;
-  } catch {
-    return iso;
-  }
-}
-
-function formatDuration(depIso: string, arrIso: string) {
-  try {
-    const dep = new Date(depIso).getTime();
-    const arr = new Date(arrIso).getTime();
-    let diff = arr - dep;
-    if (!Number.isFinite(diff)) return "";
-    if (diff < 0) diff = Math.abs(diff);
-
-    let hours = Math.floor(diff / (1000 * 60 * 60));
-    let mins = Math.round((diff % (1000 * 60 * 60)) / (1000 * 60));
-    if (mins === 60) {
-      hours += 1;
-      mins = 0;
-    }
-    return `${hours}h ${mins}m`;
-  } catch {
-    return "";
-  }
-}
-
-function extractIata(input: string) {
-  if (!input) return "";
-  const m = input.match(/\(([A-Z0-9]{3})\)/);
-  if (m?.[1]) return m[1];
-  const end = input.trim().match(/([A-Z0-9]{3})$/);
-  if (end?.[1]) return end[1];
-  return input.trim();
-}
-
-function extractCity(input: string) {
-  if (!input) return "";
-  const beforeParen = input.split("(")[0].trim();
-  const beforeComma = beforeParen.split(",")[0].trim();
-  return beforeComma;
-}
-
-function FlightCard({ flight }: { flight: UserFlight }) {
-  const depDT = formatCardDateTime(flight.departure_time);
-  const arrDT = formatCardDateTime(flight.arrival_time);
-  const duration = formatDuration(flight.departure_time, flight.arrival_time);
-
-  const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
-
-  const depCode = extractIata(flight.departure_airport);
-  const arrCode = extractIata(flight.arrival_airport);
-
-  const jsonDepCity =
-    json?.fromCity || json?.originCity || json?.origin_city || json?.from?.city || json?.origin?.city || "";
-  const jsonArrCity =
-    json?.toCity || json?.destinationCity || json?.destination_city || json?.to?.city || json?.destination?.city || "";
-
-  let depCity = (jsonDepCity || extractCity(flight.departure_airport) || "From").trim();
-  let arrCity = (jsonArrCity || extractCity(flight.arrival_airport) || "To").trim();
-
-  if (depCity.toUpperCase() === depCode.toUpperCase()) depCity = "From";
-  if (arrCity.toUpperCase() === arrCode.toUpperCase()) arrCity = "To";
-
-  return (
-    <div
-      className="flex-shrink-0 w-[340px] sm:w-[520px] rounded-[44px] p-6 relative overflow-hidden"
-      style={{
-        background: "#2F746F",
-        boxShadow: "0 18px 45px rgba(0,0,0,0.18)",
-      }}
-    >
-      {/* Top row */}
-      <div className="flex items-start justify-between">
-        <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Frontier Airline</p>
-
-        {/* Chevron */}
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mt-1 flex-shrink-0">
-          <path d="M9 5l7 7-7 7" stroke="white" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-
-      {/* Middle layout */}
-      <div className="mt-6 flex items-center gap-4">
-        {/* Left */}
-        <div className="min-w-[92px] sm:min-w-[120px]">
-          <p className="text-lg sm:text-2xl font-medium text-white/90">{depCity}</p>
-          <p
-            className="text-4xl sm:text-6xl font-black leading-none"
-            style={{ color: "#E2B14B", textShadow: "0 2px 0 rgba(0,0,0,0.10)" }}
-          >
-            {depCode}
-          </p>
-          <p className="mt-5 text-lg sm:text-2xl font-medium text-white/90">{depDT}</p>
-        </div>
-
-        {/* Route graphic */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="relative w-full h-[70px] sm:h-[84px]">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 70" fill="none">
-              <path
-                d="M25 50 Q100 6 175 50"
-                stroke="rgba(255,255,255,0.9)"
-                strokeWidth="4"
-                strokeDasharray="10 12"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            {/* Left gold marker */}
-            <div
-              className="absolute left-[25px] top-[50px] -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: "#E2B14B" }}
-            >
-              <div className="w-4 h-4 rounded-full" style={{ background: "#B07B22" }} />
-            </div>
-
-            {/* Right white marker */}
-            <div
-              className="absolute left-[175px] top-[50px] -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full"
-              style={{ background: "#F4F7F7" }}
-            />
-
-            {/* Plane */}
-            <div className="absolute left-1/2 top-[18px] -translate-x-1/2 -translate-y-1/2">
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="white" style={{ transform: "rotate(12deg)" }}>
-                <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3-1 3 1v-1.5L13 19v-5.5L21 16z" />
-              </svg>
-            </div>
-          </div>
-
-          <p className="mt-1.5 text-xl sm:text-3xl font-semibold text-white">{duration}</p>
-        </div>
-
-        {/* Right */}
-        <div className="min-w-[92px] sm:min-w-[120px] text-right">
-          <p className="text-lg sm:text-2xl font-medium text-white/90">{arrCity}</p>
-          <p className="text-4xl sm:text-6xl font-black leading-none text-white">{arrCode}</p>
-          <p className="mt-5 text-lg sm:text-2xl font-medium text-white/90">{arrDT}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Page ─────────────────────────────────────────────────────────────────────
-const HomePage = () => {
-  const [flights, setFlights] = useState<UserFlight[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
+        /* Deep greens for shadows */
+        --shadow1: rgba(38, 68, 57, 0.10); /* #264439 */
+        --shadow2: rgba(54, 82, 73, 0.12); /* #365249 */
       }
-      const now = new Date().toISOString();
-      const { data } = await supabase
-        .from("user_flights")
-        .select("*")
-        .eq("user_id", user.id)
-        .gte("departure_time", now)
-        .order("departure_time", { ascending: true })
-        .limit(20);
-      setFlights(data || []);
-      setLoading(false);
-    };
-    load();
-  }, []);
 
-  return (
-    <>
-      {/* HOME split-flap header */}
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="HOME" />
-      </div>
+      *{ box-sizing:border-box; }
+      body{
+        margin:0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: var(--bg);
+        color: var(--ink);
+      }
 
-      {/* Upcoming flights */}
-      <div className="px-6 pb-4 relative z-10">
-        <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest mb-3">Upcoming Flights</h2>
-        {loading ? (
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[340px] sm:w-[520px] h-[190px] rounded-[44px] animate-pulse"
-                style={{ background: "rgba(47,116,111,0.35)" }}
-              />
-            ))}
-          </div>
-        ) : flights.length === 0 ? (
-          <div className="w-full bg-white/60 rounded-2xl border border-[#e3e6e6] px-5 py-6 text-center">
-            <p className="text-[#6B7B7B] text-sm">No upcoming flights scheduled.</p>
-          </div>
-        ) : (
-          <div
-            className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6"
-            style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
-          >
-            {flights.map((f) => (
-              <div key={f.id} style={{ scrollSnapAlign: "start" }}>
-                <FlightCard flight={f} />
+      .wrap{
+        max-width: 420px;
+        margin: 28px auto;
+        padding: 0 16px 28px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .card{
+        position: relative;
+        border-radius: 18px;
+        background: #FFFFFF;
+        box-shadow: 0 14px 40px var(--shadow1), 0 4px 14px var(--shadow2);
+        overflow: hidden;
+      }
+
+      .card::before{
+        content:"";
+        position:absolute;
+        inset: 0 auto 0 0;
+        width: 14px;
+        background: var(--accentPanel);
+      }
+
+      .inner{
+        padding: 16px 16px 16px 20px;
+        margin-left: 0;
+      }
+
+      .header{
+        display:flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .title{
+        display:flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .kicker{
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dark);
+      }
+
+      .hline{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+      }
+
+      .h1{
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.1;
+        margin:0;
+      }
+
+      .sub{
+        font-size: 12.5px;
+        color: var(--mid);
+        margin:0;
+      }
+
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(174, 199, 196, 0.35); /* tealLite tint */
+        border: 1px solid rgba(174, 199, 196, 0.55);
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 12.5px;
+        white-space: nowrap;
+      }
+
+      .dot{
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--gold);
+        box-shadow: 0 0 0 3px rgba(229, 170, 58, 0.20);
+        flex: 0 0 auto;
+      }
+
+      /* Upcoming Flight layout */
+      .route{
+        display:flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 14px;
+        padding: 14px 14px;
+        border-radius: 14px;
+        background: rgba(201, 222, 214, 0.28); /* accentPanel tint */
+        border: 1px solid rgba(174, 199, 196, 0.55);
+      }
+
+      .iata{
+        display:flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 92px;
+      }
+      .iata strong{
+        font-size: 22px;
+        letter-spacing: 0.06em;
+      }
+      .iata span{
+        font-size: 12.5px;
+        color: var(--dark);
+      }
+
+      .midline{
+        display:flex;
+        flex-direction: column;
+        align-items:center;
+        gap: 8px;
+        flex: 1;
+        padding: 0 10px;
+      }
+
+      .line{
+        width: 100%;
+        height: 2px;
+        background: rgba(92, 99, 97, 0.22);
+        position: relative;
+        border-radius: 999px;
+      }
+      .plane{
+        position:absolute;
+        left:50%;
+        top:50%;
+        transform: translate(-50%, -50%);
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: #FFFFFF;
+        border: 1px solid rgba(174, 199, 196, 0.85);
+        box-shadow: 0 10px 20px rgba(38, 68, 57, 0.10);
+        display:grid;
+        place-items:center;
+      }
+      .plane svg{ width: 16px; height: 16px; color: var(--teal); }
+
+      .metaGrid{
+        margin-top: 14px;
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+      }
+
+      .meta{
+        border-radius: 14px;
+        padding: 10px 12px;
+        border: 1px solid rgba(174, 199, 196, 0.45);
+        background: rgba(249, 251, 250, 0.65);
+      }
+      .meta label{
+        display:block;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--mid);
+        margin-bottom: 6px;
+      }
+      .meta div{
+        font-weight: 800;
+        color: var(--ink);
+        font-size: 13.5px;
+      }
+      .meta small{
+        display:block;
+        margin-top: 3px;
+        color: var(--dark);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      /* Airline Risk */
+      .riskWrap{
+        margin-top: 14px;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(174, 199, 196, 0.55);
+        background: rgba(201, 222, 214, 0.20);
+      }
+
+      .segBar{
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        overflow:hidden;
+        background: rgba(92, 99, 97, 0.18);
+        display:flex;
+      }
+      .seg{ height: 100%; }
+      .seg.onTime{ background: var(--tealLite); width: 54%; }
+      .seg.minor{ background: var(--teal); width: 28%; }
+      .seg.major{ background: var(--gold); width: 13%; }
+      .seg.cancel{ background: var(--ink); width: 5%; }
+
+      .legend{
+        margin-top: 10px;
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 10px;
+      }
+
+      .legItem{
+        display:flex;
+        align-items:center;
+        gap: 8px;
+        font-size: 12.5px;
+        color: var(--dark);
+        font-weight: 650;
+      }
+      .swatch{
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        border: 1px solid rgba(26, 35, 33, 0.08);
+      }
+
+      .drivers{
+        margin-top: 12px;
+        display:flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .driver{
+        display:flex;
+        align-items:flex-start;
+        gap: 10px;
+        padding: 10px 10px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid rgba(174, 199, 196, 0.45);
+      }
+      .driver p{
+        margin:0;
+        font-size: 12.5px;
+        color: var(--dark);
+        font-weight: 650;
+        line-height: 1.25;
+      }
+      .driver p b{ color: var(--ink); }
+
+      /* Optional: tiny “ticket notch” vibe */
+      .ticketCuts{
+        position:absolute;
+        left: 14px; right: 0;
+        top: 58px;
+        height: 0;
+        pointer-events:none;
+      }
+      .ticketCuts:before,
+      .ticketCuts:after{
+        content:"";
+        position:absolute;
+        top: -8px;
+        width: 16px; height: 16px;
+        border-radius: 999px;
+        background: var(--bg);
+        box-shadow: inset 0 0 0 1px rgba(174, 199, 196, 0.55);
+      }
+      .ticketCuts:before{ left: -8px; }
+      .ticketCuts:after{ right: -8px; }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+
+      <!-- Upcoming Flight -->
+      <section class="card">
+        <div class="inner">
+          <div class="header">
+            <div class="title">
+              <div class="kicker">Upcoming Flight</div>
+              <div class="hline">
+                <h2 class="h1">Atlanta to Chicago</h2>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <p class="sub">Thu, Feb 26 • Departs 6:10 AM • Arrives 7:40 AM</p>
+            </div>
 
-      {/* Alerts */}
-      <div className="px-6 pb-4 relative z-10">
-        <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest mb-3">Alerts</h2>
-        <div className="flex flex-col gap-2">
-          {[
-            {
-              icon: "🔥",
-              title: "Go Wild sale ends soon",
-              body: "Book by Sunday to lock in $49 fares to Bozeman & Missoula.",
-              time: "2h ago",
-              color: "#FEF3C7",
-              accent: "#D97706",
-            },
-            {
-              icon: "✈️",
-              title: "New route: ORD → BZN",
-              body: "Frontier just added daily nonstops from Chicago starting June 1.",
-              time: "Yesterday",
-              color: "#ECFDF5",
-              accent: "#059669",
-            },
-            {
-              icon: "⚡",
-              title: "Flash deal: ORD → DEN",
-              body: "Round-trip from $79. Only 12 seats left.",
-              time: "3d ago",
-              color: "#EFF6FF",
-              accent: "#3B82F6",
-            },
-          ].map((alert, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 rounded-2xl border px-4 py-3"
-              style={{ background: alert.color, borderColor: alert.accent + "33" }}
-            >
-              <span className="text-xl mt-0.5">{alert.icon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-[#1a2e2e]">{alert.title}</p>
-                  <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
+            <div class="pill">
+              <span class="dot"></span>
+              On schedule
+            </div>
+          </div>
+
+          <div class="ticketCuts"></div>
+
+          <div class="route">
+            <div class="iata">
+              <strong>ATL</strong>
+              <span>Hartsfield-Jackson</span>
+            </div>
+
+            <div class="midline">
+              <div class="line">
+                <div class="plane" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M2.5 13.2l19-6.8c.6-.2 1.2.4 1 .9l-2.4 5.6c-.1.3-.4.5-.7.6l-6 1.4-2.2 6.1c-.2.6-1 .7-1.3.2l-2.7-4-4.2-1.7c-.6-.2-.7-1.1-.1-1.3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  </svg>
                 </div>
-                <p className="text-xs text-[#345C5A] mt-0.5 leading-snug">{alert.body}</p>
+              </div>
+              <div class="sub" style="margin:0; color: var(--mid); font-size:12px;">
+                Nonstop • 1h 30m
               </div>
             </div>
-          ))}
+
+            <div class="iata" style="text-align:right;">
+              <strong>ORD</strong>
+              <span>O'Hare Intl</span>
+            </div>
+          </div>
+
+          <div class="metaGrid">
+            <div class="meta">
+              <label>Airline</label>
+              <div>Frontier</div>
+              <small>F9 1234</small>
+            </div>
+            <div class="meta">
+              <label>Aircraft</label>
+              <div>A320</div>
+              <small>Boarding T-30</small>
+            </div>
+            <div class="meta">
+              <label>Terminal / Gate</label>
+              <div>T-N • G12</div>
+              <small>Check screens</small>
+            </div>
+            <div class="meta">
+              <label>Seat</label>
+              <div>14A</div>
+              <small>Carry-on: 1</small>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10" />
-    </>
-  );
-};
+      <!-- Airline Risk -->
+      <section class="card">
+        <div class="inner">
+          <div class="header">
+            <div class="title">
+              <div class="kicker">Airline Risk</div>
+              <div class="hline">
+                <h2 class="h1">Reliability profile</h2>
+              </div>
+              <p class="sub">Based on recent performance patterns for your route and time window</p>
+            </div>
 
-export default HomePage;
+            <div class="pill" title="Overall risk score">
+              <span class="dot"></span>
+              Risk: Medium
+            </div>
+          </div>
+
+          <div class="riskWrap">
+            <div class="sub" style="margin:0 0 8px 0; color: var(--dark); font-weight: 750;">
+              Outcome mix
+            </div>
+
+            <div class="segBar" aria-label="Outcome mix bar">
+              <div class="seg onTime" title="On-time"></div>
+              <div class="seg minor" title="Minor delay"></div>
+              <div class="seg major" title="Major delay"></div>
+              <div class="seg cancel" title="Cancellation"></div>
+            </div>
+
+            <div class="legend">
+              <div class="legItem"><span class="swatch" style="background: var(--tealLite);"></span>On-time (54%)</div>
+              <div class="legItem"><span class="swatch" style="background: var(--teal);"></span>Minor delay (28%)</div>
+              <div class="legItem"><span class="swatch" style="background: var(--gold);"></span>Major delay (13%)</div>
+              <div class="legItem"><span class="swatch" style="background: var(--ink);"></span>Cancellation (5%)</div>
+            </div>
+
+            <div class="drivers">
+              <div class="driver">
+                <span class="dot" aria-hidden="true"></span>
+                <p><b>Primary driver:</b> morning gate congestion tends to amplify small delays.</p>
+              </div>
+              <div class="driver">
+                <span class="dot" aria-hidden="true"></span>
+                <p><b>Secondary driver:</b> tight turnarounds can convert a late inbound into a late outbound.</p>
+              </div>
+              <div class="driver">
+                <span class="dot" aria-hidden="true"></span>
+                <p><b>Watch item:</b> weather sensitivity on your departure corridor.</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="sub" style="margin-top: 12px;">
+            Tip: if you need a safer buffer, target flights with earlier departures and longer layover slack.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </body>
+</html>
