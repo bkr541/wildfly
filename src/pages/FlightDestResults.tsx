@@ -411,10 +411,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       .forEach((h) => flightsByHour.push({ hour: h, items: hourMap[h] }));
 
                     return (
-                      <div className="animate-fade-in border-t border-[#F2F3F3] pt-4 pb-4 px-3">
+                      <div className="animate-fade-in border-t border-[#F2F3F3] pt-4 pb-4 px-2">
                         <div className="relative flex">
                           {/* Timeline line */}
-                          <div className="absolute left-[28px] top-3 bottom-3 w-px bg-[#D1D5DB]" />
+                          <div className="absolute left-[24px] top-3 bottom-3 w-px bg-[#D1D5DB]" />
 
                           <div className="flex flex-col gap-2 w-full">
                             {flightsByHour.map(({ hour: h, items }) => {
@@ -422,9 +422,9 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                               const ampm = h < 12 ? "AM" : "PM";
 
                               return (
-                                <div key={h} className="flex gap-2">
+                                <div key={h} className="flex gap-1.5">
                                   {/* Time label */}
-                                  <div className="w-14 shrink-0 flex flex-col items-center pt-1">
+                                  <div className="w-12 shrink-0 flex flex-col items-center pt-1">
                                     <div className="relative z-10 flex flex-col items-center px-1.5 py-0.5 bg-white">
                                       <span className="text-[11px] font-bold text-[#2E4A4A] leading-tight">
                                         {hourLabel}
