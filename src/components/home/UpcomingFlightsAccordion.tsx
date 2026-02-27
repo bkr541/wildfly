@@ -49,117 +49,116 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
 
   return (
     <motion.div layout className="px-6 pb-4 relative z-10">
-      <div className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden">
 
-        {/* Trigger header */}
-        <button
-          id={triggerId}
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
-          className="w-full text-left px-4 py-3 group"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
-              Upcoming Flights
-              {!loading && (
-                <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
-                  {flights.length} {flights.length === 1 ? "flight" : "flights"}
-                </span>
-              )}
-            </h2>
-            <motion.span
-              variants={chevronVariants}
-              animate={open ? "expanded" : "collapsed"}
-              transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
-              className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
-            >
-              <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
-            </motion.span>
-          </div>
-
-          {/* Collapsed preview rows */}
-          <AnimatePresence initial={false}>
-            {!open && (
-              <motion.div
-                key="preview"
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-                exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
-                className="mt-2.5 flex flex-col gap-1.5"
-              >
-                {loading ? (
-                  <>
-                    {[1, 2].map((i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
-                        <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
-                      </div>
-                    ))}
-                  </>
-                ) : flights.length === 0 ? (
-                  <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
-                ) : (
-                  flights.map((f) => (
-                    <div key={f.id} className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
-                      <span className="text-xs text-[#345C5A] truncate flex-1">
-                        {f.departure_airport} → {f.arrival_airport}
-                      </span>
-                      <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
-                        {formatDateLabel(f.created_at)}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </motion.div>
+      {/* Header — no background */}
+      <button
+        id={triggerId}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className="w-full text-left mb-2 group"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
+            Upcoming Flights
+            {!loading && (
+              <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
+                {flights.length} {flights.length === 1 ? "flight" : "flights"}
+              </span>
             )}
-          </AnimatePresence>
-        </button>
+          </h2>
+          <motion.span
+            variants={chevronVariants}
+            animate={open ? "expanded" : "collapsed"}
+            transition={{ duration: shouldReduceMotion ? 0.1 : DURATION, ease: EASE }}
+            className="text-[#6B7B7B] group-hover:text-[#2E4A4A] transition-colors"
+          >
+            <FontAwesomeIcon icon={faChevronDown} className="w-3.5 h-3.5" />
+          </motion.span>
+        </div>
 
-        {/* Expanded flight cards */}
-        <div
-          id={panelId}
-          role="region"
-          aria-labelledby={triggerId}
-          aria-hidden={!open}
-          style={{ overflow: "hidden" }}
-        >
-          <AnimatePresence initial={false}>
-            {open && (
-              <motion.div
-                key="flights-panel"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{
-                  height: "auto",
-                  opacity: 1,
-                  transition: {
-                    height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
-                    opacity: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
-                  },
-                }}
-                exit={{
-                  height: 0,
-                  opacity: 0,
-                  transition: {
-                    height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
-                    opacity: { duration: shouldReduceMotion ? 0.08 : 0.18, ease: EASE },
-                  },
-                }}
-                style={{ overflow: "hidden" }}
-              >
-                <motion.div
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
-                  animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
-                  exit={{ opacity: 0, y: shouldReduceMotion ? 0 : 6, transition: { duration: 0.15, ease: EASE } }}
-                  className="flex flex-col gap-2 px-3 pb-3"
-                >
-                  {flights.length === 0 ? (
-                    <div className="rounded-xl border border-[#e3e6e6] px-4 py-4 text-center">
-                      <p className="text-sm text-[#6B7B7B]">No upcoming flights scheduled.</p>
+        {/* Collapsed preview rows */}
+        <AnimatePresence initial={false}>
+          {!open && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
+              className="mt-2 flex flex-col gap-1.5"
+            >
+              {loading ? (
+                <>
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#d1d5db] animate-pulse" />
+                      <span className="h-3 w-40 rounded bg-[#e5e7eb] animate-pulse" />
                     </div>
-                  ) : (
-                    flights.map((flight) => {
+                  ))}
+                </>
+              ) : flights.length === 0 ? (
+                <p className="text-xs text-[#6B7B7B]">No upcoming flights scheduled.</p>
+              ) : (
+                flights.map((f) => (
+                  <div key={f.id} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
+                    <span className="text-xs text-[#345C5A] truncate flex-1">
+                      {f.departure_airport} → {f.arrival_airport}
+                    </span>
+                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
+                      {formatDateLabel(f.created_at)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </button>
+
+      {/* Expanded flight cards — white background only here */}
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby={triggerId}
+        aria-hidden={!open}
+        style={{ overflow: "hidden" }}
+      >
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              key="flights-panel"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{
+                height: "auto",
+                opacity: 1,
+                transition: {
+                  height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
+                  opacity: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
+                },
+              }}
+              exit={{
+                height: 0,
+                opacity: 0,
+                transition: {
+                  height: { duration: shouldReduceMotion ? 0.12 : DURATION, ease: EASE },
+                  opacity: { duration: shouldReduceMotion ? 0.08 : 0.18, ease: EASE },
+                },
+              }}
+              style={{ overflow: "hidden" }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
+                exit={{ opacity: 0, y: shouldReduceMotion ? 0 : 6, transition: { duration: 0.15, ease: EASE } }}
+                className="rounded-2xl border border-[#e3e6e6] bg-white shadow-sm overflow-hidden flex flex-col gap-2 p-3"
+              >
+                {flights.length === 0 ? (
+                  <div className="rounded-xl border border-[#e3e6e6] px-4 py-4 text-center">
+                    <p className="text-sm text-[#6B7B7B]">No upcoming flights scheduled.</p>
+                  </div>
+                ) : (
+                  flights.map((flight) => {
                       const json = typeof flight.flight_json === "string" ? JSON.parse(flight.flight_json) : flight.flight_json;
                       const depTime = flight.departure_time;
                       const arrTime = flight.arrival_time;
@@ -221,7 +220,6 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
           </AnimatePresence>
         </div>
 
-      </div>
     </motion.div>
   );
 }
