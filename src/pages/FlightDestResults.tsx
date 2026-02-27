@@ -359,7 +359,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                     className="w-12 h-12 rounded-lg object-cover shrink-0 hidden"
                   />
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[11px] text-[#6B7B7B] font-medium uppercase tracking-wide">
+                    <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
                       {group.destination} | {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
                     </span>
                     <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
