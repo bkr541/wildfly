@@ -99,7 +99,7 @@ export function AlertsAccordion() {
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
               animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
               exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
-              className="mt-2.5 flex flex-col gap-0.5"
+              className="mt-2.5 flex flex-col gap-0.5 pl-4"
             >
               {MOCK_ALERTS.map((alert, i) => {
                 const cfg = ALERT_CONFIG[alert.type as keyof typeof ALERT_CONFIG];
