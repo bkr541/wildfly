@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
@@ -25,6 +26,28 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
+  const [snapshotRunning, setSnapshotRunning] = useState(false);
+  const [snapshotResult, setSnapshotResult] = useState<{ success: boolean; rows_inserted?: number; travel_date?: string; error?: string } | null>(null);
+
+  const runSnapshot = async () => {
+    setSnapshotRunning(true);
+    setSnapshotResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("scheduledATLSnapshot", { body: {} });
+      if (error) throw error;
+      setSnapshotResult(data);
+      if (data?.success) {
+        toast.success(`Snapshot complete — ${data.rows_inserted} destinations written for ${data.travel_date}`);
+      } else {
+        toast.error(`Snapshot failed: ${data?.error ?? "Unknown error"}`);
+      }
+    } catch (err: any) {
+      toast.error(`Snapshot error: ${err?.message ?? "Unknown error"}`);
+      setSnapshotResult({ success: false, error: err?.message });
+    } finally {
+      setSnapshotRunning(false);
+    }
+  };
 
   if (loading || !settings) {
     return (
@@ -154,6 +177,37 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
             </div>
           </div>
         )}
+
+        {/* Manual Triggers */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
+          <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider mb-3">Manual Triggers</h3>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#2E4A4A]">ATL Snapshot</p>
+              <p className="text-xs text-[#6B7B7B]">Fetch today's ATL flights and write to gowild_snapshots</p>
+              {snapshotResult && (
+                <p className={`text-xs mt-1 font-medium ${snapshotResult.success ? "text-[#345C5A]" : "text-red-500"}`}>
+                  {snapshotResult.success
+                    ? `✓ ${snapshotResult.rows_inserted} destinations written (${snapshotResult.travel_date})`
+                    : `✗ ${snapshotResult.error}`}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={runSnapshot}
+              disabled={snapshotRunning}
+              className="shrink-0 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[80px]"
+            >
+              {snapshotRunning ? (
+                <span className="flex items-center gap-1.5 justify-center">
+                  <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  Running
+                </span>
+              ) : "Run"}
+            </button>
+          </div>
+        </div>
 
         {/* Logging master toggle */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
