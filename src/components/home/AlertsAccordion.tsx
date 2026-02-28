@@ -76,9 +76,9 @@ export function AlertsAccordion() {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[#2E4A4A] uppercase tracking-widest">
+          <h2 className="text-xl font-semibold text-[#2E4A4A] uppercase tracking-widest">
             Alerts
-            <span className="ml-2 text-sm font-medium text-[#6B7B7B] normal-case tracking-normal">
+            <span className="ml-2 text-lg font-medium text-[#6B7B7B] normal-case tracking-normal">
               {MOCK_ALERTS.length} new
             </span>
           </h2>
@@ -99,15 +99,15 @@ export function AlertsAccordion() {
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
               animate={{ opacity: 1, y: 0, transition: { duration: DURATION, ease: EASE } }}
               exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.15, ease: EASE } }}
-              className="mt-2.5 flex flex-col gap-1.5"
+              className="mt-2.5 flex flex-col gap-2"
             >
               {MOCK_ALERTS.map((alert, i) => {
                 const cfg = ALERT_CONFIG[alert.type as keyof typeof ALERT_CONFIG];
                 return (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.dotColor }} />
-                    <span className="text-sm text-[#345C5A] truncate flex-1">{alert.title}</span>
-                    <span className="text-xs text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cfg.dotColor }} />
+                    <span className="text-lg text-[#345C5A] truncate flex-1">{alert.title}</span>
+                    <span className="text-base text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
                   </div>
                 );
               })}
