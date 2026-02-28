@@ -500,7 +500,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     <HugeiconsIcon
                       icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
                       size={16}
-                      color="#059669"
+                      color="#10B981"
                       strokeWidth={2}
                     />
                   </span>
