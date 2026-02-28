@@ -118,11 +118,11 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          {/* Primary text bumped way up (same change as Alerts) */}
+          {/* Primary text bumped way up */}
           <h2 className="text-xl font-semibold text-[#2E4A4A] uppercase tracking-widest">
             Upcoming Flights
             {!loading && (
-              /* Preview/count text bumped way up (same change as Alerts) */
+              /* Preview/count text bumped way up */
               <span className="ml-2 text-lg font-medium text-[#6B7B7B] normal-case tracking-normal">
                 {flights.length} {flights.length === 1 ? "flight" : "flights"}
               </span>
@@ -150,8 +150,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                 y: shouldReduceMotion ? 0 : -4,
                 transition: { duration: 0.15, ease: EASE },
               }}
-              /* Reduced spacing between preview rows (same change as Alerts) */
-              className="mt-2 flex flex-col gap-0.5"
+              className="mt-2 flex flex-col gap-0.5 pl-4"
             >
               {loading ? (
                 <>
@@ -163,17 +162,14 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   ))}
                 </>
               ) : flights.length === 0 ? (
-                /* Preview text bumped way up (same change as Alerts) */
                 <p className="text-base text-[#6B7B7B] text-center py-1">No upcoming flights</p>
               ) : (
                 flights.map((f) => (
                   <div key={f.id} className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-[#059669]" />
-                    {/* Preview primary line bumped way up */}
                     <span className="text-lg text-[#345C5A] truncate flex-1">
                       {f.departure_airport} → {f.arrival_airport}
                     </span>
-                    {/* Preview secondary line bumped way up */}
                     <span className="text-base text-[#6B7B7B] whitespace-nowrap">{formatDateLabel(f.created_at)}</span>
                   </div>
                 ))
