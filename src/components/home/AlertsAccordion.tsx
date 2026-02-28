@@ -76,9 +76,9 @@ export function AlertsAccordion() {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
+          <h2 className="text-base font-semibold text-[#2E4A4A] uppercase tracking-widest">
             Alerts
-            <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
+            <span className="ml-2 text-sm font-medium text-[#6B7B7B] normal-case tracking-normal">
               {MOCK_ALERTS.length} new
             </span>
           </h2>
@@ -106,8 +106,8 @@ export function AlertsAccordion() {
                 return (
                   <div key={i} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.dotColor }} />
-                    <span className="text-xs text-[#345C5A] truncate flex-1">{alert.title}</span>
-                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
+                    <span className="text-sm text-[#345C5A] truncate flex-1">{alert.title}</span>
+                    <span className="text-xs text-[#6B7B7B] whitespace-nowrap">{alert.time}</span>
                   </div>
                 );
               })}
