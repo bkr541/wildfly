@@ -3,6 +3,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface Flight {
+  origin: string;
+  destination: string;
+  departure_time: string;
+  arrival_time: string;
+  total_trip_time: string;
+  stops: string | number;
+  fares: {
+    standard?: { total?: number } | null;
+    discount_den?: { total?: number } | null;
+    go_wild?: { total?: number } | null;
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -12,99 +26,91 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const departureAirport = 'ATL';
 
-    const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    if (!apiKey) throw new Error('FIRECRAWL_API_KEY not configured');
-
     const gowilderToken = Deno.env.get('GOWILDER_TOKEN');
     if (!gowilderToken) throw new Error('GOWILDER_TOKEN not configured');
 
     const targetUrl = `https://gowilder.net/api/flights/search/stream?origin=${departureAirport}&date=${today}&max_workers=3&token=${gowilderToken}`;
 
-    const firecrawlRes = await fetch('https://api.firecrawl.dev/v2/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: targetUrl,
-        onlyMainContent: false,
-        maxAge: 0,
-        timeout: 120000,
-        formats: [
-          {
-            type: 'json',
-            schema: {
-              type: 'object',
-              additionalProperties: false,
-              properties: {
-                flights: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    additionalProperties: false,
-                    properties: {
-                      origin: { type: 'string' },
-                      destination: { type: 'string' },
-                      depart_time: { type: 'string' },
-                      arrive_time: { type: 'string' },
-                      duration: { type: 'string' },
-                      stops: { anyOf: [{ type: 'string' }, { type: 'number' }] },
-                      fares: {
-                        type: 'object',
-                        additionalProperties: false,
-                        properties: {
-                          standard: { type: ['number', 'null'] },
-                          discount_den: { type: ['number', 'null'] },
-                          go_wild: { type: ['number', 'null'] },
-                        },
-                        required: ['standard', 'discount_den', 'go_wild'],
-                      },
-                    },
-                    required: ['origin', 'destination', 'depart_time', 'arrive_time', 'duration', 'stops', 'fares'],
-                  },
-                },
-              },
-              required: ['flights'],
-            },
-            prompt: "Extract flights only from `event: flights` `data:` JSON and return {\"flights\": [...]} with origin,destination,depart_time,arrive_time,duration,stops and fares.standard,fares.discount_den,fares.go_wild; map depart_time=departure_time, arrive_time=arrival_time, duration=total_trip_time; set each fare to the corresponding fares.*.total number or null if missing; $0.00 becomes 0; do not invent flights.",
-          },
-        ],
-      }),
+    console.log('Fetching SSE stream:', targetUrl.replace(gowilderToken, '[REDACTED]'));
+
+    // Directly consume the SSE stream
+    const streamRes = await fetch(targetUrl, {
+      headers: { 'Accept': 'text/event-stream' },
+      signal: AbortSignal.timeout(90000),
     });
 
-    const firecrawlData = await firecrawlRes.json();
-    const flights: any[] = firecrawlData?.data?.json?.flights ?? firecrawlData?.json?.flights ?? [];
-
-    if (!flights.length) {
-      console.warn('No flights returned from Firecrawl', JSON.stringify(firecrawlData).slice(0, 500));
-      return new Response(JSON.stringify({ success: false, error: 'No flights in response', raw: firecrawlData }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!streamRes.ok) {
+      throw new Error(`GoWildr stream responded ${streamRes.status}`);
     }
 
-    // Group flights by destination
-    const byDest: Record<string, any[]> = {};
-    for (const f of flights) {
+    const text = await streamRes.text();
+    console.log('SSE text length:', text.length, 'preview:', text.slice(0, 200));
+
+    // Parse SSE: extract all `event: flights\ndata: {...}` blocks
+    const allFlights: Flight[] = [];
+    const eventBlocks = text.split(/\n\n+/);
+
+    for (const block of eventBlocks) {
+      const lines = block.split('\n');
+      let eventType = '';
+      let dataLine = '';
+      for (const line of lines) {
+        if (line.startsWith('event:')) eventType = line.replace('event:', '').trim();
+        if (line.startsWith('data:')) dataLine = line.replace('data:', '').trim();
+      }
+      if (eventType === 'flights' && dataLine) {
+        try {
+          const parsed = JSON.parse(dataLine);
+          // Could be a single flight object or an array
+          if (Array.isArray(parsed)) {
+            allFlights.push(...parsed);
+          } else if (parsed && typeof parsed === 'object') {
+            allFlights.push(parsed);
+          }
+        } catch {
+          // skip malformed lines
+        }
+      }
+    }
+
+    console.log(`Parsed ${allFlights.length} flights from SSE stream`);
+
+    if (!allFlights.length) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'No flights in SSE stream', preview: text.slice(0, 500) }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Normalise fare values from GoWildr structure
+    const getFare = (fareObj: any): number | null => {
+      if (fareObj == null) return null;
+      if (typeof fareObj === 'number') return fareObj;
+      if (typeof fareObj?.total === 'number') return fareObj.total;
+      return null;
+    };
+
+    const isNonstop = (f: Flight) => {
+      const s = String(f.stops ?? '').toLowerCase();
+      return s === '0' || s === 'nonstop' || s === '0 stops' || s === 'direct';
+    };
+
+    // Group by destination
+    const byDest: Record<string, Flight[]> = {};
+    for (const f of allFlights) {
       const dest = (f.destination ?? '').trim().toUpperCase();
-      if (!dest) continue;
+      if (!dest || !/^[A-Z]{3}$/.test(dest)) continue;
       if (!byDest[dest]) byDest[dest] = [];
       byDest[dest].push(f);
     }
 
-    // Build snapshot rows
     const rows = Object.entries(byDest).map(([dest, destFlights]) => {
-      const isNonstop = (f: any) => {
-        const s = String(f.stops ?? '').toLowerCase();
-        return s === '0' || s === 'nonstop' || s === '0 stops';
-      };
       const total_flights = destFlights.length;
-      const gowild_flights = destFlights.filter(f => f.fares?.go_wild != null).length;
+      const gowild_flights = destFlights.filter(f => getFare(f.fares?.go_wild) != null).length;
       const nonstop_total = destFlights.filter(isNonstop).length;
-      const nonstop_gowild = destFlights.filter(f => isNonstop(f) && f.fares?.go_wild != null).length;
-      const standardFares = destFlights.map(f => f.fares?.standard).filter(v => v != null) as number[];
-      const gowildFares = destFlights.map(f => f.fares?.go_wild).filter(v => v != null) as number[];
+      const nonstop_gowild = destFlights.filter(f => isNonstop(f) && getFare(f.fares?.go_wild) != null).length;
+      const standardFares = destFlights.map(f => getFare(f.fares?.standard)).filter(v => v != null) as number[];
+      const gowildFares = destFlights.map(f => getFare(f.fares?.go_wild)).filter(v => v != null) as number[];
       const min_fare = standardFares.length ? Math.min(...standardFares) : null;
       const min_gowild_fare = gowildFares.length ? Math.min(...gowildFares) : null;
 
@@ -122,6 +128,8 @@ Deno.serve(async (req) => {
         raw_response: destFlights,
       };
     });
+
+    console.log(`Built ${rows.length} snapshot rows`);
 
     // Write to gowild_snapshots using service role
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
@@ -143,10 +151,10 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Inserted ${rows.length} snapshot rows for ${today}`);
-    return new Response(JSON.stringify({ success: true, rows_inserted: rows.length, travel_date: today }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ success: true, rows_inserted: rows.length, travel_date: today, destinations: Object.keys(byDest) }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   } catch (error) {
     console.error('Error:', error);
     return new Response(
