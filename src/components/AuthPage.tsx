@@ -253,9 +253,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   // Split-flap animation state
   const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
-  // Sign in: LOGIN____ (LOGIN + 4 blanks), Sign up: ___SIGNUP (3 blanks + SIGNUP) — 9 tiles
   const fullTarget = isSignUp ? "___SIGNUP" : "LOGIN____";
-  const greenStart = isSignUp ? 7 : 3; // IN or UP positions
+  const greenStart = isSignUp ? 7 : 3;
   const [displayChars, setDisplayChars] = useState<string[]>(Array(9).fill(" "));
   const prevTargetRef = useRef<string | null>(null);
 
@@ -312,9 +311,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
-        {/* Card now sizes to viewport; avoids full-page scrolling on mobile */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl max-h-[78svh] flex flex-col overflow-hidden">
-          {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
+        {/* Fixed height (does not change between Sign In / Sign Up), but still responsive to mobile viewport */}
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[78svh] flex flex-col overflow-hidden">
+          {/* Header label */}
           <div className="w-full mb-6">
             <div className="flex items-center gap-1.5 w-full">
               {displayChars.map((char, i) => {
@@ -338,12 +337,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       opacity: isBlank ? 0.45 : 1,
                     }}
                   >
-                    {/* horizontal split line */}
                     <div
                       className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
                       style={{ background: isBlank ? "#b0b5bdaa" : isGreen ? "#059669aa" : "#b0b5bdaa" }}
                     />
-                    {/* left hinge dot */}
                     <div
                       className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
                       style={{
@@ -351,7 +348,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                         borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
                       }}
                     />
-                    {/* right hinge dot */}
                     <div
                       className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
                       style={{
@@ -379,37 +375,41 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Inputs area now flexes to available height and scrolls internally if needed */}
+            {/* Inputs area scrolls internally if needed (card height stays fixed) */}
             <div className="space-y-4 flex-1 overflow-y-auto pr-1 min-h-0">
-              {/* First/Last Name for Sign Up */}
+              {/* First/Last Name for Sign Up (kept on same line) */}
               {isSignUp && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <AppInput
-                    icon={UserIcon}
-                    label="First Name"
-                    placeholder="First Name"
-                    value={firstName}
-                    onChange={(e) => {
-                      setFirstName(e.target.value);
-                      setErrors((prev) => ({ ...prev, firstName: undefined }));
-                    }}
-                    clearable
-                    onClear={() => setFirstName("")}
-                    error={errors.firstName}
-                  />
-                  <AppInput
-                    icon={UserIcon}
-                    label="Last Name"
-                    placeholder="Last Name"
-                    value={lastName}
-                    onChange={(e) => {
-                      setLastName(e.target.value);
-                      setErrors((prev) => ({ ...prev, lastName: undefined }));
-                    }}
-                    clearable
-                    onClear={() => setLastName("")}
-                    error={errors.lastName}
-                  />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 min-w-0">
+                  <div className="min-w-0">
+                    <AppInput
+                      icon={UserIcon}
+                      label="First Name"
+                      placeholder="First"
+                      value={firstName}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setErrors((prev) => ({ ...prev, firstName: undefined }));
+                      }}
+                      clearable
+                      onClear={() => setFirstName("")}
+                      error={errors.firstName}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <AppInput
+                      icon={UserIcon}
+                      label="Last Name"
+                      placeholder="Last"
+                      value={lastName}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setErrors((prev) => ({ ...prev, lastName: undefined }));
+                      }}
+                      clearable
+                      onClear={() => setLastName("")}
+                      error={errors.lastName}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -454,11 +454,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                   }
                   error={errors.password}
                 />
-                {/* Password strength bar removed on Sign Up */}
                 {false && isSignUp && password.length > 0 && <PasswordStrengthBar password={password} />}
               </div>
 
-              {/* Remember Me & Forgot Password (Only on Sign In) */}
               {!isSignUp && (
                 <div className="flex items-center justify-between text-sm text-[#6B7280]">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -509,7 +507,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
               {submitError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{submitError}</p>}
 
-              {/* Toggle Sign In / Sign Up */}
               <p className="text-center text-sm text-[#6B7280] mt-4 mb-1">
                 {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
