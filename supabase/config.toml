@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.getAllDestinations]
 verify_jwt = false
+
+[functions.getAllDirects]
+verify_jwt = false
