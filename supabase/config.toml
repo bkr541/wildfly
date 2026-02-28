@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.getAllDirects]
 verify_jwt = false
+
+[functions.scheduledATLSnapshot]
+verify_jwt = false
