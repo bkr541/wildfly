@@ -118,14 +118,17 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         className="w-full text-left mb-2 group"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#2E4A4A] uppercase tracking-widest">
+          {/* Primary text bumped way up (same change as Alerts) */}
+          <h2 className="text-xl font-semibold text-[#2E4A4A] uppercase tracking-widest">
             Upcoming Flights
             {!loading && (
-              <span className="ml-2 text-xs font-medium text-[#6B7B7B] normal-case tracking-normal">
+              /* Preview/count text bumped way up (same change as Alerts) */
+              <span className="ml-2 text-lg font-medium text-[#6B7B7B] normal-case tracking-normal">
                 {flights.length} {flights.length === 1 ? "flight" : "flights"}
               </span>
             )}
           </h2>
+
           <motion.span
             variants={chevronVariants}
             animate={open ? "expanded" : "collapsed"}
@@ -147,7 +150,8 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                 y: shouldReduceMotion ? 0 : -4,
                 transition: { duration: 0.15, ease: EASE },
               }}
-              className="mt-2 flex flex-col gap-1.5"
+              /* Reduced spacing between preview rows (same change as Alerts) */
+              className="mt-2 flex flex-col gap-0.5"
             >
               {loading ? (
                 <>
@@ -159,17 +163,18 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                   ))}
                 </>
               ) : flights.length === 0 ? (
-                <p className="text-xs text-[#6B7B7B] text-center py-1">No upcoming flights</p>
+                /* Preview text bumped way up (same change as Alerts) */
+                <p className="text-base text-[#6B7B7B] text-center py-1">No upcoming flights</p>
               ) : (
                 flights.map((f) => (
                   <div key={f.id} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#059669]" />
-                    <span className="text-xs text-[#345C5A] truncate flex-1">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-[#059669]" />
+                    {/* Preview primary line bumped way up */}
+                    <span className="text-lg text-[#345C5A] truncate flex-1">
                       {f.departure_airport} → {f.arrival_airport}
                     </span>
-                    <span className="text-[10px] text-[#6B7B7B] whitespace-nowrap">
-                      {formatDateLabel(f.created_at)}
-                    </span>
+                    {/* Preview secondary line bumped way up */}
+                    <span className="text-base text-[#6B7B7B] whitespace-nowrap">{formatDateLabel(f.created_at)}</span>
                   </div>
                 ))
               )}
@@ -246,7 +251,11 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                           <div className="flex-1 flex items-center px-2">
                             <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
                             <span className="mx-2 inline-flex items-center justify-center w-7 h-7 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
-                              <FontAwesomeIcon icon={faPlane} style={{ transform: "rotate(45deg)" }} className="w-3.5 h-3.5 text-[#2E4A4A]" />
+                              <FontAwesomeIcon
+                                icon={faPlane}
+                                style={{ transform: "rotate(45deg)" }}
+                                className="w-3.5 h-3.5 text-[#2E4A4A]"
+                              />
                             </span>
                             <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-40" />
                           </div>
