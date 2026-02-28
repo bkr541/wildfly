@@ -302,18 +302,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      className="relative flex flex-col min-h-[100svh] bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
     >
       {/* Top section with logo */}
-      <div className="w-full flex-shrink-0 flex items-center justify-center pt-10 pb-4 z-10">
-        <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-24 md:h-28 w-auto object-contain" />
+      <div className="w-full flex-shrink-0 flex items-center justify-center pt-6 pb-3 sm:pt-10 sm:pb-4 z-10">
+        <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-20 sm:h-24 md:h-28 w-auto object-contain" />
       </div>
 
       {/* White card form */}
-      <div className="flex-1 flex flex-col items-center justify-end z-10">
-        {/* Fixed height prevents the white card from shifting when toggling */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
+        {/* Card now sizes to viewport; avoids full-page scrolling on mobile */}
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl max-h-[78svh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
           <div className="w-full mb-6">
             <div className="flex items-center gap-1.5 w-full">
@@ -379,12 +379,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* FIXED HEIGHT CONTAINER: 
-              h-[270px] locks the height so it accommodates Sign Up fields.
-              When toggled to Sign In, the extra space just sits empty above the button,
-              anchoring the button in the exact same spot.
-            */}
-            <div className="space-y-4 h-[270px] overflow-y-auto pr-1 shrink-0">
+            {/* Inputs area now flexes to available height and scrolls internally if needed */}
+            <div className="space-y-4 flex-1 overflow-y-auto pr-1 min-h-0">
               {/* First/Last Name for Sign Up */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4">
