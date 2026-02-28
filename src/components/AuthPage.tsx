@@ -315,7 +315,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         {/* Fixed height prevents the white card from shifting when toggling */}
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[560px] max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header label (IN/UP stays fixed; LOG/SIGN shifts inside a fixed-width slot) */}
-          <div className="w-full mb-6">
+          <div className="w-full mb-2">
             <div className="flex items-center gap-1.5 w-full">
               {displayChars.map((char, i) => {
                 const isGreen = i >= greenStart;
@@ -371,6 +371,22 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 );
               })}
             </div>
+
+            {/* MOVED: Toggle Sign In / Sign Up (now directly under LOGIN / SIGNUP) */}
+            <p className="text-center text-sm text-[#6B7280] mt-4 mb-0">
+              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setErrors({});
+                  setSubmitError(null);
+                }}
+                className="text-[#10B981] font-bold hover:underline"
+              >
+                {isSignUp ? "Sign In" : "Sign Up"}
+              </button>
+            </p>
           </div>
 
           <form
@@ -510,21 +526,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
               {submitError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{submitError}</p>}
 
-              {/* Toggle Sign In / Sign Up */}
-              <p className="text-center text-sm text-[#6B7280] mt-4 mb-1">
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setErrors({});
-                    setSubmitError(null);
-                  }}
-                  className="text-[#10B981] font-bold hover:underline"
-                >
-                  {isSignUp ? "Sign In" : "Sign Up"}
-                </button>
-              </p>
+              {/* Toggle Sign In / Sign Up (moved to top under header) */}
             </div>
           </form>
         </div>
