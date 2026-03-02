@@ -372,6 +372,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
   const handleSend = async () => {
     setLoading(true);
     setResponse(null);
+    setMainTab("Response");
     const controller = new AbortController();
     abortRef.current = controller;
     const timeoutId = globalThis.setTimeout(() => controller.abort(), timeout);
