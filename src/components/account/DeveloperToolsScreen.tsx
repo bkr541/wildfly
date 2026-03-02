@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import ApiClientScreen from "@/components/account/ApiClientScreen";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
@@ -28,6 +29,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   const [newDebugNs, setNewDebugNs] = useState("");
   const [snapshotRunning, setSnapshotRunning] = useState(false);
   const [snapshotResult, setSnapshotResult] = useState<{ success: boolean; rows_inserted?: number; travel_date?: string; error?: string } | null>(null);
+  const [showApiClient, setShowApiClient] = useState(false);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
@@ -48,6 +50,10 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
       setSnapshotRunning(false);
     }
   };
+
+  if (showApiClient) {
+    return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
+  }
 
   if (loading || !settings) {
     return (
@@ -111,6 +117,21 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   return (
     <div className="flex flex-col h-full animate-fade-in">
       <div className="flex-1 px-5 pb-4 space-y-4 overflow-y-auto">
+        {/* API Client */}
+        <button
+          type="button"
+          onClick={() => setShowApiClient(true)}
+          className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+        >
+          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={SourceCodeSquareIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-[#2E4A4A]">API Client</p>
+            <p className="text-xs text-[#6B7B7B]">Test edge functions with pre-populated params</p>
+          </div>
+          <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
+        </button>
         {/* Master toggles */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
           <ToggleRow
