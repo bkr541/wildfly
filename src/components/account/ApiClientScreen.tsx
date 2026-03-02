@@ -219,6 +219,7 @@ const KVTable = ({
           ))}
         </div>
       )}
+
       {/* Header row */}
       <div className="grid grid-cols-[16px_1fr_1fr_20px] gap-1.5 px-1 text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider">
         <span />
@@ -226,6 +227,7 @@ const KVTable = ({
         <span>{valuePlaceholder}</span>
         <span />
       </div>
+
       {rows.map((row) => (
         <div key={row.id} className="grid grid-cols-[16px_1fr_1fr_20px] gap-1.5 items-center">
           <input
@@ -255,6 +257,7 @@ const KVTable = ({
           </button>
         </div>
       ))}
+
       <button
         type="button"
         onClick={addRow}
@@ -468,20 +471,17 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
     if (method === "GET" || method === "HEAD" || bodyType === "none") return { body: null, contentType: null };
     if (bodyType === "json") return { body: bodyJson, contentType: "application/json" };
     if (bodyType === "raw") return { body: bodyRaw, contentType: "text/plain" };
-
     if (bodyType === "urlencoded") {
       const rows = bodyUrlEncoded.filter((r) => r.enabled && r.key.trim());
       const qs = rows.map((r) => `${encodeURIComponent(r.key)}=${encodeURIComponent(r.value)}`).join("&");
       return { body: qs, contentType: "application/x-www-form-urlencoded" };
     }
-
     if (bodyType === "form-data") {
       const fd = new FormData();
       bodyFormData.filter((r) => r.enabled && r.key.trim()).forEach((r) => fd.append(r.key, r.value));
       if (fileInput) fd.append("file", fileInput);
       return { body: fd, contentType: null }; // browser sets multipart boundary
     }
-
     return { body: null, contentType: null };
   };
 
@@ -496,7 +496,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
     const timeoutId = globalThis.setTimeout(() => controller.abort(), timeout);
 
     const start = Date.now();
-
     try {
       const finalUrl = buildUrl();
       const finalHeaders = buildHeaders();
@@ -649,17 +648,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
             className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
           />
 
-          {/* Save icon */}
-          <button
-            type="button"
-            onClick={saveCurrentRequest}
-            className="shrink-0 p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
-            aria-label="Save request"
-            title="Save request"
-          >
-            <HugeiconsIcon icon={Time01Icon} size={14} color="currentColor" strokeWidth={1.5} />
-          </button>
-
           {/* Send / Cancel */}
           {loading ? (
             <button
@@ -689,7 +677,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
       {/* ── White group: Request/Response + content (down through "Add row") ── */}
       <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden">
         <div className="h-full flex flex-col bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
-          {/* ── Main tab bar: Request | Response + status ── */}
+          {/* ── Main tab bar: Request | Response + status + SAVE (right-justified) ── */}
           <div className="flex-shrink-0 px-4">
             <div className="flex items-center border-b border-[#E3E6E6]">
               {(["Request", "Response"] as const).map((t) => (
@@ -706,18 +694,33 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                   {t}
                 </button>
               ))}
-              {/* Status pill — always visible */}
-              {response && (
-                <div className="ml-auto flex items-center gap-3 text-xs pr-1">
-                  <span className="text-[#6B7B7B]">Status:</span>
-                  <span className={`font-black ${statusColor(response.status)}`}>
-                    {response.status === 0 ? response.statusText : response.status}
-                  </span>
-                  <span className="text-[#6B7B7B]">|</span>
-                  <span className="text-[#6B7B7B]">Time:</span>
-                  <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
-                </div>
-              )}
+
+              {/* Right side actions */}
+              <div className="ml-auto flex items-center gap-3 pr-1">
+                {/* Save icon (moved here) */}
+                <button
+                  type="button"
+                  onClick={saveCurrentRequest}
+                  className="p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
+                  aria-label="Save request"
+                  title="Save request"
+                >
+                  <HugeiconsIcon icon={Time01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+                </button>
+
+                {/* Status pill — always visible when response exists */}
+                {response && (
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-[#6B7B7B]">Status:</span>
+                    <span className={`font-black ${statusColor(response.status)}`}>
+                      {response.status === 0 ? response.statusText : response.status}
+                    </span>
+                    <span className="text-[#6B7B7B]">|</span>
+                    <span className="text-[#6B7B7B]">Time:</span>
+                    <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1002,14 +1005,9 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                         <div
                           className={`h-5 w-9 rounded-full relative transition-colors ${followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"}`}
                           onClick={() => setFollowRedirects((v) => !v)}
-                          role="switch"
-                          aria-checked={followRedirects}
-                          tabIndex={0}
                         >
                           <span
-                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                              followRedirects ? "translate-x-4" : "translate-x-0.5"
-                            }`}
+                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${followRedirects ? "translate-x-4" : "translate-x-0.5"}`}
                           />
                         </div>
                         <span className="text-xs font-semibold text-[#2E4A4A]">Follow redirects</span>
@@ -1049,8 +1047,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                             toast.success("Copied");
                           }}
                           className="p-1 rounded hover:bg-[#E3E6E6] transition-colors"
-                          aria-label="Copy response body"
-                          title="Copy response body"
                         >
                           <HugeiconsIcon icon={Copy01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
                         </button>
@@ -1148,6 +1144,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                 className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
               />
             </div>
+
             {/* Grouped request list */}
             <div className="max-h-52 overflow-y-auto pb-2">
               {(() => {
@@ -1188,8 +1185,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                               deleteRequest(req.id);
                             }}
                             className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
-                            aria-label="Delete saved request"
-                            title="Delete saved request"
                           >
                             <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
                           </button>
