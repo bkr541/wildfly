@@ -224,7 +224,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   };
 
   const handleTryAgain = () => {
-    setEmail("");
     setPassword("");
     setShowLoginError(false);
   };
