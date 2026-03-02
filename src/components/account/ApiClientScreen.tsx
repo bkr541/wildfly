@@ -12,6 +12,7 @@ import {
   Time01Icon,
   ArrowRight01Icon,
   InformationCircleIcon,
+  BookmarkAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
@@ -705,7 +706,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                   aria-label="Save request"
                   title="Save request"
                 >
-                  <HugeiconsIcon icon={Time01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+                  <HugeiconsIcon icon={BookmarkAdd01Icon} size={14} color="currentColor" strokeWidth={1.5} />
                 </button>
 
                 {/* Status pill — always visible when response exists */}
@@ -1003,11 +1004,15 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                       </div>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <div
-                          className={`h-5 w-9 rounded-full relative transition-colors ${followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"}`}
+                          className={`h-5 w-9 rounded-full relative transition-colors ${
+                            followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"
+                          }`}
                           onClick={() => setFollowRedirects((v) => !v)}
                         >
                           <span
-                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${followRedirects ? "translate-x-4" : "translate-x-0.5"}`}
+                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                              followRedirects ? "translate-x-4" : "translate-x-0.5"
+                            }`}
                           />
                         </div>
                         <span className="text-xs font-semibold text-[#2E4A4A]">Follow redirects</span>
@@ -1115,88 +1120,90 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
       </div>
 
       {/* ── Bottom: Collections / History drawer ── */}
-      <div className="flex-shrink-0 border-t border-[#E3E6E6] bg-white">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen((v) => !v)}
-          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
-            <span>Collections</span>
-          </div>
-          <HugeiconsIcon
-            icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon}
-            size={11}
-            color="#C4CACA"
-            strokeWidth={2}
-          />
-        </button>
-
-        {sidebarOpen && (
-          <div className="border-t border-[#F0F1F1] animate-fade-in">
-            {/* Search */}
-            <div className="px-4 pt-2 pb-1">
-              <input
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-                placeholder="Search requests…"
-                className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
-              />
+      <div className="px-4 pb-3 flex-shrink-0">
+        <div className="bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
+              <span>Collections</span>
             </div>
+            <HugeiconsIcon
+              icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon}
+              size={11}
+              color="#C4CACA"
+              strokeWidth={2}
+            />
+          </button>
 
-            {/* Grouped request list */}
-            <div className="max-h-52 overflow-y-auto pb-2 bg-white">
-              {(() => {
-                const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
-                return groups.map((groupName) => {
-                  const groupRequests = filteredSaved.filter((r) => (r.group ?? "Other") === groupName);
-                  return (
-                    <div key={groupName} className="bg-white">
-                      <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-                        <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">
-                          {groupName}
-                        </span>
-                        <span className="flex-1 h-px bg-[#F0F1F1]" />
-                        <span className="text-[10px] text-[#C4CACA]">{groupRequests.length}</span>
-                      </div>
-                      {groupRequests.map((req) => (
-                        <div
-                          key={req.id}
-                          className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
-                            activeId === req.id ? "bg-[#EEF4F4]" : ""
-                          }`}
-                          onClick={() => {
-                            loadRequest(req);
-                            setSidebarOpen(false);
-                          }}
-                        >
-                          <span
-                            className="text-[10px] font-black w-12 shrink-0"
-                            style={{ color: METHOD_COLORS[req.method] }}
-                          >
-                            {req.method}
+          {sidebarOpen && (
+            <div className="border-t border-[#E3E6E6] animate-fade-in">
+              {/* Search */}
+              <div className="px-4 pt-2 pb-1">
+                <input
+                  value={searchQ}
+                  onChange={(e) => setSearchQ(e.target.value)}
+                  placeholder="Search requests…"
+                  className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
+                />
+              </div>
+
+              {/* Grouped request list */}
+              <div className="max-h-52 overflow-y-auto pb-2 bg-white">
+                {(() => {
+                  const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
+                  return groups.map((groupName) => {
+                    const groupRequests = filteredSaved.filter((r) => (r.group ?? "Other") === groupName);
+                    return (
+                      <div key={groupName} className="bg-white">
+                        <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+                          <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">
+                            {groupName}
                           </span>
-                          <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteRequest(req.id);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
-                          >
-                            <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
-                          </button>
+                          <span className="flex-1 h-px bg-[#F0F1F1]" />
+                          <span className="text-[10px] text-[#C4CACA]">{groupRequests.length}</span>
                         </div>
-                      ))}
-                    </div>
-                  );
-                });
-              })()}
+                        {groupRequests.map((req) => (
+                          <div
+                            key={req.id}
+                            className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
+                              activeId === req.id ? "bg-[#EEF4F4]" : ""
+                            }`}
+                            onClick={() => {
+                              loadRequest(req);
+                              setSidebarOpen(false);
+                            }}
+                          >
+                            <span
+                              className="text-[10px] font-black w-12 shrink-0"
+                              style={{ color: METHOD_COLORS[req.method] }}
+                            >
+                              {req.method}
+                            </span>
+                            <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteRequest(req.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
+                            >
+                              <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
