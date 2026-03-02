@@ -39,6 +39,7 @@ interface SavedRequest {
   name: string;
   method: HttpMethod;
   url: string;
+  group?: string;
 }
 
 interface ResponseData {
@@ -77,13 +78,13 @@ const PRESET_HEADERS: Array<{ label: string; key: string; value: string }> = [
 
 // Pre-populated saved requests from existing edge functions
 const DEFAULT_SAVED: SavedRequest[] = [
-  { id: "1", name: "Get Single Route", method: "POST", url: `${SUPABASE_URL}/functions/v1/getSingleRoute` },
-  { id: "2", name: "Get All Directs", method: "POST", url: `${SUPABASE_URL}/functions/v1/getAllDirects` },
-  { id: "3", name: "Get All Destinations", method: "POST", url: `${SUPABASE_URL}/functions/v1/getAllDestinations` },
-  { id: "4", name: "Get Round Trip Route", method: "POST", url: `${SUPABASE_URL}/functions/v1/getRoundTripRoute` },
-  { id: "5", name: "ATL Snapshot", method: "POST", url: `${SUPABASE_URL}/functions/v1/scheduledATLSnapshot` },
-  { id: "6", name: "AirLabs Routes", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsRoutes` },
-  { id: "7", name: "AirLabs Schedules", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsSchedules` },
+  { id: "1", name: "Get Single Route",     method: "POST", url: `${SUPABASE_URL}/functions/v1/getSingleRoute`,        group: "Lovable Cloud" },
+  { id: "2", name: "Get All Directs",      method: "POST", url: `${SUPABASE_URL}/functions/v1/getAllDirects`,          group: "Lovable Cloud" },
+  { id: "3", name: "Get All Destinations", method: "POST", url: `${SUPABASE_URL}/functions/v1/getAllDestinations`,     group: "Lovable Cloud" },
+  { id: "4", name: "Get Round Trip Route", method: "POST", url: `${SUPABASE_URL}/functions/v1/getRoundTripRoute`,     group: "Lovable Cloud" },
+  { id: "5", name: "ATL Snapshot",         method: "POST", url: `${SUPABASE_URL}/functions/v1/scheduledATLSnapshot`,  group: "Lovable Cloud" },
+  { id: "6", name: "Routes",               method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsRoutes`,         group: "AirLabs" },
+  { id: "7", name: "Schedules",            method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsSchedules`,      group: "AirLabs" },
 ];
 
 const DEFAULT_BODIES: Record<string, string> = {
@@ -822,20 +823,35 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                 placeholder="Search requests…"
                 className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]" />
             </div>
-            {/* Request list */}
-            <div className="max-h-40 overflow-y-auto pb-2">
-              {filteredSaved.map(req => (
-                <div key={req.id}
-                  className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${activeId === req.id ? "bg-[#EEF4F4]" : ""}`}
-                  onClick={() => { loadRequest(req); setSidebarOpen(false); }}>
-                  <span className="text-[10px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>{req.method}</span>
-                  <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
-                  <button type="button" onClick={e => { e.stopPropagation(); deleteRequest(req.id); }}
-                    className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0">
-                    <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
-                  </button>
-                </div>
-              ))}
+            {/* Grouped request list */}
+            <div className="max-h-52 overflow-y-auto pb-2">
+              {(() => {
+                const groups = Array.from(new Set(filteredSaved.map(r => r.group ?? "Other")));
+                return groups.map(groupName => {
+                  const groupRequests = filteredSaved.filter(r => (r.group ?? "Other") === groupName);
+                  return (
+                    <div key={groupName}>
+                      <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+                        <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">{groupName}</span>
+                        <span className="flex-1 h-px bg-[#F0F1F1]" />
+                        <span className="text-[10px] text-[#C4CACA]">{groupRequests.length}</span>
+                      </div>
+                      {groupRequests.map(req => (
+                        <div key={req.id}
+                          className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${activeId === req.id ? "bg-[#EEF4F4]" : ""}`}
+                          onClick={() => { loadRequest(req); setSidebarOpen(false); }}>
+                          <span className="text-[10px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>{req.method}</span>
+                          <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
+                          <button type="button" onClick={e => { e.stopPropagation(); deleteRequest(req.id); }}
+                            className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0">
+                            <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
