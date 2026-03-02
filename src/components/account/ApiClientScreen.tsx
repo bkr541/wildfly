@@ -360,6 +360,8 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
   const [searchQ, setSearchQ] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const [apiClientOpen, setApiClientOpen] = useState(true);
+
   // ── Request state
   const [method, setMethod] = useState<HttpMethod>("POST");
   const [url, setUrl] = useState(`${SUPABASE_URL}/functions/v1/getSingleRoute`);
@@ -613,539 +615,564 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in bg-[#F2F3F3] overflow-hidden">
-      {/* ── URL bar ── */}
-      <div className="px-4 pt-3 pb-2 flex-shrink-0">
-        <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-1.5 shadow-sm">
-          {/* Method selector */}
-          <div className="relative shrink-0">
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value as HttpMethod)}
-              className="appearance-none pl-2 pr-5 py-1.5 rounded-xl bg-[#F2F3F3] text-xs font-black focus:outline-none cursor-pointer border-none"
-              style={{ color: METHOD_COLORS[method] }}
-            >
-              {METHODS.map((m) => (
-                <option key={m} value={m} style={{ color: METHOD_COLORS[m] }}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              size={9}
-              color="#6B7B7B"
-              strokeWidth={2}
-              className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-5 bg-[#E3E6E6] shrink-0" />
-
-          {/* URL input */}
-          <input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://..."
-            className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
-          />
-
-          {/* Send / Cancel */}
-          {loading ? (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="shrink-0 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1"
-              aria-label="Stop request"
-              title="Stop request"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2} />
-              Stop
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSend}
-              className="shrink-0 px-3 py-1.5 rounded-xl bg-[#345C5A] text-white text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
-              aria-label="Send request"
-              title="Send request"
-            >
-              <HugeiconsIcon icon={PlayIcon} size={12} color="currentColor" strokeWidth={2} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── White group: Request/Response + content (down through "Add row") ── */}
-      <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden">
+      {/* ── Collapsible group: URL bar + Request/Response panel ── */}
+      <div className="px-4 pt-3 pb-3 flex-1 min-h-0 overflow-hidden">
         <div className="h-full flex flex-col bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
-          {/* ── Main tab bar: Request | Response + status + SAVE (right-justified) ── */}
-          <div className="flex-shrink-0 px-4">
-            <div className="flex items-center border-b border-[#E3E6E6]">
-              {(["Request", "Response"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setMainTab(t)}
-                  className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                    mainTab === t
-                      ? "border-[#345C5A] text-[#345C5A]"
-                      : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+          <button
+            type="button"
+            onClick={() => setApiClientOpen((v) => !v)}
+            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+            aria-label="Toggle API client"
+            title="Toggle API client"
+          >
+            <span>API Client</span>
+            <HugeiconsIcon
+              icon={apiClientOpen ? ArrowDown01Icon : ArrowUp01Icon}
+              size={11}
+              color="#C4CACA"
+              strokeWidth={2}
+            />
+          </button>
 
-              {/* Right side actions */}
-              <div className="ml-auto flex items-center gap-3 pr-1">
-                {/* Save icon (moved here) */}
-                <button
-                  type="button"
-                  onClick={saveCurrentRequest}
-                  className="p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
-                  aria-label="Save request"
-                  title="Save request"
-                >
-                  <HugeiconsIcon icon={BookmarkAdd01Icon} size={14} color="currentColor" strokeWidth={1.5} />
-                </button>
-
-                {/* Status pill — always visible when response exists */}
-                {response && (
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-[#6B7B7B]">Status:</span>
-                    <span className={`font-black ${statusColor(response.status)}`}>
-                      {response.status === 0 ? response.statusText : response.status}
-                    </span>
-                    <span className="text-[#6B7B7B]">|</span>
-                    <span className="text-[#6B7B7B]">Time:</span>
-                    <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Content area ── */}
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            {/* REQUEST tab */}
-            {mainTab === "Request" && (
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                {/* Collapsible group: Sub-tab bar + content */}
-                <div className="px-4 flex-shrink-0 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setReqDetailsOpen((v) => !v)}
-                    className="w-full flex items-center justify-between py-1 text-xs font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
-                    aria-label="Toggle request details"
-                    title="Toggle request details"
-                  >
-                    <span>Details</span>
+          {apiClientOpen && (
+            <>
+              {/* ── URL bar ── */}
+              <div className="px-4 pb-2 flex-shrink-0 border-t border-[#E3E6E6]">
+                <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-1.5 shadow-sm mt-3">
+                  {/* Method selector */}
+                  <div className="relative shrink-0">
+                    <select
+                      value={method}
+                      onChange={(e) => setMethod(e.target.value as HttpMethod)}
+                      className="appearance-none pl-2 pr-5 py-1.5 rounded-xl bg-[#F2F3F3] text-xs font-black focus:outline-none cursor-pointer border-none"
+                      style={{ color: METHOD_COLORS[method] }}
+                    >
+                      {METHODS.map((m) => (
+                        <option key={m} value={m} style={{ color: METHOD_COLORS[m] }}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
                     <HugeiconsIcon
-                      icon={reqDetailsOpen ? ArrowDown01Icon : ArrowUp01Icon}
-                      size={11}
-                      color="#C4CACA"
+                      icon={ArrowDown01Icon}
+                      size={9}
+                      color="#6B7B7B"
                       strokeWidth={2}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
                     />
-                  </button>
+                  </div>
 
-                  {reqDetailsOpen && (
-                    <TabBar
-                      tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
-                      active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
-                      onSelect={(t) => {
-                        if (t === "Parameters") setReqTab("Params");
-                        else if (t === "Header") setReqTab("Headers");
-                        else setReqTab(t);
-                      }}
-                    />
+                  {/* Divider */}
+                  <div className="w-px h-5 bg-[#E3E6E6] shrink-0" />
+
+                  {/* URL input */}
+                  <input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
+                  />
+
+                  {/* Send / Cancel */}
+                  {loading ? (
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      className="shrink-0 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1"
+                      aria-label="Stop request"
+                      title="Stop request"
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2} />
+                      Stop
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      className="shrink-0 px-3 py-1.5 rounded-xl bg-[#345C5A] text-white text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
+                      aria-label="Send request"
+                      title="Send request"
+                    >
+                      <HugeiconsIcon icon={PlayIcon} size={12} color="currentColor" strokeWidth={2} />
+                    </button>
                   )}
                 </div>
-
-                {reqDetailsOpen && (
-                  <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
-                    {/* Params */}
-                    {reqTab === "Params" && (
-                      <KVTable
-                        rows={queryParams}
-                        onChange={setQueryParams}
-                        placeholder="Key"
-                        valuePlaceholder="Value"
-                      />
-                    )}
-
-                    {/* Headers */}
-                    {reqTab === "Headers" && (
-                      <KVTable
-                        rows={headers}
-                        onChange={setHeaders}
-                        placeholder="Key"
-                        valuePlaceholder="Value"
-                        presets={PRESET_HEADERS}
-                      />
-                    )}
-
-                    {/* Body */}
-                    {reqTab === "Body" && (
-                      <div className="space-y-3">
-                        <div className="flex gap-3 flex-wrap">
-                          {(["none", "json", "form-data", "urlencoded", "raw"] as BodyType[]).map((bt) => (
-                            <label key={bt} className="flex items-center gap-1.5 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="bodyType"
-                                value={bt}
-                                checked={bodyType === bt}
-                                onChange={() => setBodyType(bt)}
-                                className="accent-[#345C5A] w-3 h-3"
-                              />
-                              <span className="text-xs font-semibold text-[#6B7B7B] capitalize">{bt}</span>
-                            </label>
-                          ))}
-                        </div>
-
-                        {bodyType === "json" && (
-                          <div className="relative">
-                            <div className="flex gap-1.5 absolute top-2 right-2 z-10">
-                              <button
-                                type="button"
-                                onClick={() => setBodyJson(prettyJson(bodyJson))}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-[#E3E6E6] text-[#6B7B7B] hover:bg-[#D6D9D9] transition-colors"
-                              >
-                                Pretty
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setBodyJson(minifyJson(bodyJson))}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-[#E3E6E6] text-[#6B7B7B] hover:bg-[#D6D9D9] transition-colors"
-                              >
-                                Minify
-                              </button>
-                            </div>
-                            <textarea
-                              value={bodyJson}
-                              onChange={(e) => setBodyJson(e.target.value)}
-                              rows={10}
-                              className="w-full px-3 pt-3 pb-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed"
-                            />
-                          </div>
-                        )}
-
-                        {bodyType === "raw" && (
-                          <textarea
-                            value={bodyRaw}
-                            onChange={(e) => setBodyRaw(e.target.value)}
-                            rows={10}
-                            placeholder="Raw body content…"
-                            className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed"
-                          />
-                        )}
-
-                        {bodyType === "form-data" && (
-                          <div className="space-y-3">
-                            <KVTable
-                              rows={bodyFormData}
-                              onChange={setBodyFormData}
-                              placeholder="field"
-                              valuePlaceholder="value"
-                            />
-                            <div>
-                              <p className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider mb-1">
-                                File upload
-                              </p>
-                              <input
-                                type="file"
-                                onChange={(e) => setFileInput(e.target.files?.[0] ?? null)}
-                                className="text-xs text-[#6B7B7B] file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-[#E3E6E6] file:text-[#2E4A4A] file:font-semibold hover:file:bg-[#D6D9D9] cursor-pointer"
-                              />
-                              {fileInput && (
-                                <p className="text-[10px] text-[#345C5A] mt-1">
-                                  Selected: {fileInput.name} ({formatBytes(fileInput.size)})
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {bodyType === "urlencoded" && (
-                          <KVTable
-                            rows={bodyUrlEncoded}
-                            onChange={setBodyUrlEncoded}
-                            placeholder="key"
-                            valuePlaceholder="value"
-                          />
-                        )}
-
-                        {bodyType === "none" && (
-                          <p className="text-xs text-[#6B7B7B] py-2">This request has no body.</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Auth */}
-                    {reqTab === "Auth" && (
-                      <div className="space-y-3">
-                        <div className="flex gap-3 flex-wrap">
-                          {(["none", "bearer", "basic", "apikey"] as AuthType[]).map((at) => (
-                            <label key={at} className="flex items-center gap-1.5 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="authType"
-                                value={at}
-                                checked={authType === at}
-                                onChange={() => setAuthType(at)}
-                                className="accent-[#345C5A] w-3 h-3"
-                              />
-                              <span className="text-xs font-semibold text-[#6B7B7B] capitalize">
-                                {at === "apikey" ? "API Key" : at}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-
-                        {authType === "bearer" && (
-                          <div>
-                            <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                              Bearer Token
-                            </label>
-                            <input
-                              value={bearerToken}
-                              onChange={(e) => setBearerToken(e.target.value)}
-                              placeholder="Token…"
-                              className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                            />
-                            <p className="text-[10px] text-[#6B7B7B] mt-1 flex items-center gap-1">
-                              <HugeiconsIcon
-                                icon={InformationCircleIcon}
-                                size={10}
-                                color="currentColor"
-                                strokeWidth={1.5}
-                              />
-                              Pre-filled with the project anon key
-                            </p>
-                          </div>
-                        )}
-
-                        {authType === "basic" && (
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                                Username
-                              </label>
-                              <input
-                                value={basicUser}
-                                onChange={(e) => setBasicUser(e.target.value)}
-                                placeholder="username"
-                                className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                                Password
-                              </label>
-                              <input
-                                type="password"
-                                value={basicPass}
-                                onChange={(e) => setBasicPass(e.target.value)}
-                                placeholder="••••••"
-                                className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {authType === "apikey" && (
-                          <div className="space-y-2">
-                            <div className="flex gap-2">
-                              <label className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="apiKeyIn"
-                                  value="header"
-                                  checked={apiKeyIn === "header"}
-                                  onChange={() => setApiKeyIn("header")}
-                                  className="accent-[#345C5A] w-3 h-3"
-                                />
-                                <span className="text-xs font-semibold text-[#6B7B7B]">Header</span>
-                              </label>
-                              <label className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="apiKeyIn"
-                                  value="query"
-                                  checked={apiKeyIn === "query"}
-                                  onChange={() => setApiKeyIn("query")}
-                                  className="accent-[#345C5A] w-3 h-3"
-                                />
-                                <span className="text-xs font-semibold text-[#6B7B7B]">Query param</span>
-                              </label>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                                  Key name
-                                </label>
-                                <input
-                                  value={apiKeyName}
-                                  onChange={(e) => setApiKeyName(e.target.value)}
-                                  className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                                  Value
-                                </label>
-                                <input
-                                  value={apiKeyValue}
-                                  onChange={(e) => setApiKeyValue(e.target.value)}
-                                  placeholder="your-api-key"
-                                  className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {authType === "none" && (
-                          <p className="text-xs text-[#6B7B7B] py-2">
-                            No authentication will be added to this request.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Settings */}
-                    {reqTab === "Settings" && (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
-                            Timeout (ms)
-                          </label>
-                          <input
-                            type="number"
-                            value={timeout}
-                            onChange={(e) => setTimeout_(Number(e.target.value))}
-                            min={1000}
-                            max={300000}
-                            step={1000}
-                            className="w-36 px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
-                          />
-                        </div>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <div
-                            className={`h-5 w-9 rounded-full relative transition-colors ${
-                              followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"
-                            }`}
-                            onClick={() => setFollowRedirects((v) => !v)}
-                          >
-                            <span
-                              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                                followRedirects ? "translate-x-4" : "translate-x-0.5"
-                              }`}
-                            />
-                          </div>
-                          <span className="text-xs font-semibold text-[#2E4A4A]">Follow redirects</span>
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            )}
 
-            {/* RESPONSE tab */}
-            {mainTab === "Response" && (
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                {loading ? (
-                  <div className="flex-1 flex items-center justify-center gap-2 text-[#6B7B7B]">
-                    <span className="h-4 w-4 rounded-full border-2 border-[#345C5A] border-t-transparent animate-spin" />
-                    <span className="text-sm">Sending…</span>
-                  </div>
-                ) : !response ? (
-                  <div className="flex-1 flex items-center justify-center text-[#C4CACA] text-sm">
-                    Hit Send to see the response
-                  </div>
-                ) : (
-                  <>
-                    {/* Response meta row */}
-                    <div className="px-4 pt-2 pb-0 flex items-center justify-between flex-shrink-0">
-                      <span className="text-xs font-bold text-[#2E4A4A]">Response</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#6B7B7B]">
-                          Time: <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
-                        </span>
-                        <span className="text-xs text-[#6B7B7B]">{formatBytes(response.sizeBytes)}</span>
+              {/* ── White group: Request/Response + content (down through "Add row") ── */}
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden">
+                <div className="h-full flex flex-col bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
+                  {/* ── Main tab bar: Request | Response + status + SAVE (right-justified) ── */}
+                  <div className="flex-shrink-0 px-4">
+                    <div className="flex items-center border-b border-[#E3E6E6]">
+                      {(["Request", "Response"] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setMainTab(t)}
+                          className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                            mainTab === t
+                              ? "border-[#345C5A] text-[#345C5A]"
+                              : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+
+                      {/* Right side actions */}
+                      <div className="ml-auto flex items-center gap-3 pr-1">
+                        {/* Save icon (moved here) */}
                         <button
                           type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(response.body);
-                            toast.success("Copied");
-                          }}
-                          className="p-1 rounded hover:bg-[#E3E6E6] transition-colors"
+                          onClick={saveCurrentRequest}
+                          className="p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
+                          aria-label="Save request"
+                          title="Save request"
                         >
-                          <HugeiconsIcon icon={Copy01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={BookmarkAdd01Icon} size={14} color="currentColor" strokeWidth={1.5} />
                         </button>
+
+                        {/* Status pill — always visible when response exists */}
+                        {response && (
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="text-[#6B7B7B]">Status:</span>
+                            <span className={`font-black ${statusColor(response.status)}`}>
+                              {response.status === 0 ? response.statusText : response.status}
+                            </span>
+                            <span className="text-[#6B7B7B]">|</span>
+                            <span className="text-[#6B7B7B]">Time:</span>
+                            <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
+                          </div>
+                        )}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="px-4 flex-shrink-0 pt-1">
-                      <TabBar tabs={["Body", "Headers"]} active={resTab} onSelect={setResTab} />
-                    </div>
+                  {/* ── Content area ── */}
+                  <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                    {/* REQUEST tab */}
+                    {mainTab === "Request" && (
+                      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        {/* Collapsible group: Sub-tab bar + content */}
+                        <div className="px-4 flex-shrink-0 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setReqDetailsOpen((v) => !v)}
+                            className="w-full flex items-center justify-between py-1 text-xs font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+                            aria-label="Toggle request details"
+                            title="Toggle request details"
+                          >
+                            <span>Details</span>
+                            <HugeiconsIcon
+                              icon={reqDetailsOpen ? ArrowDown01Icon : ArrowUp01Icon}
+                              size={11}
+                              color="#C4CACA"
+                              strokeWidth={2}
+                            />
+                          </button>
 
-                    <div className="flex-1 overflow-y-auto">
-                      {resTab === "Headers" && (
-                        <div className="px-4 py-3">
-                          {Object.entries(response.headers).map(([k, v]) => (
-                            <div key={k} className="flex gap-3 py-2 border-b border-[#F0F1F1] last:border-none">
-                              <span className="text-xs font-bold text-[#2E4A4A] w-36 shrink-0">{k}</span>
-                              <span className="text-xs font-mono text-[#6B7B7B] break-all">{v}</span>
-                            </div>
-                          ))}
-                          {Object.keys(response.headers).length === 0 && (
-                            <p className="text-xs text-[#C4CACA] py-4 text-center">No response headers</p>
+                          {reqDetailsOpen && (
+                            <TabBar
+                              tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
+                              active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
+                              onSelect={(t) => {
+                                if (t === "Parameters") setReqTab("Params");
+                                else if (t === "Header") setReqTab("Headers");
+                                else setReqTab(t);
+                              }}
+                            />
                           )}
                         </div>
-                      )}
 
-                      {resTab === "Body" && (
-                        <div className="flex flex-col h-full">
-                          {response.bodyType === "json" && (
-                            <div className="flex gap-1.5 px-4 pt-3 pb-2 flex-shrink-0">
-                              {(["pretty", "raw", "tree"] as const).map((v) => (
-                                <button
-                                  key={v}
-                                  type="button"
-                                  onClick={() => setBodyView(v)}
-                                  className={`text-xs px-3 py-1 rounded-lg font-semibold transition-colors capitalize ${
-                                    bodyView === v
-                                      ? "bg-[#345C5A] text-white"
-                                      : "bg-[#F2F3F3] text-[#6B7B7B] hover:bg-[#E3E6E6]"
-                                  }`}
-                                >
-                                  {v}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex-1 overflow-y-auto px-4 py-2">
-                            {bodyView === "tree" && parsedJson !== null ? (
-                              <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre leading-relaxed">
-                                <JsonNode data={parsedJson} />
-                              </pre>
-                            ) : (
-                              <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre-wrap break-all leading-relaxed">
-                                {displayBody}
-                              </pre>
+                        {reqDetailsOpen && (
+                          <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
+                            {/* Params */}
+                            {reqTab === "Params" && (
+                              <KVTable
+                                rows={queryParams}
+                                onChange={setQueryParams}
+                                placeholder="Key"
+                                valuePlaceholder="Value"
+                              />
+                            )}
+
+                            {/* Headers */}
+                            {reqTab === "Headers" && (
+                              <KVTable
+                                rows={headers}
+                                onChange={setHeaders}
+                                placeholder="Key"
+                                valuePlaceholder="Value"
+                                presets={PRESET_HEADERS}
+                              />
+                            )}
+
+                            {/* Body */}
+                            {reqTab === "Body" && (
+                              <div className="space-y-3">
+                                <div className="flex gap-3 flex-wrap">
+                                  {(["none", "json", "form-data", "urlencoded", "raw"] as BodyType[]).map((bt) => (
+                                    <label key={bt} className="flex items-center gap-1.5 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="bodyType"
+                                        value={bt}
+                                        checked={bodyType === bt}
+                                        onChange={() => setBodyType(bt)}
+                                        className="accent-[#345C5A] w-3 h-3"
+                                      />
+                                      <span className="text-xs font-semibold text-[#6B7B7B] capitalize">{bt}</span>
+                                    </label>
+                                  ))}
+                                </div>
+
+                                {bodyType === "json" && (
+                                  <div className="relative">
+                                    <div className="flex gap-1.5 absolute top-2 right-2 z-10">
+                                      <button
+                                        type="button"
+                                        onClick={() => setBodyJson(prettyJson(bodyJson))}
+                                        className="text-[9px] px-1.5 py-0.5 rounded bg-[#E3E6E6] text-[#6B7B7B] hover:bg-[#D6D9D9] transition-colors"
+                                      >
+                                        Pretty
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setBodyJson(minifyJson(bodyJson))}
+                                        className="text-[9px] px-1.5 py-0.5 rounded bg-[#E3E6E6] text-[#6B7B7B] hover:bg-[#D6D9D9] transition-colors"
+                                      >
+                                        Minify
+                                      </button>
+                                    </div>
+                                    <textarea
+                                      value={bodyJson}
+                                      onChange={(e) => setBodyJson(e.target.value)}
+                                      rows={10}
+                                      className="w-full px-3 pt-3 pb-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed"
+                                    />
+                                  </div>
+                                )}
+
+                                {bodyType === "raw" && (
+                                  <textarea
+                                    value={bodyRaw}
+                                    onChange={(e) => setBodyRaw(e.target.value)}
+                                    rows={10}
+                                    placeholder="Raw body content…"
+                                    className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed"
+                                  />
+                                )}
+
+                                {bodyType === "form-data" && (
+                                  <div className="space-y-3">
+                                    <KVTable
+                                      rows={bodyFormData}
+                                      onChange={setBodyFormData}
+                                      placeholder="field"
+                                      valuePlaceholder="value"
+                                    />
+                                    <div>
+                                      <p className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider mb-1">
+                                        File upload
+                                      </p>
+                                      <input
+                                        type="file"
+                                        onChange={(e) => setFileInput(e.target.files?.[0] ?? null)}
+                                        className="text-xs text-[#6B7B7B] file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-[#E3E6E6] file:text-[#2E4A4A] file:font-semibold hover:file:bg-[#D6D9D9] cursor-pointer"
+                                      />
+                                      {fileInput && (
+                                        <p className="text-[10px] text-[#345C5A] mt-1">
+                                          Selected: {fileInput.name} ({formatBytes(fileInput.size)})
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {bodyType === "urlencoded" && (
+                                  <KVTable
+                                    rows={bodyUrlEncoded}
+                                    onChange={setBodyUrlEncoded}
+                                    placeholder="key"
+                                    valuePlaceholder="value"
+                                  />
+                                )}
+
+                                {bodyType === "none" && (
+                                  <p className="text-xs text-[#6B7B7B] py-2">This request has no body.</p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Auth */}
+                            {reqTab === "Auth" && (
+                              <div className="space-y-3">
+                                <div className="flex gap-3 flex-wrap">
+                                  {(["none", "bearer", "basic", "apikey"] as AuthType[]).map((at) => (
+                                    <label key={at} className="flex items-center gap-1.5 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="authType"
+                                        value={at}
+                                        checked={authType === at}
+                                        onChange={() => setAuthType(at)}
+                                        className="accent-[#345C5A] w-3 h-3"
+                                      />
+                                      <span className="text-xs font-semibold text-[#6B7B7B] capitalize">
+                                        {at === "apikey" ? "API Key" : at}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+
+                                {authType === "bearer" && (
+                                  <div>
+                                    <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                      Bearer Token
+                                    </label>
+                                    <input
+                                      value={bearerToken}
+                                      onChange={(e) => setBearerToken(e.target.value)}
+                                      placeholder="Token…"
+                                      className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                    />
+                                    <p className="text-[10px] text-[#6B7B7B] mt-1 flex items-center gap-1">
+                                      <HugeiconsIcon
+                                        icon={InformationCircleIcon}
+                                        size={10}
+                                        color="currentColor"
+                                        strokeWidth={1.5}
+                                      />
+                                      Pre-filled with the project anon key
+                                    </p>
+                                  </div>
+                                )}
+
+                                {authType === "basic" && (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                        Username
+                                      </label>
+                                      <input
+                                        value={basicUser}
+                                        onChange={(e) => setBasicUser(e.target.value)}
+                                        placeholder="username"
+                                        className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                        Password
+                                      </label>
+                                      <input
+                                        type="password"
+                                        value={basicPass}
+                                        onChange={(e) => setBasicPass(e.target.value)}
+                                        placeholder="••••••"
+                                        className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+
+                                {authType === "apikey" && (
+                                  <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                      <label className="flex items-center gap-1 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name="apiKeyIn"
+                                          value="header"
+                                          checked={apiKeyIn === "header"}
+                                          onChange={() => setApiKeyIn("header")}
+                                          className="accent-[#345C5A] w-3 h-3"
+                                        />
+                                        <span className="text-xs font-semibold text-[#6B7B7B]">Header</span>
+                                      </label>
+                                      <label className="flex items-center gap-1 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name="apiKeyIn"
+                                          value="query"
+                                          checked={apiKeyIn === "query"}
+                                          onChange={() => setApiKeyIn("query")}
+                                          className="accent-[#345C5A] w-3 h-3"
+                                        />
+                                        <span className="text-xs font-semibold text-[#6B7B7B]">Query param</span>
+                                      </label>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                          Key name
+                                        </label>
+                                        <input
+                                          value={apiKeyName}
+                                          onChange={(e) => setApiKeyName(e.target.value)}
+                                          className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                          Value
+                                        </label>
+                                        <input
+                                          value={apiKeyValue}
+                                          onChange={(e) => setApiKeyValue(e.target.value)}
+                                          placeholder="your-api-key"
+                                          className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {authType === "none" && (
+                                  <p className="text-xs text-[#6B7B7B] py-2">
+                                    No authentication will be added to this request.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Settings */}
+                            {reqTab === "Settings" && (
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">
+                                    Timeout (ms)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={timeout}
+                                    onChange={(e) => setTimeout_(Number(e.target.value))}
+                                    min={1000}
+                                    max={300000}
+                                    step={1000}
+                                    className="w-36 px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]"
+                                  />
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <div
+                                    className={`h-5 w-9 rounded-full relative transition-colors ${
+                                      followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"
+                                    }`}
+                                    onClick={() => setFollowRedirects((v) => !v)}
+                                  >
+                                    <span
+                                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                        followRedirects ? "translate-x-4" : "translate-x-0.5"
+                                      }`}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-semibold text-[#2E4A4A]">Follow redirects</span>
+                                </label>
+                              </div>
                             )}
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
+                        )}
+                      </div>
+                    )}
+
+                    {/* RESPONSE tab */}
+                    {mainTab === "Response" && (
+                      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        {loading ? (
+                          <div className="flex-1 flex items-center justify-center gap-2 text-[#6B7B7B]">
+                            <span className="h-4 w-4 rounded-full border-2 border-[#345C5A] border-t-transparent animate-spin" />
+                            <span className="text-sm">Sending…</span>
+                          </div>
+                        ) : !response ? (
+                          <div className="flex-1 flex items-center justify-center text-[#C4CACA] text-sm">
+                            Hit Send to see the response
+                          </div>
+                        ) : (
+                          <>
+                            {/* Response meta row */}
+                            <div className="px-4 pt-2 pb-0 flex items-center justify-between flex-shrink-0">
+                              <span className="text-xs font-bold text-[#2E4A4A]">Response</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-[#6B7B7B]">
+                                  Time: <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
+                                </span>
+                                <span className="text-xs text-[#6B7B7B]">{formatBytes(response.sizeBytes)}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(response.body);
+                                    toast.success("Copied");
+                                  }}
+                                  className="p-1 rounded hover:bg-[#E3E6E6] transition-colors"
+                                >
+                                  <HugeiconsIcon icon={Copy01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="px-4 flex-shrink-0 pt-1">
+                              <TabBar tabs={["Body", "Headers"]} active={resTab} onSelect={setResTab} />
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto">
+                              {resTab === "Headers" && (
+                                <div className="px-4 py-3">
+                                  {Object.entries(response.headers).map(([k, v]) => (
+                                    <div key={k} className="flex gap-3 py-2 border-b border-[#F0F1F1] last:border-none">
+                                      <span className="text-xs font-bold text-[#2E4A4A] w-36 shrink-0">{k}</span>
+                                      <span className="text-xs font-mono text-[#6B7B7B] break-all">{v}</span>
+                                    </div>
+                                  ))}
+                                  {Object.keys(response.headers).length === 0 && (
+                                    <p className="text-xs text-[#C4CACA] py-4 text-center">No response headers</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {resTab === "Body" && (
+                                <div className="flex flex-col h-full">
+                                  {response.bodyType === "json" && (
+                                    <div className="flex gap-1.5 px-4 pt-3 pb-2 flex-shrink-0">
+                                      {(["pretty", "raw", "tree"] as const).map((v) => (
+                                        <button
+                                          key={v}
+                                          type="button"
+                                          onClick={() => setBodyView(v)}
+                                          className={`text-xs px-3 py-1 rounded-lg font-semibold transition-colors capitalize ${
+                                            bodyView === v
+                                              ? "bg-[#345C5A] text-white"
+                                              : "bg-[#F2F3F3] text-[#6B7B7B] hover:bg-[#E3E6E6]"
+                                          }`}
+                                        >
+                                          {v}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <div className="flex-1 overflow-y-auto px-4 py-2">
+                                    {bodyView === "tree" && parsedJson !== null ? (
+                                      <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre leading-relaxed">
+                                        <JsonNode data={parsedJson} />
+                                      </pre>
+                                    ) : (
+                                      <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre-wrap break-all leading-relaxed">
+                                        {displayBody}
+                                      </pre>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
