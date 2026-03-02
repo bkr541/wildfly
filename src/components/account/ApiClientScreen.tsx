@@ -455,131 +455,130 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
     try { parsedJson = JSON.parse(response.body); } catch { /* noop */ }
   }
 
+  // ── Active top-level tab: Request or Response
+  const [mainTab, setMainTab] = useState<"Request" | "Response">("Request");
+
   return (
     <div className="flex flex-col h-full animate-fade-in bg-[#F2F3F3] overflow-hidden">
-      {/* ── Top bar: Method + URL + Send ── */}
-      <div className="px-4 pt-3 pb-2 flex items-center gap-2 flex-shrink-0 bg-[#F2F3F3]">
-        {/* Method */}
-        <div className="relative shrink-0">
-          <select
-            value={method}
-            onChange={e => setMethod(e.target.value as HttpMethod)}
-            className="appearance-none pl-2.5 pr-6 py-2.5 rounded-xl border border-[#E3E6E6] bg-white text-xs font-black focus:outline-none focus:border-[#345C5A] cursor-pointer"
-            style={{ color: METHOD_COLORS[method] }}
-          >
-            {METHODS.map(m => (
-              <option key={m} value={m} style={{ color: METHOD_COLORS[m] }}>{m}</option>
-            ))}
-          </select>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={10} color="#6B7B7B" strokeWidth={2}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
 
-        {/* URL */}
-        <input
-          value={url}
-          onChange={e => setUrl(e.target.value)}
-          placeholder="https://..."
-          className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-[#E3E6E6] bg-white text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A]"
-        />
+      {/* ── URL bar ── */}
+      <div className="px-4 pt-3 pb-2 flex-shrink-0">
+        <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-1.5 shadow-sm">
+          {/* Method selector */}
+          <div className="relative shrink-0">
+            <select
+              value={method}
+              onChange={e => setMethod(e.target.value as HttpMethod)}
+              className="appearance-none pl-2 pr-5 py-1.5 rounded-xl bg-[#F2F3F3] text-xs font-black focus:outline-none cursor-pointer border-none"
+              style={{ color: METHOD_COLORS[method] }}
+            >
+              {METHODS.map(m => (
+                <option key={m} value={m} style={{ color: METHOD_COLORS[m] }}>{m}</option>
+              ))}
+            </select>
+            <HugeiconsIcon icon={ArrowDown01Icon} size={9} color="#6B7B7B" strokeWidth={2}
+              className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
 
-        {/* Save */}
-        <button type="button" onClick={saveCurrentRequest}
-          className="shrink-0 px-2.5 py-2.5 rounded-xl border border-[#E3E6E6] bg-white text-[#6B7B7B] hover:text-[#345C5A] transition-colors">
-          <HugeiconsIcon icon={Time01Icon} size={15} color="currentColor" strokeWidth={1.5} />
-        </button>
+          {/* Divider */}
+          <div className="w-px h-5 bg-[#E3E6E6] shrink-0" />
 
-        {/* Send / Cancel */}
-        {loading ? (
-          <button type="button" onClick={handleCancel}
-            className="shrink-0 px-4 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1.5">
-            <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
-            Stop
-          </button>
-        ) : (
-          <button type="button" onClick={handleSend}
-            className="shrink-0 px-4 py-2.5 rounded-xl bg-[#345C5A] text-white text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-1.5">
-            <HugeiconsIcon icon={PlayIcon} size={12} color="currentColor" strokeWidth={2} />
-            Send
-          </button>
-        )}
-      </div>
+          {/* URL input */}
+          <input
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            placeholder="https://..."
+            className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
+          />
 
-      {/* ── Main layout: sidebar + panels ── */}
-      <div className="flex flex-1 min-h-0 gap-2 px-4 pb-4 overflow-hidden">
-
-        {/* ── Sidebar: saved requests ── */}
-        <div className={`flex-shrink-0 flex flex-col bg-white rounded-2xl border border-[#E3E6E6] overflow-hidden transition-all duration-200 ${sidebarOpen ? "w-[140px]" : "w-8"}`}>
-          <button type="button" onClick={() => setSidebarOpen(v => !v)}
-            className="flex items-center justify-between px-2.5 py-2 border-b border-[#F0F1F1] text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider hover:bg-[#F8F9F9] transition-colors">
-            {sidebarOpen ? (
-              <>
-                <span>Saved</span>
-                <HugeiconsIcon icon={ArrowUp01Icon} size={10} color="#6B7B7B" strokeWidth={2} />
-              </>
-            ) : (
-              <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="#6B7B7B" strokeWidth={2} />
-            )}
+          {/* Save icon */}
+          <button type="button" onClick={saveCurrentRequest}
+            className="shrink-0 p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors">
+            <HugeiconsIcon icon={Time01Icon} size={14} color="currentColor" strokeWidth={1.5} />
           </button>
 
-          {sidebarOpen && (
-            <>
-              <div className="px-2 py-1.5 border-b border-[#F0F1F1]">
-                <input value={searchQ} onChange={e => setSearchQ(e.target.value)}
-                  placeholder="Search…"
-                  className="w-full px-2 py-1 rounded-lg border border-[#E3E6E6] text-[10px] text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]" />
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {filteredSaved.map(req => (
-                  <div key={req.id}
-                    className={`group flex items-center gap-1 px-2 py-1.5 cursor-pointer hover:bg-[#F2F3F3] transition-colors border-b border-[#F8F9F9] ${activeId === req.id ? "bg-[#EEF4F4]" : ""}`}
-                    onClick={() => loadRequest(req)}>
-                    <span className="text-[9px] font-black shrink-0" style={{ color: METHOD_COLORS[req.method] }}>{req.method}</span>
-                    <span className="text-[10px] text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
-                    <button type="button" onClick={e => { e.stopPropagation(); deleteRequest(req.id); }}
-                      className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all">
-                      <HugeiconsIcon icon={Delete01Icon} size={9} color="currentColor" strokeWidth={1.5} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </>
+          {/* Send / Cancel */}
+          {loading ? (
+            <button type="button" onClick={handleCancel}
+              className="shrink-0 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1">
+              <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2} />
+              Stop
+            </button>
+          ) : (
+            <button type="button" onClick={handleSend}
+              className="shrink-0 px-3 py-1.5 rounded-xl bg-[#345C5A] text-white text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-1">
+              <HugeiconsIcon icon={PlayIcon} size={11} color="currentColor" strokeWidth={2} />
+              Send
+            </button>
           )}
         </div>
+      </div>
 
-        {/* ── Center: Request + Response panels stacked ── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-2 overflow-hidden">
+      {/* ── Main tab bar: Request | Response + status ── */}
+      <div className="px-4 flex-shrink-0">
+        <div className="flex items-center border-b border-[#E3E6E6]">
+          {(["Request", "Response"] as const).map(t => (
+            <button key={t} type="button" onClick={() => setMainTab(t)}
+              className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${mainTab === t
+                ? "border-[#345C5A] text-[#345C5A]"
+                : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"}`}>
+              {t}
+            </button>
+          ))}
+          {/* Status pill — always visible */}
+          {response && (
+            <div className="ml-auto flex items-center gap-3 text-xs pr-1">
+              <span className="text-[#6B7B7B]">Status:</span>
+              <span className={`font-black ${statusColor(response.status)}`}>
+                {response.status === 0 ? response.statusText : response.status}
+              </span>
+              <span className="text-[#6B7B7B]">|</span>
+              <span className="text-[#6B7B7B]">Time:</span>
+              <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/* Request panel */}
-          <div className="bg-white rounded-2xl border border-[#E3E6E6] flex flex-col overflow-hidden" style={{ maxHeight: "50%" }}>
-            <div className="px-3 pt-2 pb-0 flex-shrink-0">
+      {/* ── Content area ── */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+
+        {/* REQUEST tab */}
+        {mainTab === "Request" && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Sub-tab bar */}
+            <div className="px-4 flex-shrink-0 pt-1">
               <TabBar
-                tabs={["Params", "Headers", "Body", "Auth", "Settings"]}
-                active={reqTab}
-                onSelect={setReqTab}
+                tabs={["URL Parameters", "Header", "Body", "Auth", "Settings"]}
+                active={reqTab === "Params" ? "URL Parameters" : reqTab === "Headers" ? "Header" : reqTab}
+                onSelect={t => {
+                  if (t === "URL Parameters") setReqTab("Params");
+                  else if (t === "Header") setReqTab("Headers");
+                  else setReqTab(t);
+                }}
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-3 py-3 text-xs">
+            <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
               {/* Params */}
               {reqTab === "Params" && (
-                <KVTable rows={queryParams} onChange={setQueryParams} placeholder="parameter" valuePlaceholder="value" />
+                <KVTable rows={queryParams} onChange={setQueryParams} placeholder="Key" valuePlaceholder="Value" />
               )}
 
               {/* Headers */}
               {reqTab === "Headers" && (
-                <KVTable rows={headers} onChange={setHeaders} placeholder="header" valuePlaceholder="value" presets={PRESET_HEADERS} />
+                <KVTable rows={headers} onChange={setHeaders} placeholder="Key" valuePlaceholder="Value" presets={PRESET_HEADERS} />
               )}
 
               {/* Body */}
               {reqTab === "Body" && (
-                <div className="space-y-2">
-                  <div className="flex gap-2 flex-wrap">
+                <div className="space-y-3">
+                  <div className="flex gap-3 flex-wrap">
                     {(["none", "json", "form-data", "urlencoded", "raw"] as BodyType[]).map(bt => (
-                      <label key={bt} className="flex items-center gap-1 cursor-pointer">
+                      <label key={bt} className="flex items-center gap-1.5 cursor-pointer">
                         <input type="radio" name="bodyType" value={bt} checked={bodyType === bt}
                           onChange={() => setBodyType(bt)} className="accent-[#345C5A] w-3 h-3" />
-                        <span className="text-[10px] font-semibold text-[#6B7B7B] capitalize">{bt}</span>
+                        <span className="text-xs font-semibold text-[#6B7B7B] capitalize">{bt}</span>
                       </label>
                     ))}
                   </div>
@@ -593,14 +592,14 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                           className="text-[9px] px-1.5 py-0.5 rounded bg-[#E3E6E6] text-[#6B7B7B] hover:bg-[#D6D9D9] transition-colors">Minify</button>
                       </div>
                       <textarea value={bodyJson} onChange={e => setBodyJson(e.target.value)}
-                        rows={8}
+                        rows={10}
                         className="w-full px-3 pt-3 pb-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed" />
                     </div>
                   )}
 
                   {bodyType === "raw" && (
                     <textarea value={bodyRaw} onChange={e => setBodyRaw(e.target.value)}
-                      rows={8} placeholder="Raw body content…"
+                      rows={10} placeholder="Raw body content…"
                       className="w-full px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A] resize-none leading-relaxed" />
                   )}
 
@@ -629,12 +628,12 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
               {/* Auth */}
               {reqTab === "Auth" && (
                 <div className="space-y-3">
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-3 flex-wrap">
                     {(["none", "bearer", "basic", "apikey"] as AuthType[]).map(at => (
-                      <label key={at} className="flex items-center gap-1 cursor-pointer">
+                      <label key={at} className="flex items-center gap-1.5 cursor-pointer">
                         <input type="radio" name="authType" value={at} checked={authType === at}
                           onChange={() => setAuthType(at)} className="accent-[#345C5A] w-3 h-3" />
-                        <span className="text-[10px] font-semibold text-[#6B7B7B] capitalize">{at === "apikey" ? "API Key" : at}</span>
+                        <span className="text-xs font-semibold text-[#6B7B7B] capitalize">{at === "apikey" ? "API Key" : at}</span>
                       </label>
                     ))}
                   </div>
@@ -674,11 +673,11 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                       <div className="flex gap-2">
                         <label className="flex items-center gap-1 cursor-pointer">
                           <input type="radio" name="apiKeyIn" value="header" checked={apiKeyIn === "header"} onChange={() => setApiKeyIn("header")} className="accent-[#345C5A] w-3 h-3" />
-                          <span className="text-[10px] font-semibold text-[#6B7B7B]">Header</span>
+                          <span className="text-xs font-semibold text-[#6B7B7B]">Header</span>
                         </label>
                         <label className="flex items-center gap-1 cursor-pointer">
                           <input type="radio" name="apiKeyIn" value="query" checked={apiKeyIn === "query"} onChange={() => setApiKeyIn("query")} className="accent-[#345C5A] w-3 h-3" />
-                          <span className="text-[10px] font-semibold text-[#6B7B7B]">Query param</span>
+                          <span className="text-xs font-semibold text-[#6B7B7B]">Query param</span>
                         </label>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -705,12 +704,12 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
 
               {/* Settings */}
               {reqTab === "Settings" && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider block mb-1">Timeout (ms)</label>
                     <input type="number" value={timeout} onChange={e => setTimeout_(Number(e.target.value))}
                       min={1000} max={300000} step={1000}
-                      className="w-32 px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]" />
+                      className="w-36 px-3 py-2 rounded-xl border border-[#E3E6E6] text-xs font-mono text-[#2E4A4A] bg-[#F8F9F9] focus:outline-none focus:border-[#345C5A]" />
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <div className={`h-5 w-9 rounded-full relative transition-colors ${followRedirects ? "bg-[#345C5A]" : "bg-[#D1D5D5]"}`}
@@ -723,50 +722,47 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
               )}
             </div>
           </div>
+        )}
 
-          {/* Response panel */}
-          <div className="bg-white rounded-2xl border border-[#E3E6E6] flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* Response status bar */}
-            <div className="flex items-center gap-3 px-3 py-2 border-b border-[#F0F1F1] flex-shrink-0">
-              <span className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider">Response</span>
-              {response && (
-                <div className="flex items-center gap-3 ml-auto text-xs">
-                  <span className={`font-black ${statusColor(response.status)}`}>
-                    {response.status === 0 ? response.statusText : `${response.status} ${response.statusText}`}
-                  </span>
-                  <span className="text-[#6B7B7B] font-mono">{response.timeMs}ms</span>
-                  <span className="text-[#6B7B7B] font-mono">{formatBytes(response.sizeBytes)}</span>
-                  <button type="button"
-                    onClick={() => { navigator.clipboard.writeText(response.body); toast.success("Copied"); }}
-                    className="p-1 rounded hover:bg-[#F2F3F3] transition-colors">
-                    <HugeiconsIcon icon={Copy01Icon} size={11} color="#6B7B7B" strokeWidth={1.5} />
-                  </button>
-                </div>
-              )}
-            </div>
-
+        {/* RESPONSE tab */}
+        {mainTab === "Response" && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {loading ? (
               <div className="flex-1 flex items-center justify-center gap-2 text-[#6B7B7B]">
                 <span className="h-4 w-4 rounded-full border-2 border-[#345C5A] border-t-transparent animate-spin" />
-                <span className="text-xs">Sending…</span>
+                <span className="text-sm">Sending…</span>
               </div>
             ) : !response ? (
-              <div className="flex-1 flex items-center justify-center text-[#C4CACA] text-xs">
+              <div className="flex-1 flex items-center justify-center text-[#C4CACA] text-sm">
                 Hit Send to see the response
               </div>
             ) : (
               <>
-                <div className="px-3 pt-1 pb-0 flex-shrink-0">
+                {/* Response meta row */}
+                <div className="px-4 pt-2 pb-0 flex items-center justify-between flex-shrink-0">
+                  <span className="text-xs font-bold text-[#2E4A4A]">Response</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[#6B7B7B]">Time: <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span></span>
+                    <span className="text-xs text-[#6B7B7B]">{formatBytes(response.sizeBytes)}</span>
+                    <button type="button"
+                      onClick={() => { navigator.clipboard.writeText(response.body); toast.success("Copied"); }}
+                      className="p-1 rounded hover:bg-[#E3E6E6] transition-colors">
+                      <HugeiconsIcon icon={Copy01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="px-4 flex-shrink-0 pt-1">
                   <TabBar tabs={["Body", "Headers"]} active={resTab} onSelect={setResTab} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
                   {resTab === "Headers" && (
-                    <div className="px-3 py-3">
+                    <div className="px-4 py-3">
                       {Object.entries(response.headers).map(([k, v]) => (
-                        <div key={k} className="grid grid-cols-[1fr_2fr] gap-2 py-1 border-b border-[#F8F9F9] last:border-none">
-                          <span className="text-[11px] font-bold text-[#6B7B7B] truncate">{k}</span>
-                          <span className="text-[11px] font-mono text-[#2E4A4A] break-all">{v}</span>
+                        <div key={k} className="flex gap-3 py-2 border-b border-[#F0F1F1] last:border-none">
+                          <span className="text-xs font-bold text-[#2E4A4A] w-36 shrink-0">{k}</span>
+                          <span className="text-xs font-mono text-[#6B7B7B] break-all">{v}</span>
                         </div>
                       ))}
                       {Object.keys(response.headers).length === 0 && (
@@ -778,16 +774,16 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                   {resTab === "Body" && (
                     <div className="flex flex-col h-full">
                       {response.bodyType === "json" && (
-                        <div className="flex gap-1 px-3 pt-2 pb-1 flex-shrink-0">
+                        <div className="flex gap-1.5 px-4 pt-3 pb-2 flex-shrink-0">
                           {(["pretty", "raw", "tree"] as const).map(v => (
                             <button key={v} type="button" onClick={() => setBodyView(v)}
-                              className={`text-[10px] px-2 py-0.5 rounded-md font-semibold transition-colors capitalize ${bodyView === v ? "bg-[#345C5A] text-white" : "bg-[#F2F3F3] text-[#6B7B7B] hover:bg-[#E3E6E6]"}`}>
+                              className={`text-xs px-3 py-1 rounded-lg font-semibold transition-colors capitalize ${bodyView === v ? "bg-[#345C5A] text-white" : "bg-[#F2F3F3] text-[#6B7B7B] hover:bg-[#E3E6E6]"}`}>
                               {v}
                             </button>
                           ))}
                         </div>
                       )}
-                      <div className="flex-1 overflow-y-auto px-3 py-2">
+                      <div className="flex-1 overflow-y-auto px-4 py-2">
                         {bodyView === "tree" && parsedJson !== null ? (
                           <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre leading-relaxed">
                             <JsonNode data={parsedJson} />
@@ -804,7 +800,45 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
               </>
             )}
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* ── Bottom: Collections / History drawer ── */}
+      <div className="flex-shrink-0 border-t border-[#E3E6E6] bg-white">
+        <button type="button" onClick={() => setSidebarOpen(v => !v)}
+          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors">
+          <div className="flex items-center gap-2">
+            <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
+            <span>Collections</span>
+          </div>
+          <HugeiconsIcon icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon} size={11} color="#C4CACA" strokeWidth={2} />
+        </button>
+
+        {sidebarOpen && (
+          <div className="border-t border-[#F0F1F1] animate-fade-in">
+            {/* Search */}
+            <div className="px-4 pt-2 pb-1">
+              <input value={searchQ} onChange={e => setSearchQ(e.target.value)}
+                placeholder="Search requests…"
+                className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]" />
+            </div>
+            {/* Request list */}
+            <div className="max-h-40 overflow-y-auto pb-2">
+              {filteredSaved.map(req => (
+                <div key={req.id}
+                  className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${activeId === req.id ? "bg-[#EEF4F4]" : ""}`}
+                  onClick={() => { loadRequest(req); setSidebarOpen(false); }}>
+                  <span className="text-[10px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>{req.method}</span>
+                  <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
+                  <button type="button" onClick={e => { e.stopPropagation(); deleteRequest(req.id); }}
+                    className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0">
+                    <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
