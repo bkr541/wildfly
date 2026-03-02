@@ -82,6 +82,8 @@ const DEFAULT_SAVED: SavedRequest[] = [
   { id: "3", name: "Get All Destinations", method: "POST", url: `${SUPABASE_URL}/functions/v1/getAllDestinations` },
   { id: "4", name: "Get Round Trip Route", method: "POST", url: `${SUPABASE_URL}/functions/v1/getRoundTripRoute` },
   { id: "5", name: "ATL Snapshot", method: "POST", url: `${SUPABASE_URL}/functions/v1/scheduledATLSnapshot` },
+  { id: "6", name: "AirLabs Routes", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsRoutes` },
+  { id: "7", name: "AirLabs Schedules", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsSchedules` },
 ];
 
 const DEFAULT_BODIES: Record<string, string> = {
@@ -90,6 +92,8 @@ const DEFAULT_BODIES: Record<string, string> = {
   "3": JSON.stringify({ departureAirport: "ATL", departureDate: new Date().toISOString().slice(0, 10) }, null, 2),
   "4": JSON.stringify({ targetUrl: `https://gowilder.net/flights/ATL/MIA/${new Date().toISOString().slice(0, 10)}` }, null, 2),
   "5": JSON.stringify({}, null, 2),
+  "6": JSON.stringify({ dep_iata: "ATL", arr_iata: "MIA" }, null, 2),
+  "7": JSON.stringify({ dep_iata: "ATL" }, null, 2),
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

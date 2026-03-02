@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.scheduledATLSnapshot]
 verify_jwt = false
+
+[functions.airlabsRoutes]
+verify_jwt = false
+
+[functions.airlabsSchedules]
+verify_jwt = false
