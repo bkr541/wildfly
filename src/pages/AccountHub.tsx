@@ -116,11 +116,6 @@ const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
 
   return (
     <>
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="ACCOUNT" />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Manage your account and settings.</p>
-      </div>
-
       <div className="flex-1 flex flex-col px-5 pb-4 gap-4 relative z-10 animate-fade-in">
         {/* Profile card */}
         <div className="flex flex-col items-center py-3">
