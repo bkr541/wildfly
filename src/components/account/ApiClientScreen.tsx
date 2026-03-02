@@ -1146,13 +1146,13 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
             </div>
 
             {/* Grouped request list */}
-            <div className="max-h-52 overflow-y-auto pb-2">
+            <div className="max-h-52 overflow-y-auto pb-2 bg-white">
               {(() => {
                 const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
                 return groups.map((groupName) => {
                   const groupRequests = filteredSaved.filter((r) => (r.group ?? "Other") === groupName);
                   return (
-                    <div key={groupName}>
+                    <div key={groupName} className="bg-white">
                       <div className="px-4 pt-3 pb-1 flex items-center gap-2">
                         <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">
                           {groupName}
