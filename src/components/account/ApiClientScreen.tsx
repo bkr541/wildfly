@@ -759,7 +759,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
             <>
               {/* ── URL bar ── */}
               <div className="px-4 pb-2 flex-shrink-0 border-t border-[#E3E6E6]">
-                <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-2 shadow-sm mt-3">
+                <div className="flex items-center gap-2 bg-[#F8F9F9] rounded-xl px-2 py-2 mt-3">
                   {/* Method selector */}
                   <div className="relative shrink-0">
                     <select
@@ -782,26 +782,18 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                       className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
                     />
                   </div>
-
-                  {/* Divider */}
                   <div className="w-px h-6 bg-[#E3E6E6] shrink-0" />
-
-                  {/* URL input */}
                   <input
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://..."
                     className="flex-1 min-w-0 px-2 py-2 text-sm font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
                   />
-
-                  {/* Send / Cancel */}
                   {loading ? (
                     <button
                       type="button"
                       onClick={handleCancel}
                       className="shrink-0 px-3 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors flex items-center gap-1"
-                      aria-label="Stop request"
-                      title="Stop request"
                     >
                       <HugeiconsIcon icon={Cancel01Icon} size={13} color="currentColor" strokeWidth={2} />
                       Stop
@@ -811,8 +803,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                       type="button"
                       onClick={handleSend}
                       className="shrink-0 px-3 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
-                      aria-label="Send request"
-                      title="Send request"
                     >
                       <HugeiconsIcon icon={PlayIcon} size={14} color="currentColor" strokeWidth={2} />
                     </button>
@@ -820,73 +810,63 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                 </div>
               </div>
 
-              {/* ── White group: Request/Response + content (down through "Add row") ── */}
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden">
-                <div className="h-full flex flex-col bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
-                  {/* ── Main tab bar: Request | Response + status + SAVE (right-justified) ── */}
-                  <div className="flex-shrink-0 px-4">
-                    <div className="flex items-center border-b border-[#E3E6E6]">
-                      {(["Request", "Response"] as const).map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => setMainTab(t)}
-                          className={`px-3 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                            mainTab === t
-                              ? "border-[#345C5A] text-[#345C5A]"
-                              : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      ))}
-
-                      {/* Right side actions */}
-                      <div className="ml-auto flex items-center gap-3 pr-1">
-                        {/* Save icon (moved here) */}
-                        <button
-                          type="button"
-                          onClick={saveCurrentRequest}
-                          className="p-2 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
-                          aria-label="Save request"
-                          title="Save request"
-                        >
-                          <HugeiconsIcon icon={BookmarkAdd01Icon} size={16} color="currentColor" strokeWidth={1.5} />
-                        </button>
-
-                        {/* Status pill — always visible when response exists */}
-                        {response && (
-                          <div className="flex items-center gap-3 text-sm">
-                            <span className="text-[#6B7B7B]">Status:</span>
-                            <span className={`font-black ${statusColor(response.status)}`}>
-                              {response.status === 0 ? response.statusText : response.status}
-                            </span>
-                            <span className="text-[#6B7B7B]">|</span>
-                            <span className="text-[#6B7B7B]">Time:</span>
-                            <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
-                          </div>
-                        )}
+              {/* ── Request / Response tab row ── */}
+              <div className="flex-shrink-0 px-4">
+                <div className="flex items-center border-b border-[#E3E6E6]">
+                  {(["Request", "Response"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setMainTab(t)}
+                      className={`px-3 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                        mainTab === t
+                          ? "border-[#345C5A] text-[#345C5A]"
+                          : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                  <div className="ml-auto flex items-center gap-3 pr-1">
+                    <button
+                      type="button"
+                      onClick={saveCurrentRequest}
+                      className="p-2 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
+                      aria-label="Save request"
+                      title="Save request"
+                    >
+                      <HugeiconsIcon icon={BookmarkAdd01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                    </button>
+                    {response && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className={`font-black ${statusColor(response.status)}`}>
+                          {response.status === 0 ? response.statusText : response.status}
+                        </span>
+                        <span className="text-[#C4CACA]">|</span>
+                        <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
                       </div>
-                    </div>
+                    )}
                   </div>
+                </div>
+              </div>
 
-                  {/* ── Content area ── */}
-                  <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                    {/* REQUEST tab */}
-                    {mainTab === "Request" && (
-                      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                        {/* Sub-tab bar */}
-                        <div className="px-4 flex-shrink-0 pt-1">
-                          <TabBar
-                            tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
-                            active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
-                            onSelect={(t) => {
-                              if (t === "Parameters") setReqTab("Params");
-                              else if (t === "Header") setReqTab("Headers");
-                              else setReqTab(t);
-                            }}
-                          />
-                        </div>
+              {/* ── Content area ── */}
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                  {/* REQUEST tab */}
+                  {mainTab === "Request" && (
+                    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                      {/* Sub-tab bar */}
+                      <div className="px-4 flex-shrink-0 pt-1">
+                        <TabBar
+                          tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
+                          active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
+                          onSelect={(t) => {
+                            if (t === "Parameters") setReqTab("Params");
+                            else if (t === "Header") setReqTab("Headers");
+                            else setReqTab(t);
+                          }}
+                        />
+                      </div>
 
                         <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
                             {/* Params */}
@@ -1270,8 +1250,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
             </>
           )}
         </div>
