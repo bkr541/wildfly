@@ -43,7 +43,7 @@ const baseMenuItems: MenuItem[] = [
   { icon: Airplane01Icon, label: "Travel Preferences", key: "travel-prefs" },
   { icon: Notification01Icon, label: "Notifications", key: "notifications" },
   { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
-  { icon: CreditCardIcon, label: "Subscription", key: "subscription" },
+  { icon: CreditCardIcon, label: "Subscription & Wallet", key: "subscription" },
   { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
   { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
 ];
