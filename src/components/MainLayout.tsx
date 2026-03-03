@@ -138,6 +138,10 @@ const MainLayout = ({
 
               <div className="h-px bg-[#E5E7EB] mx-6" />
 
+              {/* CHANGES ONLY:
+                  1) Reduce whitespace between each option (gap-1 -> gap-0.5)
+                  2) Reduce spacing between icon and text (gap-4 -> gap-3)
+              */}
               <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0.5">
                 {menuItems.map((item) => {
                   if ((item as any).type === "heading") {
@@ -156,7 +160,7 @@ const MainLayout = ({
                       type="button"
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
-                        "flex items-center gap-2.5 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
+                        "flex items-center gap-3 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
                         item.indent && "pl-8 text-sm",
                       )}
                     >
@@ -180,7 +184,7 @@ const MainLayout = ({
                     setTimeout(() => onSignOut(), 300);
                   }}
                   type="button"
-                  className="flex items-center gap-2.5 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+                  className="flex items-center gap-3 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
                 >
                   <HugeiconsIcon icon={Logout01Icon} size={20} color="currentColor" strokeWidth={1.5} />
                   <span className="text-base font-semibold">Logout</span>
