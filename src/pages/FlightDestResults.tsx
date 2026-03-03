@@ -432,23 +432,26 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                 key={group.destination}
                 className="rounded-xl bg-white shadow-sm border border-[#E8EBEB] overflow-hidden"
               >
+                {/* Header row — clickable to expand */}
                 <button
                   onClick={() => {
                     setExpandedDest(isDestOpen ? null : group.destination);
                     setExpandedFlightKey(null);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-4 text-left"
+                  className="w-full flex flex-col px-4 pt-4 pb-3 text-left"
                 >
-                  <img
-                    src="/assets/locations/chicago_icon.png"
-                    alt={group.city || group.destination}
-                    className="w-12 h-12 rounded-lg object-cover shrink-0 hidden"
-                  />
+                  {/* IATA | City, State */}
                   <div className="flex flex-col flex-1 min-w-0">
-                    {/* IATA | City, State */}
-                    <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
-                      {group.destination}
-                      {(group.city || group.stateCode) ? ` | ${group.city || group.destination}${group.stateCode ? `, ${group.stateCode}` : ""}` : ""}
+                    <span className="leading-tight uppercase">
+                      <span className="text-[22px] font-bold text-[#2E4A4A]">{group.destination}</span>
+                      {(group.city || group.stateCode) && (
+                        <>
+                          <span className="text-[22px] font-bold text-[#2E4A4A]"> | </span>
+                          <span className="text-[22px] font-light text-[#2E4A4A]">
+                            {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
+                          </span>
+                        </>
+                      )}
                     </span>
                     {/* Airport name with pin */}
                     {group.airportName && (
@@ -457,34 +460,43 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                         <span className="text-xs text-[#6B7B7B] font-normal leading-tight">{group.airportName}</span>
                       </span>
                     )}
-                    {/* Info icon cards row */}
+                    {/* Info icon cards row — reference-image style */}
                     <div className="flex items-stretch justify-between w-full mt-2.5 gap-2">
                       {[
-                        { icon: SunriseIcon, label: "EARLIEST", value: earliestLabel ?? "—", accent: false },
-                        { icon: SunsetIcon, label: "LATEST", value: latestLabel ?? "—", accent: false },
-                        { icon: Navigator02Icon, label: "NONSTOP", value: nonstopCount, accent: false },
-                        { icon: TicketStarIcon, label: "GOWILD", value: goWildCount, accent: true },
-                      ].map(({ icon, label, value, accent }) => (
+                        { icon: SunriseIcon, label: "EARLIEST", value: earliestLabel ?? "—", suffix: "" },
+                        { icon: SunsetIcon, label: "LATEST", value: latestLabel ?? "—", suffix: "" },
+                        { icon: Navigator02Icon, label: "NONSTOP", value: nonstopCount, suffix: " Avail." },
+                        { icon: TicketStarIcon, label: "GOWILD", value: goWildCount, suffix: " Avail." },
+                      ].map(({ icon, label, value, suffix }) => (
                         <div
                           key={label}
-                          className="flex-1 flex flex-col items-start gap-0.5 rounded-xl border border-[#E8EBEB] bg-[#EEF5F5] px-2 py-2"
+                          className="flex-1 flex items-center gap-2 rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-2 py-2.5"
                         >
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#D6ECEC]">
-                            <HugeiconsIcon icon={icon} size={18} color={accent ? "#10B981" : "#345C5A"} strokeWidth={1.5} />
+                          {/* Square icon container */}
+                          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#E4EEEE] shrink-0">
+                            <HugeiconsIcon icon={icon} size={18} color="#345C5A" strokeWidth={1.5} />
                           </div>
-                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight mt-0.5">{label}</span>
-                          <span className="text-sm font-bold text-[#2E4A4A] leading-tight">{value}</span>
+                          {/* Label + value stacked */}
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight">{label}</span>
+                            <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight">
+                              {value}{suffix}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={cn(
-                      "w-4 h-4 text-[#9CA3AF] transition-transform duration-200",
-                      isDestOpen && "rotate-180",
-                    )}
-                  />
+                  {/* Down chevron on its own bottom row */}
+                  <div className="flex justify-center w-full mt-2">
+                    <FontAwesomeIcon
+                      icon={faChevronDown}
+                      className={cn(
+                        "w-4 h-4 text-[#9CA3AF] transition-transform duration-200",
+                        isDestOpen && "rotate-180",
+                      )}
+                    />
+                  </div>
                 </button>
 
                 {isDestOpen &&
@@ -554,67 +566,69 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                           )}
                                         >
                                           <div className="flex items-center px-3 py-3">
-                                            <button
-                                              onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
-                                              className="flex items-center justify-between text-left flex-1 min-w-0"
-                                            >
-                                              <div className="flex items-center gap-2">
-                                <img
-                                                  src="/assets/logo/frontier/frontier_logo.png"
-                                                  alt="Frontier"
-                                                  className="w-[26px] h-[26px] rounded object-contain shrink-0"
-                                                />
-                                                <div className="flex flex-col">
-                                                  <span className="text-sm font-bold text-[#2E4A4A]">
-                                                    {formatTime(flight.legs[0]?.departure_time)} →{" "}
-                                                    {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                                  </span>
-                                                  <span className="text-[11px] text-[#6B7B7B] font-medium">
-                                                    {flight.total_duration}
-                                                    {flight.is_plus_one_day && (
-                                                      <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
-                                                    )}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </button>
-                                          </div>
+                                             <button
+                                               onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
+                                               className="flex items-center justify-between text-left flex-1 min-w-0"
+                                             >
+                                               <div className="flex items-center gap-2">
+                                                 <img
+                                                   src="/assets/logo/frontier/frontier_logo.png"
+                                                   alt="Frontier"
+                                                   className="w-[32px] h-[32px] rounded object-contain shrink-0"
+                                                 />
+                                                 <div className="flex flex-col">
+                                                   <span className="text-base font-bold text-[#2E4A4A]">
+                                                     {formatTime(flight.legs[0]?.departure_time)} →{" "}
+                                                     {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
+                                                   </span>
+                                                   <span className="text-[13px] text-[#6B7B7B] font-medium">
+                                                     {flight.total_duration}
+                                                     {flight.is_plus_one_day && (
+                                                       <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
+                                                     )}
+                                                   </span>
+                                                 </div>
+                                               </div>
+                                             </button>
+                                           </div>
 
                                           {isFlightOpen && (
-                                            <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
-                                              <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                              <div className="flex items-center gap-2 px-5 pt-2 pb-1">
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleUserFlight(flight, "alert");
-                                                  }}
-                                                  className={cn(
-                                                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
-                                                    hasAlert
-                                                      ? "bg-[#E89830] text-white scale-110"
-                                                      : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#E89830]/20 hover:text-[#E89830]",
-                                                  )}
-                                                >
-                                                  <FontAwesomeIcon icon={faBullhorn} className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleUserFlight(flight, "going");
-                                                  }}
-                                                  className={cn(
-                                                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
-                                                    hasGoing
-                                                      ? "bg-[#345C5A] text-white scale-110"
-                                                      : "bg-[#E8EBEB] text-[#6B7B7B] hover:bg-[#345C5A]/20 hover:text-[#345C5A]",
-                                                  )}
-                                                >
-                                                  <FontAwesomeIcon icon={faCalendarDays} className="w-3.5 h-3.5" />
-                                                </button>
-                                              </div>
-                                            </div>
-                                          )}
+                                             <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
+                                               <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                               <div className="flex items-center gap-3 px-3 pt-3 pb-1">
+                                                 <button
+                                                   onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     toggleUserFlight(flight, "alert");
+                                                   }}
+                                                   className={cn(
+                                                     "flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl text-sm font-bold transition-all duration-200",
+                                                     hasAlert
+                                                       ? "bg-[#E89830] text-white"
+                                                       : "bg-[#FFF8EC] text-[#E89830] border border-[#E89830]/40 hover:bg-[#E89830] hover:text-white",
+                                                   )}
+                                                 >
+                                                   <FontAwesomeIcon icon={faBullhorn} className="w-3.5 h-3.5" />
+                                                   Alert Me
+                                                 </button>
+                                                 <button
+                                                   onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     toggleUserFlight(flight, "going");
+                                                   }}
+                                                   className={cn(
+                                                     "flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl text-sm font-bold transition-all duration-200",
+                                                     hasGoing
+                                                       ? "bg-[#059669] text-white"
+                                                       : "bg-[#EDFAF4] text-[#059669] border border-[#059669]/40 hover:bg-[#059669] hover:text-white",
+                                                   )}
+                                                 >
+                                                   <FontAwesomeIcon icon={faCalendarDays} className="w-3.5 h-3.5" />
+                                                   Book
+                                                 </button>
+                                               </div>
+                                             </div>
+                                           )}
                                         </div>
                                       );
                                     })}
