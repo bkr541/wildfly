@@ -51,13 +51,13 @@ const baseMenuItems: MenuItem[] = [
 const screenTitles: Record<string, string> = {
   "my-account": "My Account",
   "travel-prefs": "Travel Preferences",
-  "notifications": "Notifications",
-  "appearance": "Appearance",
-  "wallet": "My Wallet",
-  "subscription": "Subscription",
-  "help": "Help & Support",
-  "security": "Security & Privacy",
-  "developer": "API Client",
+  notifications: "Notifications",
+  appearance: "Appearance",
+  wallet: "My Wallet",
+  subscription: "Subscription & Wallet",
+  help: "Help & Support",
+  security: "Security & Privacy",
+  developer: "API Client",
 };
 
 const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps) => {
@@ -78,12 +78,16 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
 
   useEffect(() => {
     if (backRef) backRef.current = handleBack;
-    return () => { if (backRef) backRef.current = null; };
+    return () => {
+      if (backRef) backRef.current = null;
+    };
   }, [backRef]);
 
   useEffect(() => {
     const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: dev } = await supabase
@@ -125,9 +129,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
           <div className="relative mb-2">
             <Avatar className="h-20 w-20 border-[3px] border-[#E3E6E6] shadow-md">
               <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-              <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-xl font-bold">
-                {initials}
-              </AvatarFallback>
+              <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-xl font-bold">{initials}</AvatarFallback>
             </Avatar>
             <button
               type="button"
@@ -137,9 +139,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
             </button>
           </div>
           <h2 className="text-lg font-bold text-[#2E4A4A] leading-tight">{fullName}</h2>
-          {username && (
-            <p className="text-xs text-[#6B7B7B] font-medium">@{username}</p>
-          )}
+          {username && <p className="text-xs text-[#6B7B7B] font-medium">@{username}</p>}
         </div>
 
         {/* Menu items */}
