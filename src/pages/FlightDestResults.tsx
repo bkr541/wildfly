@@ -14,6 +14,8 @@ import {
   faArrowsTurnToDots,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -447,27 +449,23 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       {group.city || group.destination}
                       {group.stateCode ? `, ${group.stateCode}` : ""}
                     </span>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-[#6B7B7B] font-semibold">
-                      {earliestLabel && (
-                        <span className="flex items-center gap-1.5">
-                          <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#345C5A]" />
-                          {earliestLabel}
-                        </span>
-                      )}
-                      {latestLabel && latestLabel !== earliestLabel && (
-                        <span className="flex items-center gap-1.5">
-                          <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#6B7B7B]" />
-                          {latestLabel}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1.5">
-                        <FontAwesomeIcon icon={faLayerGroup} className="w-3.5 h-3.5 text-[#345C5A]" />
-                        {nonstopCount}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3.5 h-3.5 text-[#345C5A]" />
-                        {goWildCount}
-                      </span>
+                    <div className="flex items-center justify-between w-full mt-2 px-1">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <HugeiconsIcon icon={SunriseIcon} size={22} color="#345C5A" strokeWidth={1.5} />
+                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{earliestLabel ?? "—"}</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <HugeiconsIcon icon={SunsetIcon} size={22} color="#345C5A" strokeWidth={1.5} />
+                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{latestLabel ?? "—"}</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <HugeiconsIcon icon={Navigator02Icon} size={22} color="#345C5A" strokeWidth={1.5} />
+                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{nonstopCount}</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <HugeiconsIcon icon={TicketStarIcon} size={22} color="#10B981" strokeWidth={1.5} />
+                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{goWildCount}</span>
+                      </div>
                     </div>
                   </div>
                   <FontAwesomeIcon
@@ -551,17 +549,17 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                               className="flex items-center justify-between text-left flex-1 min-w-0"
                                             >
                                               <div className="flex items-center gap-2">
-                                                <img
+                                <img
                                                   src="/assets/logo/frontier/frontier_logo.png"
                                                   alt="Frontier"
-                                                  className="w-5 h-5 rounded object-contain shrink-0"
+                                                  className="w-[26px] h-[26px] rounded object-contain shrink-0"
                                                 />
                                                 <div className="flex flex-col">
-                                                  <span className="text-xs font-bold text-[#2E4A4A]">
+                                                  <span className="text-sm font-bold text-[#2E4A4A]">
                                                     {formatTime(flight.legs[0]?.departure_time)} →{" "}
                                                     {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
                                                   </span>
-                                                  <span className="text-[9px] text-[#6B7B7B] font-medium">
+                                                  <span className="text-[11px] text-[#6B7B7B] font-medium">
                                                     {flight.total_duration}
                                                     {flight.is_plus_one_day && (
                                                       <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
