@@ -7,6 +7,7 @@ import {
   Location01Icon,
   Cancel01Icon,
   ArrowDown01Icon,
+  ArrowUp01Icon,
   Home01Icon,
 } from "@hugeicons/core-free-icons";
 import { Switch } from "@/components/ui/switch";
@@ -177,8 +178,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
     onBack();
   };
 
-  const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-1.5";
-  const inputStyle = "w-full px-3.5 py-3 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-2 border-transparent focus:border-[#345C5A] focus:bg-white text-sm";
+  const labelStyle = "text-xs font-semibold text-[#6B7B7B] mb-1 block";
 
   if (loading) {
     return <div className="flex items-center justify-center py-20"><p className="text-[#6B7B7B]">Loading...</p></div>;
@@ -190,19 +190,23 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
         {/* Home City */}
         <div ref={homeRef} className="form-group relative">
           <label className={labelStyle}>Home City</label>
-          <div className="relative">
-            <HugeiconsIcon icon={Search01Icon} size={14} color="#849494" strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div
+            className={cn(
+              "app-input-container flex items-center h-10 bg-white",
+              homeCitySearch.length > 0 && "focus-within",
+            )}
+            style={{ padding: "0 0.8em" }}
+          >
+            <HugeiconsIcon icon={Search01Icon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
             <input
               value={homeCitySearch}
               onChange={(e) => handleHomeSearch(e.target.value)}
               onFocus={() => { if (homeCitySearch.length >= 3) setShowHomeDropdown(true); }}
               placeholder="Search for your home city..."
-              className={`${inputStyle} pl-10 ${homeCity ? "pr-10 text-[#345C5A] font-medium" : ""}`}
+              className="flex-1 bg-transparent outline-none text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF]"
             />
             {homeCity && (
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} color="#345C5A" strokeWidth={1.5} />
-              </div>
+              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} color="#345C5A" strokeWidth={1.5} className="shrink-0 ml-2" />
             )}
           </div>
           {showHomeDropdown && homeCityResults.length > 0 && (
@@ -220,16 +224,36 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
         {/* Favorite Cities */}
         <div ref={favRef} className="form-group relative">
           <label className={labelStyle}>Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}</label>
-          <div className="relative">
-            <HugeiconsIcon icon={Search01Icon} size={14} color="#849494" strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              value={favSearch}
-              onChange={(e) => handleFavSearch(e.target.value)}
-              onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
-              placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
-              disabled={favoriteCities.length >= 5}
-              className={`${inputStyle} pl-10 disabled:opacity-50`}
-            />
+          <div
+            className={cn(
+              "app-input-container flex items-center gap-1.5 min-h-10 bg-white",
+              favoriteCities.length >= 5 && "opacity-50 pointer-events-none",
+            )}
+            style={{ padding: "0.3em 0.8em" }}
+          >
+            <HugeiconsIcon icon={Search01Icon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-1" />
+            <div className="flex flex-wrap gap-1.5 flex-1 items-center py-0.5">
+              {favoriteCities.map((loc) => (
+                <span key={loc.id} className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm whitespace-nowrap shrink-0">
+                  {fmt(loc)}
+                  <button
+                    type="button"
+                    onClick={() => removeFav(loc.id)}
+                    className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={10} color="currentColor" strokeWidth={1.5} />
+                  </button>
+                </span>
+              ))}
+              <input
+                value={favSearch}
+                onChange={(e) => handleFavSearch(e.target.value)}
+                onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
+                placeholder={favoriteCities.length === 0 ? "Search for favorite cities..." : ""}
+                disabled={favoriteCities.length >= 5}
+                className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF]"
+              />
+            </div>
           </div>
           {showFavDropdown && favResults.length > 0 && (
             <div className="absolute z-20 w-full mt-1 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-44 overflow-y-auto">
@@ -241,55 +265,45 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
               ))}
             </div>
           )}
-          {favoriteCities.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {favoriteCities.map((loc) => (
-                <span key={loc.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#345C5A] text-white text-xs font-semibold">
-                  {fmt(loc)}
-                  <button onClick={() => removeFav(loc.id)} className="hover:opacity-80">
-                    <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={1.5} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
       {/* Travel Defaults */}
       <div className="px-5">
-        <button
-          onClick={() => setTravelDefaultsOpen(o => !o)}
-          className="w-full flex items-center justify-between py-3"
-        >
-          <div className="flex items-center gap-2">
-            <HugeiconsIcon icon={Home01Icon} size={16} color="#345C5A" strokeWidth={1.5} />
-            <span className="text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase">Travel Defaults</span>
-          </div>
-          <HugeiconsIcon
-            icon={ArrowDown01Icon}
-            size={14}
-            color="#849494"
-            strokeWidth={1.5}
-            className={cn("transition-transform duration-200", travelDefaultsOpen && "rotate-180")}
-          />
-        </button>
-
-        {travelDefaultsOpen && (
-          <div className="pb-3 space-y-3 animate-fade-in">
-            <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-[#F2F3F3]">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[#2E4A4A] leading-snug">Default departure to home airport</p>
-                <p className="text-xs text-[#849494] mt-0.5">Pre-fill your home city airport in Routes & Flights</p>
-              </div>
-              <Switch
-                checked={defaultDepartureToHome}
-                onCheckedChange={setDefaultDepartureToHome}
-                className="data-[state=checked]:bg-[#345C5A]"
-              />
+        <div className="bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setTravelDefaultsOpen(o => !o)}
+            className="flex items-center justify-between w-full px-4 py-3.5 text-sm font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <HugeiconsIcon icon={Home01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+              <span>Travel Defaults</span>
             </div>
-          </div>
-        )}
+            <HugeiconsIcon
+              icon={travelDefaultsOpen ? ArrowDown01Icon : ArrowUp01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={2}
+            />
+          </button>
+
+          {travelDefaultsOpen && (
+            <div className="border-t border-[#E3E6E6] px-4 py-3 animate-fade-in">
+              <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-[#F2F3F3]">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[#2E4A4A] leading-snug">Default departure to home airport</p>
+                  <p className="text-xs text-[#849494] mt-0.5">Pre-fill your home city airport in Routes & Flights</p>
+                </div>
+                <Switch
+                  checked={defaultDepartureToHome}
+                  onCheckedChange={setDefaultDepartureToHome}
+                  className="data-[state=checked]:bg-[#345C5A]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="px-5 pb-4 pt-2">
