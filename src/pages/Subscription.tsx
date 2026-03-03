@@ -1,20 +1,18 @@
 import { useState } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle01Icon, PlusSignIcon, CreditCardIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
-const SubscriptionPage = () => {
+interface SubscriptionPageProps {
+  onBack?: () => void;
+}
+
+const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
 
   return (
     <>
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="SUBSCRIPT" />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Manage your subscription and plan details.</p>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full animate-fade-in">
+      <div className="flex-1 flex flex-col items-center px-6 relative z-10 w-full animate-fade-in pt-4">
         <div className="bg-white rounded-xl p-1 flex shadow-sm border border-[#E3E6E6] relative w-full max-w-[200px] mb-5">
           <div className="absolute top-1 bottom-1 rounded-lg bg-[#345C5A] shadow-sm transition-all duration-300 ease-in-out" style={{ width: "calc(50% - 4px)", left: billingCycle === "monthly" ? "4px" : "calc(50% + 0px)" }} />
           <button type="button" onClick={() => setBillingCycle("monthly")} className={cn("py-1.5 px-2 text-xs font-semibold rounded-lg transition-all duration-300 relative z-10 flex-1", billingCycle === "monthly" ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]")}>Monthly</button>

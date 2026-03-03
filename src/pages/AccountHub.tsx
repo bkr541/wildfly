@@ -18,6 +18,7 @@ import {
   CreditCardIcon,
 } from "@hugeicons/core-free-icons";
 import MyAccountScreen from "@/components/account/MyAccountScreen";
+import SubscriptionPage from "@/pages/Subscription";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
 import NotificationsScreen from "@/components/account/NotificationsScreen";
 import AppearanceScreen from "@/components/account/AppearanceScreen";
@@ -55,6 +56,7 @@ const screenTitles: Record<string, string> = {
   "notifications": "Notifications",
   "appearance": "Appearance",
   "wallet": "My Wallet",
+  "subscription": "Subscription",
   "help": "Help & Support",
   "security": "Security & Privacy",
   "developer": "API Client",
@@ -67,10 +69,6 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
   const openScreen = (key: string) => {
-    if (key === "subscription") {
-      onNavigate?.("subscription");
-      return;
-    }
     setActiveScreen(key);
     onSubScreenChange?.(screenTitles[key] ?? null);
   };
@@ -117,6 +115,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
   if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
   if (activeScreen === "wallet") return <WalletScreen onBack={handleBack} />;
+  if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
   if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} />;
