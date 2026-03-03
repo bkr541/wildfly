@@ -15,6 +15,7 @@ import {
   BookmarkAdd01Icon,
   LibraryIcon,
   ApiIcon,
+  Book02Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
@@ -296,7 +297,7 @@ const ProviderGroup = ({
         onClick={() => setOpen((v) => !v)}
         className="w-full px-4 pt-3 pb-1.5 flex items-center gap-2 hover:bg-[#F8F9F9] transition-colors"
       >
-        <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={11} color="#C4CACA" strokeWidth={2.5} />
+        <HugeiconsIcon icon={Book02Icon} size={16} color="#6B7B7B" strokeWidth={1.5} />
         <span className="text-[11px] font-black text-[#6B7B7B] uppercase tracking-widest">{name}</span>
         <span className="flex-1 h-px bg-[#F0F1F1]" />
         <span className="text-[11px] text-[#C4CACA]">{requests.length}</span>
@@ -764,7 +765,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                     <select
                       value={method}
                       onChange={(e) => setMethod(e.target.value as HttpMethod)}
-                      className="appearance-none pl-2 pr-6 py-2 rounded-xl bg-[#F2F3F3] text-sm font-black focus:outline-none cursor-pointer border-none"
+                      className="appearance-none pl-2 pr-6 py-2 rounded-xl bg-[#F2F3F3] text-[11px] font-black focus:outline-none cursor-pointer border-none"
                       style={{ color: METHOD_COLORS[method] }}
                     >
                       {METHODS.map((m) => (
@@ -830,7 +831,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                           key={t}
                           type="button"
                           onClick={() => setMainTab(t)}
-                          className={`px-4 py-3 text-base font-semibold transition-colors border-b-2 -mb-px ${
+                          className={`px-3 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
                             mainTab === t
                               ? "border-[#345C5A] text-[#345C5A]"
                               : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
@@ -874,39 +875,20 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                     {/* REQUEST tab */}
                     {mainTab === "Request" && (
                       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                        {/* Collapsible group: Sub-tab bar + content */}
+                        {/* Sub-tab bar */}
                         <div className="px-4 flex-shrink-0 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => setReqDetailsOpen((v) => !v)}
-                            className="w-full flex items-center justify-between py-2 text-sm font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
-                            aria-label="Toggle request details"
-                            title="Toggle request details"
-                          >
-                            <span>Details</span>
-                            <HugeiconsIcon
-                              icon={reqDetailsOpen ? ArrowDown01Icon : ArrowUp01Icon}
-                              size={13}
-                              color="#C4CACA"
-                              strokeWidth={2}
-                            />
-                          </button>
-
-                          {reqDetailsOpen && (
-                            <TabBar
-                              tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
-                              active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
-                              onSelect={(t) => {
-                                if (t === "Parameters") setReqTab("Params");
-                                else if (t === "Header") setReqTab("Headers");
-                                else setReqTab(t);
-                              }}
-                            />
-                          )}
+                          <TabBar
+                            tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
+                            active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
+                            onSelect={(t) => {
+                              if (t === "Parameters") setReqTab("Params");
+                              else if (t === "Header") setReqTab("Headers");
+                              else setReqTab(t);
+                            }}
+                          />
                         </div>
 
-                        {reqDetailsOpen && (
-                          <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
+                        <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
                             {/* Params */}
                             {reqTab === "Params" && (
                               <KVTable
@@ -1192,7 +1174,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                               </div>
                             )}
                           </div>
-                        )}
                       </div>
                     )}
 
