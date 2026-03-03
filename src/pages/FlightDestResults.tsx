@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon } from "@hugeicons/core-free-icons";
+import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,7 @@ interface DestinationGroup {
   destination: string;
   city: string;
   stateCode: string;
+  airportName: string;
   flights: ParsedFlight[];
   hasGoWild: boolean;
   hasNonstop: boolean;
@@ -170,7 +171,7 @@ function RouteFlap({ word }: { word: string }) {
 const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
-  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string }>>({});
+  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -303,14 +304,15 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, locations(city, state_code)")
+        .select("iata_code, name, locations(city, state_code)")
         .in("iata_code", destinationCodes);
       if (data) {
-        const map: Record<string, { city: string; stateCode: string }> = {};
+        const map: Record<string, { city: string; stateCode: string; name: string }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
             city: a.locations?.city ?? "",
             stateCode: a.locations?.state_code ?? "",
+            name: a.name ?? "",
           };
         }
         setAirportMap(map);
@@ -331,6 +333,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         destination: dest,
         city: airportMap[dest]?.city ?? "",
         stateCode: airportMap[dest]?.stateCode ?? "",
+        airportName: airportMap[dest]?.name ?? "",
         flights: flts,
         hasGoWild: flts.some((f) => f.fares.basic != null),
         hasNonstop: flts.some((f) => f.legs.length === 1),
@@ -442,30 +445,37 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                     className="w-12 h-12 rounded-lg object-cover shrink-0 hidden"
                   />
                   <div className="flex flex-col flex-1 min-w-0">
+                    {/* IATA | City, State */}
                     <span className="text-base font-bold text-[#2E4A4A] leading-tight uppercase">
-                      {group.destination} | {group.flights.length} flight{group.flights.length !== 1 ? "s" : ""}
+                      {group.destination}
+                      {(group.city || group.stateCode) ? ` | ${group.city || group.destination}${group.stateCode ? `, ${group.stateCode}` : ""}` : ""}
                     </span>
-                    <span className="text-sm font-normal text-[#2E4A4A] leading-tight uppercase">
-                      {group.city || group.destination}
-                      {group.stateCode ? `, ${group.stateCode}` : ""}
-                    </span>
-                    <div className="flex items-center justify-between w-full mt-2 px-1">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <HugeiconsIcon icon={SunriseIcon} size={22} color="#345C5A" strokeWidth={1.5} />
-                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{earliestLabel ?? "—"}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <HugeiconsIcon icon={SunsetIcon} size={22} color="#345C5A" strokeWidth={1.5} />
-                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{latestLabel ?? "—"}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <HugeiconsIcon icon={Navigator02Icon} size={22} color="#345C5A" strokeWidth={1.5} />
-                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{nonstopCount}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <HugeiconsIcon icon={TicketStarIcon} size={22} color="#10B981" strokeWidth={1.5} />
-                        <span className="text-[11px] text-[#6B7B7B] font-semibold">{goWildCount}</span>
-                      </div>
+                    {/* Airport name with pin */}
+                    {group.airportName && (
+                      <span className="flex items-center gap-1 mt-0.5">
+                        <HugeiconsIcon icon={Location01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                        <span className="text-xs text-[#6B7B7B] font-normal leading-tight">{group.airportName}</span>
+                      </span>
+                    )}
+                    {/* Info icon cards row */}
+                    <div className="flex items-stretch justify-between w-full mt-2.5 gap-2">
+                      {[
+                        { icon: SunriseIcon, label: "EARLIEST", value: earliestLabel ?? "—", accent: false },
+                        { icon: SunsetIcon, label: "LATEST", value: latestLabel ?? "—", accent: false },
+                        { icon: Navigator02Icon, label: "NONSTOP", value: nonstopCount, accent: false },
+                        { icon: TicketStarIcon, label: "GOWILD", value: goWildCount, accent: true },
+                      ].map(({ icon, label, value, accent }) => (
+                        <div
+                          key={label}
+                          className="flex-1 flex flex-col items-start gap-0.5 rounded-xl border border-[#E8EBEB] bg-[#EEF5F5] px-2 py-2"
+                        >
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#D6ECEC]">
+                            <HugeiconsIcon icon={icon} size={18} color={accent ? "#10B981" : "#345C5A"} strokeWidth={1.5} />
+                          </div>
+                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight mt-0.5">{label}</span>
+                          <span className="text-sm font-bold text-[#2E4A4A] leading-tight">{value}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <FontAwesomeIcon
