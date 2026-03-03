@@ -471,10 +471,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       ].map(({ label, value, suffix }) => (
                         <div
                           key={label}
-                          className="flex-1 flex flex-col items-start rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-2.5 py-2"
+                          className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-2.5 py-2"
                         >
-                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight">{label}</span>
-                          <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5">
+                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
+                          <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
                             {value}{suffix}
                           </span>
                         </div>
@@ -589,36 +589,49 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                           {isFlightOpen && (
                                              <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
                                                <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                                <div className="flex items-center gap-2 px-3 pt-3 pb-1">
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      toggleUserFlight(flight, "alert");
-                                                    }}
-                                                    className={cn(
-                                                      "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                                      hasAlert
-                                                        ? "bg-[#E89830] text-white border-[#E89830]"
-                                                        : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
-                                                    )}
-                                                  >
-                                                    Alert Me
-                                                  </button>
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      toggleUserFlight(flight, "going");
-                                                    }}
-                                                    className={cn(
-                                                      "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                                      hasGoing
-                                                        ? "bg-[#047857] text-white border-[#047857]"
-                                                        : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]",
-                                                    )}
-                                                  >
-                                                    Details ›
-                                                  </button>
-                                                </div>
+                                             <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-1">
+                                                   <button
+                                                     onClick={(e) => {
+                                                       e.stopPropagation();
+                                                       toggleUserFlight(flight, "alert");
+                                                     }}
+                                                     className={cn(
+                                                       "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                                       hasAlert
+                                                         ? "bg-[#E89830] text-white border-[#E89830]"
+                                                         : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
+                                                     )}
+                                                   >
+                                                     Alert Me
+                                                   </button>
+                                                   {(() => {
+                                                     const isGoWild = flight.fares.basic != null;
+                                                     const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
+                                                       .filter((v): v is number => v != null)
+                                                       .sort((a, b) => a - b)[0];
+                                                     const priceLabel = cheapest != null ? `$${cheapest}` : "Details";
+                                                     return (
+                                                       <button
+                                                         onClick={(e) => {
+                                                           e.stopPropagation();
+                                                           toggleUserFlight(flight, "going");
+                                                         }}
+                                                         className={cn(
+                                                           "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                                           isGoWild
+                                                             ? hasGoing
+                                                               ? "bg-[#047857] text-white border-[#047857]"
+                                                               : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
+                                                             : hasGoing
+                                                               ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]"
+                                                               : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
+                                                         )}
+                                                       >
+                                                         {priceLabel} ›
+                                                       </button>
+                                                     );
+                                                   })()}
+                                                 </div>
                                              </div>
                                            )}
                                         </div>
