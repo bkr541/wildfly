@@ -26,9 +26,12 @@ const menuItems = [
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
-  { icon: Calendar03Icon, label: "Itinerary" },
-  { icon: Location01Icon, label: "Destinations" },
-  { icon: UserGroupIcon, label: "Friends" },
+  { type: "heading", label: "Trip Hub" },
+  { icon: Calendar03Icon, label: "Itinerary", indent: true },
+  { icon: UserGroupIcon, label: "Friends", indent: true },
+  { type: "heading", label: "Explore Destinations" },
+  { icon: Location01Icon, label: "Search Destinations", indent: true },
+  { icon: Home01Icon, label: "Hubs", indent: true },
   { icon: CreditCardIcon, label: "Subscription" },
 ];
 
@@ -37,8 +40,10 @@ const pageMap: Record<string, string> = {
   "Book a Flight": "flights",
   "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
-  Destinations: "destinations",
+  "Search Destinations": "destinations",
   Routes: "routes",
+  Friends: "friends",
+  Hubs: "hubs",
   Subscription: "subscription",
 };
 
