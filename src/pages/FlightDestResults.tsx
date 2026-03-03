@@ -547,13 +547,11 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                       animation: "fade-in 0.35s ease-out both",
                                     }}
                                   >
-                                    {/* Dot on spine */}
-                                    <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                     {/* Time labels flanking the dot */}
-                                     <div className="flex items-center gap-1.5 z-10 bg-transparent pointer-events-none">
+                                     {/* Dot on spine */}
+                                     <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
+                                     {/* Time label centered over spine */}
+                                     <div className="z-10 bg-white px-2 rounded">
                                        <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
-                                       <div className="w-2.5 h-2.5" /> {/* spacer for dot */}
-                                       <span className="invisible text-[11px]">x</span>
                                      </div>
                                   </div>
                                 );
