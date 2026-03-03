@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { type: "heading", label: "Explore Flights" },
-  { icon: Airplane01Icon, label: "Book a Flight" },
+  { icon: Airplane01Icon, label: "Book a Flight", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Calendar03Icon, label: "Itinerary" },
