@@ -75,7 +75,7 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center">
                 {i === 0 ? (
-                  <FontAwesomeIcon icon={faPlaneDeparture} className="w-3 h-3 text-[#6B7B7B]" />
+                  <FontAwesomeIcon icon={faPlaneDeparture} className="w-5 h-5 text-[#6B7B7B]" />
                 ) : (
                   <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
                 )}
@@ -102,7 +102,7 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
             {!nextLeg ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-center">
-                  <FontAwesomeIcon icon={faPlaneArrival} className="w-3 h-3 text-[#345C5A]" />
+                  <FontAwesomeIcon icon={faPlaneArrival} className="w-5 h-5 text-[#345C5A]" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-[#2E4A4A]">
