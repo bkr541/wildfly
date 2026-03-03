@@ -151,12 +151,12 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                       type="button"
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
-                        "flex items-center gap-2.5 py-1.5 text-[#2E4A4A] hover:text-[#345C5A] rounded-xl px-2 transition-colors w-full",
-                        isActive ? "bg-[#D1FAE5] text-[#065F46]" : "hover:bg-[#F2F3F3]",
+                        "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full hover:bg-[#F2F3F3]",
+                        isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
                       )}
                     >
-                      <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={1.5} />
-                      <span className="font-semibold text-base">{item.label}</span>
+                      <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={isActive ? 2 : 1.5} />
+                      <span className={cn("text-base", isActive ? "font-extrabold" : "font-semibold")}>{item.label}</span>
                     </button>
                   );
                 })}

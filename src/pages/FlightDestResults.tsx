@@ -101,8 +101,8 @@ function RouteFlapTile({ char, animating }: { char: string; animating: boolean }
     <div
       className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
       style={{
-        width: 32,
-        height: 34,
+        width: 24,
+        height: 26,
         background: animating ? "#e8eaed" : "linear-gradient(160deg,#059669 0%,#065F46 100%)",
         borderColor: animating ? "#d1d5db" : "#064E3B",
       }}
@@ -113,7 +113,7 @@ function RouteFlapTile({ char, animating }: { char: string; animating: boolean }
         style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
       <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
         style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
-      <span className="font-black text-lg leading-none select-none z-10"
+      <span className="font-black text-sm leading-none select-none z-10"
         style={{ color: animating ? "#6b7280" : "#fff", letterSpacing: "0.04em" }}>
         {char}
       </span>
@@ -386,7 +386,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
             <span className="text-[#6B7B7B] font-bold text-base leading-none">→</span>
             <RouteFlap word={arrivalAirport || "ALL"} />
           </div>
-          <span className="text-[11px] text-[#6B7B7B] font-medium">
+          <span className="text-sm text-[#6B7B7B] font-semibold">
             {departureDate
               ? new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", {
                   month: "short",
@@ -549,12 +549,12 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                   >
                                     {/* Dot on spine */}
                                     <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                    {/* Time labels flanking the dot */}
-                                    <div className="flex items-center gap-1.5 z-10 bg-transparent pointer-events-none">
-                                      <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}</span>
-                                      <div className="w-2.5 h-2.5" /> {/* spacer for dot */}
-                                      <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{ampm}</span>
-                                    </div>
+                                     {/* Time labels flanking the dot */}
+                                     <div className="flex items-center gap-1.5 z-10 bg-transparent pointer-events-none">
+                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
+                                       <div className="w-2.5 h-2.5" /> {/* spacer for dot */}
+                                       <span className="invisible text-[11px]">x</span>
+                                     </div>
                                   </div>
                                 );
                               }
@@ -568,20 +568,21 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                               const hasAlert = !!userFlights[alertKey];
                               const hasGoing = !!userFlights[goingKey];
 
-                              return (
-                                <div
-                                  key={`flight-${idx}`}
-                                  className="relative flex justify-center w-full py-1.5"
-                                  style={{
-                                    animationDelay: `${tIdx * 70}ms`,
-                                    animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
-                                  }}
-                                >
-                                  {/* Spine continues through card */}
+                               return (
                                   <div
-                                    className={cn(
-                                      "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm",
-                                      "w-[80%]",
+                                    key={`flight-${idx}`}
+                                    data-flight-card
+                                    className="relative flex justify-center w-full py-1.5 px-4"
+                                   style={{
+                                     animationDelay: `${tIdx * 70}ms`,
+                                     animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
+                                   }}
+                                 >
+                                   {/* Spine continues through card */}
+                                    <div
+                                     className={cn(
+                                       "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm",
+                                       "w-full",
                                       flight.fares.basic != null
                                         ? "border-[#10B981]"
                                         : isFlightOpen
@@ -590,9 +591,16 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                     )}
                                     style={{ boxShadow: "0 2px 10px 0 rgba(53,92,90,0.08)" }}
                                   >
-                                    <button
-                                      onClick={() => setExpandedFlightKey(isFlightOpen ? null : fKey)}
-                                      className="flex items-center px-3 py-3 text-left w-full"
+                                     <button
+                                       onClick={(e) => {
+                                         const next = isFlightOpen ? null : fKey;
+                                         setExpandedFlightKey(next);
+                                         if (next) {
+                                           const card = (e.currentTarget as HTMLElement).closest('[data-flight-card]') as HTMLElement | null;
+                                           if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+                                         }
+                                       }}
+                                       className="flex items-center px-3 py-3 text-left w-full"
                                     >
                                       <div className="flex items-center gap-2.5 w-full">
                                         <img
@@ -674,11 +682,10 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                               return (
                                 <div className="relative flex items-center justify-center w-full py-2">
                                   <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                  <div className="flex items-center gap-1.5 z-10">
-                                    <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}</span>
-                                    <div className="w-2.5 h-2.5" />
-                                    <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{ampm}</span>
-                                  </div>
+                                     <div className="flex items-center gap-1.5 z-10">
+                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
+                                       <div className="w-2.5 h-2.5" />
+                                     </div>
                                 </div>
                               );
                             })()}
