@@ -183,7 +183,7 @@ const MainApp = () => {
     ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend"].includes(currentPage);
 
   return (
-    <div className="flex justify-center min-h-screen bg-background">
+    <div className="flex justify-center min-h-screen bg-white">
       <div className="w-full max-w-[768px] relative">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
@@ -214,6 +214,7 @@ const MainApp = () => {
               hideHeaderRight={hideHeaderRight || !!subScreenTitle}
               subScreenTitle={subScreenTitle}
               onSubScreenBack={() => accountBackRef.current?.()}
+              currentPage={currentPage}
             >
               {currentPage === "home" && <HomePage />}
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
