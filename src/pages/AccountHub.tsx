@@ -9,7 +9,6 @@ import {
   Airplane01Icon,
   Notification01Icon,
   PaintBrushIcon,
-  WalletAdd01Icon,
   HelpCircleIcon,
   Shield01Icon,
   SourceCodeIcon,
@@ -22,7 +21,7 @@ import SubscriptionPage from "@/pages/Subscription";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
 import NotificationsScreen from "@/components/account/NotificationsScreen";
 import AppearanceScreen from "@/components/account/AppearanceScreen";
-import WalletScreen from "@/components/account/WalletScreen";
+
 import HelpSupportScreen from "@/components/account/HelpSupportScreen";
 import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
 import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
@@ -44,7 +43,6 @@ const baseMenuItems: MenuItem[] = [
   { icon: Airplane01Icon, label: "Travel Preferences", key: "travel-prefs" },
   { icon: Notification01Icon, label: "Notifications", key: "notifications" },
   { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
-  { icon: WalletAdd01Icon, label: "My Wallet", key: "wallet" },
   { icon: CreditCardIcon, label: "Subscription", key: "subscription" },
   { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
   { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
@@ -114,7 +112,6 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
   if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
-  if (activeScreen === "wallet") return <WalletScreen onBack={handleBack} />;
   if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
