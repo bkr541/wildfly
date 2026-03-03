@@ -22,18 +22,19 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
-  { icon: Airplane01Icon, label: "Flights" },
+  { type: "heading", label: "Explore Flights" },
+  { icon: Airplane01Icon, label: "Book a Flight" },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
+  { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Calendar03Icon, label: "Itinerary" },
   { icon: Location01Icon, label: "Destinations" },
-  { icon: RouteIcon, label: "Routes" },
   { icon: UserGroupIcon, label: "Friends" },
   { icon: CreditCardIcon, label: "Subscription" },
 ];
 
 const pageMap: Record<string, string> = {
   Home: "home",
-  Flights: "flights",
+  "Book a Flight": "flights",
   "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   Destinations: "destinations",
@@ -129,20 +130,29 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <div className="h-px bg-[#E5E7EB] mx-6" />
 
               <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-1">
-                {menuItems.map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => handleMenuClick(item.label)}
-                    className={cn(
-                      "flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
-                      item.indent && "pl-8 text-sm",
-                    )}
-                  >
-                    <HugeiconsIcon icon={item.icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
-                    <span className={cn("font-semibold", item.indent ? "text-sm" : "text-base")}>{item.label}</span>
-                  </button>
-                ))}
+                {menuItems.map((item) => {
+                  if ((item as any).type === "heading") {
+                    return (
+                      <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] px-2 pt-3 pb-0.5">
+                        {item.label}
+                      </p>
+                    );
+                  }
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => handleMenuClick(item.label)}
+                      className={cn(
+                        "flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
+                        item.indent && "pl-8 text-sm",
+                      )}
+                    >
+                      <HugeiconsIcon icon={(item as any).icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
+                      <span className={cn("font-semibold", item.indent ? "text-sm" : "text-base")}>{item.label}</span>
+                    </button>
+                  );
+                })}
               </nav>
 
               <div className="mt-auto">
