@@ -14,7 +14,6 @@ import FlightsPage from "./pages/Flights";
 import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
-import SubscriptionPage from "./pages/Subscription";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FlyAFriendPage from "./pages/FlyAFriend";
@@ -26,7 +25,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "subscription" | "itinerary" | "routes" | "fly-a-friend">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const accountBackRef = useRef<(() => void) | null>(null);
@@ -177,11 +176,11 @@ const MainApp = () => {
   };
 
   // Determine if the current page should hide the right header icons
-  const hideHeaderRight = currentPage === "subscription";
+  const hideHeaderRight = false;
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "subscription", "itinerary", "routes", "fly-a-friend"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-background">
@@ -220,7 +219,7 @@ const MainApp = () => {
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
               {currentPage === "destinations" && <DestinationsPage />}
-              {currentPage === "subscription" && <SubscriptionPage />}
+              
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "fly-a-friend" && <FlyAFriendPage />}
