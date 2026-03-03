@@ -23,12 +23,15 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { type: "heading", label: "Explore Flights" },
-  { icon: Airplane01Icon, label: "Book a Flight" },
+  { icon: Airplane01Icon, label: "Book a Flight", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
-  { icon: Calendar03Icon, label: "Itinerary" },
-  { icon: Location01Icon, label: "Destinations" },
-  { icon: UserGroupIcon, label: "Friends" },
+  { type: "heading", label: "Trip Hub" },
+  { icon: Calendar03Icon, label: "Itinerary", indent: true },
+  { icon: UserGroupIcon, label: "Friends", indent: true },
+  { type: "heading", label: "Explore Destinations" },
+  { icon: Location01Icon, label: "Search Destinations", indent: true },
+  { icon: Home01Icon, label: "Hubs", indent: true },
   { icon: CreditCardIcon, label: "Subscription" },
 ];
 
@@ -37,8 +40,10 @@ const pageMap: Record<string, string> = {
   "Book a Flight": "flights",
   "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
-  Destinations: "destinations",
+  "Search Destinations": "destinations",
   Routes: "routes",
+  Friends: "friends",
+  Hubs: "hubs",
   Subscription: "subscription",
 };
 
@@ -51,14 +56,7 @@ interface MainLayoutProps {
   onSubScreenBack?: () => void;
 }
 
-const MainLayout = ({
-  children,
-  onSignOut,
-  onNavigate,
-  hideHeaderRight = false,
-  subScreenTitle,
-  onSubScreenBack,
-}: MainLayoutProps) => {
+const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, subScreenTitle, onSubScreenBack }: MainLayoutProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,9 +117,7 @@ const MainLayout = ({
               <div className="flex items-center gap-3 px-6 pt-6 pb-2">
                 <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
                   <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                  <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">
-                    {initials}
-                  </AvatarFallback>
+                  <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
@@ -138,18 +134,11 @@ const MainLayout = ({
 
               <div className="h-px bg-[#E5E7EB] mx-6" />
 
-              {/* CHANGES ONLY:
-                  1) Reduce whitespace between each option (gap-1 -> gap-0.5)
-                  2) Reduce spacing between icon and text (gap-4 -> gap-3)
-              */}
-              <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0.5">
+              <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-1">
                 {menuItems.map((item) => {
                   if ((item as any).type === "heading") {
                     return (
-                      <p
-                        key={item.label}
-                        className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] px-2 pt-3 pb-0.5"
-                      >
+                      <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] px-2 pt-3 pb-0.5">
                         {item.label}
                       </p>
                     );
@@ -160,16 +149,11 @@ const MainLayout = ({
                       type="button"
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
-                        "flex items-center gap-3 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
+                        "flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
                         item.indent && "pl-8 text-sm",
                       )}
                     >
-                      <HugeiconsIcon
-                        icon={(item as any).icon}
-                        size={item.indent ? 17 : 20}
-                        color="currentColor"
-                        strokeWidth={1.5}
-                      />
+                      <HugeiconsIcon icon={(item as any).icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
                       <span className={cn("font-semibold", item.indent ? "text-sm" : "text-base")}>{item.label}</span>
                     </button>
                   );
@@ -184,7 +168,7 @@ const MainLayout = ({
                     setTimeout(() => onSignOut(), 300);
                   }}
                   type="button"
-                  className="flex items-center gap-3 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+                  className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
                 >
                   <HugeiconsIcon icon={Logout01Icon} size={20} color="currentColor" strokeWidth={1.5} />
                   <span className="text-base font-semibold">Logout</span>
