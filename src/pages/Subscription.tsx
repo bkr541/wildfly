@@ -6,13 +6,14 @@ import WalletScreen from "@/components/account/WalletScreen";
 
 interface SubscriptionPageProps {
   onBack?: () => void;
+  onTitleChange?: (title: string) => void;
 }
 
-const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
+const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [showWallet, setShowWallet] = useState(false);
 
-  if (showWallet) return <WalletScreen onBack={() => setShowWallet(false)} />;
+  if (showWallet) return <WalletScreen onBack={() => { setShowWallet(false); onTitleChange?.("Subscription"); }} />;
 
   return (
     <>
@@ -47,7 +48,7 @@ const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
         <div className="w-full max-w-md mb-4">
           <button
             type="button"
-            onClick={() => setShowWallet(true)}
+            onClick={() => { setShowWallet(true); onTitleChange?.("My Wallet"); }}
             className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] hover:border-[#345C5A] transition-colors shadow-sm"
           >
             <div className="flex items-center gap-3">

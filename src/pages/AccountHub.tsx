@@ -54,7 +54,7 @@ const screenTitles: Record<string, string> = {
   notifications: "Notifications",
   appearance: "Appearance",
   wallet: "My Wallet",
-  subscription: "Subscription & Wallet",
+  subscription: "Subscription",
   help: "Help & Support",
   security: "Security & Privacy",
   developer: "API Client",
@@ -116,7 +116,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
   if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
-  if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} />;
+  if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
   if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} />;
