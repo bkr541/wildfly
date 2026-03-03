@@ -32,6 +32,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   // Conveyor offsets per row (pixels, animated via JS)
   const [offsets, setOffsets] = useState<number[]>(() => Array(ROWS).fill(0));
+  const frozenRowsRef = useRef<Set<number>>(new Set());
 
   const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -42,6 +43,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     const SPEED = 0.6; // px per frame
     conveyorRef.current = setInterval(() => {
       setOffsets(prev => prev.map((offset, rowIdx) => {
+        if (frozenRowsRef.current.has(rowIdx)) return offset;
         const dir = rowIdx % 2 === 0 ? 1 : -1;
         return offset + SPEED * dir;
       }));
@@ -77,6 +79,12 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       }, 1800 + i * 280);
       timeoutsRef.current.push(t);
     });
+
+    // Stop CENTER ROW conveyor when WILDFLY starts appearing
+    const stopCenter = setTimeout(() => {
+      frozenRowsRef.current.add(CENTER_ROW);
+    }, 1800);
+    timeoutsRef.current.push(stopCenter);
 
     // Stop flicker after WILDFLY is revealed
     const stopFlicker = setTimeout(() => {
