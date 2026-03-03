@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkCircle01Icon, PlusSignIcon, CreditCardIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkCircle01Icon, PlusSignIcon, CreditCardIcon, ArrowRight01Icon, Coins01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import WalletScreen from "@/components/account/WalletScreen";
 
 interface SubscriptionPageProps {
   onBack?: () => void;
@@ -9,6 +10,9 @@ interface SubscriptionPageProps {
 
 const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [showWallet, setShowWallet] = useState(false);
+
+  if (showWallet) return <WalletScreen onBack={() => setShowWallet(false)} />;
 
   return (
     <>
@@ -37,6 +41,23 @@ const SubscriptionPage = ({ onBack }: SubscriptionPageProps) => {
               <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Video Chat</span></li>
             </ul>
           </div>
+        </div>
+
+        {/* My Wallet link */}
+        <div className="w-full max-w-md mb-4">
+          <button
+            type="button"
+            onClick={() => setShowWallet(true)}
+            className="flex items-center justify-between w-full bg-white rounded-xl p-3 border border-[#E3E6E6] hover:border-[#345C5A] transition-colors shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+                <HugeiconsIcon icon={Coins01Icon} size={14} color="#345C5A" strokeWidth={1.5} />
+              </span>
+              <span className="text-sm font-semibold text-[#2E4A4A]">My Wallet</span>
+            </div>
+            <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
+          </button>
         </div>
 
         <div className="w-full max-w-md">
