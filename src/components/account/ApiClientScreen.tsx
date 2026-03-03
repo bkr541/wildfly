@@ -13,6 +13,8 @@ import {
   ArrowRight01Icon,
   InformationCircleIcon,
   BookmarkAdd01Icon,
+  LibraryIcon,
+  ApiIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
@@ -286,7 +288,7 @@ const ProviderGroup = ({
   onSelect: (req: SavedRequest) => void;
   onDelete: (id: string) => void;
 }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="bg-white">
       <button
@@ -294,49 +296,48 @@ const ProviderGroup = ({
         onClick={() => setOpen((v) => !v)}
         className="w-full px-4 pt-3 pb-1.5 flex items-center gap-2 hover:bg-[#F8F9F9] transition-colors"
       >
-        <HugeiconsIcon
-          icon={open ? ArrowDown01Icon : ArrowRight01Icon}
-          size={9}
-          color="#C4CACA"
-          strokeWidth={2.5}
-        />
-        <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">{name}</span>
+        <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={11} color="#C4CACA" strokeWidth={2.5} />
+        <span className="text-[11px] font-black text-[#6B7B7B] uppercase tracking-widest">{name}</span>
         <span className="flex-1 h-px bg-[#F0F1F1]" />
-        <span className="text-[10px] text-[#C4CACA]">{requests.length}</span>
+        <span className="text-[11px] text-[#C4CACA]">{requests.length}</span>
       </button>
-      {open && requests.map((req) => (
-        <div
-          key={req.id}
-          className={`group flex items-center gap-2 px-4 pl-8 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
-            activeId === req.id ? "bg-[#EEF4F4]" : ""
-          }`}
-          onClick={() => onSelect(req)}
-        >
-          <span className="text-[10px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>
-            {req.method}
-          </span>
-          <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(req.id); }}
-            className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
+      {open &&
+        requests.map((req) => (
+          <div
+            key={req.id}
+            className={`group flex items-center gap-2 px-4 pl-8 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
+              activeId === req.id ? "bg-[#EEF4F4]" : ""
+            }`}
+            onClick={() => onSelect(req)}
           >
-            <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
-          </button>
-        </div>
-      ))}
+            <span className="text-[11px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>
+              {req.method}
+            </span>
+            <span className="text-sm text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(req.id);
+              }}
+              className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
+            >
+              <HugeiconsIcon icon={Delete01Icon} size={13} color="currentColor" strokeWidth={1.5} />
+            </button>
+          </div>
+        ))}
     </div>
   );
 };
 
 const TabBar = ({ tabs, active, onSelect }: { tabs: string[]; active: string; onSelect: (t: string) => void }) => (
-  <div className="flex gap-0 border-b border-[#E3E6E6]">
+  <div className="flex gap-0 border-b border-[#E3E6E6] overflow-x-auto whitespace-nowrap">
     {tabs.map((t) => (
       <button
         key={t}
         type="button"
         onClick={() => onSelect(t)}
-        className={`px-3 py-2 text-xs font-semibold transition-colors border-b-2 -mb-px ${
+        className={`shrink-0 px-3 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
           active === t ? "border-[#345C5A] text-[#345C5A]" : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
         }`}
       >
@@ -674,20 +675,20 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
   return (
     <div className="flex flex-col h-full animate-fade-in bg-[#F2F3F3] overflow-hidden">
       {/* ── Collections drawer — moved ABOVE API Client ── */}
-      <div className="px-4 pt-3 pb-2 flex-shrink-0">
+      <div className="px-4 pt-3 pb-3 flex-shrink-0">
         <div className="bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
           <button
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3.5 text-sm font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
+              <HugeiconsIcon icon={LibraryIcon} size={16} color="currentColor" strokeWidth={1.5} />
               <span>Collections</span>
             </div>
             <HugeiconsIcon
               icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon}
-              size={11}
+              size={13}
               color="#C4CACA"
               strokeWidth={2}
             />
@@ -701,12 +702,12 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                   value={searchQ}
                   onChange={(e) => setSearchQ(e.target.value)}
                   placeholder="Search requests…"
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
+                  className="w-full px-3 py-2 rounded-lg border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
                 />
               </div>
 
               {/* Grouped request list — each provider is collapsible */}
-              <div className="max-h-52 overflow-y-auto pb-2 bg-white">
+              <div className="max-h-64 overflow-y-auto pb-2 bg-white">
                 {(() => {
                   const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
                   return groups.map((groupName) => {
@@ -737,14 +738,17 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
           <button
             type="button"
             onClick={() => setApiClientOpen((v) => !v)}
-            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3.5 text-sm font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
             aria-label="Toggle API client"
             title="Toggle API client"
           >
-            <span>API Client</span>
+            <div className="flex items-center gap-2">
+              <HugeiconsIcon icon={ApiIcon} size={16} color="currentColor" strokeWidth={1.5} />
+              <span>API Client</span>
+            </div>
             <HugeiconsIcon
               icon={apiClientOpen ? ArrowDown01Icon : ArrowUp01Icon}
-              size={11}
+              size={13}
               color="#C4CACA"
               strokeWidth={2}
             />
@@ -754,13 +758,13 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
             <>
               {/* ── URL bar ── */}
               <div className="px-4 pb-2 flex-shrink-0 border-t border-[#E3E6E6]">
-                <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-1.5 shadow-sm mt-3">
+                <div className="flex items-center gap-2 bg-white rounded-2xl border border-[#E3E6E6] px-2 py-2 shadow-sm mt-3">
                   {/* Method selector */}
                   <div className="relative shrink-0">
                     <select
                       value={method}
                       onChange={(e) => setMethod(e.target.value as HttpMethod)}
-                      className="appearance-none pl-2 pr-5 py-1.5 rounded-xl bg-[#F2F3F3] text-xs font-black focus:outline-none cursor-pointer border-none"
+                      className="appearance-none pl-2 pr-6 py-2 rounded-xl bg-[#F2F3F3] text-sm font-black focus:outline-none cursor-pointer border-none"
                       style={{ color: METHOD_COLORS[method] }}
                     >
                       {METHODS.map((m) => (
@@ -771,7 +775,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                     </select>
                     <HugeiconsIcon
                       icon={ArrowDown01Icon}
-                      size={9}
+                      size={10}
                       color="#6B7B7B"
                       strokeWidth={2}
                       className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -779,14 +783,14 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                   </div>
 
                   {/* Divider */}
-                  <div className="w-px h-5 bg-[#E3E6E6] shrink-0" />
+                  <div className="w-px h-6 bg-[#E3E6E6] shrink-0" />
 
                   {/* URL input */}
                   <input
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://..."
-                    className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
+                    className="flex-1 min-w-0 px-2 py-2 text-sm font-mono text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-transparent"
                   />
 
                   {/* Send / Cancel */}
@@ -794,22 +798,22 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                     <button
                       type="button"
                       onClick={handleCancel}
-                      className="shrink-0 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1"
+                      className="shrink-0 px-3 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors flex items-center gap-1"
                       aria-label="Stop request"
                       title="Stop request"
                     >
-                      <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2} />
+                      <HugeiconsIcon icon={Cancel01Icon} size={13} color="currentColor" strokeWidth={2} />
                       Stop
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={handleSend}
-                      className="shrink-0 px-3 py-1.5 rounded-xl bg-[#345C5A] text-white text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
+                      className="shrink-0 px-3 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center"
                       aria-label="Send request"
                       title="Send request"
                     >
-                      <HugeiconsIcon icon={PlayIcon} size={12} color="currentColor" strokeWidth={2} />
+                      <HugeiconsIcon icon={PlayIcon} size={14} color="currentColor" strokeWidth={2} />
                     </button>
                   )}
                 </div>
@@ -826,7 +830,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                           key={t}
                           type="button"
                           onClick={() => setMainTab(t)}
-                          className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                          className={`px-4 py-3 text-base font-semibold transition-colors border-b-2 -mb-px ${
                             mainTab === t
                               ? "border-[#345C5A] text-[#345C5A]"
                               : "border-transparent text-[#6B7B7B] hover:text-[#2E4A4A]"
@@ -842,16 +846,16 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                         <button
                           type="button"
                           onClick={saveCurrentRequest}
-                          className="p-1.5 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
+                          className="p-2 rounded-lg text-[#6B7B7B] hover:text-[#345C5A] hover:bg-[#F2F3F3] transition-colors"
                           aria-label="Save request"
                           title="Save request"
                         >
-                          <HugeiconsIcon icon={BookmarkAdd01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={BookmarkAdd01Icon} size={16} color="currentColor" strokeWidth={1.5} />
                         </button>
 
                         {/* Status pill — always visible when response exists */}
                         {response && (
-                          <div className="flex items-center gap-3 text-xs">
+                          <div className="flex items-center gap-3 text-sm">
                             <span className="text-[#6B7B7B]">Status:</span>
                             <span className={`font-black ${statusColor(response.status)}`}>
                               {response.status === 0 ? response.statusText : response.status}
@@ -875,14 +879,14 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                           <button
                             type="button"
                             onClick={() => setReqDetailsOpen((v) => !v)}
-                            className="w-full flex items-center justify-between py-1 text-xs font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+                            className="w-full flex items-center justify-between py-2 text-sm font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
                             aria-label="Toggle request details"
                             title="Toggle request details"
                           >
                             <span>Details</span>
                             <HugeiconsIcon
                               icon={reqDetailsOpen ? ArrowDown01Icon : ArrowUp01Icon}
-                              size={11}
+                              size={13}
                               color="#C4CACA"
                               strokeWidth={2}
                             />
@@ -1208,12 +1212,12 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                           <>
                             {/* Response meta row */}
                             <div className="px-4 pt-2 pb-0 flex items-center justify-between flex-shrink-0">
-                              <span className="text-xs font-bold text-[#2E4A4A]">Response</span>
+                              <span className="text-sm font-bold text-[#2E4A4A]">Response</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-[#6B7B7B]">
+                                <span className="text-sm text-[#6B7B7B]">
                                   Time: <span className="font-semibold text-[#345C5A]">{response.timeMs} ms</span>
                                 </span>
-                                <span className="text-xs text-[#6B7B7B]">{formatBytes(response.sizeBytes)}</span>
+                                <span className="text-sm text-[#6B7B7B]">{formatBytes(response.sizeBytes)}</span>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1222,7 +1226,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                                   }}
                                   className="p-1 rounded hover:bg-[#E3E6E6] transition-colors"
                                 >
-                                  <HugeiconsIcon icon={Copy01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                                  <HugeiconsIcon icon={Copy01Icon} size={14} color="#6B7B7B" strokeWidth={1.5} />
                                 </button>
                               </div>
                             </div>
@@ -1236,12 +1240,12 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                                 <div className="px-4 py-3">
                                   {Object.entries(response.headers).map(([k, v]) => (
                                     <div key={k} className="flex gap-3 py-2 border-b border-[#F0F1F1] last:border-none">
-                                      <span className="text-xs font-bold text-[#2E4A4A] w-36 shrink-0">{k}</span>
-                                      <span className="text-xs font-mono text-[#6B7B7B] break-all">{v}</span>
+                                      <span className="text-sm font-bold text-[#2E4A4A] w-36 shrink-0">{k}</span>
+                                      <span className="text-sm font-mono text-[#6B7B7B] break-all">{v}</span>
                                     </div>
                                   ))}
                                   {Object.keys(response.headers).length === 0 && (
-                                    <p className="text-xs text-[#C4CACA] py-4 text-center">No response headers</p>
+                                    <p className="text-sm text-[#C4CACA] py-4 text-center">No response headers</p>
                                   )}
                                 </div>
                               )}
@@ -1255,7 +1259,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                                           key={v}
                                           type="button"
                                           onClick={() => setBodyView(v)}
-                                          className={`text-xs px-3 py-1 rounded-lg font-semibold transition-colors capitalize ${
+                                          className={`text-sm px-3 py-1 rounded-lg font-semibold transition-colors capitalize ${
                                             bodyView === v
                                               ? "bg-[#345C5A] text-white"
                                               : "bg-[#F2F3F3] text-[#6B7B7B] hover:bg-[#E3E6E6]"
@@ -1268,11 +1272,11 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                                   )}
                                   <div className="flex-1 overflow-y-auto px-4 py-2">
                                     {bodyView === "tree" && parsedJson !== null ? (
-                                      <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre leading-relaxed">
+                                      <pre className="text-[12px] font-mono text-[#1a3a3a] whitespace-pre leading-relaxed">
                                         <JsonNode data={parsedJson} />
                                       </pre>
                                     ) : (
-                                      <pre className="text-[11px] font-mono text-[#1a3a3a] whitespace-pre-wrap break-all leading-relaxed">
+                                      <pre className="text-[12px] font-mono text-[#1a3a3a] whitespace-pre-wrap break-all leading-relaxed">
                                         {displayBody}
                                       </pre>
                                     )}
@@ -1291,7 +1295,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
           )}
         </div>
       </div>
-
     </div>
   );
 };
