@@ -54,7 +54,7 @@ const screenTitles: Record<string, string> = {
   "wallet": "My Wallet",
   "help": "Help & Support",
   "security": "Security & Privacy",
-  "developer": "Developer Tools",
+  "developer": "API Client",
 };
 
 const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {

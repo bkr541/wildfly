@@ -271,6 +271,64 @@ const KVTable = ({
   );
 };
 
+// ─── Provider Group (collapsible) ───────────────────────────────────────────
+
+const ProviderGroup = ({
+  name,
+  requests,
+  activeId,
+  onSelect,
+  onDelete,
+}: {
+  name: string;
+  requests: SavedRequest[];
+  activeId: string | null;
+  onSelect: (req: SavedRequest) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="bg-white">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full px-4 pt-3 pb-1.5 flex items-center gap-2 hover:bg-[#F8F9F9] transition-colors"
+      >
+        <HugeiconsIcon
+          icon={open ? ArrowDown01Icon : ArrowRight01Icon}
+          size={9}
+          color="#C4CACA"
+          strokeWidth={2.5}
+        />
+        <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">{name}</span>
+        <span className="flex-1 h-px bg-[#F0F1F1]" />
+        <span className="text-[10px] text-[#C4CACA]">{requests.length}</span>
+      </button>
+      {open && requests.map((req) => (
+        <div
+          key={req.id}
+          className={`group flex items-center gap-2 px-4 pl-8 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
+            activeId === req.id ? "bg-[#EEF4F4]" : ""
+          }`}
+          onClick={() => onSelect(req)}
+        >
+          <span className="text-[10px] font-black w-12 shrink-0" style={{ color: METHOD_COLORS[req.method] }}>
+            {req.method}
+          </span>
+          <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete(req.id); }}
+            className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
+          >
+            <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const TabBar = ({ tabs, active, onSelect }: { tabs: string[]; active: string; onSelect: (t: string) => void }) => (
   <div className="flex gap-0 border-b border-[#E3E6E6]">
     {tabs.map((t) => (
@@ -615,8 +673,66 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
 
   return (
     <div className="flex flex-col h-full animate-fade-in bg-[#F2F3F3] overflow-hidden">
-      {/* ── Collapsible group: URL bar + Request/Response panel ── */}
-      <div className="px-4 pt-3 pb-3 flex-1 min-h-0 overflow-hidden">
+      {/* ── Collections drawer — moved ABOVE API Client ── */}
+      <div className="px-4 pt-3 pb-2 flex-shrink-0">
+        <div className="bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
+              <span>Collections</span>
+            </div>
+            <HugeiconsIcon
+              icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon}
+              size={11}
+              color="#C4CACA"
+              strokeWidth={2}
+            />
+          </button>
+
+          {sidebarOpen && (
+            <div className="border-t border-[#E3E6E6] animate-fade-in">
+              {/* Search */}
+              <div className="px-4 pt-2 pb-1">
+                <input
+                  value={searchQ}
+                  onChange={(e) => setSearchQ(e.target.value)}
+                  placeholder="Search requests…"
+                  className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
+                />
+              </div>
+
+              {/* Grouped request list — each provider is collapsible */}
+              <div className="max-h-52 overflow-y-auto pb-2 bg-white">
+                {(() => {
+                  const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
+                  return groups.map((groupName) => {
+                    const groupRequests = filteredSaved.filter((r) => (r.group ?? "Other") === groupName);
+                    return (
+                      <ProviderGroup
+                        key={groupName}
+                        name={groupName}
+                        requests={groupRequests}
+                        activeId={activeId}
+                        onSelect={(req) => {
+                          loadRequest(req);
+                        }}
+                        onDelete={deleteRequest}
+                      />
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── API Client group ── */}
+      <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden">
         <div className="h-full flex flex-col bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
           <button
             type="button"
@@ -1176,92 +1292,6 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
         </div>
       </div>
 
-      {/* ── Bottom: Collections / History drawer ── */}
-      <div className="px-4 pb-3 flex-shrink-0">
-        <div className="bg-white rounded-2xl border border-[#E3E6E6] shadow-sm overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((v) => !v)}
-            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-[#6B7B7B] hover:bg-[#F8F9F9] transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={Time01Icon} size={13} color="currentColor" strokeWidth={1.5} />
-              <span>Collections</span>
-            </div>
-            <HugeiconsIcon
-              icon={sidebarOpen ? ArrowDown01Icon : ArrowUp01Icon}
-              size={11}
-              color="#C4CACA"
-              strokeWidth={2}
-            />
-          </button>
-
-          {sidebarOpen && (
-            <div className="border-t border-[#E3E6E6] animate-fade-in">
-              {/* Search */}
-              <div className="px-4 pt-2 pb-1">
-                <input
-                  value={searchQ}
-                  onChange={(e) => setSearchQ(e.target.value)}
-                  placeholder="Search requests…"
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E3E6E6] text-xs text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none bg-[#F8F9F9]"
-                />
-              </div>
-
-              {/* Grouped request list */}
-              <div className="max-h-52 overflow-y-auto pb-2 bg-white">
-                {(() => {
-                  const groups = Array.from(new Set(filteredSaved.map((r) => r.group ?? "Other")));
-                  return groups.map((groupName) => {
-                    const groupRequests = filteredSaved.filter((r) => (r.group ?? "Other") === groupName);
-                    return (
-                      <div key={groupName} className="bg-white">
-                        <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-                          <span className="text-[10px] font-black text-[#6B7B7B] uppercase tracking-widest">
-                            {groupName}
-                          </span>
-                          <span className="flex-1 h-px bg-[#F0F1F1]" />
-                          <span className="text-[10px] text-[#C4CACA]">{groupRequests.length}</span>
-                        </div>
-                        {groupRequests.map((req) => (
-                          <div
-                            key={req.id}
-                            className={`group flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#F2F3F3] transition-colors ${
-                              activeId === req.id ? "bg-[#EEF4F4]" : ""
-                            }`}
-                            onClick={() => {
-                              loadRequest(req);
-                              setSidebarOpen(false);
-                            }}
-                          >
-                            <span
-                              className="text-[10px] font-black w-12 shrink-0"
-                              style={{ color: METHOD_COLORS[req.method] }}
-                            >
-                              {req.method}
-                            </span>
-                            <span className="text-xs text-[#2E4A4A] truncate flex-1 font-medium">{req.name}</span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteRequest(req.id);
-                              }}
-                              className="opacity-0 group-hover:opacity-100 text-[#C4CACA] hover:text-red-400 transition-all shrink-0"
-                            >
-                              <HugeiconsIcon icon={Delete01Icon} size={11} color="currentColor" strokeWidth={1.5} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
