@@ -53,9 +53,10 @@ interface MainLayoutProps {
   hideHeaderRight?: boolean;
   subScreenTitle?: string | null;
   onSubScreenBack?: () => void;
+  currentPage?: string;
 }
 
-const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, subScreenTitle, onSubScreenBack }: MainLayoutProps) => {
+const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, subScreenTitle, onSubScreenBack, currentPage }: MainLayoutProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,23 +138,25 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 {menuItems.map((item) => {
                   if ((item as any).type === "heading") {
                     return (
-                      <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] px-2 pt-3 pb-0.5">
+                      <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
                         {item.label}
                       </p>
                     );
                   }
+                  const pageKey = pageMap[item.label];
+                  const isActive = pageKey === currentPage || (item.label === "Home" && currentPage === "home");
                   return (
                     <button
                       key={item.label}
                       type="button"
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
-                        "flex items-center gap-2.5 py-1.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
-                        item.indent && "pl-4 text-sm",
+                        "flex items-center gap-2.5 py-1.5 text-[#2E4A4A] hover:text-[#345C5A] rounded-xl px-2 transition-colors w-full",
+                        isActive ? "bg-[#D1FAE5] text-[#065F46]" : "hover:bg-[#F2F3F3]",
                       )}
                     >
-                      <HugeiconsIcon icon={(item as any).icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
-                      <span className={cn("font-semibold", item.indent ? "text-sm" : "text-base")}>{item.label}</span>
+                      <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={1.5} />
+                      <span className="font-semibold text-base">{item.label}</span>
                     </button>
                   );
                 })}

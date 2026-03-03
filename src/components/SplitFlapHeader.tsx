@@ -21,7 +21,7 @@ function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; 
       className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
       style={{
         height: 34,
-        background: green ? "linear-gradient(160deg,#059669 0%,#065F46 100%)" : "#e8eaed",
+        background: green ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)" : "#e8eaed",
         borderColor: green ? "#064E3B" : "#d1d5db",
       }}
     >
