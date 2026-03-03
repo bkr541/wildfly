@@ -490,14 +490,12 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 </span>
 
                 {!loading && (
-                  <span className="ml-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/95 shadow-sm">
-                    <HugeiconsIcon
-                      icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
-                      size={16}
-                      color="#10B981"
-                      strokeWidth={2}
-                    />
-                  </span>
+                  <HugeiconsIcon
+                    icon={isSignUp ? UserAdd01Icon : LoginSquare01Icon}
+                    size={18}
+                    color="white"
+                    strokeWidth={2}
+                  />
                 )}
               </button>
 
