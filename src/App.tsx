@@ -217,7 +217,7 @@ const MainApp = () => {
               onSubScreenBack={() => accountBackRef.current?.()}
             >
               {currentPage === "home" && <HomePage />}
-              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "subscription" && <SubscriptionPage />}

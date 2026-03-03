@@ -15,6 +15,7 @@ import {
   SourceCodeIcon,
   PencilEdit01Icon,
   ArrowRight01Icon,
+  CreditCardIcon,
 } from "@hugeicons/core-free-icons";
 import MyAccountScreen from "@/components/account/MyAccountScreen";
 import TravelPreferencesScreen from "@/components/account/TravelPreferencesScreen";
@@ -28,6 +29,7 @@ import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 interface AccountHubProps {
   onSubScreenChange?: (title: string | null) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
+  onNavigate?: (page: string) => void;
 }
 
 interface MenuItem {
@@ -42,6 +44,7 @@ const baseMenuItems: MenuItem[] = [
   { icon: Notification01Icon, label: "Notifications", key: "notifications" },
   { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
   { icon: WalletAdd01Icon, label: "My Wallet", key: "wallet" },
+  { icon: CreditCardIcon, label: "Subscription", key: "subscription" },
   { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
   { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
 ];
@@ -57,13 +60,17 @@ const screenTitles: Record<string, string> = {
   "developer": "API Client",
 };
 
-const AccountHub = ({ onSubScreenChange, backRef }: AccountHubProps) => {
+const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
   const openScreen = (key: string) => {
+    if (key === "subscription") {
+      onNavigate?.("subscription");
+      return;
+    }
     setActiveScreen(key);
     onSubScreenChange?.(screenTitles[key] ?? null);
   };

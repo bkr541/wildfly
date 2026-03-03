@@ -32,7 +32,6 @@ const menuItems = [
   { type: "heading", label: "Explore Destinations" },
   { icon: Location01Icon, label: "Search Destinations", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
-  { icon: CreditCardIcon, label: "Subscription" },
 ];
 
 const pageMap: Record<string, string> = {
@@ -134,7 +133,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
               <div className="h-px bg-[#E5E7EB] mx-6" />
 
-              <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-1">
+                <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0">
                 {menuItems.map((item) => {
                   if ((item as any).type === "heading") {
                     return (
@@ -149,8 +148,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                       type="button"
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
-                        "flex items-center gap-4 py-2.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
-                        item.indent && "pl-8 text-sm",
+                        "flex items-center gap-2.5 py-1.5 text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3] rounded-xl px-2 transition-colors w-full",
+                        item.indent && "pl-4 text-sm",
                       )}
                     >
                       <HugeiconsIcon icon={(item as any).icon} size={item.indent ? 17 : 20} color="currentColor" strokeWidth={1.5} />
