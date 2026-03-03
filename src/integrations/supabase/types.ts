@@ -495,6 +495,7 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          default_departure_to_home: boolean
           notifications_enabled: boolean
           notify_gowild_availability: boolean
           notify_new_features: boolean
@@ -506,6 +507,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_departure_to_home?: boolean
           notifications_enabled?: boolean
           notify_gowild_availability?: boolean
           notify_new_features?: boolean
@@ -517,6 +519,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_departure_to_home?: boolean
           notifications_enabled?: boolean
           notify_gowild_availability?: boolean
           notify_new_features?: boolean

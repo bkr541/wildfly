@@ -6,8 +6,12 @@ import {
   CheckmarkCircle01Icon,
   Location01Icon,
   Cancel01Icon,
+  ArrowDown01Icon,
+  Home01Icon,
 } from "@hugeicons/core-free-icons";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface TravelPreferencesScreenProps {
   onBack: () => void;
@@ -27,6 +31,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
 
   const [homeCity, setHomeCity] = useState<LocationOption | null>(null);
   const [homeCitySearch, setHomeCitySearch] = useState("");
@@ -38,6 +43,9 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
   const [favResults, setFavResults] = useState<LocationOption[]>([]);
   const [showFavDropdown, setShowFavDropdown] = useState(false);
 
+  const [travelDefaultsOpen, setTravelDefaultsOpen] = useState(false);
+  const [defaultDepartureToHome, setDefaultDepartureToHome] = useState(false);
+
   const homeRef = useRef<HTMLDivElement>(null);
   const favRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -46,6 +54,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setAuthUserId(user.id);
 
       const { data: info } = await supabase
         .from("user_info")
@@ -80,6 +89,14 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
           .in("id", ids);
         if (locs) setFavoriteCities(locs as LocationOption[]);
       }
+
+      // Load user_settings
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("default_departure_to_home")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (settings) setDefaultDepartureToHome((settings as any).default_departure_to_home ?? false);
 
       setLoading(false);
     };
@@ -142,7 +159,7 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
   const removeFav = (id: number) => setFavoriteCities((prev) => prev.filter((f) => f.id !== id));
 
   const handleSave = async () => {
-    if (!userId) return;
+    if (!userId || !authUserId) return;
     setSaving(true);
 
     await supabase.from("user_info").update({ home_location_id: homeCity?.id ?? null }).eq("id", userId);
@@ -150,6 +167,10 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
     if (favoriteCities.length > 0) {
       await supabase.from("user_locations").insert(favoriteCities.map((f) => ({ user_id: userId, location_id: f.id })));
     }
+
+    // Save user_settings
+    await supabase.from("user_settings")
+      .upsert({ user_id: authUserId, default_departure_to_home: defaultDepartureToHome } as any, { onConflict: "user_id" });
 
     setSaving(false);
     toast.success("Travel preferences updated");
@@ -235,6 +256,42 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
         </div>
       </div>
 
+      {/* Travel Defaults */}
+      <div className="px-5">
+        <button
+          onClick={() => setTravelDefaultsOpen(o => !o)}
+          className="w-full flex items-center justify-between py-3"
+        >
+          <div className="flex items-center gap-2">
+            <HugeiconsIcon icon={Home01Icon} size={16} color="#345C5A" strokeWidth={1.5} />
+            <span className="text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase">Travel Defaults</span>
+          </div>
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            size={14}
+            color="#849494"
+            strokeWidth={1.5}
+            className={cn("transition-transform duration-200", travelDefaultsOpen && "rotate-180")}
+          />
+        </button>
+
+        {travelDefaultsOpen && (
+          <div className="pb-3 space-y-3 animate-fade-in">
+            <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-[#F2F3F3]">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-[#2E4A4A] leading-snug">Default departure to home airport</p>
+                <p className="text-xs text-[#849494] mt-0.5">Pre-fill your home city airport in Routes & Flights</p>
+              </div>
+              <Switch
+                checked={defaultDepartureToHome}
+                onCheckedChange={setDefaultDepartureToHome}
+                className="data-[state=checked]:bg-[#345C5A]"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="px-5 pb-4 pt-2">
         <button onClick={handleSave} disabled={saving} className="w-full py-3 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50">
           {saving ? "Saving..." : "Save Changes"}
@@ -245,3 +302,4 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
 };
 
 export default TravelPreferencesScreen;
+
