@@ -15,6 +15,7 @@ import {
   BookmarkAdd01Icon,
   LibraryIcon,
   ApiIcon,
+  Book02Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
@@ -288,7 +289,7 @@ const ProviderGroup = ({
   onSelect: (req: SavedRequest) => void;
   onDelete: (id: string) => void;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // collapsed by default
   return (
     <div className="bg-white">
       <button
@@ -296,11 +297,13 @@ const ProviderGroup = ({
         onClick={() => setOpen((v) => !v)}
         className="w-full px-4 pt-3 pb-1.5 flex items-center gap-2 hover:bg-[#F8F9F9] transition-colors"
       >
-        <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={11} color="#C4CACA" strokeWidth={2.5} />
+        {/* replaced subgroup icon with Book02Icon, same size as Collections icon */}
+        <HugeiconsIcon icon={Book02Icon} size={16} color="currentColor" strokeWidth={1.5} />
         <span className="text-[11px] font-black text-[#6B7B7B] uppercase tracking-widest">{name}</span>
         <span className="flex-1 h-px bg-[#F0F1F1]" />
         <span className="text-[11px] text-[#C4CACA]">{requests.length}</span>
       </button>
+
       {open &&
         requests.map((req) => (
           <div
@@ -452,7 +455,7 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
 
   // ── Request panel tab
   const [reqTab, setReqTab] = useState("Params");
-  const [reqDetailsOpen, setReqDetailsOpen] = useState(true);
+  const [reqDetailsOpen, setReqDetailsOpen] = useState(true); // kept (no refactor), but no longer toggled
 
   // ── Response
   const [response, setResponse] = useState<ResponseData | null>(null);
@@ -869,42 +872,26 @@ const ApiClientScreen = ({ onBack }: ApiClientScreenProps) => {
                     </div>
                   </div>
 
+                  {/* ── Request details tabs row (no "Details" label, not collapsible) ── */}
+                  {mainTab === "Request" && reqDetailsOpen && (
+                    <div className="px-4 flex-shrink-0 pt-1">
+                      <TabBar
+                        tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
+                        active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
+                        onSelect={(t) => {
+                          if (t === "Parameters") setReqTab("Params");
+                          else if (t === "Header") setReqTab("Headers");
+                          else setReqTab(t);
+                        }}
+                      />
+                    </div>
+                  )}
+
                   {/* ── Content area ── */}
                   <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                     {/* REQUEST tab */}
                     {mainTab === "Request" && (
                       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                        {/* Collapsible group: Sub-tab bar + content */}
-                        <div className="px-4 flex-shrink-0 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => setReqDetailsOpen((v) => !v)}
-                            className="w-full flex items-center justify-between py-2 text-sm font-bold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
-                            aria-label="Toggle request details"
-                            title="Toggle request details"
-                          >
-                            <span>Details</span>
-                            <HugeiconsIcon
-                              icon={reqDetailsOpen ? ArrowDown01Icon : ArrowUp01Icon}
-                              size={13}
-                              color="#C4CACA"
-                              strokeWidth={2}
-                            />
-                          </button>
-
-                          {reqDetailsOpen && (
-                            <TabBar
-                              tabs={["Parameters", "Header", "Body", "Auth", "Settings"]}
-                              active={reqTab === "Params" ? "Parameters" : reqTab === "Headers" ? "Header" : reqTab}
-                              onSelect={(t) => {
-                                if (t === "Parameters") setReqTab("Params");
-                                else if (t === "Header") setReqTab("Headers");
-                                else setReqTab(t);
-                              }}
-                            />
-                          )}
-                        </div>
-
                         {reqDetailsOpen && (
                           <div className="flex-1 overflow-y-auto px-4 py-3 text-xs">
                             {/* Params */}
