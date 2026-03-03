@@ -3,6 +3,8 @@ import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { useAirportDictionary, type AirportInfo } from "@/hooks/useAirportDictionary";
 import { useRouteStats } from "@/hooks/useRouteStats";
 import { useRouteFavorites } from "@/hooks/useRouteFavorites";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -417,12 +419,14 @@ type ViewMode = "map" | "grid";
 const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string) => void }) => {
   const { dict: airportDict, loading: airportsLoading } = useAirportDictionary();
   const { isFavorite, toggleFavorite, clearAll, getFavoritesList, loading: favsLoading } = useRouteFavorites();
+  const { settings: userSettings } = useUserSettings();
 
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const urlOrigin = params.get("origin") || "";
   const urlDest = params.get("dest") || "";
 
   const [origin, setOrigin] = useState<string>("");
+  const [defaultHomeApplied, setDefaultHomeApplied] = useState(false);
   const [destSearch, setDestSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [viewMode, setViewMode] = useState<ViewMode>("map");
@@ -444,6 +448,33 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
       // Do NOT auto-set an origin — page starts empty
     }
   }, [stats.hubsSorted.length]);
+
+  // Auto-fill home airport when default_departure_to_home is on
+  useEffect(() => {
+    if (defaultHomeApplied || urlOrigin || origin) return;
+    if (!userSettings.default_departure_to_home) return;
+    if (stats.hubsSorted.length === 0) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: info } = await supabase
+        .from("user_info")
+        .select("home_location_id")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      if (!info?.home_location_id) return;
+      const { data: ap } = await supabase
+        .from("airports")
+        .select("iata_code")
+        .eq("location_id", info.home_location_id)
+        .limit(1)
+        .maybeSingle();
+      if (ap?.iata_code && stats.hubsSorted.some(h => h.iata === ap.iata_code)) {
+        setOrigin(ap.iata_code);
+        setDefaultHomeApplied(true);
+      }
+    })();
+  }, [userSettings.default_departure_to_home, stats.hubsSorted.length, defaultHomeApplied, urlOrigin, origin]);
 
   useEffect(() => {
     if (origin) localStorage.setItem(LS_ORIGIN_KEY, origin);

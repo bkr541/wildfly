@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { getLogger } from "@/lib/logger";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -425,6 +426,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
   // Both Departure and Arrivals now use an array state
   const [departures, setDepartures] = useState<Airport[]>([]);
   const [arrivals, setArrivals] = useState<Airport[]>([]);
+  const [defaultHomeApplied, setDefaultHomeApplied] = useState(false);
 
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
@@ -441,6 +443,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
   const today = useMemo(() => startOfDay(new Date()), []);
+  const { settings: userSettings } = useUserSettings();
 
   useEffect(() => {
     const loadAirports = async () => {
@@ -450,9 +453,34 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         .order("name");
       if (data) setAirports(data as unknown as Airport[]);
     };
-
     loadAirports();
   }, []);
+
+  // Auto-fill home airport when default_departure_to_home is on
+  useEffect(() => {
+    if (defaultHomeApplied || departures.length > 0) return;
+    if (!userSettings.default_departure_to_home) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: info } = await supabase
+        .from("user_info")
+        .select("home_location_id")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      if (!info?.home_location_id) return;
+      const { data: ap } = await supabase
+        .from("airports")
+        .select("id, name, iata_code, locations(city, state_code, region)")
+        .eq("location_id", info.home_location_id)
+        .limit(1)
+        .maybeSingle();
+      if (ap) {
+        setDepartures([ap as unknown as Airport]);
+        setDefaultHomeApplied(true);
+      }
+    })();
+  }, [userSettings.default_departure_to_home, defaultHomeApplied, departures.length]);
 
   return (
     <>
