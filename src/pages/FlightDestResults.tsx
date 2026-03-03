@@ -641,18 +641,34 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                                           >
                                             Alert Me
                                           </button>
-                                          {(() => {
-                                            const isGoWild = flight.fares.basic != null;
-                                            const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
-                                              .filter((v): v is number => v != null)
-                                              .sort((a, b) => a - b)[0];
-                                            const priceLabel = cheapest != null ? `$${cheapest}` : "Details";
-                                            return (
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  toggleUserFlight(flight, "going");
-                                                }}
+                                           {(() => {
+                                             const isGoWild = flight.fares.basic != null;
+                                             const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
+                                               .filter((v): v is number => v != null)
+                                               .sort((a, b) => a - b)[0];
+                                             const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
+                                             const depLeg = flight.legs[0];
+                                             const arrLeg = flight.legs[flight.legs.length - 1];
+                                             const depDate = (() => {
+                                               try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; }
+                                             })();
+                                             const arrDate = (() => {
+                                               try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; }
+                                             })();
+                                             const tType = (() => {
+                                               try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; }
+                                             })();
+                                             const isRound = tType.toLowerCase().includes("round");
+                                             const frontierUrl = isRound && arrDate
+                                               ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
+                                               : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+                                             return (
+                                               <button
+                                                 onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   toggleUserFlight(flight, "going");
+                                                   window.open(frontierUrl, "_blank", "noopener,noreferrer");
+                                                 }}
                                                 className={cn(
                                                   "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
                                                   isGoWild
