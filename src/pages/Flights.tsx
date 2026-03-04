@@ -106,7 +106,7 @@ const MultiAirportSearchbox = ({
       )
       .slice(0, 30);
 
-    return filteredList.reduce(
+    const grouped = filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
         const state = airport.locations?.state_code;
@@ -116,6 +116,13 @@ const MultiAirportSearchbox = ({
         return acc;
       },
       {} as Record<string, Airport[]>,
+    );
+    // Only keep group headers for cities with multiple airports
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, airports]) => [
+        airports.length > 1 ? key : `__single__${key}`,
+        airports,
+      ])
     );
   }, [query, airports, shouldShow, disabled]);
 
