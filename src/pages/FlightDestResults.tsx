@@ -394,8 +394,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                   year: "numeric",
                 })
               : tripType}{" "}
-            | {flights.length} Flight{flights.length !== 1 ? "s" : ""} | {destinationCodes.length} Airport
-            {destinationCodes.length !== 1 ? "s" : ""}
+            | {flights.length} Flight{flights.length !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="w-10" />
@@ -471,7 +470,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
                       ].map(({ label, value, suffix }) => (
                         <div
                           key={label}
-                          className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-2.5 py-2"
+                          className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-1.5 py-1"
                         >
                           <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
                           <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
