@@ -51,7 +51,7 @@ const FlightResultsV3Screen = ({ onBack }: Props) => {
     </div>
   );
 
-  return <FlightDestResults onBack={onBack} responseData={responseData} hideHeader />;
+  return <FlightDestResults onBack={onBack} responseData={responseData} hideHeader hideBackground />;
 };
 
 export default FlightResultsV3Screen;
