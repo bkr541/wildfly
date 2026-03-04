@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
@@ -29,6 +29,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [snapshotRunning, setSnapshotRunning] = useState(false);
+  const [triggersOpen, setTriggersOpen] = useState(false);
   const [snapshotResult, setSnapshotResult] = useState<{ success: boolean; rows_inserted?: number; travel_date?: string; error?: string } | null>(null);
   const [showApiClient, setShowApiClient] = useState(false);
   const [showDesignHub, setShowDesignHub] = useState(false);
@@ -178,13 +179,22 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
 
         {/* Master toggles */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-          <ToggleRow
-            label="Debug Mode"
-            desc="Show extra debug information"
-            value={settings.debug_enabled}
-            onToggle={() => toggle("debug_enabled")}
-            border={false}
-          />
+          <button
+            type="button"
+            onClick={() => toggle("debug_enabled")}
+            className="flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors"
+          >
+            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0 mr-3">
+              <HugeiconsIcon icon={Bug01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#2E4A4A]">Debug Mode</p>
+              <p className="text-xs text-[#6B7B7B]">Show extra debug information</p>
+            </div>
+            <div className={`h-6 w-11 rounded-full relative transition-colors ${settings.debug_enabled ? "bg-[#345C5A]" : "bg-[#D1D5D5]"}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${settings.debug_enabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            </div>
+          </button>
         </div>
 
         {/* Debug sub-options — indented */}
@@ -244,45 +254,77 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
         )}
 
         {/* Manual Triggers */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
-          <h3 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider mb-3">Manual Triggers</h3>
-          <div className="flex items-center justify-between gap-3">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setTriggersOpen((o) => !o)}
+            className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+          >
+            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={File01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+            </span>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-[#2E4A4A]">ATL Snapshot</p>
-              <p className="text-xs text-[#6B7B7B]">Fetch today's ATL flights and write to gowild_snapshots</p>
-              {snapshotResult && (
-                <p className={`text-xs mt-1 font-medium ${snapshotResult.success ? "text-[#345C5A]" : "text-red-500"}`}>
-                  {snapshotResult.success
-                    ? `✓ ${snapshotResult.rows_inserted} destinations written (${snapshotResult.travel_date})`
-                    : `✗ ${snapshotResult.error}`}
-                </p>
-              )}
+              <p className="text-sm font-bold text-[#2E4A4A]">Manual Triggers</p>
+              <p className="text-xs text-[#6B7B7B]">Run backend functions manually</p>
             </div>
-            <button
-              type="button"
-              onClick={runSnapshot}
-              disabled={snapshotRunning}
-              className="shrink-0 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[80px]"
-            >
-              {snapshotRunning ? (
-                <span className="flex items-center gap-1.5 justify-center">
-                  <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  Running
-                </span>
-              ) : "Run"}
-            </button>
-          </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform duration-200 ${triggersOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {triggersOpen && (
+            <div className="border-t border-[#F0F1F1] px-4 py-3 animate-fade-in">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#2E4A4A]">ATL Snapshot</p>
+                  <p className="text-xs text-[#6B7B7B]">Fetch today's ATL flights and write to gowild_snapshots</p>
+                  {snapshotResult && (
+                    <p className={`text-xs mt-1 font-medium ${snapshotResult.success ? "text-[#345C5A]" : "text-red-500"}`}>
+                      {snapshotResult.success
+                        ? `✓ ${snapshotResult.rows_inserted} destinations written (${snapshotResult.travel_date})`
+                        : `✗ ${snapshotResult.error}`}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={runSnapshot}
+                  disabled={snapshotRunning}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[80px]"
+                >
+                  {snapshotRunning ? (
+                    <span className="flex items-center gap-1.5 justify-center">
+                      <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      Running
+                    </span>
+                  ) : "Run"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Logging master toggle */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-          <ToggleRow
-            label="Enable Logging"
-            desc="Master switch for all app logging"
-            value={settings.logging_enabled}
-            onToggle={() => toggle("logging_enabled")}
-            border={false}
-          />
+          <button
+            type="button"
+            onClick={() => toggle("logging_enabled")}
+            className="flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors"
+          >
+            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0 mr-3">
+              <HugeiconsIcon icon={File01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#2E4A4A]">Enable Logging</p>
+              <p className="text-xs text-[#6B7B7B]">Master switch for all app logging</p>
+            </div>
+            <div className={`h-6 w-11 rounded-full relative transition-colors ${settings.logging_enabled ? "bg-[#345C5A]" : "bg-[#D1D5D5]"}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${settings.logging_enabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            </div>
+          </button>
         </div>
 
         {/* Logging sub-options — indented */}
