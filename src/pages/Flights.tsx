@@ -907,12 +907,14 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full h-14 px-5 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-semibold text-base rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
+          className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <span>{loading ? "Searching..." : "Search Flights"}</span>
-          <span className="absolute right-5 flex items-center">
-            <HugeiconsIcon icon={PlaneIcon} size={18} color="currentColor" strokeWidth={1.8} className="shrink-0" />
+          <span className="uppercase tracking-[0.35em] text-sm">
+            {loading ? "Searching..." : "Search Flights"}
           </span>
+          {!loading && (
+            <HugeiconsIcon icon={PlaneIcon} size={18} color="white" strokeWidth={2} className="shrink-0" />
+          )}
         </button>
       </div>
     </>
