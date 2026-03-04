@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon } from "@hugeicons/core-free-icons";
+import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon, Share06Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -372,20 +372,47 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {!hideHeader && (
       <header
-        className="relative z-10 flex items-start px-5 pt-6 pb-[76px]"
+        className="relative z-10 flex flex-col px-5 pt-6 pb-[152px]"
         style={{
           backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <button
-          type="button"
-          onClick={onBack}
-          className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
-        </button>
+        {/* Top row: back + share */}
+        <div className="flex items-center justify-between w-full">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
+          >
+            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            className="h-10 w-10 flex items-center justify-end text-white hover:opacity-70 transition-opacity"
+          >
+            <HugeiconsIcon icon={Share06Icon} size={20} color="white" strokeWidth={2} />
+          </button>
+        </div>
+        {/* Route text below icons */}
+        <div className="mt-3">
+          <p className="text-white/80 text-sm font-medium leading-tight">
+            {airportMap[departureAirport]?.city || departureAirport} to
+          </p>
+          <p className="text-white text-2xl font-black leading-tight uppercase tracking-wide">
+            {arrivalAirport && arrivalAirport !== "All" ? (
+              <>
+                {arrivalAirport}
+                {airportMap[arrivalAirport]?.city ? (
+                  <span className="font-light"> | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}</span>
+                ) : null}
+              </>
+            ) : (
+              "All Destinations"
+            )}
+          </p>
+        </div>
       </header>
       )}
 
