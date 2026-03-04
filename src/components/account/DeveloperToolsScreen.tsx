@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
+import FlightResultsDesignScreen from "@/components/account/design/FlightResultsDesignScreen";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
@@ -30,6 +31,9 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
   const [snapshotRunning, setSnapshotRunning] = useState(false);
   const [snapshotResult, setSnapshotResult] = useState<{ success: boolean; rows_inserted?: number; travel_date?: string; error?: string } | null>(null);
   const [showApiClient, setShowApiClient] = useState(false);
+  const [showDesignHub, setShowDesignHub] = useState(false);
+  const [designHubOpen, setDesignHubOpen] = useState(false);
+  const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
@@ -53,6 +57,10 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
 
   if (showApiClient) {
     return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
+  }
+
+  if (activeDesignScreen === "flight-results") {
+    return <FlightResultsDesignScreen onBack={() => setActiveDesignScreen(null)} />;
   }
 
   if (loading || !settings) {
@@ -132,6 +140,42 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
           </div>
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
         </button>
+        {/* Design Hub */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setDesignHubOpen((o) => !o)}
+            className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+          >
+            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={PaintBrushIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-[#2E4A4A]">Design Hub</p>
+              <p className="text-xs text-[#6B7B7B]">Live component & style previews</p>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform duration-200 ${designHubOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {designHubOpen && (
+            <div className="border-t border-[#F0F1F1] animate-fade-in">
+              <button
+                type="button"
+                onClick={() => setActiveDesignScreen("flight-results")}
+                className="flex items-center w-full px-5 py-2.5 gap-3 hover:bg-[#F2F3F3] transition-colors"
+              >
+                <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">Flight Results</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Master toggles */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
           <ToggleRow
