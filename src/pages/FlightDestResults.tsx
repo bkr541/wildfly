@@ -372,15 +372,17 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {!hideHeader && (
       <header
-        className="relative z-10 flex flex-col px-5 pt-6 pb-[152px]"
+        className="relative z-10 flex flex-col px-5 pt-6 pb-[152px] overflow-hidden"
         style={{
           backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)" }} />
         {/* Top row: back + share */}
-        <div className="flex items-center justify-between w-full">
+        <div className="relative flex items-center justify-between w-full">
           <button
             type="button"
             onClick={onBack}
@@ -396,11 +398,11 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           </button>
         </div>
         {/* Route text below icons */}
-        <div className="mt-3">
-          <p className="text-white/80 text-sm font-medium leading-tight">
+        <div className="relative mt-3">
+          <p className="text-white/80 text-base font-medium leading-tight">
             {airportMap[departureAirport]?.city || departureAirport} to
           </p>
-          <p className="text-white text-2xl font-black leading-tight uppercase tracking-wide">
+          <p className="text-white text-[28px] font-black leading-tight uppercase tracking-wide">
             {arrivalAirport && arrivalAirport !== "All" ? (
               <>
                 {arrivalAirport}
