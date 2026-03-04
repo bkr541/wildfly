@@ -368,7 +368,7 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
   }, [selectedGroup]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#2E5C58] overflow-hidden">
+    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
 
       {!hideHeader && (
       <header
@@ -416,9 +416,9 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           )}
         </div>
 
-        {/* Metrics strip at bottom of header — no background */}
+        {/* Metrics strip at bottom of header — no background, bottom-justified */}
         {arrivalAirport && arrivalAirport !== "All" && (
-          <div className="relative mt-auto pt-6 flex items-stretch justify-between w-full gap-2">
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
             {(() => {
               const allFlights = flights;
               let earliestH: number | null = null;
@@ -448,8 +448,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                 { label: "GOWILD", value: goWildCnt, suffix: " Avail." },
               ].map(({ label, value, suffix }) => (
                 <div key={label} className="flex-1 flex flex-col items-center">
-                  <span className="text-[8px] font-semibold text-white/70 uppercase tracking-wide leading-tight text-center">{label}</span>
-                  <span className="text-[13px] font-bold text-white leading-tight mt-0.5 text-center">{value}{suffix}</span>
+                  <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
+                  <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">{value}{suffix}</span>
                 </div>
               ));
             })()}
