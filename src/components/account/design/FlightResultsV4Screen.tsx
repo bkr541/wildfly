@@ -69,7 +69,7 @@ const FlightResultsV4Screen = ({ onBack }: Props) => {
     </div>
   );
 
-  return <FlightDestResults onBack={onBack} responseData={responseData} />;
+  return <FlightDestResults onBack={onBack} responseData={responseData} hideHeader />;
 };
 
 export default FlightResultsV4Screen;

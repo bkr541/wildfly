@@ -168,7 +168,7 @@ function RouteFlap({ word }: { word: string }) {
   );
 }
 
-const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; responseData: string }) => {
+const FlightDestResults = ({ onBack, responseData, hideHeader }: { onBack: () => void; responseData: string; hideHeader?: boolean }) => {
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
@@ -372,6 +372,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
       <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
       <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
 
+      {!hideHeader && (
       <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
         <button
           type="button"
@@ -399,6 +400,7 @@ const FlightDestResults = ({ onBack, responseData }: { onBack: () => void; respo
         </div>
         <div className="w-10" />
       </header>
+      )}
 
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
         <div className="flex flex-col gap-2.5">
