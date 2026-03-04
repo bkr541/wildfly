@@ -458,6 +458,26 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
       </header>
       )}
 
+      {/* Tab group */}
+      {!hideHeader && (
+        <div className="relative z-10 flex items-center gap-0 bg-[#2E5C58] px-5 border-b border-white/10">
+          {["Info", "Flights", "Events", "Map"].map((tab) => (
+            <button
+              key={tab}
+              className={cn(
+                "px-4 py-3 text-sm font-semibold transition-colors relative",
+                tab === "Flights" ? "text-white" : "text-white/50 hover:text-white/80"
+              )}
+            >
+              {tab}
+              {tab === "Flights" && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
