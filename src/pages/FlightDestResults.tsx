@@ -371,7 +371,14 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
     <div className="relative flex flex-col min-h-screen bg-[#2E5C58] overflow-hidden">
 
       {!hideHeader && (
-      <header className="relative z-10 flex items-center px-5 pt-6 pb-[76px]">
+      <header
+        className="relative z-10 flex items-start px-5 pt-6 pb-[76px]"
+        style={{
+          backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <button
           type="button"
           onClick={onBack}
