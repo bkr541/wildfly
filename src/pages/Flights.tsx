@@ -549,11 +549,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="px-3 pt-1 pb-3">
             <div className={cn("grid gap-1", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
+                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer pl-[calc(0.5em+4px)]">Departure Date</label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10 pl-[0.5em]">
                       <HugeiconsIcon
                         icon={CalendarCheckOut02Icon}
                         size={16}
