@@ -142,88 +142,66 @@ const MultiAirportSearchbox = ({
 
   const showClear = selected.length > 0 && !disabled;
 
+  // Display text: "IATA | City" for the first selected airport (single-select display)
+  const displayValue = selected.length > 0 && !query
+    ? `${selected[0].iata_code} | ${selected[0].locations?.city ?? selected[0].name}`
+    : query;
+
   return (
     <div className={cn("relative", containerClassName)}>
       <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
 
       <div
         className={cn(
-          "app-input-container flex items-center gap-1.5 h-10 overflow-hidden bg-white",
+          "app-input-container flex items-center gap-1.5 overflow-hidden bg-white",
           disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
           isFocused && "focus-within",
         )}
-        style={{ minHeight: 40, padding: "0 0.8em", backgroundColor: "#fff" }}
+        style={{ minHeight: 48, padding: "0 0.8em", backgroundColor: "#fff" }}
+        onClick={() => {
+          if (disabled) return;
+          inputRef.current?.focus();
+          setOpen(true);
+        }}
       >
-        {/* Increased icon size */}
         <HugeiconsIcon icon={icon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
 
-        <div
-          className="flex-1 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden no-scrollbar py-1"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          onClick={() => {
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={disabled ? "" : placeholder}
+          disabled={disabled}
+          value={displayValue}
+          onChange={(e) => {
             if (disabled) return;
-            inputRef.current?.focus();
-            setOpen(true);
+            // When the user types, clear selection so query takes over
+            if (selected.length > 0) onChange([]);
+            setQuery(e.target.value);
+            if (!open) setOpen(true);
           }}
-        >
-          {selected.map((a) => (
-            <span
-              key={a.id}
-              className="inline-flex items-center gap-1.5 bg-[#E8F1F1] border border-[#D6DEDF] text-[#2E4A4A] text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-full shadow-sm whitespace-nowrap shrink-0"
-            >
-              {a.iata_code} – {a.locations?.city}, {a.locations?.state_code}
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeAirport(a.id);
-                }}
-                className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors leading-none ml-0.5"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={10} color="currentColor" strokeWidth={1.5} />
-              </button>
-            </span>
-          ))}
-
-          {selected.length > 0 && !query && !disabled && (
-            <HugeiconsIcon
-              icon={AddCircleIcon}
-              size={12}
-              color="#9CA3AF"
-              strokeWidth={1.5}
-              className="ml-0.5 shrink-0"
-            />
+          onFocus={() => {
+            if (disabled) return;
+            // Clear display so user can type fresh
+            if (selected.length > 0) {
+              setQuery(`${selected[0].iata_code} | ${selected[0].locations?.city ?? ""}`);
+            }
+            setOpen(true);
+            setIsFocused(true);
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            setTimeout(() => setOpen(false), 200);
+            // If no selection was made, restore query empty
+            if (selected.length === 0) setQuery("");
+          }}
+          className={cn(
+            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] font-semibold placeholder:text-[#9CA3AF] truncate",
+            disabled && "cursor-not-allowed",
           )}
+          style={{ fontSize: 16 }}
+        />
 
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={selected.length > 0 || disabled ? "" : placeholder}
-            disabled={disabled}
-            value={query}
-            onChange={(e) => {
-              if (disabled) return;
-              setQuery(e.target.value);
-              if (!open) setOpen(true);
-            }}
-            onFocus={() => {
-              if (disabled) return;
-              setOpen(true);
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-              setTimeout(() => setOpen(false), 200);
-            }}
-            className={cn(
-              "flex-1 min-w-[100px] h-full bg-transparent outline-none text-[#2E4A4A] text-sm placeholder:text-[#9CA3AF] truncate",
-              disabled && "cursor-not-allowed",
-            )}
-          />
-        </div>
-
-        {showClear && !open && (
+        {showClear && (
           <button
             type="button"
             aria-label={`Clear all ${label}`}
@@ -929,12 +907,14 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full h-14 px-5 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-semibold text-base rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
+          className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <span>{loading ? "Searching..." : "Search Flights"}</span>
-          <span className="absolute right-5 flex items-center">
-            <HugeiconsIcon icon={PlaneIcon} size={18} color="currentColor" strokeWidth={1.8} className="shrink-0" />
+          <span className="uppercase tracking-[0.35em] text-sm">
+            {loading ? "Searching..." : "Search Flights"}
           </span>
+          {!loading && (
+            <HugeiconsIcon icon={PlaneIcon} size={18} color="white" strokeWidth={2} className="shrink-0" />
+          )}
         </button>
       </div>
     </>
