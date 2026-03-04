@@ -466,16 +466,17 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
       {/* Tab group */}
       {!hideHeader && (
         <div className="relative z-10 flex items-center gap-0 bg-white px-5 border-b border-gray-200">
-          {["Info", "Flights", "Events", "Map"].map((tab) => (
+          {(["Info", "Flights", "Events", "Map"] as TabType[]).map((tab) => (
             <button
               key={tab}
+              onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-3 text-sm font-semibold transition-colors relative",
-                tab === "Flights" ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
+                tab === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
               )}
             >
               {tab}
-              {tab === "Flights" && (
+              {tab === activeTab && (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
               )}
             </button>
@@ -483,6 +484,61 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
         </div>
       )}
 
+      {/* Tab: Info */}
+      {activeTab === "Info" && (
+        <div className="flex-1 flex flex-col px-5 pt-4 pb-6 gap-4 relative z-10">
+          <div className="rounded-xl bg-white border border-[#E8EBEB] p-4" style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}>
+            <h3 className="text-base font-bold text-[#2E4A4A] mb-2">About {arrivalAirport !== "All" ? (airportMap[arrivalAirport]?.city || arrivalAirport) : "This Route"}</h3>
+            {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
+              <div className="flex items-center gap-1.5 mb-3">
+                <HugeiconsIcon icon={Location01Icon} size={14} color="#6B7B7B" strokeWidth={1.5} />
+                <span className="text-sm text-[#6B7B7B]">{airportMap[arrivalAirport].name}</span>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Total Flights", value: flights.length },
+                { label: "Destinations", value: groups.length },
+                { label: "Nonstop Options", value: flights.filter(f => f.legs.length === 1).length },
+                { label: "GoWild Fares", value: flights.filter(f => f.fares.basic != null).length },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
+                  <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
+                  <span className="text-[22px] font-bold text-[#2E4A4A] leading-tight">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {departureDate && (
+            <div className="rounded-xl bg-white border border-[#E8EBEB] p-4" style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}>
+              <h3 className="text-base font-bold text-[#2E4A4A] mb-3">Trip Details</h3>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#6B7B7B]">Trip Type</span>
+                  <span className="text-sm font-semibold text-[#2E4A4A]">{tripType}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#6B7B7B]">Departure Date</span>
+                  <span className="text-sm font-semibold text-[#2E4A4A]">{departureDate}</span>
+                </div>
+                {arrivalDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[#6B7B7B]">Return Date</span>
+                    <span className="text-sm font-semibold text-[#2E4A4A]">{arrivalDate}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#6B7B7B]">Origin</span>
+                  <span className="text-sm font-semibold text-[#2E4A4A]">{departureAirport}{airportMap[departureAirport]?.city ? ` — ${airportMap[departureAirport].city}` : ""}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Flights */}
+      {activeTab === "Flights" && (
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
