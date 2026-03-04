@@ -381,6 +381,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
       >
         {/* Dark gradient overlay */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Metrics scrim — bottom gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.52) 100%)" }} />
         {/* Top row: back only */}
         <div className="relative flex items-center w-full">
           <button
