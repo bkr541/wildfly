@@ -229,8 +229,12 @@ const MultiAirportSearchbox = ({
 
       {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
-          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
+          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+            const isSingle = cityGroup.startsWith("__single__");
+            const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+            return (
             <div key={cityGroup} className="mb-2 last:mb-0">
+              {!isSingle && (
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -244,8 +248,9 @@ const MultiAirportSearchbox = ({
                   strokeWidth={1.5}
                   className="opacity-60"
                 />
-                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
+                {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
               </button>
+              )}
 
               {cityAirports.map((a) => {
                 const isSelected = selectedIds.has(a.id);
