@@ -24,6 +24,7 @@ interface SplashScreenProps {
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
+  const [showTagline, setShowTagline] = useState(false);
   // Each tile: { char, isWildfly, revealed }
   const [tiles, setTiles] = useState<{ char: string; isWildfly: boolean; revealed: boolean }[]>(
     () => Array(TOTAL).fill(null).map((_, i) => ({
@@ -70,6 +71,11 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     });
 
     // Phase 3: After WILDFLY is fully revealed (~1.8 + 7*280 = ~3.76s), hold then fade out
+    const showTaglineTimer = setTimeout(() => {
+      setShowTagline(true);
+    }, 3900);
+    timeoutsRef.current.push(showTaglineTimer);
+
     const stopFlicker = setTimeout(() => {
       clearInterval(flickerInterval);
     }, 3900);
@@ -153,6 +159,24 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             </div>
           );
         })}
+      </div>
+      {/* Tagline fade-in */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        style={{ paddingTop: `calc(${(CENTER_ROW + 2) / ROWS * 100}% + 8px)` }}
+      >
+        <p
+          style={{
+            opacity: showTagline ? 1 : 0,
+            transition: "opacity 0.8s ease",
+            fontSize: "clamp(11px, 2.8vw, 15px)",
+            letterSpacing: "0.12em",
+            color: "#6b7280",
+            fontWeight: 500,
+          }}
+        >
+          Plan Smarter. Fly Wilder.
+        </p>
       </div>
     </div>
   );
