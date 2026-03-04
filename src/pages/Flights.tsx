@@ -106,7 +106,7 @@ const MultiAirportSearchbox = ({
       )
       .slice(0, 30);
 
-    return filteredList.reduce(
+    const grouped = filteredList.reduce(
       (acc, airport) => {
         const city = airport.locations?.city;
         const state = airport.locations?.state_code;
@@ -116,6 +116,13 @@ const MultiAirportSearchbox = ({
         return acc;
       },
       {} as Record<string, Airport[]>,
+    );
+    // Only keep group headers for cities with multiple airports
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, airports]) => [
+        airports.length > 1 ? key : `__single__${key}`,
+        airports,
+      ])
     );
   }, [query, airports, shouldShow, disabled]);
 
@@ -157,7 +164,7 @@ const MultiAirportSearchbox = ({
           disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
           isFocused && "focus-within",
         )}
-        style={{ minHeight: 48, padding: "0 0.8em", backgroundColor: "#fff" }}
+        style={{ minHeight: 44, padding: "0 0.5em", backgroundColor: "#fff" }}
         onClick={() => {
           if (disabled) return;
           inputRef.current?.focus();
@@ -222,8 +229,12 @@ const MultiAirportSearchbox = ({
 
       {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
-          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => (
+          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+            const isSingle = cityGroup.startsWith("__single__");
+            const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+            return (
             <div key={cityGroup} className="mb-2 last:mb-0">
+              {!isSingle && (
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -237,8 +248,9 @@ const MultiAirportSearchbox = ({
                   strokeWidth={1.5}
                   className="opacity-60"
                 />
-                {cityGroup !== "Other Locations" ? `${cityGroup} Area` : cityGroup}
+                {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
               </button>
+              )}
 
               {cityAirports.map((a) => {
                 const isSelected = selectedIds.has(a.id);
@@ -272,7 +284,8 @@ const MultiAirportSearchbox = ({
                 );
               })}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -472,8 +485,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         {/* Trip Type Switch - Changed to p-[2px] with adjusted CSS math */}
         <div className="bg-white rounded-full p-[2px] flex shadow-sm border border-[#E3E6E6] relative">
           <div
-            className="absolute top-[2px] bottom-[2px] rounded-full bg-[#345C5A] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+            className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
             style={{
+              background: "linear-gradient(135deg, #6ee7b7 0%, #10B981 50%, #059669 100%)",
               width: `calc((100% - 4px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})`,
               left: `calc(2px + (100% - 4px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
                 tripOptions.length - 1 + ACTIVE_TRIP_FLEX
@@ -535,11 +549,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="px-3 pt-1 pb-3">
             <div className={cn("grid gap-1", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Departure Date</label>
+                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer pl-[calc(0.5em+4px)]">Departure Date</label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
+                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10 pl-[0.5em]">
                       <HugeiconsIcon
                         icon={CalendarCheckOut02Icon}
                         size={16}
