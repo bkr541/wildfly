@@ -200,7 +200,6 @@ const MultiAirportSearchbox = ({
           )}
           style={{ fontSize: 16 }}
         />
-      </div>
 
         {showClear && (
           <button
