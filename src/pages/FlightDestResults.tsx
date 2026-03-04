@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon, Share06Icon } from "@hugeicons/core-free-icons";
+import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
