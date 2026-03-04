@@ -63,17 +63,22 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
     return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
   }
 
+  const backToDesignHub = () => {
+    setActiveDesignScreen(null);
+    setDesignHubOpen(true);
+  };
+
   if (activeDesignScreen === "flight-results") {
-    return <FlightResultsDesignScreen onBack={() => setActiveDesignScreen(null)} />;
+    return <FlightResultsDesignScreen onBack={backToDesignHub} />;
   }
   if (activeDesignScreen === "flight-results-v2") {
-    return <FlightResultsV2Screen onBack={() => setActiveDesignScreen(null)} />;
+    return <FlightResultsV2Screen onBack={backToDesignHub} />;
   }
   if (activeDesignScreen === "flight-results-v3") {
-    return <FlightResultsV3Screen onBack={() => setActiveDesignScreen(null)} />;
+    return <FlightResultsV3Screen onBack={backToDesignHub} />;
   }
   if (activeDesignScreen === "flight-results-v4") {
-    return <FlightResultsV4Screen onBack={() => setActiveDesignScreen(null)} />;
+    return <FlightResultsV4Screen onBack={backToDesignHub} />;
   }
 
   if (loading || !settings) {
