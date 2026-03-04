@@ -15,7 +15,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon } from "@hugeicons/core-free-icons";
+import {
+  SunriseIcon,
+  SunsetIcon,
+  Navigator02Icon,
+  TicketStarIcon,
+  Location01Icon,
+  Share06Icon,
+} from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -107,14 +114,22 @@ function RouteFlapTile({ char, animating }: { char: string; animating: boolean }
         borderColor: animating ? "#d1d5db" : "#064E3B",
       }}
     >
-      <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-        style={{ background: animating ? "#b0b5bdaa" : "#064E3Baa" }} />
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }} />
-      <span className="font-black text-sm leading-none select-none z-10"
-        style={{ color: animating ? "#6b7280" : "#fff", letterSpacing: "0.04em" }}>
+      <div
+        className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+        style={{ background: animating ? "#b0b5bdaa" : "#064E3Baa" }}
+      />
+      <div
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }}
+      />
+      <div
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+        style={{ background: animating ? "#e8eaed" : "#10B981", borderColor: animating ? "#d1d5db" : "#064E3B" }}
+      />
+      <span
+        className="font-black text-sm leading-none select-none z-10"
+        style={{ color: animating ? "#6b7280" : "#fff", letterSpacing: "0.04em" }}
+      >
         {char}
       </span>
     </div>
@@ -123,7 +138,9 @@ function RouteFlapTile({ char, animating }: { char: string; animating: boolean }
 
 function RouteFlap({ word }: { word: string }) {
   const upper = word.toUpperCase().slice(0, 4);
-  const [displayChars, setDisplayChars] = useState<string[]>(upper.split("").map(() => CHARS[Math.floor(Math.random() * CHARS.length)]));
+  const [displayChars, setDisplayChars] = useState<string[]>(
+    upper.split("").map(() => CHARS[Math.floor(Math.random() * CHARS.length)]),
+  );
   const [settled, setSettled] = useState<boolean[]>(Array(upper.length).fill(false));
   const ran = useRef(false);
 
@@ -146,17 +163,32 @@ function RouteFlap({ word }: { word: string }) {
           step++;
           if (step >= steps) {
             clearInterval(iv);
-            setDisplayChars(prev => { const n = [...prev]; n[idx] = finalChar; return n; });
-            setSettled(prev => { const n = [...prev]; n[idx] = true; return n; });
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = finalChar;
+              return n;
+            });
+            setSettled((prev) => {
+              const n = [...prev];
+              n[idx] = true;
+              return n;
+            });
           } else {
-            setDisplayChars(prev => { const n = [...prev]; n[idx] = CHARS[Math.floor(Math.random() * CHARS.length)]; return n; });
+            setDisplayChars((prev) => {
+              const n = [...prev];
+              n[idx] = CHARS[Math.floor(Math.random() * CHARS.length)];
+              return n;
+            });
           }
         }, 45);
         intervals.push(iv);
       }, idx * 70);
       timeouts.push(to);
     });
-    return () => { timeouts.forEach(clearTimeout); intervals.forEach(clearInterval); };
+    return () => {
+      timeouts.forEach(clearTimeout);
+      intervals.forEach(clearInterval);
+    };
   }, [upper]);
 
   return (
@@ -168,7 +200,17 @@ function RouteFlap({ word }: { word: string }) {
   );
 }
 
-const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }: { onBack: () => void; responseData: string; hideHeader?: boolean; hideBackground?: boolean }) => {
+const FlightDestResults = ({
+  onBack,
+  responseData,
+  hideHeader,
+  hideBackground,
+}: {
+  onBack: () => void;
+  responseData: string;
+  hideHeader?: boolean;
+  hideBackground?: boolean;
+}) => {
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
@@ -368,25 +410,47 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
   }, [selectedGroup]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#2E5C58] overflow-hidden">
+    <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
+      {!hideBackground && (
+        <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />
+      )}
+      {!hideBackground && (
+        <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />
+      )}
 
       {!hideHeader && (
-      <header
-        className="relative z-10 flex items-start px-5 pt-6 pb-[76px]"
-        style={{
-          backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
-        </button>
-      </header>
+        <header className="relative z-10 flex items-center justify-between px-5 pt-12 pb-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
+          >
+            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+          </button>
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2">
+              <RouteFlap word={origin || departureAirport} />
+              <span className="text-[#6B7B7B] font-bold text-base leading-none">→</span>
+              <RouteFlap word={arrivalAirport || "ALL"} />
+            </div>
+            <span className="text-sm text-[#6B7B7B] font-semibold">
+              {departureDate
+                ? new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : tripType}{" "}
+              | {flights.length} Flight{flights.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="h-10 w-10 flex items-center justify-end text-[#2E4A4A] hover:opacity-70 transition-opacity"
+          >
+            <HugeiconsIcon icon={Share06Icon} size={20} color="#2E4A4A" strokeWidth={1.8} />
+          </button>
+        </header>
       )}
 
       <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
@@ -437,7 +501,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                         <>
                           <span className="text-[22px] font-bold text-[#2E4A4A]"> | </span>
                           <span className="text-[22px] font-light text-[#2E4A4A]">
-                            {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
+                            {group.city || group.destination}
+                            {group.stateCode ? `, ${group.stateCode}` : ""}
                           </span>
                         </>
                       )}
@@ -461,9 +526,12 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                           key={label}
                           className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-1.5 py-1"
                         >
-                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
+                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">
+                            {label}
+                          </span>
                           <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
-                            {value}{suffix}
+                            {value}
+                            {suffix}
                           </span>
                         </div>
                       ))}
@@ -500,7 +568,10 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                       .forEach((h) => flightsByHour.push({ hour: h, items: hourMap[h] }));
 
                     // Flatten all items in chronological order with hour separators
-                    const timelineItems: Array<{ type: "hour"; hour: number } | { type: "flight"; flight: ParsedFlight; idx: number; hour: number }> = [];
+                    const timelineItems: Array<
+                      | { type: "hour"; hour: number }
+                      | { type: "flight"; flight: ParsedFlight; idx: number; hour: number }
+                    > = [];
                     flightsByHour.forEach(({ hour: h, items }) => {
                       timelineItems.push({ type: "hour", hour: h });
                       items.forEach(({ flight, idx }) => timelineItems.push({ type: "flight", flight, idx, hour: h }));
@@ -535,12 +606,15 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                                       animation: "fade-in 0.35s ease-out both",
                                     }}
                                   >
-                                     {/* Dot on spine */}
-                                     <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                     {/* Time label centered over spine */}
-                                     <div className="z-10 bg-white px-2 rounded">
-                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
-                                     </div>
+                                    {/* Dot on spine */}
+                                    <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
+                                    {/* Time label centered over spine */}
+                                    <div className="z-10 bg-white px-2 rounded">
+                                      <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                                        {h12}
+                                        {ampm}
+                                      </span>
+                                    </div>
                                   </div>
                                 );
                               }
@@ -554,21 +628,21 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                               const hasAlert = !!userFlights[alertKey];
                               const hasGoing = !!userFlights[goingKey];
 
-                               return (
+                              return (
+                                <div
+                                  key={`flight-${idx}`}
+                                  data-flight-card
+                                  className="relative flex justify-center w-full py-1.5 px-4"
+                                  style={{
+                                    animationDelay: `${tIdx * 70}ms`,
+                                    animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
+                                  }}
+                                >
+                                  {/* Spine continues through card */}
                                   <div
-                                    key={`flight-${idx}`}
-                                    data-flight-card
-                                    className="relative flex justify-center w-full py-1.5 px-4"
-                                   style={{
-                                     animationDelay: `${tIdx * 70}ms`,
-                                     animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
-                                   }}
-                                 >
-                                   {/* Spine continues through card */}
-                                    <div
-                                     className={cn(
-                                       "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm",
-                                       "w-full",
+                                    className={cn(
+                                      "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm",
+                                      "w-full",
                                       flight.fares.basic != null
                                         ? "border-[#10B981]"
                                         : isFlightOpen
@@ -577,16 +651,22 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                                     )}
                                     style={{ boxShadow: "0 2px 10px 0 rgba(53,92,90,0.08)" }}
                                   >
-                                     <button
-                                       onClick={(e) => {
-                                         const next = isFlightOpen ? null : fKey;
-                                         setExpandedFlightKey(next);
-                                         if (next) {
-                                           const card = (e.currentTarget as HTMLElement).closest('[data-flight-card]') as HTMLElement | null;
-                                           if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
-                                         }
-                                       }}
-                                       className="flex items-center px-3 py-3 text-left w-full"
+                                    <button
+                                      onClick={(e) => {
+                                        const next = isFlightOpen ? null : fKey;
+                                        setExpandedFlightKey(next);
+                                        if (next) {
+                                          const card = (e.currentTarget as HTMLElement).closest(
+                                            "[data-flight-card]",
+                                          ) as HTMLElement | null;
+                                          if (card)
+                                            setTimeout(
+                                              () => card.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+                                              150,
+                                            );
+                                        }
+                                      }}
+                                      className="flex items-center px-3 py-3 text-left w-full"
                                     >
                                       <div className="flex items-center gap-2.5 w-full">
                                         <img
@@ -627,34 +707,52 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                                           >
                                             Alert Me
                                           </button>
-                                           {(() => {
-                                             const isGoWild = flight.fares.basic != null;
-                                             const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
-                                               .filter((v): v is number => v != null)
-                                               .sort((a, b) => a - b)[0];
-                                             const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
-                                             const depLeg = flight.legs[0];
-                                             const arrLeg = flight.legs[flight.legs.length - 1];
-                                             const depDate = (() => {
-                                               try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; }
-                                             })();
-                                             const arrDate = (() => {
-                                               try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; }
-                                             })();
-                                             const tType = (() => {
-                                               try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; }
-                                             })();
-                                             const isRound = tType.toLowerCase().includes("round");
-                                             const frontierUrl = isRound && arrDate
-                                               ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
-                                               : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                                             return (
-                                               <button
-                                                 onClick={(e) => {
-                                                   e.stopPropagation();
-                                                   toggleUserFlight(flight, "going");
-                                                   window.open(frontierUrl, "_blank", "noopener,noreferrer");
-                                                 }}
+                                          {(() => {
+                                            const isGoWild = flight.fares.basic != null;
+                                            const cheapest = [
+                                              flight.fares.basic,
+                                              flight.fares.economy,
+                                              flight.fares.premium,
+                                              flight.fares.business,
+                                            ]
+                                              .filter((v): v is number => v != null)
+                                              .sort((a, b) => a - b)[0];
+                                            const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
+                                            const depLeg = flight.legs[0];
+                                            const arrLeg = flight.legs[flight.legs.length - 1];
+                                            const depDate = (() => {
+                                              try {
+                                                return JSON.parse(responseData).departureDate ?? "";
+                                              } catch {
+                                                return "";
+                                              }
+                                            })();
+                                            const arrDate = (() => {
+                                              try {
+                                                return JSON.parse(responseData).arrivalDate ?? depDate;
+                                              } catch {
+                                                return depDate;
+                                              }
+                                            })();
+                                            const tType = (() => {
+                                              try {
+                                                return JSON.parse(responseData).tripType ?? "one-way";
+                                              } catch {
+                                                return "one-way";
+                                              }
+                                            })();
+                                            const isRound = tType.toLowerCase().includes("round");
+                                            const frontierUrl =
+                                              isRound && arrDate
+                                                ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
+                                                : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+                                            return (
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleUserFlight(flight, "going");
+                                                  window.open(frontierUrl, "_blank", "noopener,noreferrer");
+                                                }}
                                                 className={cn(
                                                   "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
                                                   isGoWild
@@ -684,10 +782,13 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                               return (
                                 <div className="relative flex items-center justify-center w-full py-2">
                                   <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                     <div className="flex items-center gap-1.5 z-10">
-                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
-                                       <div className="w-2.5 h-2.5" />
-                                     </div>
+                                  <div className="flex items-center gap-1.5 z-10">
+                                    <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                                      {h12}
+                                      {ampm}
+                                    </span>
+                                    <div className="w-2.5 h-2.5" />
+                                  </div>
                                 </div>
                               );
                             })()}
