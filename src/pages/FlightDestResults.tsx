@@ -394,8 +394,7 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
             type="button"
             className="h-10 w-10 flex items-center justify-end text-white hover:opacity-70 transition-opacity"
           >
-            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5 opacity-0" style={{ transform: "scaleX(-1)" }} />
-            <HugeiconsIcon icon={Share06Icon} className="absolute right-5" size={20} color="white" strokeWidth={1.5} />
+            <HugeiconsIcon icon={Share06Icon} size={20} color="white" strokeWidth={1.5} />
           </button>
         </div>
         {/* Route text below icons */}
