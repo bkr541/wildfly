@@ -202,7 +202,7 @@ const MultiAirportSearchbox = ({
         />
       </div>
 
-      {showClear && !open && (
+        {showClear && (
           <button
             type="button"
             aria-label={`Clear all ${label}`}
