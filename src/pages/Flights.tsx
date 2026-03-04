@@ -284,7 +284,8 @@ const MultiAirportSearchbox = ({
                 );
               })}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
