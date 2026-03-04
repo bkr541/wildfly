@@ -381,20 +381,14 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
       >
         {/* Dark gradient overlay */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)" }} />
-        {/* Top row: back + share */}
-        <div className="relative flex items-center justify-between w-full">
+        {/* Top row: back only */}
+        <div className="relative flex items-center w-full">
           <button
             type="button"
             onClick={onBack}
             className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
           >
             <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            className="h-10 w-10 flex items-center justify-end text-white hover:opacity-70 transition-opacity"
-          >
-            <HugeiconsIcon icon={Share06Icon} size={20} color="white" strokeWidth={1.5} />
           </button>
         </div>
         {/* Route text below icons */}
@@ -405,7 +399,7 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           <p className="text-white leading-tight uppercase tracking-wide">
             {arrivalAirport && arrivalAirport !== "All" ? (
               <>
-                <span className="text-[48px] font-black">{arrivalAirport}</span>
+                <span className="text-[30px] font-black">{arrivalAirport}</span>
                 {airportMap[arrivalAirport]?.city ? (
                   <span className="text-[30px] font-light"> | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}</span>
                 ) : null}
@@ -421,6 +415,46 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
             </div>
           )}
         </div>
+
+        {/* Metrics strip at bottom of header — no background */}
+        {arrivalAirport && arrivalAirport !== "All" && (
+          <div className="relative mt-auto pt-6 flex items-stretch justify-between w-full gap-2">
+            {(() => {
+              const allFlights = flights;
+              let earliestH: number | null = null;
+              let latestH: number | null = null;
+              let nonstopCnt = 0;
+              let goWildCnt = 0;
+              for (const f of allFlights) {
+                const dep = f.legs[0]?.departure_time;
+                if (dep) {
+                  const h = parseHour(dep);
+                  if (h !== null) {
+                    if (earliestH === null || h < earliestH) earliestH = h;
+                    if (latestH === null || h > latestH) latestH = h;
+                  }
+                }
+                if (f.legs.length === 1) nonstopCnt++;
+                if (f.fares.basic != null) goWildCnt++;
+              }
+              const fmt = (h: number) => {
+                const d = new Date(); d.setHours(h, 0, 0, 0);
+                return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+              };
+              return [
+                { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—", suffix: "" },
+                { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—", suffix: "" },
+                { label: "NONSTOP", value: nonstopCnt, suffix: " Avail." },
+                { label: "GOWILD", value: goWildCnt, suffix: " Avail." },
+              ].map(({ label, value, suffix }) => (
+                <div key={label} className="flex-1 flex flex-col items-center">
+                  <span className="text-[8px] font-semibold text-white/70 uppercase tracking-wide leading-tight text-center">{label}</span>
+                  <span className="text-[13px] font-bold text-white leading-tight mt-0.5 text-center">{value}{suffix}</span>
+                </div>
+              ));
+            })()}
+          </div>
+        )}
       </header>
       )}
 
