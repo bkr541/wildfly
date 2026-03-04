@@ -372,7 +372,7 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {!hideHeader && (
       <header
-        className="relative z-10 flex flex-col px-5 pt-6 pb-[152px] overflow-hidden"
+        className="relative z-10 flex flex-col px-5 pt-6 pb-[136px] overflow-hidden"
         style={{
           backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
           backgroundSize: "cover",
@@ -399,23 +399,23 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
         </div>
         {/* Route text below icons */}
         <div className="relative mt-3">
-          <p className="text-white/80 text-[22px] font-medium leading-tight">
+          <p className="text-white/70 text-[22px] font-light leading-tight">
             {airportMap[departureAirport]?.city || departureAirport} to
           </p>
-          <p className="text-white text-[36px] font-black leading-tight uppercase tracking-wide">
+          <p className="text-white leading-tight uppercase tracking-wide">
             {arrivalAirport && arrivalAirport !== "All" ? (
               <>
-                {arrivalAirport}
+                <span className="text-[48px] font-black">{arrivalAirport}</span>
                 {airportMap[arrivalAirport]?.city ? (
-                  <span className="font-light"> | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}</span>
+                  <span className="text-[30px] font-light"> | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}</span>
                 ) : null}
               </>
             ) : (
-              "All Destinations"
+              <span className="text-[36px] font-black">All Destinations</span>
             )}
           </p>
           {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
-            <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+            <div className="mt-2 inline-flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
               <HugeiconsIcon icon={Location01Icon} size={13} color="white" strokeWidth={1.5} />
               <span className="text-white text-xs font-medium leading-none">{airportMap[arrivalAirport].name}</span>
             </div>
