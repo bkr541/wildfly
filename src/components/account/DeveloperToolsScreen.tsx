@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
 import FlightResultsDesignScreen from "@/components/account/design/FlightResultsDesignScreen";
+import FlightResultsV2Screen from "@/components/account/design/FlightResultsV2Screen";
+import FlightResultsV3Screen from "@/components/account/design/FlightResultsV3Screen";
+import FlightResultsV4Screen from "@/components/account/design/FlightResultsV4Screen";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
@@ -62,6 +65,15 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
 
   if (activeDesignScreen === "flight-results") {
     return <FlightResultsDesignScreen onBack={() => setActiveDesignScreen(null)} />;
+  }
+  if (activeDesignScreen === "flight-results-v2") {
+    return <FlightResultsV2Screen onBack={() => setActiveDesignScreen(null)} />;
+  }
+  if (activeDesignScreen === "flight-results-v3") {
+    return <FlightResultsV3Screen onBack={() => setActiveDesignScreen(null)} />;
+  }
+  if (activeDesignScreen === "flight-results-v4") {
+    return <FlightResultsV4Screen onBack={() => setActiveDesignScreen(null)} />;
   }
 
   if (loading || !settings) {
@@ -165,14 +177,22 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
           </button>
           {designHubOpen && (
             <div className="border-t border-[#F0F1F1] animate-fade-in">
-              <button
-                type="button"
-                onClick={() => setActiveDesignScreen("flight-results")}
-                className="flex items-center w-full px-5 py-2.5 gap-3 hover:bg-[#F2F3F3] transition-colors"
-              >
-                <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">Playground</span>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
-              </button>
+              {[
+                { key: "flight-results", label: "Playground" },
+                { key: "flight-results-v2", label: "Flight Results v2" },
+                { key: "flight-results-v3", label: "Flight Results v3" },
+                { key: "flight-results-v4", label: "Flight Results v4" },
+              ].map(({ key, label }, i, arr) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setActiveDesignScreen(key)}
+                  className={`flex items-center w-full px-5 py-2.5 gap-3 hover:bg-[#F2F3F3] transition-colors ${i < arr.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}
+                >
+                  <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{label}</span>
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
+                </button>
+              ))}
             </div>
           )}
         </div>
