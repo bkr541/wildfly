@@ -168,7 +168,10 @@ function RouteFlap({ word }: { word: string }) {
   );
 }
 
+type TabType = "Info" | "Flights" | "Events" | "Map";
+
 const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }: { onBack: () => void; responseData: string; hideHeader?: boolean; hideBackground?: boolean }) => {
+  const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedDest, setExpandedDest] = useState<string | null>(null);
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
