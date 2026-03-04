@@ -170,7 +170,7 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
                 onClick={() => setActiveDesignScreen("flight-results")}
                 className="flex items-center w-full px-5 py-2.5 gap-3 hover:bg-[#F2F3F3] transition-colors"
               >
-                <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">Flight Results</span>
+                <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">Playground</span>
                 <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
               </button>
             </div>

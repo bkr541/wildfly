@@ -21,7 +21,7 @@ const FlightResultsDesignScreen = ({ onBack }: FlightResultsDesignScreenProps) =
           <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color="#345C5A" strokeWidth={1.5} />
         </button>
         <div>
-          <p className="text-sm font-bold text-[#2E4A4A]">Flight Results</p>
+          <p className="text-sm font-bold text-[#2E4A4A]">Playground</p>
           <p className="text-xs text-[#6B7B7B]">Design Hub — live component preview</p>
         </div>
       </div>
