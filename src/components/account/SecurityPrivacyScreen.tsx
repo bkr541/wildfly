@@ -48,8 +48,9 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
             <label className={labelStyle}>Confirm Password</label>
             <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={inputStyle} />
           </div>
-          <button onClick={handleChangePassword} disabled={saving} className="w-full py-2.5 rounded-xl bg-[#345C5A] text-white font-bold text-xs tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50">
-            {saving ? "Updating..." : "Update Password"}
+          <button onClick={handleChangePassword} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-xs tracking-widest uppercase shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6">
+            <span>{saving ? "Updating..." : "Update Password"}</span>
+            {!saving && <HugeiconsIcon icon={SecurityIcon} size={16} color="white" strokeWidth={2} />}
           </button>
         </div>
 

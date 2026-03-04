@@ -929,7 +929,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full h-14 px-5 bg-[#345C5A] text-white font-semibold text-base rounded-full shadow-sm hover:bg-[#2E4A4A] active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
+          className="w-full h-14 px-5 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-semibold text-base rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 relative flex items-center justify-center"
         >
           <span>{loading ? "Searching..." : "Search Flights"}</span>
           <span className="absolute right-5 flex items-center">

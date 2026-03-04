@@ -137,9 +137,9 @@ const FlyAFriendPage = () => {
         onClick={handleSearch}
         disabled={!originAirport || !destAirport}
         className={cn(
-          "mt-auto w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-base transition-all",
+          "mt-auto w-full flex items-center justify-center gap-2 h-14 rounded-full font-bold text-base transition-all",
           originAirport && destAirport
-            ? "bg-[#345C5A] text-white shadow-lg active:scale-95"
+            ? "bg-gradient-to-r from-[#10B981] to-[#059669] text-white shadow-lg hover:shadow-xl active:scale-[0.98]"
             : "bg-[#E3E6E6] text-[#9CA3AF] cursor-not-allowed"
         )}
       >

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Sun01Icon, Moon01Icon, EarthIcon } from "@hugeicons/core-free-icons";
+import { Sun01Icon, Moon01Icon, EarthIcon, FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface AppearanceScreenProps {
@@ -72,8 +72,9 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
       </div>
 
       <div className="px-5 pb-4 pt-2">
-        <button onClick={handleSave} disabled={saving} className="w-full py-3 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50">
-          {saving ? "Saving..." : "Save Changes"}
+        <button onClick={handleSave} disabled={saving} className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-widest uppercase shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6">
+          <span>{saving ? "Saving..." : "Save Changes"}</span>
+          {!saving && <HugeiconsIcon icon={FloppyDiskIcon} size={18} color="white" strokeWidth={2} />}
         </button>
       </div>
     </div>
