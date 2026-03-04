@@ -394,15 +394,15 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
             type="button"
             className="h-10 w-10 flex items-center justify-end text-white hover:opacity-70 transition-opacity"
           >
-            <HugeiconsIcon icon={Share06Icon} size={20} color="white" strokeWidth={2} />
+            <HugeiconsIcon icon={Share06Icon} size={20} color="white" strokeWidth={1.5} />
           </button>
         </div>
         {/* Route text below icons */}
         <div className="relative mt-3">
-          <p className="text-white/80 text-base font-medium leading-tight">
+          <p className="text-white/80 text-[22px] font-medium leading-tight">
             {airportMap[departureAirport]?.city || departureAirport} to
           </p>
-          <p className="text-white text-[28px] font-black leading-tight uppercase tracking-wide">
+          <p className="text-white text-[36px] font-black leading-tight uppercase tracking-wide">
             {arrivalAirport && arrivalAirport !== "All" ? (
               <>
                 {arrivalAirport}
@@ -414,6 +414,12 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
               "All Destinations"
             )}
           </p>
+          {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
+            <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+              <HugeiconsIcon icon={Location01Icon} size={13} color="white" strokeWidth={1.5} />
+              <span className="text-white text-xs font-medium leading-none">{airportMap[arrivalAirport].name}</span>
+            </div>
+          )}
         </div>
       </header>
       )}
