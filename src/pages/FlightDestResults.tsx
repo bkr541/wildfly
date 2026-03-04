@@ -368,37 +368,17 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
   }, [selectedGroup]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {!hideBackground && <div className="absolute bottom-20 left-8 w-16 h-16 rounded-full bg-[#345C5A]/10 animate-float" />}
-      {!hideBackground && <div className="absolute top-20 right-8 w-10 h-10 rounded-full bg-[#345C5A]/10 animate-float-delay" />}
+    <div className="relative flex flex-col min-h-screen bg-[#2E5C58] overflow-hidden">
 
       {!hideHeader && (
-      <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
+      <header className="relative z-10 flex items-center px-5 pt-6 pb-[76px]">
         <button
           type="button"
           onClick={onBack}
-          className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
+          className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
         >
           <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
         </button>
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2">
-            <RouteFlap word={origin || departureAirport} />
-            <span className="text-[#6B7B7B] font-bold text-base leading-none">→</span>
-            <RouteFlap word={arrivalAirport || "ALL"} />
-          </div>
-          <span className="text-sm text-[#6B7B7B] font-semibold">
-            {departureDate
-              ? new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : tripType}{" "}
-            | {flights.length} Flight{flights.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-        <div className="w-10" />
       </header>
       )}
 
