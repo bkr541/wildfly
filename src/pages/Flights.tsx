@@ -164,7 +164,7 @@ const MultiAirportSearchbox = ({
           disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
           isFocused && "focus-within",
         )}
-        style={{ minHeight: 48, padding: "0 0.8em", backgroundColor: "#fff" }}
+        style={{ minHeight: 44, padding: "0 0.5em", backgroundColor: "#fff" }}
         onClick={() => {
           if (disabled) return;
           inputRef.current?.focus();
