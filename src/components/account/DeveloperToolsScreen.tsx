@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon } from "@hugeicons/core-free-icons";
@@ -12,6 +12,7 @@ import FlightResultsV4Screen from "@/components/account/design/FlightResultsV4Sc
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
+  onTitleChange?: (title: string | null) => void;
 }
 
 const LOG_LEVELS = ["silent", "error", "warn", "info", "debug"] as const;
@@ -27,7 +28,7 @@ const KNOWN_NAMESPACES = [
   "Wallet",
 ];
 
-const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
+const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
@@ -59,14 +60,24 @@ const DeveloperToolsScreen = ({ onBack }: DeveloperToolsScreenProps) => {
     }
   };
 
-  if (showApiClient) {
-    return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
-  }
+  const FULLSCREEN_SCREENS = ["flight-results-v2", "flight-results-v3", "flight-results-v4"];
 
   const backToDesignHub = () => {
     setActiveDesignScreen(null);
     setDesignHubOpen(true);
+    onTitleChange?.("API Client");
   };
+
+  // Hide MainLayout header for full-screen sandbox screens
+  useEffect(() => {
+    if (activeDesignScreen && FULLSCREEN_SCREENS.includes(activeDesignScreen)) {
+      onTitleChange?.(null);
+    }
+  }, [activeDesignScreen]);
+
+  if (showApiClient) {
+    return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
+  }
 
   if (activeDesignScreen === "flight-results") {
     return <FlightResultsDesignScreen onBack={backToDesignHub} />;
