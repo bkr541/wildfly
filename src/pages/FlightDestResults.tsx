@@ -932,6 +932,7 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           </div>
         )}
       </div>
+      </div>
       )} {/* end activeTab === "Flights" */}
 
       {/* Tab: Events */}
