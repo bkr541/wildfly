@@ -460,13 +460,13 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab group */}
       {!hideHeader && (
-        <div className="relative z-10 flex items-center gap-0 bg-[#2E5C58] px-5 border-b border-white/10">
+        <div className="relative z-10 flex items-center gap-0 bg-white px-5 border-b border-gray-200">
           {["Info", "Flights", "Events", "Map"].map((tab) => (
             <button
               key={tab}
               className={cn(
                 "px-4 py-3 text-sm font-semibold transition-colors relative",
-                tab === "Flights" ? "text-white" : "text-white/50 hover:text-white/80"
+                tab === "Flights" ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
               )}
             >
               {tab}
