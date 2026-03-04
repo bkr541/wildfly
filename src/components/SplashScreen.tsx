@@ -4,8 +4,8 @@ const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const WILDFLY = "WILDFLY";
 
 // Grid dimensions
-const COLS = 12;
-const ROWS = 18;
+const COLS = 7;
+const ROWS = 10;
 const TOTAL = COLS * ROWS;
 
 // Find the center row/col to place WILDFLY (7 chars)
@@ -66,25 +66,25 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           }
         }, 55);
         intervalsRef.current.push(flapInterval);
-      }, 1800 + i * 280);
+      }, 1200 + i * 140);
       timeoutsRef.current.push(t);
     });
 
     // Phase 3: After WILDFLY is fully revealed (~1.8 + 7*280 = ~3.76s), hold then fade out
     const showTaglineTimer = setTimeout(() => {
       setShowTagline(true);
-    }, 3900);
+    }, 2600);
     timeoutsRef.current.push(showTaglineTimer);
 
     const stopFlicker = setTimeout(() => {
       clearInterval(flickerInterval);
-    }, 3900);
+    }, 2600);
     timeoutsRef.current.push(stopFlicker);
 
     const fadeOut = setTimeout(() => {
       setShow(false);
       setTimeout(onComplete, 600);
-    }, 4600);
+    }, 3400);
     timeoutsRef.current.push(fadeOut);
 
     return () => {
