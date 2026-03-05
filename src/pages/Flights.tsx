@@ -154,7 +154,7 @@ const MultiAirportSearchbox = ({
 
   return (
     <div className={cn("relative", containerClassName)}>
-      <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block">{label}</label>
+      <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">{label}</label>
 
       <div
         className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-text")}
