@@ -16,11 +16,164 @@ import {
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon, InformationCircleIcon, AirplaneTakeOff01Icon, Calendar03Icon, Location06Icon, FilterIcon, SortByDown02Icon } from "@hugeicons/core-free-icons";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
 import { fetchDeveloperSettings } from "@/lib/logSettings";
+
+// ── RouteMap ─────────────────────────────────────────────────────────────────
+
+interface RouteMapProps {
+  departureAirport: string;
+  arrivalAirport: string;
+  airportMap: Record<string, { city: string; stateCode: string; name: string; lat?: number; lng?: number }>;
+}
+
+/** Haversine distance in km between two lat/lng points */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/** Generate intermediate great-circle points for a curved route arc */
+function greatCirclePoints(
+  lat1: number, lng1: number, lat2: number, lng2: number, steps = 60
+): [number, number][] {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const toDeg = (r: number) => (r * 180) / Math.PI;
+  const φ1 = toRad(lat1), λ1 = toRad(lng1);
+  const φ2 = toRad(lat2), λ2 = toRad(lng2);
+  const d = 2 * Math.asin(Math.sqrt(Math.sin((φ2 - φ1) / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin((λ2 - λ1) / 2) ** 2));
+  if (d === 0) return [[lat1, lng1]];
+  const points: [number, number][] = [];
+  for (let i = 0; i <= steps; i++) {
+    const f = i / steps;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
+    const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
+    const z = A * Math.sin(φ1) + B * Math.sin(φ2);
+    points.push([toDeg(Math.atan2(z, Math.sqrt(x ** 2 + y ** 2))), toDeg(Math.atan2(y, x))]);
+  }
+  return points;
+}
+
+/** Auto-fit map bounds to the two airports */
+function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
+  const map = useMap();
+  useEffect(() => {
+    map.fitBounds(bounds, { padding: [48, 48] });
+  }, [map, bounds]);
+  return null;
+}
+
+const airplaneIcon = L.divIcon({
+  html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4))">✈️</div>`,
+  className: "",
+  iconAnchor: [11, 11],
+});
+
+const dotIcon = L.divIcon({
+  html: `<div style="width:12px;height:12px;border-radius:50%;background:#059669;border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
+  className: "",
+  iconAnchor: [6, 6],
+});
+
+const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProps) => {
+  const dep = airportMap[departureAirport];
+  const arr = airportMap[arrivalAirport && arrivalAirport !== "All" ? arrivalAirport : ""];
+
+  const hasCoords = dep?.lat != null && dep?.lng != null && arr?.lat != null && arr?.lng != null;
+
+  if (!hasCoords) {
+    return (
+      <div className="flex-1 flex flex-col px-5 pt-4 pb-6 gap-4 relative z-10">
+        <div className="rounded-xl bg-white border border-[#E8EBEB] p-6 flex flex-col items-center gap-3" style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}>
+          <HugeiconsIcon icon={Navigator02Icon} size={40} color="#A8BEBE" strokeWidth={1.5} />
+          <p className="text-base font-semibold text-[#2E4A4A] text-center">Map unavailable</p>
+          <p className="text-sm text-[#6B7B7B] text-center leading-relaxed">
+            {arrivalAirport === "All" ? "Select a specific destination to view the route map." : "Airport coordinates not available for this route."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const depLatLng: [number, number] = [dep.lat!, dep.lng!];
+  const arrLatLng: [number, number] = [arr.lat!, arr.lng!];
+
+  const arcPoints = greatCirclePoints(dep.lat!, dep.lng!, arr.lat!, arr.lng!);
+
+  // Midpoint for airplane icon
+  const mid = arcPoints[Math.floor(arcPoints.length / 2)];
+
+  const bounds = L.latLngBounds([depLatLng, arrLatLng]);
+
+  return (
+    <div className="flex-1 flex flex-col px-5 pt-4 pb-6 gap-3 relative z-10">
+      {/* Route label */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[15px] font-black text-[#2E4A4A] tracking-wider">{departureAirport}</span>
+          <span className="text-[#A8BEBE] text-sm">→</span>
+          <span className="text-[15px] font-black text-[#2E4A4A] tracking-wider">{arrivalAirport}</span>
+        </div>
+        <span className="text-xs text-[#6B7B7B] font-medium">
+          {Math.round(haversineKm(dep.lat!, dep.lng!, arr.lat!, arr.lng!)).toLocaleString()} km
+        </span>
+      </div>
+
+      {/* Map */}
+      <div className="rounded-2xl overflow-hidden border border-[#E8EBEB]" style={{ height: 320, boxShadow: "0 4px 20px 0 rgba(53,92,90,0.13)" }}>
+        <MapContainer
+          style={{ height: "100%", width: "100%" }}
+          center={[
+            (dep.lat! + arr.lat!) / 2,
+            (dep.lng! + arr.lng!) / 2,
+          ]}
+          zoom={4}
+          zoomControl={false}
+          scrollWheelZoom={false}
+          attributionControl={false}
+        >
+          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+          <FitBounds bounds={bounds} />
+          {/* Arc */}
+          <Polyline
+            positions={arcPoints}
+            pathOptions={{ color: "#059669", weight: 2.5, dashArray: "6 5", opacity: 0.85 }}
+          />
+          {/* Airport dots */}
+          <Marker position={depLatLng} icon={dotIcon} />
+          <Marker position={arrLatLng} icon={dotIcon} />
+          {/* Airplane at midpoint */}
+          {mid && <Marker position={mid} icon={airplaneIcon} />}
+        </MapContainer>
+      </div>
+
+      {/* Airport name labels */}
+      <div className="flex justify-between px-1">
+        <div className="flex flex-col">
+          <span className="text-xs font-bold text-[#2E4A4A]">{departureAirport}</span>
+          <span className="text-[11px] text-[#6B7B7B]">{dep.city}{dep.stateCode ? `, ${dep.stateCode}` : ""}</span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-xs font-bold text-[#2E4A4A]">{arrivalAirport}</span>
+          <span className="text-[11px] text-[#6B7B7B]">{arr.city}{arr.stateCode ? `, ${arr.stateCode}` : ""}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface ParsedFlight {
   total_duration: string;
