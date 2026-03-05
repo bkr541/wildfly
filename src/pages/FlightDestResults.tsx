@@ -302,27 +302,44 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
     return Array.from(codes);
   }, [flights]);
 
+  const [airportCoords, setAirportCoords] = useState<Record<string, { lat: number; lng: number }>>({});
+
   useEffect(() => {
     if (destinationCodes.length === 0) return;
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, locations(city, state_code)")
+        .select("iata_code, name, latitude, longitude, locations(city, state_code)")
         .in("iata_code", destinationCodes);
       if (data) {
         const map: Record<string, { city: string; stateCode: string; name: string }> = {};
+        const coords: Record<string, { lat: number; lng: number }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
             city: a.locations?.city ?? "",
             stateCode: a.locations?.state_code ?? "",
             name: a.name ?? "",
           };
+          if (a.latitude != null && a.longitude != null) {
+            coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
+          }
         }
         setAirportMap(map);
+        setAirportCoords(coords);
       }
     };
     fetchAirports();
   }, [destinationCodes]);
+
+  const airportMapWithCoords = useMemo(
+    () => Object.fromEntries(
+      Object.entries(airportMap).map(([k, v]) => [
+        k,
+        { ...v, lat: airportCoords[k]?.lat, lng: airportCoords[k]?.lng },
+      ])
+    ),
+    [airportMap, airportCoords]
+  );
 
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
