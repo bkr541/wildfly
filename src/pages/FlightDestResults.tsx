@@ -116,30 +116,15 @@ const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProp
 
       {/* Map */}
       <div className="rounded-2xl overflow-hidden border border-[#E8EBEB]" style={{ height: 320, boxShadow: "0 4px 20px 0 rgba(53,92,90,0.13)" }}>
-        <MapContainer
-          style={{ height: "100%", width: "100%" }}
-          center={[
-            (dep.lat! + arr.lat!) / 2,
-            (dep.lng! + arr.lng!) / 2,
-          ]}
-          zoom={4}
-          zoomControl={false}
-          scrollWheelZoom={false}
-          attributionControl={false}
-        >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-          <FitBounds bounds={bounds} />
-          {/* Arc */}
-          <Polyline
-            positions={arcPoints}
-            pathOptions={{ color: "#059669", weight: 2.5, dashArray: "6 5", opacity: 0.85 }}
+        <Suspense fallback={<div className="h-full flex items-center justify-center text-sm text-[#6B7B7B]">Loading map…</div>}>
+          <LeafletMap
+            depLatLng={depLatLng}
+            arrLatLng={arrLatLng}
+            arcPoints={arcPoints}
+            mid={mid}
+            bounds={bounds}
           />
-          {/* Airport dots */}
-          <Marker position={depLatLng} icon={createDotIcon()} />
-          <Marker position={arrLatLng} icon={createDotIcon()} />
-          {/* Airplane at midpoint */}
-          {mid ? <Marker position={mid} icon={createAirplaneIcon()} /> : <></>}
-        </MapContainer>
+        </Suspense>
       </div>
 
       {/* Airport name labels */}
