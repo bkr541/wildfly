@@ -68,30 +68,7 @@ function greatCirclePoints(
   return points;
 }
 
-/** Auto-fit map bounds to the two airports */
-function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
-  const map = useMap();
-  useEffect(() => {
-    map.fitBounds(bounds, { padding: [48, 48] });
-  }, [map, bounds]);
-  return null;
-}
-
-function createAirplaneIcon() {
-  return L.divIcon({
-    html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4))">✈️</div>`,
-    className: "",
-    iconAnchor: [11, 11],
-  });
-}
-
-function createDotIcon() {
-  return L.divIcon({
-    html: `<div style="width:12px;height:12px;border-radius:50%;background:#059669;border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
-    className: "",
-    iconAnchor: [6, 6],
-  });
-}
+/** Haversine distance helper (used below for km display) */
 
 const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProps) => {
   const dep = airportMap[departureAirport];
