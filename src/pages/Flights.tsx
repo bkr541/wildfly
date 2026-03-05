@@ -166,7 +166,7 @@ const MultiAirportSearchbox = ({
         }}
       >
         <button type="button" tabIndex={-1} className="app-input-icon-btn">
-          <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={1.5} />
+          <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={2} />
         </button>
 
         <input
@@ -212,7 +212,7 @@ const MultiAirportSearchbox = ({
             }}
             className="app-input-reset app-input-reset--visible"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
           </button>
         )}
       </div>
@@ -235,7 +235,7 @@ const MultiAirportSearchbox = ({
                       icon={Building04Icon}
                       size={12}
                       color="currentColor"
-                      strokeWidth={1.5}
+                      strokeWidth={2}
                       className="opacity-60"
                     />
                     {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
@@ -263,7 +263,7 @@ const MultiAirportSearchbox = ({
                           icon={Location01Icon}
                           size={12}
                           color="#9CA3AF"
-                          strokeWidth={1.5}
+                          strokeWidth={2}
                           className="mr-2 shrink-0"
                         />
                         <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
@@ -552,7 +552,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       style={{ minHeight: 44 }}
                     >
                       <span className="app-input-icon-btn">
-                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
                       </span>
                       <span
                         className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
@@ -591,7 +591,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                         style={{ minHeight: 44 }}
                       >
                         <span className="app-input-icon-btn">
-                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
                         </span>
                         <span
                           className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
