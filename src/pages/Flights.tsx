@@ -166,7 +166,7 @@ const MultiAirportSearchbox = ({
         }}
       >
         <button type="button" tabIndex={-1} className="app-input-icon-btn">
-          <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={1.5} />
+          <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={2} />
         </button>
 
         <input
@@ -212,7 +212,7 @@ const MultiAirportSearchbox = ({
             }}
             className="app-input-reset app-input-reset--visible"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
           </button>
         )}
       </div>
@@ -235,7 +235,7 @@ const MultiAirportSearchbox = ({
                       icon={Building04Icon}
                       size={12}
                       color="currentColor"
-                      strokeWidth={1.5}
+                      strokeWidth={2}
                       className="opacity-60"
                     />
                     {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
@@ -263,7 +263,7 @@ const MultiAirportSearchbox = ({
                           icon={Location01Icon}
                           size={12}
                           color="#9CA3AF"
-                          strokeWidth={1.5}
+                          strokeWidth={2}
                           className="mr-2 shrink-0"
                         />
                         <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
@@ -473,13 +473,13 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
         <SplitFlapHeader word="FLIGHTS" />
       </div>
 
-      <div className="px-6 pb-8 relative z-10 flex flex-col gap-5 animate-fade-in">
-        {/* Trip Type Switch - Changed to p-[2px] with adjusted CSS math */}
+      <div className="px-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
+        {/* Trip Type Switch */}
         <div className="bg-white rounded-full p-[2px] flex shadow-sm border border-[#E3E6E6] relative">
           <div
             className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
             style={{
-              background: "linear-gradient(135deg, #6ee7b7 0%, #10B981 50%, #059669 100%)",
+              background: "#10B981",
               width: `calc((100% - 4px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})`,
               left: `calc(2px + (100% - 4px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
                 tripOptions.length - 1 + ACTIVE_TRIP_FLEX
@@ -503,7 +503,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   icon={opt.icon}
                   size={16}
                   color="currentColor"
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   className="shrink-0 transition-transform duration-300"
                 />
                 {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
@@ -552,7 +552,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       style={{ minHeight: 44 }}
                     >
                       <span className="app-input-icon-btn">
-                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
                       </span>
                       <span
                         className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
@@ -591,7 +591,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                         style={{ minHeight: 44 }}
                       >
                         <span className="app-input-icon-btn">
-                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
                         </span>
                         <span
                           className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
