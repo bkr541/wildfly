@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlane } from "@fortawesome/free-solid-svg-icons";
-import airplaneIcon from "@/assets/airplane-icon.svg";
+import { ChevronRight } from "lucide-react";
+import planeIcon from "@/assets/plane-icon.svg";
 
 interface UserFlight {
   id: string;
@@ -35,7 +34,6 @@ function formatTime(dateStr: string): string {
 }
 
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_logo.png";
-
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
 interface Props {
@@ -46,21 +44,25 @@ interface Props {
 export function UpcomingFlightsScroll({ flights, loading }: Props) {
   return (
     <section className="px-5 pb-4 relative z-10">
-      <h2 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-widest mb-3 px-1">
-        Upcoming Flights
-        {!loading && (
-          <span className="ml-1.5 font-medium normal-case tracking-normal">
-            · {flights.length} {flights.length === 1 ? "flight" : "flights"}
-          </span>
-        )}
-      </h2>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h2 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-widest">
+          Upcoming Flights
+        </h2>
+        <button
+          type="button"
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
+        >
+          View All
+          <ChevronRight size={13} strokeWidth={2.5} />
+        </button>
+      </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
         {loading ? (
           [1, 2].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-52 rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4 animate-pulse"
+              className="flex-shrink-0 w-[232px] rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4 animate-pulse"
               style={{ scrollSnapAlign: "start" }}
             >
               <div className="h-3 w-24 rounded bg-[#e5e7eb] mb-3" />
@@ -76,8 +78,15 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
               key={flight.id}
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08, ease: EASE } }}
-              className="flex-shrink-0 w-[220px] rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
-              style={{ scrollSnapAlign: "start" }}
+              className="flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
+              style={{
+                scrollSnapAlign: "start",
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid rgba(5,150,105,0.18)",
+                boxShadow: "0 4px 24px 0 rgba(5,150,105,0.13), 0 1.5px 6px 0 rgba(5,150,105,0.08)",
+              }}
             >
               {/* Airline logo row */}
               <div className="h-4 flex items-center gap-2 mb-3">
@@ -99,9 +108,9 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
                 </span>
 
                 <div className="flex-1 flex items-center px-1">
-                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-30" />
-                  <img src={airplaneIcon} alt="flight" className="mx-1.5 w-6 h-6 object-contain flex-shrink-0" />
-                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-30" />
+                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                  <img src={planeIcon} alt="flight" className="mx-1.5 w-8 h-8 object-contain flex-shrink-0" />
+                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
                 </div>
 
                 <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
