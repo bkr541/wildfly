@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 
+
 interface UserFlight {
   id: string;
   departure_airport: string;
