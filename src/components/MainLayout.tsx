@@ -204,21 +204,26 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-          <header className="flex items-center gap-3 px-6 pt-4 pb-2 relative z-10">
+        <header
+            className="flex items-center gap-3 px-6 pt-10 pb-6 relative z-10"
+            style={{
+              background: "linear-gradient(160deg, #07444a 0%, #0a6b5e 55%, #10b981 100%)",
+              borderBottomLeftRadius: "28px",
+              borderBottomRightRadius: "28px",
+              boxShadow: "0 8px 32px 0 rgba(5,150,105,0.18)",
+            }}
+          >
             {/* Left: hamburger */}
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
+              className="h-12 w-10 flex items-center justify-start text-white hover:opacity-80 transition-opacity"
             >
               <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
             </button>
 
             {currentPage && (
-              <span
-                className="text-xl font-black tracking-widest uppercase select-none"
-                style={{ background: "linear-gradient(135deg,#10B981 0%,#059669 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
-              >
+              <span className="text-xl font-black tracking-widest uppercase select-none text-white">
                 {currentPage === "home" ? fullName
                   : currentPage === "flights" ? "FLIGHTS"
                   : currentPage === "destinations" ? "DESTINATIONS"
