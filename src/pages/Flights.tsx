@@ -119,10 +119,7 @@ const MultiAirportSearchbox = ({
     );
     // Only keep group headers for cities with multiple airports
     return Object.fromEntries(
-      Object.entries(grouped).map(([key, airports]) => [
-        airports.length > 1 ? key : `__single__${key}`,
-        airports,
-      ])
+      Object.entries(grouped).map(([key, airports]) => [airports.length > 1 ? key : `__single__${key}`, airports]),
     );
   }, [query, airports, shouldShow, disabled]);
 
@@ -150,13 +147,14 @@ const MultiAirportSearchbox = ({
   const showClear = selected.length > 0 && !disabled;
 
   // Display text: "IATA | City" for the first selected airport (single-select display)
-  const displayValue = selected.length > 0 && !query
-    ? `${selected[0].iata_code} | ${selected[0].locations?.city ?? selected[0].name}`
-    : query;
+  const displayValue =
+    selected.length > 0 && !query
+      ? `${selected[0].iata_code} | ${selected[0].locations?.city ?? selected[0].name}`
+      : query;
 
   return (
     <div className={cn("relative", containerClassName)}>
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">{label}</label>
+      <label className="text-xs font-semibold text-[#10B981] mb-1 block">{label}</label>
 
       <div
         className={cn(
@@ -202,7 +200,7 @@ const MultiAirportSearchbox = ({
             if (selected.length === 0) setQuery("");
           }}
           className={cn(
-            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] font-semibold placeholder:text-[#9CA3AF] truncate",
+            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] font-semibold placeholder:text-[#9CA3AF] placeholder:font-normal truncate",
             disabled && "cursor-not-allowed",
           )}
           style={{ fontSize: 16 }}
@@ -233,57 +231,57 @@ const MultiAirportSearchbox = ({
             const isSingle = cityGroup.startsWith("__single__");
             const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
             return (
-            <div key={cityGroup} className="mb-2 last:mb-0">
-              {!isSingle && (
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => addAreaAirports(cityAirports)}
-                className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
-              >
-                <HugeiconsIcon
-                  icon={Building04Icon}
-                  size={12}
-                  color="currentColor"
-                  strokeWidth={1.5}
-                  className="opacity-60"
-                />
-                {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
-              </button>
-              )}
-
-              {cityAirports.map((a) => {
-                const isSelected = selectedIds.has(a.id);
-                return (
+              <div key={cityGroup} className="mb-2 last:mb-0">
+                {!isSingle && (
                   <button
-                    key={a.id}
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      if (isSelected) removeAirport(a.id);
-                      else addAirport(a);
-                    }}
-                    className={cn(
-                      "w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
-                      isSelected && "bg-[#345C5A]/5",
-                    )}
+                    onClick={() => addAreaAirports(cityAirports)}
+                    className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                      <HugeiconsIcon
-                        icon={Location01Icon}
-                        size={12}
-                        color="#9CA3AF"
-                        strokeWidth={1.5}
-                        className="mr-2 shrink-0"
-                      />
-                      <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
-                      <span className="ml-2 truncate">{a.name}</span>
-                      {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
-                    </div>
+                    <HugeiconsIcon
+                      icon={Building04Icon}
+                      size={12}
+                      color="currentColor"
+                      strokeWidth={1.5}
+                      className="opacity-60"
+                    />
+                    {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
                   </button>
-                );
-              })}
-            </div>
+                )}
+
+                {cityAirports.map((a) => {
+                  const isSelected = selectedIds.has(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        if (isSelected) removeAirport(a.id);
+                        else addAirport(a);
+                      }}
+                      className={cn(
+                        "w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
+                        isSelected && "bg-[#345C5A]/5",
+                      )}
+                    >
+                      <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
+                        <HugeiconsIcon
+                          icon={Location01Icon}
+                          size={12}
+                          color="#9CA3AF"
+                          strokeWidth={1.5}
+                          className="mr-2 shrink-0"
+                        />
+                        <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
+                        <span className="ml-2 truncate">{a.name}</span>
+                        {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </div>
@@ -452,7 +450,9 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
     if (defaultHomeApplied || departures.length > 0) return;
     if (!userSettings.default_departure_to_home) return;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
       const { data: info } = await supabase
         .from("user_info")
@@ -549,11 +549,16 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="px-3 pt-1 pb-3">
             <div className={cn("grid gap-1", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer pl-[calc(0.5em+4px)]">Departure Date</label>
+                <label className="text-xs font-semibold text-[#10B981] mb-1 block cursor-pointer pl-[calc(0.5em+4px)]">
+                  Departure Date
+                </label>
 
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10 pl-[0.5em]">
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2.5 text-left outline-none h-10 pl-[0.5em]"
+                    >
                       <HugeiconsIcon
                         icon={CalendarCheckOut02Icon}
                         size={16}
@@ -587,7 +592,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               {showReturnDate && (
                 <div>
-                  <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block cursor-pointer">Return Date</label>
+                  <label className="text-xs font-semibold text-[#10B981] mb-1 block cursor-pointer">Return Date</label>
 
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
@@ -627,7 +632,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
         {/* Search All Destinations */}
         <div className="flex items-center justify-end gap-2 -mt-1">
-          <label htmlFor="search-all" className="text-xs font-semibold text-[#6B7B7B] cursor-pointer select-none">
+          <label htmlFor="search-all" className="text-xs font-semibold text-[#10B981] cursor-pointer select-none">
             Search All Destinations
           </label>
 
@@ -923,12 +928,8 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           }}
           className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <span className="uppercase tracking-[0.35em] text-sm">
-            {loading ? "Searching..." : "Search Flights"}
-          </span>
-          {!loading && (
-            <HugeiconsIcon icon={PlaneIcon} size={18} color="white" strokeWidth={2} className="shrink-0" />
-          )}
+          <span className="uppercase tracking-[0.35em] text-sm">{loading ? "Searching..." : "Search Flights"}</span>
+          {!loading && <HugeiconsIcon icon={PlaneIcon} size={18} color="white" strokeWidth={2} className="shrink-0" />}
         </button>
       </div>
     </>
