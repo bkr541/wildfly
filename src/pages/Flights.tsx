@@ -503,7 +503,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   icon={opt.icon}
                   size={16}
                   color="currentColor"
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   className="shrink-0 transition-transform duration-300"
                 />
                 {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
