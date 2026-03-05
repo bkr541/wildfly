@@ -579,310 +579,219 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
         </div>
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
-            const isDestOpen = expandedDest === group.destination;
             const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
             const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
-            let earliestTime: Date | null = null;
-            let latestTime: Date | null = null;
-            for (const f of group.flights) {
-              const dep = f.legs[0]?.departure_time;
-              if (dep) {
-                const h = parseHour(dep);
-                if (h !== null) {
-                  const d = new Date();
-                  d.setHours(h, 0, 0, 0);
-                  if (!earliestTime || d < earliestTime) earliestTime = d;
-                  if (!latestTime || d > latestTime) latestTime = d;
-                }
-              }
-            }
-            const earliestLabel = earliestTime
-              ? earliestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
-              : null;
-            const latestLabel = latestTime
-              ? latestTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
-              : null;
+
+            {/* Timeline — always visible, no parent card */}
+            const flightsByHour: { hour: number; items: { flight: ParsedFlight; idx: number }[] }[] = [];
+            const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
+            group.flights.forEach((flight, idx) => {
+              const dep = flight.legs[0]?.departure_time;
+              if (!dep) return;
+              const h = parseHour(dep);
+              if (h === null) return;
+              if (!hourMap[h]) hourMap[h] = [];
+              hourMap[h].push({ flight, idx });
+            });
+            Object.keys(hourMap)
+              .map(Number)
+              .sort((a, b) => a - b)
+              .forEach((h) => flightsByHour.push({ hour: h, items: hourMap[h] }));
+
+            const timelineItems: Array<{ type: "hour"; hour: number } | { type: "flight"; flight: ParsedFlight; idx: number; hour: number }> = [];
+            flightsByHour.forEach(({ hour: h, items }) => {
+              timelineItems.push({ type: "hour", hour: h });
+              items.forEach(({ flight, idx }) => timelineItems.push({ type: "flight", flight, idx, hour: h }));
+            });
+            const lastHour = flightsByHour[flightsByHour.length - 1]?.hour ?? 0;
+            const trailingHour = (lastHour + 3) % 24;
+
+            const fmtHourLabel = (h: number) => {
+              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+              const ampm = h < 12 ? "AM" : "PM";
+              return { h12: `${h12}:00`, ampm };
+            };
+
             return (
-              <div
-                key={group.destination}
-                className="rounded-xl bg-white border border-[#E8EBEB] overflow-hidden"
-                style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10), 0 1.5px 4px 0 rgba(53,92,90,0.07)" }}
-              >
-                {/* Header row — clickable to expand */}
-                <button
-                  onClick={() => {
-                    setExpandedDest(isDestOpen ? null : group.destination);
-                    setExpandedFlightKey(null);
-                  }}
-                  className="w-full flex flex-col px-4 pt-4 pb-3 text-left"
-                >
-                  {/* IATA | City, State */}
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="leading-tight uppercase">
-                      <span className="text-[22px] font-bold text-[#2E4A4A]">{group.destination}</span>
-                      {(group.city || group.stateCode) && (
-                        <>
-                          <span className="text-[22px] font-bold text-[#2E4A4A]"> | </span>
-                          <span className="text-[22px] font-light text-[#2E4A4A]">
-                            {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
-                          </span>
-                        </>
-                      )}
-                    </span>
-                    {/* Airport name with pin */}
-                    {group.airportName && (
-                      <span className="flex items-center gap-1 mt-0.5">
-                        <HugeiconsIcon icon={Location01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
-                        <span className="text-xs text-[#6B7B7B] font-normal leading-tight">{group.airportName}</span>
-                      </span>
+              <div key={group.destination} className="pt-1 pb-2">
+                {/* Destination label */}
+                <div className="flex flex-col mb-2 px-1">
+                  <span className="leading-tight uppercase">
+                    <span className="text-[22px] font-bold text-[#2E4A4A]">{group.destination}</span>
+                    {(group.city || group.stateCode) && (
+                      <>
+                        <span className="text-[22px] font-bold text-[#2E4A4A]"> | </span>
+                        <span className="text-[22px] font-light text-[#2E4A4A]">
+                          {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
+                        </span>
+                      </>
                     )}
-                    {/* Info icon cards row — no icon, label above value */}
-                    <div className="flex items-stretch justify-between w-full mt-2.5 gap-1.5">
-                      {[
-                        { label: "EARLIEST", value: earliestLabel ?? "—", suffix: "" },
-                        { label: "LATEST", value: latestLabel ?? "—", suffix: "" },
-                        { label: "NONSTOP", value: nonstopCount, suffix: " Avail." },
-                        { label: "GOWILD", value: goWildCount, suffix: " Avail." },
-                      ].map(({ label, value, suffix }) => (
+                  </span>
+                  {group.airportName && (
+                    <span className="flex items-center gap-1 mt-0.5">
+                      <HugeiconsIcon icon={Location01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
+                      <span className="text-xs text-[#6B7B7B] font-normal leading-tight">{group.airportName}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Timeline */}
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-[#C8D5D5]" />
+                  <div className="flex flex-col items-center w-full gap-0">
+                    {timelineItems.map((item, tIdx) => {
+                      if (item.type === "hour") {
+                        const { h12, ampm } = fmtHourLabel(item.hour);
+                        return (
+                          <div
+                            key={`hour-${item.hour}`}
+                            className="relative flex items-center justify-center w-full py-2"
+                            style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
+                          >
+                            <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
+                            <div className="z-10 bg-[#F2F3F3] px-2 rounded">
+                              <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const { flight, idx } = item;
+                      const fKey = `${group.destination}-${idx}`;
+                      const isFlightOpen = expandedFlightKey === fKey;
+                      const alertKey = flightKey(flight, "alert");
+                      const goingKey = flightKey(flight, "going");
+                      const hasAlert = !!userFlights[alertKey];
+                      const hasGoing = !!userFlights[goingKey];
+
+                      return (
                         <div
-                          key={label}
-                          className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-1.5 py-1"
+                          key={`flight-${idx}`}
+                          data-flight-card
+                          className="relative flex justify-center w-full py-1.5 px-4"
+                          style={{ animationDelay: `${tIdx * 70}ms`, animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both" }}
                         >
-                          <span className="text-[12px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
-                          <span className="text-[17px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
-                            {value}{suffix}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Down chevron on its own bottom row */}
-                  <div className="flex justify-center w-full mt-2">
-                    <FontAwesomeIcon
-                      icon={faChevronDown}
-                      className={cn(
-                        "w-4 h-4 text-[#9CA3AF] transition-transform duration-200",
-                        isDestOpen && "rotate-180",
-                      )}
-                    />
-                  </div>
-                </button>
+                          <div
+                            className={cn(
+                              "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm w-full",
+                              flight.fares.basic != null
+                                ? "border-[#10B981]"
+                                : isFlightOpen
+                                  ? "border-[#345C5A]/20"
+                                  : "border-[#E8EBEB]",
+                            )}
+                            style={{ boxShadow: "0 2px 10px 0 rgba(53,92,90,0.08)" }}
+                          >
+                            <button
+                              onClick={(e) => {
+                                const next = isFlightOpen ? null : fKey;
+                                setExpandedFlightKey(next);
+                                if (next) {
+                                  const card = (e.currentTarget as HTMLElement).closest('[data-flight-card]') as HTMLElement | null;
+                                  if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+                                }
+                              }}
+                              className="flex items-center px-3 py-3 text-left w-full"
+                            >
+                              <div className="flex items-center gap-2.5 w-full">
+                                <img
+                                  src="/assets/logo/frontier/frontier_logo.png"
+                                  alt="Frontier"
+                                  className="w-[32px] h-[32px] rounded object-contain shrink-0"
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-base font-bold text-[#2E4A4A]">
+                                    {formatTime(flight.legs[0]?.departure_time)} →{" "}
+                                    {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
+                                  </span>
+                                  <span className="text-[13px] text-[#6B7B7B] font-medium">
+                                    {flight.total_duration}
+                                    {flight.is_plus_one_day && (
+                                      <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
 
-                {isDestOpen &&
-                  (() => {
-                    // Group flights by hour, only keep hours with flights
-                    const flightsByHour: { hour: number; items: { flight: ParsedFlight; idx: number }[] }[] = [];
-                    const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
-                    group.flights.forEach((flight, idx) => {
-                      const dep = flight.legs[0]?.departure_time;
-                      if (!dep) return;
-                      const h = parseHour(dep);
-                      if (h === null) return;
-                      if (!hourMap[h]) hourMap[h] = [];
-                      hourMap[h].push({ flight, idx });
-                    });
-                    Object.keys(hourMap)
-                      .map(Number)
-                      .sort((a, b) => a - b)
-                      .forEach((h) => flightsByHour.push({ hour: h, items: hourMap[h] }));
-
-                    // Flatten all items in chronological order with hour separators
-                    const timelineItems: Array<{ type: "hour"; hour: number } | { type: "flight"; flight: ParsedFlight; idx: number; hour: number }> = [];
-                    flightsByHour.forEach(({ hour: h, items }) => {
-                      timelineItems.push({ type: "hour", hour: h });
-                      items.forEach(({ flight, idx }) => timelineItems.push({ type: "flight", flight, idx, hour: h }));
-                    });
-                    // Add trailing hour label after last flight
-                    const lastHour = flightsByHour[flightsByHour.length - 1]?.hour ?? 0;
-                    const trailingHour = (lastHour + 3) % 24;
-
-                    const fmtHourLabel = (h: number) => {
-                      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                      const ampm = h < 12 ? "AM" : "PM";
-                      return { h12: `${h12}:00`, ampm };
-                    };
-
-                    return (
-                      <div className="border-t border-[#F2F3F3] pt-3 pb-4 px-0">
-                        {/* Centered spine timeline */}
-                        <div className="relative flex flex-col items-center">
-                          {/* Vertical spine line */}
-                          <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-[#C8D5D5]" />
-
-                          <div className="flex flex-col items-center w-full gap-0">
-                            {timelineItems.map((item, tIdx) => {
-                              if (item.type === "hour") {
-                                const { h12, ampm } = fmtHourLabel(item.hour);
-                                return (
-                                  <div
-                                    key={`hour-${item.hour}`}
-                                    className="relative flex items-center justify-center w-full py-2"
-                                    style={{
-                                      animationDelay: `${tIdx * 60}ms`,
-                                      animation: "fade-in 0.35s ease-out both",
+                            {isFlightOpen && (
+                              <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
+                                <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleUserFlight(flight, "alert");
                                     }}
-                                  >
-                                     {/* Dot on spine */}
-                                     <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                     {/* Time label centered over spine */}
-                                     <div className="z-10 bg-white px-2 rounded">
-                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
-                                     </div>
-                                  </div>
-                                );
-                              }
-
-                              // Flight card
-                              const { flight, idx } = item;
-                              const fKey = `${group.destination}-${idx}`;
-                              const isFlightOpen = expandedFlightKey === fKey;
-                              const alertKey = flightKey(flight, "alert");
-                              const goingKey = flightKey(flight, "going");
-                              const hasAlert = !!userFlights[alertKey];
-                              const hasGoing = !!userFlights[goingKey];
-
-                               return (
-                                  <div
-                                    key={`flight-${idx}`}
-                                    data-flight-card
-                                    className="relative flex justify-center w-full py-1.5 px-4"
-                                   style={{
-                                     animationDelay: `${tIdx * 70}ms`,
-                                     animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
-                                   }}
-                                 >
-                                   {/* Spine continues through card */}
-                                    <div
-                                     className={cn(
-                                       "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm",
-                                       "w-full",
-                                      flight.fares.basic != null
-                                        ? "border-[#10B981]"
-                                        : isFlightOpen
-                                          ? "border-[#345C5A]/20"
-                                          : "border-[#E8EBEB]",
+                                    className={cn(
+                                      "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                      hasAlert
+                                        ? "bg-[#E89830] text-white border-[#E89830]"
+                                        : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
                                     )}
-                                    style={{ boxShadow: "0 2px 10px 0 rgba(53,92,90,0.08)" }}
                                   >
-                                     <button
-                                       onClick={(e) => {
-                                         const next = isFlightOpen ? null : fKey;
-                                         setExpandedFlightKey(next);
-                                         if (next) {
-                                           const card = (e.currentTarget as HTMLElement).closest('[data-flight-card]') as HTMLElement | null;
-                                           if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
-                                         }
-                                       }}
-                                       className="flex items-center px-3 py-3 text-left w-full"
-                                    >
-                                      <div className="flex items-center gap-2.5 w-full">
-                                        <img
-                                          src="/assets/logo/frontier/frontier_logo.png"
-                                          alt="Frontier"
-                                          className="w-[32px] h-[32px] rounded object-contain shrink-0"
-                                        />
-                                        <div className="flex flex-col">
-                                          <span className="text-base font-bold text-[#2E4A4A]">
-                                            {formatTime(flight.legs[0]?.departure_time)} →{" "}
-                                            {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                          </span>
-                                          <span className="text-[13px] text-[#6B7B7B] font-medium">
-                                            {flight.total_duration}
-                                            {flight.is_plus_one_day && (
-                                              <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
-                                            )}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </button>
-
-                                    {isFlightOpen && (
-                                      <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
-                                        <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                        <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-1">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              toggleUserFlight(flight, "alert");
-                                            }}
-                                            className={cn(
-                                              "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                              hasAlert
-                                                ? "bg-[#E89830] text-white border-[#E89830]"
-                                                : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
-                                            )}
-                                          >
-                                            Alert Me
-                                          </button>
-                                           {(() => {
-                                             const isGoWild = flight.fares.basic != null;
-                                             const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
-                                               .filter((v): v is number => v != null)
-                                               .sort((a, b) => a - b)[0];
-                                             const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
-                                             const depLeg = flight.legs[0];
-                                             const arrLeg = flight.legs[flight.legs.length - 1];
-                                             const depDate = (() => {
-                                               try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; }
-                                             })();
-                                             const arrDate = (() => {
-                                               try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; }
-                                             })();
-                                             const tType = (() => {
-                                               try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; }
-                                             })();
-                                             const isRound = tType.toLowerCase().includes("round");
-                                             const frontierUrl = isRound && arrDate
-                                               ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
-                                               : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                                             return (
-                                               <button
-                                                 onClick={(e) => {
-                                                   e.stopPropagation();
-                                                   toggleUserFlight(flight, "going");
-                                                   window.open(frontierUrl, "_blank", "noopener,noreferrer");
-                                                 }}
-                                                className={cn(
-                                                  "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                                  isGoWild
-                                                    ? hasGoing
-                                                      ? "bg-[#047857] text-white border-[#047857]"
-                                                      : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
-                                                    : hasGoing
-                                                      ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]"
-                                                      : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
-                                                )}
-                                              >
-                                                {priceLabel} ›
-                                              </button>
-                                            );
-                                          })()}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
+                                    Alert Me
+                                  </button>
+                                  {(() => {
+                                    const isGoWild = flight.fares.basic != null;
+                                    const cheapest = [flight.fares.basic, flight.fares.economy, flight.fares.premium, flight.fares.business]
+                                      .filter((v): v is number => v != null)
+                                      .sort((a, b) => a - b)[0];
+                                    const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
+                                    const depLeg = flight.legs[0];
+                                    const arrLeg = flight.legs[flight.legs.length - 1];
+                                    const depDate = (() => { try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; } })();
+                                    const arrDate = (() => { try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; } })();
+                                    const tType = (() => { try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; } })();
+                                    const isRound = tType.toLowerCase().includes("round");
+                                    const frontierUrl = isRound && arrDate
+                                      ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
+                                      : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+                                    return (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleUserFlight(flight, "going");
+                                          window.open(frontierUrl, "_blank", "noopener,noreferrer");
+                                        }}
+                                        className={cn(
+                                          "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                          isGoWild
+                                            ? hasGoing
+                                              ? "bg-[#047857] text-white border-[#047857]"
+                                              : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
+                                            : hasGoing
+                                              ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]"
+                                              : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
+                                        )}
+                                      >
+                                        {priceLabel} ›
+                                      </button>
+                                    );
+                                  })()}
                                 </div>
-                              );
-                            })}
-
-                            {/* Trailing time label */}
-                            {(() => {
-                              const { h12, ampm } = fmtHourLabel(trailingHour);
-                              return (
-                                <div className="relative flex items-center justify-center w-full py-2">
-                                  <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                                     <div className="flex items-center gap-1.5 z-10">
-                                       <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
-                                       <div className="w-2.5 h-2.5" />
-                                     </div>
-                                </div>
-                              );
-                            })()}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })}
+
+                    {/* Trailing time label */}
+                    {(() => {
+                      const { h12, ampm } = fmtHourLabel(trailingHour);
+                      return (
+                        <div className="relative flex items-center justify-center w-full py-2">
+                          <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
+                          <div className="flex items-center gap-1.5 z-10">
+                            <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">{h12}{ampm}</span>
+                            <div className="w-2.5 h-2.5" />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
             );
           })}
