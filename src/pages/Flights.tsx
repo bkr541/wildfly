@@ -618,39 +618,39 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 </div>
               )}
             </div>
+
+            {/* Search All Destinations */}
+            <div className="flex items-center justify-end gap-2 pt-2 pb-1 px-1">
+              <label htmlFor="search-all" className="text-xs font-semibold text-[#10B981] cursor-pointer select-none">
+                Search All Destinations
+              </label>
+
+              <button
+                id="search-all"
+                type="button"
+                role="switch"
+                aria-checked={searchAll}
+                onClick={() =>
+                  setSearchAll((prev) => {
+                    const next = !prev;
+                    if (next) setArrivals([]);
+                    return next;
+                  })
+                }
+                className={cn(
+                  "relative inline-flex items-center h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200",
+                  searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+                    searchAll ? "translate-x-4" : "translate-x-0",
+                  )}
+                />
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Search All Destinations */}
-        <div className="flex items-center justify-end gap-2 -mt-1">
-          <label htmlFor="search-all" className="text-xs font-semibold text-[#10B981] cursor-pointer select-none">
-            Search All Destinations
-          </label>
-
-          <button
-            id="search-all"
-            type="button"
-            role="switch"
-            aria-checked={searchAll}
-            onClick={() =>
-              setSearchAll((prev) => {
-                const next = !prev;
-                if (next) setArrivals([]);
-                return next;
-              })
-            }
-            className={cn(
-              "relative inline-flex items-center h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200",
-              searchAll ? "bg-[#345C5A]" : "bg-[#E3E6E6]",
-            )}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                searchAll ? "translate-x-4" : "translate-x-0",
-              )}
-            />
-          </button>
         </div>
 
         {/* Insufficient credits upsell */}
