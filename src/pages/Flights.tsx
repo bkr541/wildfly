@@ -154,7 +154,7 @@ const MultiAirportSearchbox = ({
 
   return (
     <div className={cn("relative", containerClassName)}>
-      <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block">{label}</label>
+      <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">{label}</label>
 
       <div
         className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-text")}
@@ -512,8 +512,18 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           })}
         </div>
 
-        {/* Airport + Dates Group */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-visible">
+        {/* Airport + Dates Group — frosted glass card */}
+        <div
+          className="rounded-2xl overflow-visible"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+          }}
+        >
           <div className="relative">
             {/* Departure now uses MultiAirportSearchbox */}
             <MultiAirportSearchbox
@@ -541,7 +551,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="px-3 pt-1 pb-3">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">
                   Departure Date
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
@@ -582,7 +592,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               {showReturnDate && (
                 <div>
-                  <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                        <button
@@ -621,7 +631,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
             {/* Search All Destinations */}
             <div className="flex items-center justify-end gap-2 py-2 px-1">
-              <label htmlFor="search-all" className="text-xs font-semibold text-[#10B981] cursor-pointer select-none">
+              <label htmlFor="search-all" className="text-[10px] font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
                 Search All Destinations
               </label>
 
