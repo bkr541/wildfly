@@ -19,8 +19,13 @@ const HomePage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase
         .from("user_flights")
         .select("*")
@@ -34,7 +39,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col pt-2">
+    <div className="flex flex-col pt-6">
       <UpcomingFlightsScroll flights={flights} loading={loading} />
     </div>
   );
