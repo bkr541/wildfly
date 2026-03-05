@@ -168,7 +168,7 @@ function RouteFlap({ word }: { word: string }) {
   );
 }
 
-type TabType = "Info" | "Flights" | "Events" | "Map";
+type TabType = "Info" | "Flights" | "Events";
 
 const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }: { onBack: () => void; responseData: string; hideHeader?: boolean; hideBackground?: boolean }) => {
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
