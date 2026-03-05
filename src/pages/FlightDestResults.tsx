@@ -970,15 +970,11 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab: Map */}
       {activeTab === "Map" && (
-        <div className="flex-1 flex flex-col px-5 pt-4 pb-6 gap-4 relative z-10">
-          <div className="rounded-xl bg-white border border-[#E8EBEB] p-6 flex flex-col items-center gap-3" style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}>
-            <HugeiconsIcon icon={Navigator02Icon} size={40} color="#A8BEBE" strokeWidth={1.5} />
-            <p className="text-base font-semibold text-[#2E4A4A] text-center">Map Coming Soon</p>
-            <p className="text-sm text-[#6B7B7B] text-center leading-relaxed">
-              An interactive map view of your destination and nearby points of interest will be available here.
-            </p>
-          </div>
-        </div>
+        <RouteMap
+          departureAirport={departureAirport}
+          arrivalAirport={arrivalAirport}
+          airportMap={airportMapWithCoords}
+        />
       )}
 
       {/* Toast popup */}
