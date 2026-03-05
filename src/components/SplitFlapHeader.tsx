@@ -104,8 +104,9 @@ export function SplitFlapHeader({ word, gap = "gap-0.5", variant = "green" }: { 
           <SplitFlapTile
             key={i}
             char={char}
-            green={!isBlank}
+            active={!isBlank}
             blank={isBlank}
+            variant={variant}
           />
         );
       })}
