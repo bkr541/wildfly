@@ -213,58 +213,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
             {/* Right: search, bell, avatar */}
             {!hideHeaderRight && (
-              <div className="flex items-center gap-5 h-12">
-                <div className="relative flex items-center h-12">
-                  <div
-                    className={cn(
-                      "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out h-9 overflow-hidden relative",
-                      isSearchOpen ? "w-56 opacity-100 shadow-sm pr-9" : "w-0 opacity-0 border-transparent px-0",
-                    )}
-                  >
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full pl-4 placeholder:text-[#9CA3AF]"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(!isSearchOpen)}
-                    className={cn(
-                      "flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-all duration-300 ease-in-out",
-                      isSearchOpen ? "absolute right-2.5 h-6 w-6" : "h-12 w-10",
-                    )}
-                  >
-                    <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={1.5} />
-                  </button>
-                </div>
-
-                <div
-                  className={cn(
-                    "flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden",
-                    isSearchOpen ? "w-0 opacity-0 -mr-5" : "w-6 opacity-100",
-                  )}
-                >
-                  <button
-                    type="button"
-                    className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-                  >
-                    <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
-                  </button>
-                </div>
-
-                <Avatar
-                  className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => onNavigate("account")}
-                >
-                  <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                  <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
-                </Avatar>
-              </div>
+              <div className="h-12" />
             )}
           </header>
         )}
