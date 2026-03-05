@@ -97,7 +97,10 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
       >
         {/* Sidebar profile header */}
         <div className="flex items-center gap-3 px-6 pt-10 pb-2">
-          <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
+          <Avatar
+            className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => { setDrawerOpen(false); setTimeout(() => onNavigate("account"), 300); }}
+          >
             <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
             <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
           </Avatar>
