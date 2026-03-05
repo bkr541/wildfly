@@ -219,7 +219,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 className="text-xl font-black tracking-widest uppercase select-none"
                 style={{ background: "linear-gradient(135deg,#10B981 0%,#059669 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
               >
-                {currentPage === "home" ? "HOME"
+                {currentPage === "home" ? fullName
                   : currentPage === "flights" ? "FLIGHTS"
                   : currentPage === "destinations" ? "DESTINATIONS"
                   : currentPage === "itinerary" ? "ITINERARY"

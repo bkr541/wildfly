@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertsAccordion } from "@/components/home/AlertsAccordion";
-import { UpcomingFlightsAccordion } from "@/components/home/UpcomingFlightsAccordion";
+import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 
 interface UserFlight {
   id: string;
@@ -35,13 +34,9 @@ const HomePage = () => {
   }, []);
 
   return (
-    <>
-      <UpcomingFlightsAccordion flights={flights} loading={loading} />
-
-      <AlertsAccordion />
-
-      <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10" />
-    </>
+    <div className="flex flex-col pt-2">
+      <UpcomingFlightsScroll flights={flights} loading={loading} />
+    </div>
   );
 };
 
