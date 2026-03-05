@@ -74,10 +74,8 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
           flights.map((flight, i) => (
             <motion.div
               key={flight.id}
-              custom={i}
-              variants={itemVariants}
-              initial="hidden"
-              animate="show"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08, ease: EASE } }}
               className="flex-shrink-0 w-52 rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
               style={{ scrollSnapAlign: "start" }}
             >
