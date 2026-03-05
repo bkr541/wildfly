@@ -157,10 +157,10 @@ const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProp
             pathOptions={{ color: "#059669", weight: 2.5, dashArray: "6 5", opacity: 0.85 }}
           />
           {/* Airport dots */}
-          <Marker position={depLatLng} icon={dotIcon} />
-          <Marker position={arrLatLng} icon={dotIcon} />
+          <Marker position={depLatLng} icon={createDotIcon()} />
+          <Marker position={arrLatLng} icon={createDotIcon()} />
           {/* Airplane at midpoint */}
-          {mid && <Marker position={mid} icon={airplaneIcon} />}
+          {mid && <Marker position={mid} icon={createAirplaneIcon()} />}
         </MapContainer>
       </div>
 
