@@ -149,6 +149,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                       onClick={() => handleMenuClick(item.label)}
                       className={cn(
                         "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full hover:bg-[#F2F3F3]",
+                        (item as any).indent && "pl-5",
                         isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
                       )}
                     >
