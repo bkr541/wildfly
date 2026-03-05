@@ -154,22 +154,20 @@ const MultiAirportSearchbox = ({
 
   return (
     <div className={cn("relative", containerClassName)}>
-      <label className="text-xs font-semibold text-[#10B981] mb-1 block">{label}</label>
+      <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block">{label}</label>
 
       <div
-        className={cn(
-          "app-input-container flex items-center gap-1.5 overflow-hidden bg-white",
-          disabled ? "cursor-not-allowed opacity-70" : "cursor-text",
-          isFocused && "focus-within",
-        )}
-        style={{ minHeight: 44, padding: "0 0.5em", backgroundColor: "#fff" }}
+        className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-text")}
+        style={{ minHeight: 44 }}
         onClick={() => {
           if (disabled) return;
           inputRef.current?.focus();
           setOpen(true);
         }}
       >
-        <HugeiconsIcon icon={icon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
+        <button type="button" tabIndex={-1} className="app-input-icon-btn">
+          <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={1.5} />
+        </button>
 
         <input
           ref={inputRef}
@@ -179,14 +177,12 @@ const MultiAirportSearchbox = ({
           value={displayValue}
           onChange={(e) => {
             if (disabled) return;
-            // When the user types, clear selection so query takes over
             if (selected.length > 0) onChange([]);
             setQuery(e.target.value);
             if (!open) setOpen(true);
           }}
           onFocus={() => {
             if (disabled) return;
-            // Clear display so user can type fresh
             if (selected.length > 0) {
               setQuery(`${selected[0].iata_code} | ${selected[0].locations?.city ?? ""}`);
             }
@@ -196,13 +192,9 @@ const MultiAirportSearchbox = ({
           onBlur={() => {
             setIsFocused(false);
             setTimeout(() => setOpen(false), 200);
-            // If no selection was made, restore query empty
             if (selected.length === 0) setQuery("");
           }}
-          className={cn(
-            "flex-1 h-full bg-transparent outline-none text-[#2E4A4A] font-semibold placeholder:text-[#9CA3AF] placeholder:font-normal truncate",
-            disabled && "cursor-not-allowed",
-          )}
+          className={cn("app-input font-semibold truncate", disabled && "cursor-not-allowed")}
           style={{ fontSize: 16 }}
         />
 
@@ -218,7 +210,7 @@ const MultiAirportSearchbox = ({
               setOpen(true);
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
-            className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+            className="app-input-reset app-input-reset--visible"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={1.5} />
           </button>
