@@ -66,7 +66,7 @@ const AppInput = React.forwardRef<HTMLInputElement, AppInputProps>(
         >
           {icon && (
             <button type="button" tabIndex={-1} className="app-input-icon-btn">
-              <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={1.5} />
+              <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={2} />
             </button>
           )}
 
