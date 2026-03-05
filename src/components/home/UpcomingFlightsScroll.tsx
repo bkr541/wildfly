@@ -36,14 +36,7 @@ function formatTime(dateStr: string): string {
 
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_logo.png";
 
-const itemVariants = {
-  hidden: { opacity: 0, x: 16 },
-  show: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3, delay: i * 0.08, ease: [0.2, 0.8, 0.2, 1] },
-  }),
-};
+const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
 interface Props {
   flights: UserFlight[];
