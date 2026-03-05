@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { TimelineIcon } from "@hugeicons/core-free-icons";
 
 interface UserFlight {
   id: string;
@@ -21,13 +19,8 @@ const HomePage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
       const { data } = await supabase
         .from("user_flights")
         .select("*")
@@ -41,14 +34,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col pt-[24px]">
-      <div className="px-4 pb-2">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={TimelineIcon} className="h-5 w-5 text-foreground" />
-          <h2 className="text-lg font-semibold tracking-wide">UPCOMING FLIGHTS</h2>
-        </div>
-      </div>
-
+    <div className="flex flex-col pt-2">
       <UpcomingFlightsScroll flights={flights} loading={loading} />
     </div>
   );
