@@ -2,6 +2,8 @@ import { useState, useId, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faPlane } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Timer02Icon } from "@hugeicons/core-free-icons";
 
 interface UserFlight {
   id: string;
@@ -119,7 +121,8 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
       >
         <div className="flex items-center justify-between">
           {/* Primary text bumped way up */}
-          <h2 className="text-xl font-semibold text-[#2E4A4A] uppercase tracking-widest">
+          <h2 className="text-2xl font-semibold text-[#2E4A4A] uppercase tracking-widest flex items-center gap-2">
+            <HugeiconsIcon icon={Timer02Icon} className="w-5 h-5 text-[#2E4A4A]" />
             Upcoming Flights
             {!loading && (
               /* Preview/count text bumped way up */
