@@ -474,8 +474,18 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
-        {/* Trip Type Switch */}
-        <div className="bg-white rounded-full p-[2px] flex shadow-sm border border-[#E3E6E6] relative">
+        {/* Trip Type Switch — frosted glass pill */}
+        <div
+          className="rounded-full p-[2px] flex relative"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+          }}
+        >
           <div
             className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
             style={{
@@ -927,10 +937,10 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
               setLoading(false);
             }
           }}
-          className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-2"
+          className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-3"
         >
-          <span className="uppercase tracking-[0.35em] text-sm">{loading ? "Searching..." : "Search Flights"}</span>
-          {!loading && <HugeiconsIcon icon={PlaneIcon} size={18} color="white" strokeWidth={2} className="shrink-0" />}
+          <span className="uppercase tracking-[0.45em] text-[11px] font-black">{loading ? "Searching..." : "Search Flights"}</span>
+          {!loading && <HugeiconsIcon icon={PlaneIcon} size={16} color="white" strokeWidth={2} className="shrink-0" />}
         </button>
       </div>
     </>
