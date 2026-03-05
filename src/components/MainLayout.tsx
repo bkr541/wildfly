@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Menu01Icon,
+  Menu03Icon,
   Search01Icon,
   Home01Icon,
   Airplane01Icon,
