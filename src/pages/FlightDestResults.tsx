@@ -487,7 +487,6 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
             { label: "Info", icon: InformationCircleIcon },
             { label: "Flights", icon: AirplaneTakeOff01Icon },
             { label: "Events", icon: Calendar03Icon },
-            { label: "Map", icon: Location06Icon },
           ] as { label: TabType; icon: any }[]).map(({ label, icon }) => (
             <button
               key={label}
