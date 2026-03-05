@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
-
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Timer02Icon } from "@hugeicons/core-free-icons";
 
 interface UserFlight {
   id: string;
@@ -46,7 +47,8 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
   return (
     <section className="px-5 pb-4 relative z-10">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="text-xs font-bold text-[#6B7B7B] uppercase tracking-widest">
+        <h2 className="text-sm font-bold text-[#6B7B7B] uppercase tracking-widest flex items-center gap-2">
+          <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7B7B]" />
           Upcoming Flights
         </h2>
         <button
@@ -58,7 +60,10 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
         </button>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
+      <div
+        className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
+        style={{ scrollSnapType: "x mandatory" }}
+      >
         {loading ? (
           [1, 2].map((i) => (
             <div
@@ -97,9 +102,7 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
                   className="h-full w-auto object-contain"
                   loading="eager"
                 />
-                <span className="text-[10px] font-semibold text-[#2E4A4A] tracking-wide uppercase">
-                  Frontier
-                </span>
+                <span className="text-[10px] font-semibold text-[#2E4A4A] tracking-wide uppercase">Frontier</span>
               </div>
 
               {/* IATA + separator */}
