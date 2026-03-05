@@ -620,7 +620,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
             </div>
 
             {/* Search All Destinations */}
-            <div className="flex items-center justify-end gap-2 pt-2 pb-1 px-1">
+            <div className="flex items-center justify-end gap-2 py-2 px-1">
               <label htmlFor="search-all" className="text-xs font-semibold text-[#10B981] cursor-pointer select-none">
                 Search All Destinations
               </label>
