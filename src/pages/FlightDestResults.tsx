@@ -76,17 +76,21 @@ function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
   return null;
 }
 
-const airplaneIcon = L.divIcon({
-  html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4))">✈️</div>`,
-  className: "",
-  iconAnchor: [11, 11],
-});
+function createAirplaneIcon() {
+  return L.divIcon({
+    html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4))">✈️</div>`,
+    className: "",
+    iconAnchor: [11, 11],
+  });
+}
 
-const dotIcon = L.divIcon({
-  html: `<div style="width:12px;height:12px;border-radius:50%;background:#059669;border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
-  className: "",
-  iconAnchor: [6, 6],
-});
+function createDotIcon() {
+  return L.divIcon({
+    html: `<div style="width:12px;height:12px;border-radius:50%;background:#059669;border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
+    className: "",
+    iconAnchor: [6, 6],
+  });
+}
 
 const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProps) => {
   const dep = airportMap[departureAirport];
