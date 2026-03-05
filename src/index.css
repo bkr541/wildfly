@@ -62,7 +62,7 @@
 /* ─── AppInput reusable input component ─── */
 .app-input-container {
   --timing: 0.3s;
-  --input-bg: #eef0f3;
+  --input-bg: #ffffff;
   --border-color: #10B981;
   --border-height: 2px;
   --border-radius: 4px;
@@ -128,6 +128,7 @@
 }
 .app-input-icon-btn {
   flex-shrink: 0;
+  color: #6b7280;
 }
 .app-input-reset {
   border: none;

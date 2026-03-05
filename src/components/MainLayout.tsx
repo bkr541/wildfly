@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Menu01Icon,
+  Menu03Icon,
   Search01Icon,
   Home01Icon,
   Airplane01Icon,
@@ -105,7 +105,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 type="button"
                 className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
               >
-                <HugeiconsIcon icon={Menu01Icon} size={24} color="currentColor" strokeWidth={1.5} />
+                <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
               </button>
             </SheetTrigger>
 
