@@ -16,9 +16,10 @@ import {
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon, InformationCircleIcon, AirplaneTakeOff01Icon, Calendar03Icon, Location06Icon, FilterIcon, SortByDown02Icon } from "@hugeicons/core-free-icons";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { lazy, Suspense } from "react";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+
+const LeafletMap = lazy(() => import("@/components/LeafletMap"));
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
