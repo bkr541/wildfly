@@ -465,18 +465,24 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab group */}
       {!hideHeader && (
-        <div className="relative z-10 flex items-center gap-0 bg-white px-5 border-b border-gray-200">
-          {(["Info", "Flights", "Events", "Map"] as TabType[]).map((tab) => (
+        <div className="relative z-10 flex items-center gap-0 bg-white px-3 border-b border-gray-200">
+          {([
+            { label: "Info", icon: InformationCircleIcon },
+            { label: "Flights", icon: AirplaneTakeOff01Icon },
+            { label: "Events", icon: Calendar03Icon },
+            { label: "Map", icon: Location06Icon },
+          ] as { label: TabType; icon: any }[]).map(({ label, icon }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={label}
+              onClick={() => setActiveTab(label)}
               className={cn(
-                "px-4 py-3 text-sm font-semibold transition-colors relative",
-                tab === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
+                "flex items-center gap-1.5 px-3 py-3.5 text-[15px] font-semibold transition-colors relative",
+                label === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              {tab}
-              {tab === activeTab && (
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === activeTab ? 2 : 1.5} />
+              {label}
+              {label === activeTab && (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
               )}
             </button>
