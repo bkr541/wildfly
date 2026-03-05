@@ -2,8 +2,21 @@ import { useState, useEffect, useRef } from "react";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
-function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; blank?: boolean }) {
+type TileVariant = "green" | "gray";
+
+function SplitFlapTile({ char, active, blank, variant = "green" }: { char: string; active?: boolean; blank?: boolean; variant?: TileVariant }) {
   const displayChar = char === "_" || char === " " ? "" : char;
+
+  const isGray = variant === "gray";
+
+  const activeBg = isGray
+    ? "linear-gradient(135deg,#e8eaed 0%,#d1d5db 100%)"
+    : "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)";
+  const activeBorder = isGray ? "#b0b5bd" : "#064E3B";
+  const activeKnob = isGray ? "#e8eaed" : "#10B981";
+  const activeText = isGray ? "#059669" : "#fff";
+  const activeDivider = isGray ? "#b0b5bdaa" : "#064E3Baa";
+
   if (blank) {
     return (
       <div
@@ -21,19 +34,19 @@ function SplitFlapTile({ char, green, blank }: { char: string; green?: boolean; 
       className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
       style={{
         height: 34,
-        background: green ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)" : "#e8eaed",
-        borderColor: green ? "#064E3B" : "#d1d5db",
+        background: active ? activeBg : "#e8eaed",
+        borderColor: active ? activeBorder : "#d1d5db",
       }}
     >
       <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-        style={{ background: green ? "#064E3Baa" : "#b0b5bdaa" }} />
+        style={{ background: active ? activeDivider : "#b0b5bdaa" }} />
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }} />
+        style={{ background: active ? activeKnob : "#e8eaed", borderColor: active ? activeBorder : "#d1d5db" }} />
       <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-        style={{ background: green ? "#10B981" : "#e8eaed", borderColor: green ? "#064E3B" : "#d1d5db" }} />
+        style={{ background: active ? activeKnob : "#e8eaed", borderColor: active ? activeBorder : "#d1d5db" }} />
       {displayChar && (
         <span className="font-black text-lg leading-none select-none"
-          style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}>
+          style={{ color: active ? activeText : "#1f2937", letterSpacing: "0.04em" }}>
           {displayChar}
         </span>
       )}
