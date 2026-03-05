@@ -539,31 +539,26 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
           {/* Dates */}
           <div className="px-3 pt-1 pb-3">
-            <div className={cn("grid gap-1", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
+            <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-xs font-semibold text-[#10B981] mb-1 block cursor-pointer pl-[calc(0.5em+4px)]">
+                <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">
                   Departure Date
                 </label>
-
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center gap-2.5 text-left outline-none h-10 pl-[0.5em]"
+                      className="app-input-container w-full text-left outline-none"
+                      style={{ minHeight: 44 }}
                     >
-                      <HugeiconsIcon
-                        icon={CalendarCheckOut02Icon}
-                        size={16}
-                        color="#345C5A"
-                        strokeWidth={1.5}
-                        className="shrink-0"
-                      />
-                      <span className={cn("text-sm", departureDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                      <span className="app-input-icon-btn">
+                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                      </span>
+                      <span className={cn("app-input font-semibold truncate", !departureDate && "text-[#9CA3AF]")} style={{ fontSize: 16 }}>
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
                     </button>
                   </PopoverTrigger>
-
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
@@ -584,24 +579,22 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               {showReturnDate && (
                 <div>
-                  <label className="text-xs font-semibold text-[#10B981] mb-1 block cursor-pointer">Return Date</label>
-
+                  <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button" className="w-full flex items-center gap-2.5 text-left outline-none h-10">
-                        <HugeiconsIcon
-                          icon={CalendarCheckIn02Icon}
-                          size={16}
-                          color="#345C5A"
-                          strokeWidth={1.5}
-                          className="shrink-0"
-                        />
-                        <span className={cn("text-sm", arrivalDate ? "text-[#2E4A4A]" : "text-[#9CA3AF]")}>
+                      <button
+                        type="button"
+                        className="app-input-container w-full text-left outline-none"
+                        style={{ minHeight: 44 }}
+                      >
+                        <span className="app-input-icon-btn">
+                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={1.5} />
+                        </span>
+                        <span className={cn("app-input font-semibold truncate", !arrivalDate && "text-[#9CA3AF]")} style={{ fontSize: 16 }}>
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
                       </button>
                     </PopoverTrigger>
-
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
