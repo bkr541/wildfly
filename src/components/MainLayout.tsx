@@ -1,6 +1,5 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Menu03Icon,
@@ -46,6 +45,8 @@ const pageMap: Record<string, string> = {
   Subscription: "subscription",
 };
 
+const DRAWER_WIDTH = 80; // percent of screen
+
 interface MainLayoutProps {
   children: ReactNode;
   onSignOut: () => void;
@@ -57,14 +58,14 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, subScreenTitle, onSubScreenBack, currentPage }: MainLayoutProps) => {
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName } = useProfile();
 
   const handleMenuClick = (label: string) => {
-    setSheetOpen(false);
+    setDrawerOpen(false);
     const target = pageMap[label];
     if (target) setTimeout(() => onNavigate(target), 300);
   };
@@ -75,167 +76,201 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
     }
   }, [isSearchOpen]);
 
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
+
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
+    <div className="relative flex min-h-screen bg-[#F2F3F3] overflow-hidden">
 
-
-
-      {/* Header */}
-      {subScreenTitle ? (
-        <header className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
+      {/* ── Sidebar drawer panel ── */}
+      <div
+        className="fixed inset-y-0 left-0 z-40 flex flex-col bg-white"
+        style={{
+          width: `${DRAWER_WIDTH}%`,
+          transform: drawerOpen ? "translateX(0)" : `translateX(-100%)`,
+          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
+        }}
+      >
+        {/* Sidebar profile header */}
+        <div className="flex items-center gap-3 px-6 pt-10 pb-2">
+          <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
+            <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
+            <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
+            <p className="text-[#2E4A4A] text-lg font-semibold truncate leading-tight">{fullName}</p>
+          </div>
           <button
+            onClick={() => setDrawerOpen(false)}
+            className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
             type="button"
-            onClick={onSubScreenBack}
-            className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="currentColor" strokeWidth={1.5} />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="currentColor" strokeWidth={1.5} />
           </button>
-          <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">{subScreenTitle}</h1>
-          <div className="w-10" />
-        </header>
-      ) : (
-        <header className="flex items-center justify-between px-6 pt-4 pb-2 relative z-10">
-          {/* Left: hamburger + sidebar */}
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
-              >
-                <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
-              </button>
-            </SheetTrigger>
+        </div>
 
-            <SheetContent
-              side="left"
-              className="w-[85%] sm:max-w-sm p-0 bg-white border-none rounded-r-3xl flex flex-col"
+        <div className="h-px bg-[#E5E7EB] mx-6" />
+
+        <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0 overflow-y-auto">
+          {menuItems.map((item) => {
+            if ((item as any).type === "heading") {
+              return (
+                <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
+                  {item.label}
+                </p>
+              );
+            }
+            const pageKey = pageMap[item.label];
+            const isActive = pageKey === currentPage || (item.label === "Home" && currentPage === "home");
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => handleMenuClick(item.label)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full hover:bg-[#F2F3F3]",
+                  (item as any).indent && "pl-5",
+                  isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={isActive ? 2 : 1.5} />
+                <span className={cn("text-base", isActive ? "font-extrabold" : "font-semibold")}>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto">
+          <div className="h-px bg-[#E5E7EB] mx-6" />
+          <button
+            onClick={() => {
+              setDrawerOpen(false);
+              setTimeout(() => onSignOut(), 300);
+            }}
+            type="button"
+            className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+          >
+            <HugeiconsIcon icon={Logout01Icon} size={20} color="currentColor" strokeWidth={1.5} />
+            <span className="text-base font-semibold">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Scrim ── */}
+      <div
+        className="fixed inset-0 z-30 bg-black/30 backdrop-blur-[1px]"
+        style={{
+          opacity: drawerOpen ? 1 : 0,
+          pointerEvents: drawerOpen ? "auto" : "none",
+          transition: "opacity 0.32s cubic-bezier(0.4,0,0.2,1)",
+        }}
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* ── Main content panel (push + card effect) ── */}
+      <div
+        className="relative flex flex-col min-h-screen w-full bg-[#F2F3F3]"
+        style={{
+          transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "translateX(0)",
+          borderRadius: drawerOpen ? "20px" : "0px",
+          boxShadow: drawerOpen
+            ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)"
+            : "none",
+          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1), border-radius 0.32s cubic-bezier(0.4,0,0.2,1), box-shadow 0.32s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
+          overflow: drawerOpen ? "hidden" : "visible",
+        }}
+      >
+        {/* Header */}
+        {subScreenTitle ? (
+          <header className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
+            <button
+              type="button"
+              onClick={onSubScreenBack}
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
             >
-              {/* Sidebar profile header */}
-              <div className="flex items-center gap-3 px-6 pt-6 pb-2">
-                <Avatar className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm">
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="currentColor" strokeWidth={1.5} />
+            </button>
+            <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">{subScreenTitle}</h1>
+            <div className="w-10" />
+          </header>
+        ) : (
+          <header className="flex items-center justify-between px-6 pt-4 pb-2 relative z-10">
+            {/* Left: hamburger */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
+            >
+              <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
+            </button>
+
+            {/* Right: search, bell, avatar */}
+            {!hideHeaderRight && (
+              <div className="flex items-center gap-5 h-12">
+                <div className="relative flex items-center h-12">
+                  <div
+                    className={cn(
+                      "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out h-9 overflow-hidden relative",
+                      isSearchOpen ? "w-56 opacity-100 shadow-sm pr-9" : "w-0 opacity-0 border-transparent px-0",
+                    )}
+                  >
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full pl-4 placeholder:text-[#9CA3AF]"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    className={cn(
+                      "flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-all duration-300 ease-in-out",
+                      isSearchOpen ? "absolute right-2.5 h-6 w-6" : "h-12 w-10",
+                    )}
+                  >
+                    <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={1.5} />
+                  </button>
+                </div>
+
+                <div
+                  className={cn(
+                    "flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden",
+                    isSearchOpen ? "w-0 opacity-0 -mr-5" : "w-6 opacity-100",
+                  )}
+                >
+                  <button
+                    type="button"
+                    className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
+                  >
+                    <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
+                  </button>
+                </div>
+
+                <Avatar
+                  className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => onNavigate("account")}
+                >
                   <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
                   <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
-                  <p className="text-[#2E4A4A] text-lg font-semibold truncate leading-tight">{fullName}</p>
-                </div>
-                <button
-                  onClick={() => setSheetOpen(false)}
-                  className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
-                  type="button"
-                >
-                  <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="currentColor" strokeWidth={1.5} />
-                </button>
               </div>
+            )}
+          </header>
+        )}
 
-              <div className="h-px bg-[#E5E7EB] mx-6" />
-
-                <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0">
-                {menuItems.map((item) => {
-                  if ((item as any).type === "heading") {
-                    return (
-                      <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
-                        {item.label}
-                      </p>
-                    );
-                  }
-                  const pageKey = pageMap[item.label];
-                  const isActive = pageKey === currentPage || (item.label === "Home" && currentPage === "home");
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => handleMenuClick(item.label)}
-                      className={cn(
-                        "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full hover:bg-[#F2F3F3]",
-                        (item as any).indent && "pl-5",
-                        isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
-                      )}
-                    >
-                      <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={isActive ? 2 : 1.5} />
-                      <span className={cn("text-base", isActive ? "font-extrabold" : "font-semibold")}>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-
-              <div className="mt-auto">
-                <div className="h-px bg-[#E5E7EB] mx-6" />
-                <button
-                  onClick={() => {
-                    setSheetOpen(false);
-                    setTimeout(() => onSignOut(), 300);
-                  }}
-                  type="button"
-                  className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
-                >
-                  <HugeiconsIcon icon={Logout01Icon} size={20} color="currentColor" strokeWidth={1.5} />
-                  <span className="text-base font-semibold">Logout</span>
-                </button>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          {/* Right: search, bell, avatar */}
-          {!hideHeaderRight && (
-            <div className="flex items-center gap-5 h-12">
-              <div className="relative flex items-center h-12">
-                <div
-                  className={cn(
-                    "flex items-center bg-white border border-[#E3E6E6] rounded-full transition-all duration-300 ease-in-out h-9 overflow-hidden relative",
-                    isSearchOpen ? "w-56 opacity-100 shadow-sm pr-9" : "w-0 opacity-0 border-transparent px-0",
-                  )}
-                >
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent outline-none text-xs text-[#2E4A4A] w-full pl-4 placeholder:text-[#9CA3AF]"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className={cn(
-                    "flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-all duration-300 ease-in-out",
-                    isSearchOpen ? "absolute right-2.5 h-6 w-6" : "h-12 w-10",
-                  )}
-                >
-                  <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={1.5} />
-                </button>
-              </div>
-
-              <div
-                className={cn(
-                  "flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden",
-                  isSearchOpen ? "w-0 opacity-0 -mr-5" : "w-6 opacity-100",
-                )}
-              >
-                <button
-                  type="button"
-                  className="h-full flex items-center justify-center text-[#2E4A4A] hover:opacity-80 transition-opacity relative"
-                >
-                  <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
-                </button>
-              </div>
-
-              <Avatar
-                className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => onNavigate("account")}
-              >
-                <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
-                <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
-              </Avatar>
-            </div>
-          )}
-        </header>
-      )}
-
-      <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 };
