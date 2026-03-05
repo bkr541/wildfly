@@ -545,7 +545,22 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab: Flights */}
       {activeTab === "Flights" && (
-      <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
+      <div className="flex-1 flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
+        {/* Count row + sort/filter */}
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-semibold text-[#2E4A4A]">
+            <span className="text-[#10B981] font-black">{flights.length}</span>
+            <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors" style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}>
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+            </button>
+            <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors" style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}>
+              <HugeiconsIcon icon={FilterIcon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
             const isDestOpen = expandedDest === group.destination;
