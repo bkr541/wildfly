@@ -254,7 +254,8 @@ const MultiAirportSearchbox = ({
                         else addAirport(a);
                       }}
                       className={cn(
-                        "w-full text-left pr-4 pl-11 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
+                        "w-full text-left pr-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
+                        isSingle ? "pl-4" : "pl-11",
                         isSelected && "bg-[#345C5A]/5",
                       )}
                     >
