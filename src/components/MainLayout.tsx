@@ -105,7 +105,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 type="button"
                 className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-80 transition-opacity"
               >
-                <HugeiconsIcon icon={Menu01Icon} size={24} color="currentColor" strokeWidth={1.5} />
+                <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
               </button>
             </SheetTrigger>
 
