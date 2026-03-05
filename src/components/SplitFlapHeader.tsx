@@ -59,7 +59,7 @@ function SplitFlapTile({ char, active, blank, variant = "green" }: { char: strin
  * `word` should be the label (e.g. "FLIGHTS"). It is padded to 9 tiles total —
  * the word characters are green, the trailing blanks are faded.
  */
-export function SplitFlapHeader({ word, gap = "gap-0.5" }: { word: string; gap?: string }) {
+export function SplitFlapHeader({ word, gap = "gap-0.5", variant = "green" }: { word: string; gap?: string; variant?: TileVariant }) {
   const TILES = 9;
   const upper = word.toUpperCase().slice(0, TILES);
   const padded = upper.padEnd(TILES, "_");
