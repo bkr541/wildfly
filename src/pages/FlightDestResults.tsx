@@ -160,7 +160,7 @@ const RouteMap = ({ departureAirport, arrivalAirport, airportMap }: RouteMapProp
           <Marker position={depLatLng} icon={createDotIcon()} />
           <Marker position={arrLatLng} icon={createDotIcon()} />
           {/* Airplane at midpoint */}
-          {mid && <Marker position={mid} icon={createAirplaneIcon()} />}
+          {mid ? <Marker position={mid} icon={createAirplaneIcon()} /> : <></>}
         </MapContainer>
       </div>
 
