@@ -77,11 +77,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F2F3F3] overflow-hidden">
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.07] pointer-events-none"
-        style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
-      />
+
+
 
       {/* Header */}
       {subScreenTitle ? (
