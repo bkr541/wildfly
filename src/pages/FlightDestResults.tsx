@@ -613,26 +613,6 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
             return (
               <div key={group.destination} className="pt-1 pb-2">
-                {/* Destination label */}
-                <div className="flex flex-col mb-2 px-1">
-                  <span className="leading-tight uppercase">
-                    <span className="text-[22px] font-bold text-[#2E4A4A]">{group.destination}</span>
-                    {(group.city || group.stateCode) && (
-                      <>
-                        <span className="text-[22px] font-bold text-[#2E4A4A]"> | </span>
-                        <span className="text-[22px] font-light text-[#2E4A4A]">
-                          {group.city || group.destination}{group.stateCode ? `, ${group.stateCode}` : ""}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                  {group.airportName && (
-                    <span className="flex items-center gap-1 mt-0.5">
-                      <HugeiconsIcon icon={Location01Icon} size={12} color="#6B7B7B" strokeWidth={1.5} />
-                      <span className="text-xs text-[#6B7B7B] font-normal leading-tight">{group.airportName}</span>
-                    </span>
-                  )}
-                </div>
 
                 {/* Timeline */}
                 <div className="relative flex flex-col items-center">
