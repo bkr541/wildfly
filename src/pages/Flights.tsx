@@ -546,7 +546,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                    <button
+                     <button
                       type="button"
                       className="app-input-container w-full text-left outline-none"
                       style={{ minHeight: 44 }}
@@ -554,7 +554,10 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                       <span className="app-input-icon-btn">
                         <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={1.5} />
                       </span>
-                      <span className={cn("app-input font-semibold truncate", !departureDate && "text-[#9CA3AF]")} style={{ fontSize: 16 }}>
+                      <span
+                        className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
+                        style={{ color: departureDate ? "#1F2937" : "#9CA3AF" }}
+                      >
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
                     </button>
@@ -582,7 +585,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                      <button
+                       <button
                         type="button"
                         className="app-input-container w-full text-left outline-none"
                         style={{ minHeight: 44 }}
@@ -590,7 +593,10 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                         <span className="app-input-icon-btn">
                           <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={1.5} />
                         </span>
-                        <span className={cn("app-input font-semibold truncate", !arrivalDate && "text-[#9CA3AF]")} style={{ fontSize: 16 }}>
+                        <span
+                          className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
+                          style={{ color: arrivalDate ? "#1F2937" : "#9CA3AF" }}
+                        >
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
                       </button>
