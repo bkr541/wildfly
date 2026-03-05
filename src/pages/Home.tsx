@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { AlertsAccordion } from "@/components/home/AlertsAccordion";
 import { UpcomingFlightsAccordion } from "@/components/home/UpcomingFlightsAccordion";
 
@@ -37,10 +36,6 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="HOME" />
-      </div>
-
       <UpcomingFlightsAccordion flights={flights} loading={loading} />
 
       <AlertsAccordion />
