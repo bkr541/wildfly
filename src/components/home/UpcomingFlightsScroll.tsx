@@ -76,7 +76,7 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
               key={flight.id}
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08, ease: EASE } }}
-              className="flex-shrink-0 w-52 rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
+              className="flex-shrink-0 w-[220px] rounded-2xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
               style={{ scrollSnapAlign: "start" }}
             >
               {/* Airline logo row */}
@@ -100,9 +100,7 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
 
                 <div className="flex-1 flex items-center px-1">
                   <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-30" />
-                  <span className="mx-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full border border-[#e3e6e6] bg-[#F9FBFA] flex-shrink-0">
-                    <img src={airplaneIcon} alt="flight" className="w-3.5 h-3.5 object-contain" />
-                  </span>
+                  <img src={airplaneIcon} alt="flight" className="mx-1.5 w-6 h-6 object-contain flex-shrink-0" />
                   <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-30" />
                 </div>
 
