@@ -204,7 +204,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-          <header className="flex items-center justify-between px-6 pt-4 pb-2 relative z-10">
+          <header className="flex items-center gap-3 px-6 pt-4 pb-2 relative z-10">
             {/* Left: hamburger */}
             <button
               type="button"
@@ -214,9 +214,20 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
             </button>
 
-            {/* Right: search, bell, avatar */}
-            {!hideHeaderRight && (
-              <div className="h-12" />
+            {currentPage && (
+              <span
+                className="text-xl font-black tracking-widest uppercase select-none"
+                style={{ background: "linear-gradient(135deg,#10B981 0%,#059669 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
+              >
+                {currentPage === "home" ? "HOME"
+                  : currentPage === "flights" ? "FLIGHTS"
+                  : currentPage === "destinations" ? "DESTINATIONS"
+                  : currentPage === "itinerary" ? "ITINERARY"
+                  : currentPage === "routes" ? "ROUTES"
+                  : currentPage === "fly-a-friend" ? "FLY A FRIEND"
+                  : currentPage === "account" ? "ACCOUNT"
+                  : ""}
+              </span>
             )}
           </header>
         )}

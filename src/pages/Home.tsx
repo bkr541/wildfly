@@ -37,10 +37,6 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="HOME" />
-      </div>
-
       <UpcomingFlightsAccordion flights={flights} loading={loading} />
 
       <AlertsAccordion />
