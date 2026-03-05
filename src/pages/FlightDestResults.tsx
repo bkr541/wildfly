@@ -985,15 +985,6 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
         </div>
       )}
 
-      {/* Tab: Map */}
-      {activeTab === "Map" && (
-        <RouteMap
-          departureAirport={departureAirport}
-          arrivalAirport={arrivalAirport}
-          airportMap={airportMapWithCoords}
-        />
-      )}
-
       {/* Toast popup */}
       <div
         className={cn(
