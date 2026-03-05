@@ -551,7 +551,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           <div className="px-3 pt-1 pb-3">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">
                   Departure Date
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
