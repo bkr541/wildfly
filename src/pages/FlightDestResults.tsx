@@ -632,8 +632,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                           key={label}
                           className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-1.5 py-1"
                         >
-                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
-                          <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
+                          <span className="text-[12px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
+                          <span className="text-[17px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
                             {value}{suffix}
                           </span>
                         </div>
