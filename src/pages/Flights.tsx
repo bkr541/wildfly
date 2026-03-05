@@ -592,7 +592,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
 
               {showReturnDate && (
                 <div>
-                  <label className="text-sm font-semibold text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                        <button
