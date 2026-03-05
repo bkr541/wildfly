@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon } from "@hugeicons/core-free-icons";
+import { SunriseIcon, SunsetIcon, Navigator02Icon, TicketStarIcon, Location01Icon, InformationCircleIcon, AirplaneTakeOff01Icon, Calendar03Icon, Location06Icon, FilterIcon, SortByDown02Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -465,18 +465,24 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab group */}
       {!hideHeader && (
-        <div className="relative z-10 flex items-center gap-0 bg-white px-5 border-b border-gray-200">
-          {(["Info", "Flights", "Events", "Map"] as TabType[]).map((tab) => (
+        <div className="relative z-10 flex items-center gap-0 bg-white px-3 border-b border-gray-200">
+          {([
+            { label: "Info", icon: InformationCircleIcon },
+            { label: "Flights", icon: AirplaneTakeOff01Icon },
+            { label: "Events", icon: Calendar03Icon },
+            { label: "Map", icon: Location06Icon },
+          ] as { label: TabType; icon: any }[]).map(({ label, icon }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={label}
+              onClick={() => setActiveTab(label)}
               className={cn(
-                "px-4 py-3 text-sm font-semibold transition-colors relative",
-                tab === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
+                "flex items-center gap-1.5 px-3 py-3.5 text-[15px] font-semibold transition-colors relative",
+                label === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              {tab}
-              {tab === activeTab && (
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === activeTab ? 2 : 1.5} />
+              {label}
+              {label === activeTab && (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
               )}
             </button>
@@ -539,7 +545,22 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
 
       {/* Tab: Flights */}
       {activeTab === "Flights" && (
-      <div className="flex-1 flex flex-col px-5 pt-1 pb-6 gap-3.5 relative z-10">
+      <div className="flex-1 flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
+        {/* Count row + sort/filter */}
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-semibold text-[#2E4A4A]">
+            <span className="text-[#10B981] font-black">{flights.length}</span>
+            <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors" style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}>
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+            </button>
+            <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors" style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}>
+              <HugeiconsIcon icon={FilterIcon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
             const isDestOpen = expandedDest === group.destination;
@@ -611,8 +632,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
                           key={label}
                           className="flex-1 flex flex-col items-center rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-1.5 py-1"
                         >
-                          <span className="text-[8px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
-                          <span className="text-[13px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
+                          <span className="text-[12px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
+                          <span className="text-[17px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">
                             {value}{suffix}
                           </span>
                         </div>
