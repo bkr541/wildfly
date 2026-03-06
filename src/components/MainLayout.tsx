@@ -45,6 +45,7 @@ const pageMap: Record<string, string> = {
   Friends: "friends",
   Hubs: "hubs",
   Subscription: "subscription",
+  "One-Way Search": "one-way-search",
 };
 
 const DRAWER_WIDTH = 80; // percent of screen
