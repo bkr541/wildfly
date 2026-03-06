@@ -13,12 +13,6 @@ interface OneWaySearchProps {
 }
 
 async function fetchOneWayFares(o: string, d: string, date: string) {
-  const { data, error } = await supabase.functions.invoke("quarryMinerOneWay", {
-    body: null,
-    headers: {},
-  });
-
-  // We need to pass query params — use direct fetch via supabase functions URL
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const url = `https://${projectId}.supabase.co/functions/v1/quarryMinerOneWay?o=${encodeURIComponent(o)}&d=${encodeURIComponent(d)}&date=${encodeURIComponent(date)}&ftype=GW`;
