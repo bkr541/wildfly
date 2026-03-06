@@ -234,6 +234,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   : currentPage === "routes" ? "ROUTES"
                   : currentPage === "fly-a-friend" ? "FLY A FRIEND"
                   : currentPage === "account" ? "ACCOUNT"
+                  : currentPage === "one-way-search" ? "ONE-WAY SEARCH"
                   : ""}
               </span>
             )}
