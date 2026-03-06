@@ -27,10 +27,11 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend" | "one-way-search" | "frontier-results">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const accountBackRef = useRef<(() => void) | null>(null);
+  const [oneWaySearchData, setOneWaySearchData] = useState<{ data: unknown; origin: string; dest: string; date: string } | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
