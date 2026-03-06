@@ -26,6 +26,7 @@ const menuItems = [
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
+  { icon: SearchList02Icon, label: "One-Way Search", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
