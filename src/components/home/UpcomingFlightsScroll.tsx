@@ -77,7 +77,14 @@ export function UpcomingFlightsScroll({ flights, loading }: Props) {
             </div>
           ))
         ) : flights.length === 0 ? (
-          <div className="w-full text-center py-6 text-sm text-[#6B7B7B]">No upcoming flights scheduled.</div>
+          <div className="w-full flex flex-col items-center justify-center py-6 gap-2">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.15)" }}>
+              <HugeiconsIcon icon={Airplane01Icon} size={22} color="#059669" strokeWidth={1.8} />
+            </div>
+            <p className="text-sm font-semibold text-[#2E4A4A]">No Upcoming Flights</p>
+            <p className="text-xs text-[#6B7B7B] text-center leading-relaxed">Your booked flights will<br />appear here.</p>
+          </div>
         ) : (
           flights.map((flight, i) => (
             <motion.div
