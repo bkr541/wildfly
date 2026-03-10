@@ -228,6 +228,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <span className="text-xl font-black tracking-widest uppercase select-none text-white">
                 {currentPage === "home" ? fullName
                   : currentPage === "flights" ? "FLIGHTS"
+                  : currentPage === "quick-search" ? "QUICK SEARCH"
                   : currentPage === "destinations" ? "DESTINATIONS"
                   : currentPage === "itinerary" ? "ITINERARY"
                   : currentPage === "routes" ? "ROUTES"
