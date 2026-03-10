@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Airplane01Icon, Location01Icon, Search01Icon } from "@hugeicons/core-free-icons";

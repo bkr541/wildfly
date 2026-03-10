@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { useAirportDictionary, type AirportInfo } from "@/hooks/useAirportDictionary";
 import { useRouteStats } from "@/hooks/useRouteStats";
 import { useRouteFavorites } from "@/hooks/useRouteFavorites";
