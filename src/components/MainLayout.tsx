@@ -64,7 +64,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { avatarUrl, initials, fullName } = useProfile();
+  const { avatarUrl, initials, fullName, userName } = useProfile();
 
   const handleMenuClick = (label: string) => {
     setDrawerOpen(false);
@@ -206,27 +206,31 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-        <header
-            className="flex items-center gap-3 px-6 pt-10 pb-6 relative z-10"
-            style={{
-              background: "linear-gradient(160deg, #07444a 0%, #0a6b5e 55%, #10b981 100%)",
-              borderBottomLeftRadius: "28px",
-              borderBottomRightRadius: "28px",
-              boxShadow: "0 8px 32px 0 rgba(5,150,105,0.18)",
-            }}
-          >
+        <header className="flex items-center gap-3 px-6 pt-10 pb-6 relative z-10 bg-[#F2F3F3]">
             {/* Left: hamburger */}
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="h-12 w-10 flex items-center justify-start text-white hover:opacity-80 transition-opacity"
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
             >
               <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
             </button>
 
             {currentPage && (() => {
+              if (currentPage === "home") {
+                return (
+                  <div className="flex-1 flex flex-col leading-tight select-none">
+                    <span className="text-sm font-semibold text-[#6B7280]">Hello,</span>
+                    <span
+                      className="text-2xl font-black tracking-tight"
+                      style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                    >
+                      {userName ?? "Explorer"}
+                    </span>
+                  </div>
+                );
+              }
               const labelMap: Record<string, string> = {
-                home: fullName ?? "HOME",
                 flights: "FLIGHTS",
                 "quick-search": "QUICK SEARCH",
                 destinations: "DESTINATIONS",
@@ -247,13 +251,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <div className="flex items-center gap-1 ml-auto">
                 <button
                   type="button"
-                  className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                 >
                   <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={2} />
                 </button>
                 <button
                   type="button"
-                  className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                 >
                   <HugeiconsIcon icon={Notification01Icon} size={22} color="currentColor" strokeWidth={2} />
                 </button>
