@@ -103,7 +103,7 @@ const FlyAFriendPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen px-6 pt-0 pb-8">
+    <div className="flex flex-col min-h-screen px-6 pt-6 pb-8">
 
       <div className="flex flex-col gap-5 flex-1">
         <AirportInput
