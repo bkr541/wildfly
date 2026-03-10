@@ -105,10 +105,6 @@ const FlyAFriendPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen px-6 pt-0 pb-8">
-      <div className="pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="FLYAFRND" />
-        <p className="text-sm text-[#6B7B7B] mt-2">Search flights for someone special</p>
-      </div>
 
       <div className="flex flex-col gap-5 flex-1">
         <AirportInput

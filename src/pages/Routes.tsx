@@ -532,11 +532,6 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
 
   return (
     <div className="px-6 pt-0 pb-6 animate-fade-in flex flex-col gap-4">
-      {/* Header */}
-      <div className="pt-4 pb-1">
-        <SplitFlapHeader word="ROUTES" gap="gap-0.5" />
-        <p className="text-[#6B7B7B] text-base mt-2">Explore direct routes from any origin.</p>
-      </div>
 
       {/* Origin Airport Input */}
       <OriginCombobox

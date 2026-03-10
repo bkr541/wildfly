@@ -73,11 +73,6 @@ const ItineraryPage = () => {
 
   return (
     <>
-      {/* Title Group */}
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="ITINERARY" />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Your upcoming travel plans.</p>
-      </div>
 
       {/* Horizontal Date Scroller */}
       <div
