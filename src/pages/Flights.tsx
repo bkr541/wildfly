@@ -903,10 +903,11 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                     data: { user },
                   } = await supabase.auth.getUser();
                   if (user) {
+                    const arrivalAirportValue = searchAll || destinationCode === "__ALL__" ? null : destinationCode;
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
                       departure_airport: originCode,
-                      arrival_airport: searchAll ? null : destinationCode,
+                      arrival_airport: arrivalAirportValue,
                       departure_date: depFormatted,
                       return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
                       trip_type: tripTypeMapping,
