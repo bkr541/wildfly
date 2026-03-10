@@ -530,7 +530,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
   }
 
   return (
-    <div className="px-6 pt-0 pb-6 animate-fade-in flex flex-col gap-4">
+    <div className="px-6 pt-6 pb-6 animate-fade-in flex flex-col gap-4">
 
       {/* Origin Airport Input */}
       <OriginCombobox

@@ -76,7 +76,7 @@ const ItineraryPage = () => {
       {/* Horizontal Date Scroller */}
       <div
         ref={scrollRef}
-        className="flex gap-2 px-6 pb-4 overflow-x-auto scrollbar-hide relative z-10"
+        className="flex gap-2 px-6 pt-6 pb-4 overflow-x-auto scrollbar-hide relative z-10"
         style={{ scrollBehavior: "smooth" }}
       >
         {dates.map((date) => {

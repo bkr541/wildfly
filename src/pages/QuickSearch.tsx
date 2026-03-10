@@ -219,7 +219,7 @@ const QuickSearchPage = () => {
   const canSubmit = !!departure && !!departureDate && !loading;
 
   return (
-    <div className="px-6 pt-4 pb-8 flex flex-col gap-5 animate-fade-in">
+    <div className="px-6 pt-6 pb-8 flex flex-col gap-5 animate-fade-in">
       <div>
         <h2 className="text-xl font-black tracking-widest uppercase text-[#345C5A]">QUICK SEARCH</h2>
         <p className="text-xs text-[#9CA3AF] mt-0.5">Search flights via external data source</p>

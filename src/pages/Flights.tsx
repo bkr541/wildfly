@@ -470,7 +470,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
       {loading && <SearchingOverlay />}
 
 
-      <div className="px-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
+      <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}
         <div
           className="rounded-full p-[2px] flex relative"
