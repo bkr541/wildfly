@@ -225,31 +225,13 @@ const MainApp = () => {
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "fly-a-friend" && <FlyAFriendPage />}
-              {currentPage === "one-way-search" && (
-                <OneWaySearch
-                  onResults={(data, origin, dest, date) => {
-                    setOneWaySearchData({ data, origin, dest, date });
-                    setCurrentPage("frontier-results");
-                  }}
-                />
-              )}
+              {currentPage === "one-way-search" && <OneWaySearch />}
             </MainLayout>
           </ProfileProvider>
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "frontier-results" && oneWaySearchData && (
-          <FrontierResults
-            responseData={oneWaySearchData.data}
-            origin={oneWaySearchData.origin}
-            dest={oneWaySearchData.dest}
-            date={oneWaySearchData.date}
-            onBack={() => setCurrentPage("one-way-search")}
-            onNewSearch={() => { setOneWaySearchData(null); setCurrentPage("one-way-search"); }}
-          />
         )}
         <IOSInstallBanner />
       </div>
