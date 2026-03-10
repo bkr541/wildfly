@@ -1,5 +1,4 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -226,21 +225,21 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             </button>
 
             {currentPage && (() => {
-              const wordMap: Record<string, string> = {
+              const labelMap: Record<string, string> = {
                 home: fullName ?? "HOME",
                 flights: "FLIGHTS",
-                "quick-search": "QSEARCH",
-                destinations: "DESTINAT",
-                itinerary: "ITINRARY",
+                "quick-search": "QUICK SEARCH",
+                destinations: "DESTINATIONS",
+                itinerary: "ITINERARY",
                 routes: "ROUTES",
-                "fly-a-friend": "FLYAFRND",
+                "fly-a-friend": "FLY A FRIEND",
                 account: "ACCOUNT",
               };
-              const word = wordMap[currentPage] ?? currentPage.toUpperCase().slice(0, 9);
+              const label = labelMap[currentPage] ?? currentPage.toUpperCase();
               return (
-                <div className="flex-1 min-w-0">
-                  <SplitFlapHeader word={word} gap="gap-0.5" variant="green" />
-                </div>
+                <span className="text-xl font-black tracking-widest uppercase select-none text-[#10B981]">
+                  {label}
+                </span>
               );
             })()}
           </header>
