@@ -249,7 +249,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   type="button"
                   className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
                 >
-                  <HugeiconsIcon icon={Search02Icon} size={22} color="currentColor" strokeWidth={2} />
+                  <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={2} />
                 </button>
                 <button
                   type="button"
