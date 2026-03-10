@@ -64,7 +64,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { avatarUrl, initials, fullName } = useProfile();
+  const { avatarUrl, initials, fullName, userName } = useProfile();
 
   const handleMenuClick = (label: string) => {
     setDrawerOpen(false);
