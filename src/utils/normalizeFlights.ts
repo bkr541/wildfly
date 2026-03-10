@@ -68,7 +68,7 @@ export function lowestNonNull(...nums: (number | null | undefined)[]): number | 
 // ── Normalizers ──────────────────────────────────────────────
 
 /**
- * Normalize a getSingleRoute response.
+ * Normalize a getSingleRoute response (legacy edge function shape).
  * Input: raw.data.json.flights[] already has the target schema shape.
  */
 export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsResponse {
@@ -94,6 +94,104 @@ export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsRespons
   }));
 
   log.info("normalizeSingleRoute complete", { outputCount: flights.length });
+  return { flights };
+}
+
+/**
+ * Convert "HH:MM AM/PM" time string + a date string "YYYY-MM-DD" to an ISO datetime string.
+ * Used for the getmydata.fly.dev API which returns time-only strings for departureTime/arrivalTime.
+ */
+function timeStringToISO(timeStr: string, dateStr: string): string {
+  try {
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return timeStr;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${dateStr}T${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}:00`;
+  } catch {
+    return timeStr;
+  }
+}
+
+/**
+ * Normalize a getmydata.fly.dev /api/flights/search response.
+ *
+ * Input schema:
+ *   { flights: Array<{ id, airline, flightNumber, origin, destination,
+ *       departureTime ("HH:MM AM/PM"), arrivalTime ("HH:MM AM/PM"),
+ *       duration ("HH:MM:SS"), stops, cabin, price, currency, notes,
+ *       rawPayload: { departure_time (ISO), arrival_time (ISO),
+ *         fares: { go_wild, discount_den, standard, miles } (each with .total),
+ *         segments: [{ departure_airport, arrival_airport,
+ *                      departure_time (ISO), arrival_time (ISO), ... }]
+ *       }
+ *     }>
+ *   }
+ *
+ * Output: NormalizedFlightsResponse (unified schema used by FlightDestResults).
+ */
+export function normalizeGetMyDataResponse(raw: any, departureDate?: string): NormalizedFlightsResponse {
+  const rawFlights: any[] = raw?.flights || [];
+  log.info("normalizeGetMyData", { inputCount: rawFlights.length });
+
+  const cleanFare = (val: any): number | null => {
+    if (val == null) return null;
+    const n = Number(val);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+
+  const flights: NormalizedFlight[] = rawFlights.map((f: any) => {
+    const rp = f.rawPayload ?? {};
+    const segments: any[] = Array.isArray(rp.segments) ? rp.segments : [];
+
+    // Build legs from segments (ISO times available there), fall back to top-level
+    const legs = segments.length > 0
+      ? segments.map((seg: any) => ({
+          origin: seg.departure_airport ?? f.origin ?? "",
+          destination: seg.arrival_airport ?? f.destination ?? "",
+          departure_time: seg.departure_time ?? "",
+          arrival_time: seg.arrival_time ?? "",
+        }))
+      : [
+          {
+            origin: f.origin ?? "",
+            destination: f.destination ?? "",
+            // Convert "HH:MM AM/PM" to ISO using departureDate when available
+            departure_time: departureDate ? timeStringToISO(f.departureTime ?? "", departureDate) : (f.departureTime ?? ""),
+            arrival_time: departureDate ? timeStringToISO(f.arrivalTime ?? "", departureDate) : (f.arrivalTime ?? ""),
+          },
+        ];
+
+    // Fares: rawPayload.fares has go_wild / discount_den / standard / miles each with .total
+    const fares = rp.fares ?? {};
+    const goWild = cleanFare(fares.go_wild?.total);
+    const discountDen = cleanFare(fares.discount_den?.total);
+    const standard = cleanFare(fares.standard?.total);
+    // "basic" = cheapest available; "economy" = discount_den; "premium" = standard
+    const basic = lowestNonNull(goWild, discountDen, standard) ?? cleanFare(f.price);
+
+    // is_plus_one_day: compare ISO dates of first dep and last arr
+    const firstDep = legs[0]?.departure_time ?? "";
+    const lastArr = legs[legs.length - 1]?.arrival_time ?? "";
+    const plusOne = isPlusOneDay(firstDep, lastArr);
+
+    return {
+      total_duration: f.duration ?? "",
+      is_plus_one_day: plusOne,
+      fares: {
+        basic,
+        economy: discountDen,
+        premium: standard,
+        business: null,
+      },
+      legs,
+    };
+  });
+
+  log.info("normalizeGetMyData complete", { outputCount: flights.length });
   return { flights };
 }
 

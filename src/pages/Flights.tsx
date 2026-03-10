@@ -23,7 +23,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
-import { normalizeSingleRouteResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
+import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
@@ -868,7 +868,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                 const normalizeStart = performance.now();
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data)
-                  : normalizeSingleRouteResponse(data);
+                  : normalizeGetMyDataResponse(data, depFormatted);
                 flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, {
                   flights: normalized.flights.length,
                 });
