@@ -1,5 +1,4 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
