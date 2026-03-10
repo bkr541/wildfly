@@ -15,7 +15,6 @@ import {
   RouteIcon,
   Notification01Icon,
   UserSharingIcon,
-  SearchList02Icon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,6 @@ const menuItems = [
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
-  { icon: SearchList02Icon, label: "One-Way Search", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
@@ -45,7 +43,6 @@ const pageMap: Record<string, string> = {
   Friends: "friends",
   Hubs: "hubs",
   Subscription: "subscription",
-  "One-Way Search": "one-way-search",
 };
 
 const DRAWER_WIDTH = 80; // percent of screen
@@ -234,7 +231,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   : currentPage === "routes" ? "ROUTES"
                   : currentPage === "fly-a-friend" ? "FLY A FRIEND"
                   : currentPage === "account" ? "ACCOUNT"
-                  : currentPage === "one-way-search" ? "ONE-WAY SEARCH"
                   : ""}
               </span>
             )}

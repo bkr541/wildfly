@@ -18,8 +18,6 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FlyAFriendPage from "./pages/FlyAFriend";
 import IOSInstallBanner from "./components/IOSInstallBanner";
-import OneWaySearch from "./pages/OneWaySearch";
-import FrontierResults from "./pages/FrontierResults";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -27,11 +25,10 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend" | "one-way-search" | "frontier-results">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const accountBackRef = useRef<(() => void) | null>(null);
-  const [oneWaySearchData, setOneWaySearchData] = useState<{ data: unknown; origin: string; dest: string; date: string } | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -183,7 +180,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend", "one-way-search"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-white">
@@ -227,31 +224,12 @@ const MainApp = () => {
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "fly-a-friend" && <FlyAFriendPage />}
-              {currentPage === "one-way-search" && (
-                <OneWaySearch
-                  onResults={(data, origin, dest, date) => {
-                    setOneWaySearchData({ data, origin, dest, date });
-                    setCurrentPage("frontier-results");
-                  }}
-                />
-              )}
             </MainLayout>
           </ProfileProvider>
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
-        )}
-
-        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "frontier-results" && oneWaySearchData && (
-          <FrontierResults
-            responseData={oneWaySearchData.data}
-            origin={oneWaySearchData.origin}
-            dest={oneWaySearchData.dest}
-            date={oneWaySearchData.date}
-            onBack={() => setCurrentPage("one-way-search")}
-            onNewSearch={() => { setOneWaySearchData(null); setCurrentPage("one-way-search"); }}
-          />
         )}
         <IOSInstallBanner />
       </div>
