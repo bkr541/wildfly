@@ -173,7 +173,7 @@ type TabType = "Info" | "Flights" | "Events";
 const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }: { onBack: () => void; responseData: string; hideHeader?: boolean; hideBackground?: boolean }) => {
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
-  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
+  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -308,16 +308,17 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, locations(city, state_code)")
+        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code)")
         .in("iata_code", destinationCodes);
       if (data) {
-        const map: Record<string, { city: string; stateCode: string; name: string }> = {};
+        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }> = {};
         const coords: Record<string, { lat: number; lng: number }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
             city: a.locations?.city ?? "",
             stateCode: a.locations?.state_code ?? "",
             name: a.name ?? "",
+            locationId: a.location_id ?? null,
           };
           if (a.latitude != null && a.longitude != null) {
             coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
@@ -389,11 +390,18 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
 
-      {!hideHeader && (
+      {!hideHeader && (() => {
+        const locationId = arrivalAirport && arrivalAirport !== "All"
+          ? airportMap[arrivalAirport]?.locationId
+          : null;
+        const headerBg = locationId
+          ? `/assets/locations/${locationId}_background.png`
+          : `/assets/locations/init_background.png`;
+        return (
       <header
         className="relative z-10 flex flex-col px-5 pt-6 pb-[136px] overflow-hidden"
         style={{
-          backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
+          backgroundImage: `url('${headerBg}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -477,7 +485,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           </div>
         )}
       </header>
-      )}
+        );
+      })()}
 
       {/* Tab group */}
       {!hideHeader && (
