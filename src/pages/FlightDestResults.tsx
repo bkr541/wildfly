@@ -173,7 +173,7 @@ type TabType = "Info" | "Flights" | "Events";
 const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }: { onBack: () => void; responseData: string; hideHeader?: boolean; hideBackground?: boolean }) => {
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
-  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string }>>({});
+  const [airportMap, setAirportMap] = useState<Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }>>({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
