@@ -30,6 +30,7 @@ const HomePage = () => {
         .from("user_flights")
         .select("*")
         .eq("user_id", user.id)
+        .gte("departure_time", new Date().toISOString())
         .order("departure_time", { ascending: true })
         .limit(20);
       setFlights(data || []);
