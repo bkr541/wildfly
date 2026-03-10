@@ -15,8 +15,6 @@ import {
   RouteIcon,
   Notification01Icon,
   UserSharingIcon,
-  Notification02Icon,
-  Search02Icon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
