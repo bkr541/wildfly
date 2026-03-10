@@ -219,8 +219,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             {currentPage && (() => {
               if (currentPage === "home") {
                 return (
-                  <div className="flex-1 flex items-baseline gap-1.5 select-none">
-                    <span className="text-xl font-bold text-[#6B7280]">Hello,</span>
+                  <div className="flex-1 flex items-baseline gap-1 select-none">
+                    <span className="text-xl font-medium text-[#6B7280]">Hello,</span>
                     <span
                       className="text-xl font-black tracking-tight"
                       style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
