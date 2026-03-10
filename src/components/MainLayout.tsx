@@ -23,6 +23,7 @@ const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { type: "heading", label: "Explore Flights" },
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
+  { icon: Search01Icon, label: "Quick Search", indent: true },
   { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { type: "heading", label: "Trip Hub" },
@@ -36,6 +37,7 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   "Book a Flight": "flights",
+  "Quick Search": "quick-search",
   "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   "Search Destinations": "destinations",
@@ -226,6 +228,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <span className="text-xl font-black tracking-widest uppercase select-none text-white">
                 {currentPage === "home" ? fullName
                   : currentPage === "flights" ? "FLIGHTS"
+                  : currentPage === "quick-search" ? "QUICK SEARCH"
                   : currentPage === "destinations" ? "DESTINATIONS"
                   : currentPage === "itinerary" ? "ITINERARY"
                   : currentPage === "routes" ? "ROUTES"

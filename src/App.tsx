@@ -17,6 +17,7 @@ import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FlyAFriendPage from "./pages/FlyAFriend";
+import QuickSearchPage from "./pages/QuickSearch";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 
 const MainApp = () => {
@@ -25,7 +26,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "fly-a-friend" | "quick-search">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const accountBackRef = useRef<(() => void) | null>(null);
@@ -180,7 +181,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "fly-a-friend", "quick-search"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-white">
@@ -219,6 +220,7 @@ const MainApp = () => {
               {currentPage === "home" && <HomePage />}
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
+              {currentPage === "quick-search" && <QuickSearchPage />}
               {currentPage === "destinations" && <DestinationsPage />}
               
               {currentPage === "itinerary" && <ItineraryPage />}
