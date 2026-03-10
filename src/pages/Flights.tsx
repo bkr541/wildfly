@@ -831,26 +831,31 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
                   body: requestBody,
                 }));
               } else {
-                let targetUrl: string;
-                let functionName: string;
-
+                // Call the shared external endpoint
+                const body: Record<string, string> = {
+                  origin: originCode,
+                  departureDate: depFormatted,
+                };
+                if (destinationCode && destinationCode !== "__ALL__") {
+                  body.destination = destinationCode;
+                }
                 if (tripType === "round-trip" && arrivalDate) {
-                  const retFormatted = format(arrivalDate, "yyyy-MM-dd");
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
-                    depFormatted + " 00:00:00",
-                  )}&dd2=${encodeURIComponent(retFormatted + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                  functionName = "getRoundTripRoute";
-                } else {
-                  targetUrl = `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${originCode}&d1=${destinationCode}&dd1=${encodeURIComponent(
-                    depFormatted + " 00:00:00",
-                  )}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                  functionName = "getSingleRoute";
+                  body.returnDate = format(arrivalDate, "yyyy-MM-dd");
                 }
 
-                const requestBody = { targetUrl, origin: originCode, destination: destinationCode };
-                ({ data, error } = await supabase.functions.invoke(functionName, {
-                  body: requestBody,
-                }));
+                try {
+                  const res = await fetch("https://getmydata.fly.dev/api/flights/search", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                  });
+                  const json = await res.json();
+                  data = json;
+                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                } catch (fetchErr) {
+                  data = null;
+                  error = fetchErr;
+                }
               }
 
               edgeLog.info("Edge function complete", {
