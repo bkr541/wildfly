@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Timer02Icon } from "@hugeicons/core-free-icons";
+import { Timer02Icon, Airplane01Icon } from "@hugeicons/core-free-icons";
 
 interface UserFlight {
   id: string;
