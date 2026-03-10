@@ -37,6 +37,7 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   "Book a Flight": "flights",
+  "Quick Search": "quick-search",
   "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   "Search Destinations": "destinations",
