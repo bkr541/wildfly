@@ -485,7 +485,8 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
           </div>
         )}
       </header>
-      )}
+        );
+      })()}
 
       {/* Tab group */}
       {!hideHeader && (
