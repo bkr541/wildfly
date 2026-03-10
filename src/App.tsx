@@ -19,7 +19,6 @@ import RoutesPage from "./pages/Routes";
 import FlyAFriendPage from "./pages/FlyAFriend";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 import OneWaySearch from "./pages/OneWaySearch";
-import FrontierResults from "./pages/FrontierResults";
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
