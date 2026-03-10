@@ -237,11 +237,28 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               };
               const label = labelMap[currentPage] ?? currentPage.toUpperCase();
               return (
-                <span className="text-xl font-black tracking-widest uppercase select-none text-[#10B981]">
+                <span className="flex-1 text-xl font-black tracking-widest uppercase select-none text-[#10B981]">
                   {label}
                 </span>
               );
             })()}
+
+            {currentPage === "home" && (
+              <div className="flex items-center gap-1 ml-auto">
+                <button
+                  type="button"
+                  className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                >
+                  <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                >
+                  <HugeiconsIcon icon={Notification01Icon} size={22} color="currentColor" strokeWidth={2} />
+                </button>
+              </div>
+            )}
           </header>
         )}
 
