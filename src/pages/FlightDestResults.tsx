@@ -390,11 +390,18 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
 
-      {!hideHeader && (
+      {!hideHeader && (() => {
+        const locationId = arrivalAirport && arrivalAirport !== "All"
+          ? airportMap[arrivalAirport]?.locationId
+          : null;
+        const headerBg = locationId
+          ? `/assets/locations/${locationId}_background.png`
+          : `/assets/locations/init_background.png`;
+        return (
       <header
         className="relative z-10 flex flex-col px-5 pt-6 pb-[136px] overflow-hidden"
         style={{
-          backgroundImage: "url('/assets/locations/destpage_lasvegas.png')",
+          backgroundImage: `url('${headerBg}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
