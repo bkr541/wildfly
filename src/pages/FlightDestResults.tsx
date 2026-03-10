@@ -308,16 +308,17 @@ const FlightDestResults = ({ onBack, responseData, hideHeader, hideBackground }:
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, locations(city, state_code)")
+        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code)")
         .in("iata_code", destinationCodes);
       if (data) {
-        const map: Record<string, { city: string; stateCode: string; name: string }> = {};
+        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }> = {};
         const coords: Record<string, { lat: number; lng: number }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
             city: a.locations?.city ?? "",
             stateCode: a.locations?.state_code ?? "",
             name: a.name ?? "",
+            locationId: a.location_id ?? null,
           };
           if (a.latitude != null && a.longitude != null) {
             coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
