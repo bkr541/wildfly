@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { getLogger } from "@/lib/logger";
@@ -470,9 +469,6 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
     <>
       {loading && <SearchingOverlay />}
 
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="FLIGHTS" variant="gray" />
-      </div>
 
       <div className="px-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}

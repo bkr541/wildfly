@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, subDays, isSameDay, parseISO } from "date-fns";
 
@@ -73,11 +72,6 @@ const ItineraryPage = () => {
 
   return (
     <>
-      {/* Title Group */}
-      <div className="px-6 pt-4 pb-4 relative z-10 animate-fade-in">
-        <SplitFlapHeader word="ITINERARY" />
-        <p className="text-[#6B7B7B] leading-relaxed text-base mt-2">Your upcoming travel plans.</p>
-      </div>
 
       {/* Horizontal Date Scroller */}
       <div
