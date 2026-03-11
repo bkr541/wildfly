@@ -54,8 +54,8 @@ export function RecentSearches({ searches, loading, onNavigate }: Props) {
     <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="text-[13px] font-black text-[#07444a] uppercase tracking-widest flex items-center gap-2">
-          <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 text-[#07444a]" strokeWidth={2} />
+        <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
+          <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Recent Searches
         </h2>
         <button
