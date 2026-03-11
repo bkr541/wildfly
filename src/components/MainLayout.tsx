@@ -14,7 +14,6 @@ import {
   ArrowLeft01Icon,
   RouteIcon,
   Notification01Icon,
-  UserSharingIcon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
