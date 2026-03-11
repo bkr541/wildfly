@@ -873,7 +873,7 @@ const FlightsPage = ({
                     response: cached.payload,
                     departureDate: depFormatted,
                     arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                    tripType: tripType === "round-trip" ? "Round Trip" : "One Way",
+                    tripType: tripType === "round-trip" ? "Round Trip" : tripType === "day-trip" ? "Day Trip" : "One Way",
                     departureAirport: originCode,
                     arrivalAirport: searchAll ? "All" : destinationCode,
                     fromCache: true,
@@ -890,25 +890,47 @@ const FlightsPage = ({
               const edgeStart = performance.now();
               let data, error;
 
-              if (searchAll) {
-                const requestBody = { departureAirport: originCode, departureDate: depFormatted };
-                ({ data, error } = await supabase.functions.invoke("getAllDestinations", {
-                  body: requestBody,
-                }));
-              } else {
-                // Call the shared external endpoint
-                const body: Record<string, string> = {
-                  origin: originCode,
-                  departureDate: depFormatted,
-                };
-                if (destinationCode && destinationCode !== "__ALL__") {
-                  body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
-                }
-                if (tripType === "round-trip" && arrivalDate) {
-                  body.returnDate = format(arrivalDate, "yyyy-MM-dd");
-                }
-
-                try {
+              try {
+                if (tripType === "day-trip") {
+                  // GET /api/flights/dayTrips — returns paired same-day turnarounds
+                  const params = new URLSearchParams({
+                    origin: originCode,
+                    date: depFormatted,
+                    nonstop: "true",
+                    layovertime: "6",
+                  });
+                  edgeLog.info("Day Trip search", { origin: originCode, date: depFormatted });
+                  const res = await fetch(`https://getmydata.fly.dev/api/flights/dayTrips?${params}`);
+                  const json = await res.json();
+                  data = json;
+                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                } else if (tripType === "round-trip" && arrivalDate) {
+                  // POST /api/flights/roundTrip — fetches outbound + return simultaneously
+                  const body = {
+                    origin: originCode,
+                    destination: destinationCode,
+                    departureDate: depFormatted,
+                    returnDate: format(arrivalDate, "yyyy-MM-dd"),
+                  };
+                  edgeLog.info("Round Trip search", body);
+                  const res = await fetch("https://getmydata.fly.dev/api/flights/roundTrip", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                  });
+                  const json = await res.json();
+                  data = json;
+                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                } else {
+                  // POST /api/flights/search — one-way, search-all, multi-day
+                  const body: Record<string, string> = {
+                    origin: originCode,
+                    departureDate: depFormatted,
+                  };
+                  if (!searchAll && destinationCode && destinationCode !== "__ALL__") {
+                    body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
+                  }
+                  edgeLog.info("One-way / Search-all search", { origin: originCode, dest: body.destination ?? "ALL", date: depFormatted });
                   const res = await fetch("https://getmydata.fly.dev/api/flights/search", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -917,10 +939,10 @@ const FlightsPage = ({
                   const json = await res.json();
                   data = json;
                   error = res.ok ? null : new Error(`HTTP ${res.status}`);
-                } catch (fetchErr) {
-                  data = null;
-                  error = fetchErr;
                 }
+              } catch (fetchErr) {
+                data = null;
+                error = fetchErr;
               }
 
               edgeLog.info("Edge function complete", {
@@ -992,7 +1014,7 @@ const FlightsPage = ({
                     response: normalized,
                     departureDate: depFormatted,
                     arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                    tripType: tripType === "round-trip" ? "Round Trip" : "One Way",
+                    tripType: tripType === "round-trip" ? "Round Trip" : tripType === "day-trip" ? "Day Trip" : "One Way",
                     departureAirport: originCode,
                     arrivalAirport: searchAll ? "All" : destinationCode,
                     fromCache: false,
