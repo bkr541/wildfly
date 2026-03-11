@@ -48,7 +48,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
   return (
     <section className="px-5 pt-1 pb-4 relative z-10">
       {/* Section header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-2.5 px-1">
         <h2 className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-2 small-caps">
           <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#059669]" />
           Upcoming Flights
@@ -84,34 +84,34 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
           </div>
         </div>
       ) : flights.length === 0 ? (
-        /* Empty state card — updated with 6px less padding and larger image */
+        /* Empty state card — Height reduced via tighter padding and smaller margins */
         <div
-          className="rounded-2xl px-[14px] py-[18px] flex items-center gap-5"
+          className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4"
           style={{
             background: "rgba(255,255,255,0.88)",
             border: "1px solid rgba(5,150,105,0.13)",
             boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
           }}
         >
-          {/* Illustration Container - size increased */}
+          {/* Illustration Container */}
           <div className="flex-shrink-0">
             <img
               src="/assets/userhome/no_upcoming_flights.png"
               alt="No upcoming flights"
-              className="w-[110px] h-auto object-contain"
+              className="w-[100px] h-auto object-contain"
             />
           </div>
 
           {/* Text + CTA */}
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-[#1a2e2e] leading-snug mb-0.5">No upcoming flights yet</p>
-            <p className="text-[12px] text-[#6B7B7B] leading-snug mb-3">
-              Book a trip or save a route to start building your itinerary
+            <p className="text-sm font-bold text-[#1a2e2e] leading-tight mb-0.5">No upcoming flights yet</p>
+            <p className="text-[11px] text-[#6B7B7B] leading-tight mb-2.5">
+              Book a trip or save a route to build your itinerary
             </p>
             <button
               type="button"
               onClick={() => onNavigate?.("flights")}
-              className="px-5 py-2 rounded-full text-[13px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+              className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
               style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
             >
               Book a Flight
