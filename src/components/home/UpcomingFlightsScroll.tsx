@@ -84,7 +84,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
           </div>
         </div>
       ) : flights.length === 0 ? (
-        /* Empty state card — styled like reference image */
+        /* Empty state card — updated with clean single-image illustration */
         <div
           className="rounded-2xl px-5 py-6 flex items-center gap-5"
           style={{
@@ -93,20 +93,15 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
             boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
           }}
         >
-          {/* Illustration placeholder */}
-          <div className="flex-shrink-0 w-[88px] h-[72px] relative opacity-60">
+          {/* Illustration Container */}
+          <div className="flex-shrink-0">
             <img
               src="/assets/userhome/no_upcoming_flights.png"
-              alt=""
-              className="absolute bottom-0 left-0 h-8 w-auto opacity-50"
-            />
-            <img
-              src={planeIcon}
-              alt=""
-              className="absolute top-0 right-0 w-10 h-10 opacity-40"
-              style={{ filter: "grayscale(0.4)" }}
+              alt="No upcoming flights"
+              className="w-[88px] h-auto object-contain"
             />
           </div>
+
           {/* Text + CTA */}
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-[#1a2e2e] leading-snug mb-0.5">No upcoming flights yet</p>
