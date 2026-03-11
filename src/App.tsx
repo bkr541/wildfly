@@ -252,12 +252,14 @@ const MainApp = () => {
 };
 
 const App = () => (
-  <BrowserRouter>
-    <Routes>
-      <Route path="/admin/import" element={<AdminImport />} />
-      <Route path="*" element={<MainApp />} />
-    </Routes>
-  </BrowserRouter>
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/import" element={<AdminImport />} />
+        <Route path="*" element={<MainApp />} />
+      </Routes>
+    </BrowserRouter>
+  </QueryClientProvider>
 );
 
 export default App;
