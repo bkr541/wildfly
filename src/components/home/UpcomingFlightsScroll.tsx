@@ -96,7 +96,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
           {/* Illustration placeholder */}
           <div className="flex-shrink-0 w-[88px] h-[72px] relative opacity-60">
             <img
-              src="/assets/logo/frontier/frontier_logo.png"
+              src="/assets/userhome/no_upcoming_flights.png"
               alt=""
               className="absolute bottom-0 left-0 h-8 w-auto opacity-50"
             />
@@ -146,30 +146,43 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
             >
               {/* Airline logo row */}
               <div className="h-4 flex items-center gap-2 mb-3">
-                <img src={FRONTIER_LOGO} alt="Frontier Airlines" className="h-full w-auto object-contain" loading="eager" />
+                <img
+                  src={FRONTIER_LOGO}
+                  alt="Frontier Airlines"
+                  className="h-full w-auto object-contain"
+                  loading="eager"
+                />
                 <span className="text-[10px] font-semibold text-[#2E4A4A] tracking-wide uppercase">Frontier</span>
               </div>
 
               {/* IATA + separator */}
               <div className="flex items-center justify-between gap-1 mb-2">
-                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.departure_airport}</span>
+                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                  {flight.departure_airport}
+                </span>
                 <div className="flex-1 flex items-center px-1">
                   <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
                   <img src={planeIcon} alt="flight" className="mx-1.5 w-8 h-8 object-contain flex-shrink-0" />
                   <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
                 </div>
-                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.arrival_airport}</span>
+                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
+                  {flight.arrival_airport}
+                </span>
               </div>
 
               {/* Times */}
               <div className="flex items-start justify-between">
                 <span className="text-xs font-medium text-[#059669] leading-tight">
                   <span className="block">{formatTime(flight.departure_time)}</span>
-                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">
+                    {formatFullDate(flight.departure_time)}
+                  </span>
                 </span>
                 <span className="text-xs font-medium text-[#059669] text-right leading-tight">
                   <span className="block">{formatTime(flight.arrival_time)}</span>
-                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">
+                    {formatFullDate(flight.arrival_time)}
+                  </span>
                 </span>
               </div>
             </motion.div>
