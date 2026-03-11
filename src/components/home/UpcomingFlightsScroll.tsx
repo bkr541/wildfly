@@ -84,21 +84,21 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
           </div>
         </div>
       ) : flights.length === 0 ? (
-        /* Empty state card — Image size increased to w-125px */
+        /* Empty state card — Height fixed by using a controlled container and scale */
         <div
-          className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4"
+          className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4 overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.88)",
             border: "1px solid rgba(5,150,105,0.13)",
             boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
           }}
         >
-          {/* Illustration Container */}
-          <div className="flex-shrink-0">
+          {/* Illustration Container - Fixed width/height box to prevent expansion */}
+          <div className="flex-shrink-0 w-[110px] h-[70px] relative flex items-center justify-center">
             <img
               src="/assets/userhome/no_upcoming_flights.png"
               alt="No upcoming flights"
-              className="w-[125px] h-auto object-contain"
+              className="w-full h-full object-contain scale-[1.4] origin-center"
             />
           </div>
 
