@@ -82,8 +82,18 @@ async function fetchAndLogDayTrips(): Promise<void> {
       .gte("updated_at", sixHoursAgo)
       .maybeSingle();
 
-    // Cache hit within 6 hours — skip entirely, no duplicate fetch or log
+    // Cache hit within 6 hours (ready) OR already being fetched — skip entirely
     if (cached?.payload) return;
+
+    // Also skip if another tab/session is already fetching
+    const { data: inFlight } = await (supabase.from("flight_search_cache") as any)
+      .select("status")
+      .eq("cache_key", cacheKey)
+      .eq("status", "fetching")
+      .gte("updated_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()) // within last 5 min
+      .maybeSingle();
+
+    if (inFlight) return;
 
     // 5. Reserve cache slot (status = 'fetching') to prevent duplicate calls
     await (supabase.from("flight_search_cache") as any).upsert(
