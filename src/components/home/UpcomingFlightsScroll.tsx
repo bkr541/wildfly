@@ -49,8 +49,8 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
     <section className="px-5 pt-1 pb-4 relative z-10">
       {/* Section header */}
       <div className="flex items-center justify-between mb-2.5 px-1">
-        <h2 className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-2 small-caps">
-          <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#059669]" />
+        <h2 className="text-[13px] font-black text-[#07444a] uppercase tracking-widest flex items-center gap-2">
+          <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#07444a]" strokeWidth={2} />
           Upcoming Flights
         </h2>
         <button
