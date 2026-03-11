@@ -20,22 +20,21 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
-  { type: "heading", label: "Explore Flights" },
-  { icon: Airplane01Icon, label: "Book a Flight", indent: true },
-  { icon: RouteIcon, label: "Routes", indent: true },
+  { type: "heading", label: "Book" },
+  { icon: Airplane01Icon, label: "Flights", indent: true },
+  { icon: Location01Icon, label: "Destinations", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
-  { icon: UserGroupIcon, label: "Friends", indent: true },
-  { type: "heading", label: "Explore Destinations" },
-  { icon: Location01Icon, label: "Search Destinations", indent: true },
+  { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
+  { icon: UserGroupIcon, label: "Friends", indent: true },
 ];
 
 const pageMap: Record<string, string> = {
   Home: "home",
-  "Book a Flight": "flights",
+  Flights: "flights",
+  Destinations: "destinations",
   Itinerary: "itinerary",
-  "Search Destinations": "destinations",
   Routes: "routes",
   Friends: "friends",
   Hubs: "hubs",
