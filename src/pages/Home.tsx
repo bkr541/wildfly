@@ -110,7 +110,7 @@ async function fetchAndLogDayTrips(): Promise<void> {
     );
 
     // 6. Call the dayTrips endpoint
-    const url = `https://getmydata.fly.dev/api/flights/dayTrips?origin=${originIATA}&date=${today}&layovertime=6`;
+    const url = `https://getmydata.fly.dev/api/flights/dayTrips?origin=${originIATA}&date=${today}&nonstop=true&layovertime=6`;
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
       // Mark cache as error
