@@ -84,7 +84,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
           </div>
         </div>
       ) : flights.length === 0 ? (
-        /* Empty state card — Height reduced via tighter padding and smaller margins */
+        /* Empty state card — Image size increased to w-125px */
         <div
           className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4"
           style={{
@@ -98,7 +98,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
             <img
               src="/assets/userhome/no_upcoming_flights.png"
               alt="No upcoming flights"
-              className="w-[100px] h-auto object-contain"
+              className="w-[125px] h-auto object-contain"
             />
           </div>
 
