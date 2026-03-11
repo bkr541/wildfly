@@ -873,7 +873,7 @@ const FlightsPage = ({
                     response: cached.payload,
                     departureDate: depFormatted,
                     arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                    tripType: tripType === "round-trip" ? "Round Trip" : "One Way",
+                    tripType: tripType === "round-trip" ? "Round Trip" : tripType === "day-trip" ? "Day Trip" : "One Way",
                     departureAirport: originCode,
                     arrivalAirport: searchAll ? "All" : destinationCode,
                     fromCache: true,
