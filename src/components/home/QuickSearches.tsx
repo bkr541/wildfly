@@ -169,6 +169,7 @@ export function QuickSearches({ onNavigate }: Props) {
               return (
                 <motion.div
                   key={loc.locationId}
+                  style={{ minWidth: "58vw", maxWidth: "58vw" }}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{
                     opacity: 1,
