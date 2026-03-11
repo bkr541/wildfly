@@ -153,7 +153,7 @@ export function QuickSearches({ onNavigate }: Props) {
       </div>
 
       {/* Cards */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
         {loading
           ? [1, 2].map((i) => (
               <div
@@ -175,8 +175,10 @@ export function QuickSearches({ onNavigate }: Props) {
                     y: 0,
                     transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
                   }}
-                  className="rounded-2xl overflow-hidden"
+                  className="flex-shrink-0 rounded-2xl overflow-hidden"
                   style={{
+                    minWidth: "58vw",
+                    maxWidth: "58vw",
                     background: style.gradient,
                     boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
                   }}
