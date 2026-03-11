@@ -454,12 +454,12 @@ const FlightDestResults = ({
                 backgroundPosition: "center",
               }}
             >
-              {/* Green gradient overlay */}
+              {/* Green gradient overlay — REFINED FOR POP */}
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    "linear-gradient(to bottom, rgba(6, 78, 59, 0.60) 0%, rgba(6, 78, 59, 0.25) 50%, rgba(6, 78, 59, 0.70) 100%)",
+                    "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
                 }}
               />
               {/* Metrics scrim — bottom gradient */}
@@ -477,12 +477,18 @@ const FlightDestResults = ({
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
                 </button>
               </div>
-              {/* Route text below icons */}
+              {/* Route text below icons — POLISHED WITH TEXT-SHADOW */}
               <div className="relative mt-3">
-                <p className="text-white/70 text-[22px] font-light leading-tight">
+                <p
+                  className="text-white/70 text-[22px] font-light leading-tight"
+                  style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                >
                   {airportMap[departureAirport]?.city || departureAirport} to
                 </p>
-                <p className="text-white leading-tight uppercase tracking-wide">
+                <p
+                  className="text-white leading-tight uppercase tracking-wide"
+                  style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                >
                   {arrivalAirport && arrivalAirport !== "All" ? (
                     <>
                       <span className="text-[30px] font-black">{arrivalAirport}</span>
