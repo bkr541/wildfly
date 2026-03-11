@@ -153,7 +153,7 @@ export function QuickSearches({ onNavigate }: Props) {
       </div>
 
       {/* Cards */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
         {loading
           ? [1, 2].map((i) => (
               <div
