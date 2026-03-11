@@ -171,6 +171,17 @@ const MainApp = () => {
 
   const handleNavigate = (page: string, data?: string) => {
     if (page === "flight-results" && data) setFlightResultsData(data);
+    if (page === "flights" && data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed?.quickSearch) setQuickSearchData(data);
+        else setQuickSearchData(null);
+      } catch {
+        setQuickSearchData(null);
+      }
+    } else if (page !== "flights") {
+      setQuickSearchData(null);
+    }
     setSubScreenTitle(null);
     setCurrentPage(page as any);
   };
