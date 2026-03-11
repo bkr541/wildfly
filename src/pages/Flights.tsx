@@ -484,17 +484,22 @@ const FlightsPage = ({
       const parsed = JSON.parse(quickSearchData);
       if (!parsed?.quickSearch || !parsed.origin || !parsed.date) return;
 
-      const originCode: string = parsed.origin; // could be 'CHICAGO' or 'ORD'
+      const originCode: string = parsed.origin; // could be 'CITY:Chicago' or 'ORD'
       const depDate = new Date(parsed.date + "T12:00:00");
 
-      // Find matching airport(s) — for city-name codes find all airports in that city
+      // Find matching airport(s)
       let matchedAirports: Airport[] = [];
-      if (originCode.length === 3) {
-        // Single IATA
+      if (originCode.startsWith("CITY:")) {
+        // Multi-airport city: match by city name
+        const cityName = originCode.slice(5).toLowerCase();
+        matchedAirports = airports.filter(
+          (a) => a.locations?.city?.toLowerCase() === cityName,
+        );
+      } else if (originCode.length === 3) {
         const found = airports.find((a) => a.iata_code === originCode);
         if (found) matchedAirports = [found];
       } else {
-        // City name — find airports whose city matches
+        // Fallback: match by city name
         const cityLower = originCode.toLowerCase();
         matchedAirports = airports.filter(
           (a) => a.locations?.city?.toLowerCase() === cityLower,
