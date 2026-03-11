@@ -505,7 +505,8 @@ const FlightsPage = ({
 
       quickSearchApplied.current = true;
       setTripType("one-way");
-      setDepartures([matchedAirports[0]]);
+      // For multi-airport cities, set ALL matched airports as departures
+      setDepartures(matchedAirports);
       setDepartureDate(depDate);
       setSearchAll(false);
       setArrivals([]);
