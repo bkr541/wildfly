@@ -754,9 +754,17 @@ const FlightsPage = ({
           onClick={async () => {
             if (departures.length === 0 || !departureDate) return;
 
-            const originCode = departures[0].iata_code;
             const depFormatted = format(departureDate, "yyyy-MM-dd");
-            const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
+
+            // Build origin: if multiple airports share a city, send CITY:<CityName>
+            const depCity = departures[0].locations?.city;
+            const allSameDepCity = departures.length > 1 && depCity && departures.every(a => a.locations?.city === depCity);
+            const originCode = allSameDepCity ? `CITY:${depCity}` : departures[0].iata_code;
+
+            // Build destination: same logic for arrivals
+            const arrCity = arrivals[0]?.locations?.city;
+            const allSameArrCity = arrivals.length > 1 && arrCity && arrivals.every(a => a.locations?.city === arrCity);
+            const destinationCode = arrivals.length === 0 ? "__ALL__" : (allSameArrCity ? `CITY:${arrCity}` : arrivals[0].iata_code);
 
             const cacheOrigin = originCode;
             const cacheDest = searchAll ? "__ALL__" : destinationCode;
