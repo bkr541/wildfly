@@ -16,7 +16,7 @@ import {
   CircleArrowReload01Icon,
   SunCloud01Icon,
   MapPinpoint01Icon,
-  PlaneIcon,
+  GlobalSearchIcon,
   Cancel01Icon,
   AddCircleIcon,
 } from "@hugeicons/core-free-icons";
