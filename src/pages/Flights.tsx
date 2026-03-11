@@ -747,6 +747,7 @@ const FlightsPage = ({
 
         {/* Search Button */}
         <button
+          ref={searchBtnRef}
           type="button"
           disabled={loading}
           onClick={async () => {
