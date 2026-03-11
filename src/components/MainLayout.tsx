@@ -232,7 +232,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 destinations: "DESTINATIONS",
                 itinerary: "ITINERARY",
                 routes: "ROUTES",
-                "fly-a-friend": "FLY A FRIEND",
                 account: "ACCOUNT",
               };
               const label = labelMap[currentPage] ?? currentPage.toUpperCase();
