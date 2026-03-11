@@ -471,6 +471,54 @@ const FlightsPage = ({
     })();
   }, [userSettings.default_departure_to_home, defaultHomeApplied, departures.length]);
 
+  // Auto-fill and trigger search from quickSearchData (passed from Home's Quick Search cards)
+  const quickSearchApplied = useRef(false);
+  const searchBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (quickSearchApplied.current) return;
+    if (!quickSearchData) return;
+    if (airports.length === 0) return; // wait for airports to load
+
+    try {
+      const parsed = JSON.parse(quickSearchData);
+      if (!parsed?.quickSearch || !parsed.origin || !parsed.date) return;
+
+      const originCode: string = parsed.origin; // could be 'CHICAGO' or 'ORD'
+      const depDate = new Date(parsed.date + "T12:00:00");
+
+      // Find matching airport(s) — for city-name codes find all airports in that city
+      let matchedAirports: Airport[] = [];
+      if (originCode.length === 3) {
+        // Single IATA
+        const found = airports.find((a) => a.iata_code === originCode);
+        if (found) matchedAirports = [found];
+      } else {
+        // City name — find airports whose city matches
+        const cityLower = originCode.toLowerCase();
+        matchedAirports = airports.filter(
+          (a) => a.locations?.city?.toLowerCase() === cityLower,
+        );
+      }
+
+      if (matchedAirports.length === 0) return;
+
+      quickSearchApplied.current = true;
+      setTripType("one-way");
+      setDepartures([matchedAirports[0]]);
+      setDepartureDate(depDate);
+      setSearchAll(false);
+      setArrivals([]);
+
+      // Defer search trigger until state settles
+      setTimeout(() => {
+        searchBtnRef.current?.click();
+      }, 120);
+    } catch {
+      // ignore
+    }
+  }, [quickSearchData, airports]);
+
   return (
     <>
       {loading && <SearchingOverlay />}
