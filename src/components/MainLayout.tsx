@@ -178,7 +178,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
       {/* ── Main content panel (push + card effect) ── */}
       <div
-        className="relative flex flex-col min-h-screen w-full bg-[#F2F3F3]"
+        className="relative flex flex-col min-h-screen w-full"
+        style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
         style={{
           transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "translateX(0)",
           borderRadius: drawerOpen ? "20px" : "0px",
