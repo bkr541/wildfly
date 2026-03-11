@@ -14,7 +14,6 @@ import {
   ArrowLeft01Icon,
   RouteIcon,
   Notification01Icon,
-  UserSharingIcon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,6 @@ const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { type: "heading", label: "Explore Flights" },
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
-  { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
@@ -36,7 +34,6 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   "Book a Flight": "flights",
-  "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   "Search Destinations": "destinations",
   Routes: "routes",
@@ -235,7 +232,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 destinations: "DESTINATIONS",
                 itinerary: "ITINERARY",
                 routes: "ROUTES",
-                "fly-a-friend": "FLY A FRIEND",
                 account: "ACCOUNT",
               };
               const label = labelMap[currentPage] ?? currentPage.toUpperCase();
