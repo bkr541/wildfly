@@ -16,7 +16,7 @@ import {
   CircleArrowReload01Icon,
   SunCloud01Icon,
   MapPinpoint01Icon,
-  PlaneIcon,
+  GlobalSearchIcon,
   Cancel01Icon,
   AddCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -943,7 +943,7 @@ const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string)
           className="w-full h-14 px-6 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold rounded-full shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-2 disabled:opacity-60 flex items-center justify-center gap-3"
         >
           <span className="uppercase tracking-[0.45em] text-[11px] font-black">{loading ? "Searching..." : "Search Flights"}</span>
-          {!loading && <HugeiconsIcon icon={PlaneIcon} size={16} color="white" strokeWidth={2} className="shrink-0" />}
+          {!loading && <HugeiconsIcon icon={GlobalSearchIcon} size={16} color="white" strokeWidth={2} className="shrink-0" />}
         </button>
       </div>
     </>
