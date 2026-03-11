@@ -169,15 +169,16 @@ export function QuickSearches({ onNavigate }: Props) {
               return (
                 <motion.div
                   key={loc.locationId}
-                  style={{ minWidth: "58vw", maxWidth: "58vw" }}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{
                     opacity: 1,
                     y: 0,
                     transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
                   }}
-                  className="rounded-2xl overflow-hidden"
+                  className="flex-shrink-0 rounded-2xl overflow-hidden"
                   style={{
+                    minWidth: "58vw",
+                    maxWidth: "58vw",
                     background: style.gradient,
                     boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
                   }}
