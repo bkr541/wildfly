@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
+import { QuickSearches } from "@/components/home/QuickSearches";
 import { format } from "date-fns";
 
 interface UserFlight {
@@ -214,6 +215,7 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
     <div className="flex flex-col pt-3">
       <UpcomingFlightsScroll flights={flights} loading={loading} onNavigate={onNavigate} />
       <RecentSearches searches={searches} loading={searchesLoading} onNavigate={onNavigate} />
+      <QuickSearches onNavigate={onNavigate} />
     </div>
   );
 };

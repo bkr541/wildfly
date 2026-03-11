@@ -26,6 +26,7 @@ const MainApp = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
+  const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const accountBackRef = useRef<(() => void) | null>(null);
 
@@ -170,6 +171,17 @@ const MainApp = () => {
 
   const handleNavigate = (page: string, data?: string) => {
     if (page === "flight-results" && data) setFlightResultsData(data);
+    if (page === "flights" && data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed?.quickSearch) setQuickSearchData(data);
+        else setQuickSearchData(null);
+      } catch {
+        setQuickSearchData(null);
+      }
+    } else if (page !== "flights") {
+      setQuickSearchData(null);
+    }
     setSubScreenTitle(null);
     setCurrentPage(page as any);
   };
@@ -217,7 +229,7 @@ const MainApp = () => {
             >
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
-              {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
+              {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
