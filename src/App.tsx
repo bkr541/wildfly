@@ -195,7 +195,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "friends"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-white">
