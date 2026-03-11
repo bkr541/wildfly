@@ -26,9 +26,13 @@ function formatTripLabel(search: FlightSearch): string {
 
   const tripLabel: Record<string, string> = {
     "one-way": "One Way",
+    "one_way": "One Way",
     "round-trip": "Round Trip",
+    "round_trip": "Round Trip",
     "day-trip": "Day Trip",
+    "day_trip": "Day Trip",
     "multi-day": "Multi Day",
+    "multi_day": "Multi Day",
   };
 
   const type = tripLabel[search.trip_type] ?? search.trip_type;
