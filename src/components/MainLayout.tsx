@@ -209,16 +209,16 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               onClick={() => setDrawerOpen(true)}
               className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
             >
-              <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
+              <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
             </button>
 
             {currentPage && (() => {
               if (currentPage === "home") {
                 return (
                   <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
-                    <span className="text-xl font-medium text-[#6B7280]">Hello,</span>
+                    <span className="text-[22px] font-medium text-[#6B7280]">Hello,</span>
                     <span
-                      className="text-xl font-black tracking-tight"
+                      className="text-[22px] font-black tracking-tight"
                       style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
                     >
                       {userName ?? "Explorer"}
@@ -226,8 +226,15 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   </div>
                 );
               }
+              if (currentPage === "flights") {
+                return (
+                  <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                    <span className="text-[22px] font-medium text-[#6B7280]">Explore</span>
+                    <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Flights</span>
+                  </div>
+                );
+              }
               const labelMap: Record<string, string> = {
-                flights: "FLIGHTS",
                 destinations: "DESTINATIONS",
                 itinerary: "ITINERARY",
                 routes: "ROUTES",
@@ -235,7 +242,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               };
               const label = labelMap[currentPage] ?? currentPage.toUpperCase();
               return (
-                <span className="flex-1 text-xl font-black tracking-widest uppercase select-none text-[#10B981]">
+                <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
                   {label}
                 </span>
               );
@@ -246,7 +253,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 type="button"
                 className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
               >
-                <HugeiconsIcon icon={Notification01Icon} size={22} color="currentColor" strokeWidth={2} />
+                <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
               </button>
             )}
           </div>
