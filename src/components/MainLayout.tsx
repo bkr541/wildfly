@@ -83,7 +83,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
   }, [drawerOpen]);
 
   return (
-    <div className="relative flex min-h-screen bg-[#F2F3F3] overflow-hidden">
+    <div className="relative flex min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}>
 
       {/* ── Sidebar drawer panel ── */}
       <div
