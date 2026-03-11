@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
+import { QuickSearches } from "@/components/home/QuickSearches";
 import { format } from "date-fns";
 
 interface UserFlight {
