@@ -180,7 +180,46 @@ const MainApp = () => {
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
     ["home", "account", "flights", "destinations", "itinerary", "routes"].includes(currentPage);
-...
+
+  return (
+    <div className="flex justify-center min-h-screen bg-white">
+      <div className="w-full max-w-[768px] relative">
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+
+        {splashDone && checkingSession && (
+          <div className="flex items-center justify-center min-h-screen bg-background" />
+        )}
+
+        {splashDone && !checkingSession && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
+
+        {splashDone && !checkingSession && isSignedIn && needsOnboarding && !showProfileSetup && (
+          <Onboarding onComplete={() => setShowProfileSetup(true)} />
+        )}
+
+        {splashDone && !checkingSession && isSignedIn && showProfileSetup && (
+          <ProfileSetup
+            onComplete={() => {
+              setNeedsOnboarding(false);
+              setShowProfileSetup(false);
+            }}
+          />
+        )}
+
+        {splashDone && !checkingSession && isMainLayoutPage && (
+          <ProfileProvider>
+            <MainLayout
+              onSignOut={handleSignOut}
+              onNavigate={handleNavigate}
+              hideHeaderRight={hideHeaderRight || !!subScreenTitle}
+              subScreenTitle={subScreenTitle}
+              onSubScreenBack={() => accountBackRef.current?.()}
+              currentPage={currentPage}
+            >
+              {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
+              {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
+              {currentPage === "destinations" && <DestinationsPage />}
+              {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
             </MainLayout>
           </ProfileProvider>
