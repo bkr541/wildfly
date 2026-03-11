@@ -16,7 +16,6 @@ import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
-import FlyAFriendPage from "./pages/FlyAFriend";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 
 const MainApp = () => {
