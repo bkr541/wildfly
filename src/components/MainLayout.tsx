@@ -274,7 +274,8 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               <input
                 type="text"
                 placeholder="Search flights, destinations..."
-                className="flex-1 bg-transparent text-[#2E4A4A] text-sm font-medium placeholder:text-[#9CA3AF] outline-none"
+                className="flex-1 bg-transparent text-[#2E4A4A] text-base font-medium placeholder:text-[#9CA3AF] outline-none"
+                style={{ fontSize: "16px" }}
               />
               <button
                 type="button"
