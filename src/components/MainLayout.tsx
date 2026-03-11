@@ -195,7 +195,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               onClick={onSubScreenBack}
               className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="currentColor" strokeWidth={1.5} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="currentColor" strokeWidth={1.5} />
             </button>
             <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">{subScreenTitle}</h1>
             <div className="w-10" />
