@@ -182,7 +182,10 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
         return;
       }
 
-      // Fetch upcoming flights, recent searches, and trigger dayTrips in parallel
+      // Fire-and-forget: kick off day trip discovery without blocking the UI
+      fetchAndLogDayTrips();
+
+      // Fetch upcoming flights and recent searches in parallel
       const [flightsResult, searchesResult] = await Promise.all([
         supabase
           .from("user_flights")
@@ -197,8 +200,6 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
           .eq("user_id", user.id)
           .order("search_timestamp", { ascending: false })
           .limit(2),
-        // Fire-and-forget: fetch today's day trips from home airport
-        fetchAndLogDayTrips(),
       ]);
 
       setFlights(flightsResult.data || []);
