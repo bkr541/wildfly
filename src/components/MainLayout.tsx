@@ -234,13 +234,27 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   </div>
                 );
               }
+              const prefixMap: Record<string, string> = {
+                destinations: "Explore",
+                routes: "Explore",
+                itinerary: "My",
+              };
               const labelMap: Record<string, string> = {
                 destinations: "DESTINATIONS",
                 itinerary: "ITINERARY",
                 routes: "ROUTES",
                 account: "ACCOUNT",
               };
+              const prefix = prefixMap[currentPage];
               const label = labelMap[currentPage] ?? currentPage.toUpperCase();
+              if (prefix) {
+                return (
+                  <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                    <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
+                    <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
+                  </div>
+                );
+              }
               return (
                 <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
                   {label}
