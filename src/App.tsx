@@ -219,7 +219,7 @@ const MainApp = () => {
               {currentPage === "home" && <HomePage />}
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
-              {currentPage === "quick-search" && <QuickSearchPage />}
+              
               {currentPage === "destinations" && <DestinationsPage />}
               
               {currentPage === "itinerary" && <ItineraryPage />}
