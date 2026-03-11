@@ -484,17 +484,22 @@ const FlightsPage = ({
       const parsed = JSON.parse(quickSearchData);
       if (!parsed?.quickSearch || !parsed.origin || !parsed.date) return;
 
-      const originCode: string = parsed.origin; // could be 'CHICAGO' or 'ORD'
+      const originCode: string = parsed.origin; // could be 'CITY:Chicago' or 'ORD'
       const depDate = new Date(parsed.date + "T12:00:00");
 
-      // Find matching airport(s) — for city-name codes find all airports in that city
+      // Find matching airport(s)
       let matchedAirports: Airport[] = [];
-      if (originCode.length === 3) {
-        // Single IATA
+      if (originCode.startsWith("CITY:")) {
+        // Multi-airport city: match by city name
+        const cityName = originCode.slice(5).toLowerCase();
+        matchedAirports = airports.filter(
+          (a) => a.locations?.city?.toLowerCase() === cityName,
+        );
+      } else if (originCode.length === 3) {
         const found = airports.find((a) => a.iata_code === originCode);
         if (found) matchedAirports = [found];
       } else {
-        // City name — find airports whose city matches
+        // Fallback: match by city name
         const cityLower = originCode.toLowerCase();
         matchedAirports = airports.filter(
           (a) => a.locations?.city?.toLowerCase() === cityLower,
@@ -754,9 +759,17 @@ const FlightsPage = ({
           onClick={async () => {
             if (departures.length === 0 || !departureDate) return;
 
-            const originCode = departures[0].iata_code;
             const depFormatted = format(departureDate, "yyyy-MM-dd");
-            const destinationCode = arrivals.length > 0 ? arrivals[0].iata_code : "__ALL__";
+
+            // Build origin: if multiple airports share a city, send CITY:<CityName>
+            const depCity = departures[0].locations?.city;
+            const allSameDepCity = departures.length > 1 && depCity && departures.every(a => a.locations?.city === depCity);
+            const originCode = allSameDepCity ? `CITY:${depCity}` : departures[0].iata_code;
+
+            // Build destination: same logic for arrivals
+            const arrCity = arrivals[0]?.locations?.city;
+            const allSameArrCity = arrivals.length > 1 && arrCity && arrivals.every(a => a.locations?.city === arrCity);
+            const destinationCode = arrivals.length === 0 ? "__ALL__" : (allSameArrCity ? `CITY:${arrCity}` : arrivals[0].iata_code);
 
             const cacheOrigin = originCode;
             const cacheDest = searchAll ? "__ALL__" : destinationCode;
@@ -889,7 +902,7 @@ const FlightsPage = ({
                   departureDate: depFormatted,
                 };
                 if (destinationCode && destinationCode !== "__ALL__") {
-                  body.destination = destinationCode;
+                  body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
                 }
                 if (tripType === "round-trip" && arrivalDate) {
                   body.returnDate = format(arrivalDate, "yyyy-MM-dd");
