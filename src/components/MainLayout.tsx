@@ -257,18 +257,18 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
           {/* Search bar row — Home only */}
           {currentPage === "home" && (
-            <div className="flex items-center bg-white rounded-full shadow-sm px-4 py-2.5 gap-3">
+            <div className="flex items-center bg-white rounded-full shadow-sm px-3 py-1.5 gap-2">
               <input
                 type="text"
                 placeholder="Search flights, destinations..."
-                className="flex-1 bg-transparent text-[#2E4A4A] text-[15px] font-medium placeholder:text-[#9CA3AF] outline-none"
+                className="flex-1 bg-transparent text-[#2E4A4A] text-sm font-medium placeholder:text-[#9CA3AF] outline-none"
               />
               <button
                 type="button"
-                className="h-9 w-9 flex items-center justify-center rounded-full flex-shrink-0"
+                className="h-7 w-7 flex items-center justify-center rounded-full flex-shrink-0"
                 style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
               >
-                <HugeiconsIcon icon={Search01Icon} size={18} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={Search01Icon} size={15} color="white" strokeWidth={2} />
               </button>
             </div>
           )}
