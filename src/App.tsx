@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { ProfileProvider } from "@/contexts/ProfileContext";
@@ -16,7 +17,10 @@ import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
+import FriendsPage from "./pages/Friends";
 import IOSInstallBanner from "./components/IOSInstallBanner";
+
+const queryClient = new QueryClient();
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
@@ -24,7 +28,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "friends">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
@@ -191,7 +195,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "friends"].includes(currentPage);
 
   return (
     <div className="flex justify-center min-h-screen bg-white">
@@ -233,6 +237,7 @@ const MainApp = () => {
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
+              {currentPage === "friends" && <FriendsPage />}
             </MainLayout>
           </ProfileProvider>
         )}
@@ -247,12 +252,14 @@ const MainApp = () => {
 };
 
 const App = () => (
-  <BrowserRouter>
-    <Routes>
-      <Route path="/admin/import" element={<AdminImport />} />
-      <Route path="*" element={<MainApp />} />
-    </Routes>
-  </BrowserRouter>
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/import" element={<AdminImport />} />
+        <Route path="*" element={<MainApp />} />
+      </Routes>
+    </BrowserRouter>
+  </QueryClientProvider>
 );
 
 export default App;
