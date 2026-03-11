@@ -199,6 +199,72 @@ export type Database = {
         }
         Relationships: []
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          recipient_user_id: string
+          requester_user_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient_user_id: string
+          requester_user_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient_user_id?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      friends: {
+        Row: {
+          created_at: string
+          friend_user_id: string
+          id: string
+          source_request_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_user_id: string
+          id?: string
+          source_request_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_user_id?: string
+          id?: string
+          source_request_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friends_source_request_id_fkey"
+            columns: ["source_request_id"]
+            isOneToOne: false
+            referencedRelation: "friend_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_source_request_id_fkey"
+            columns: ["source_request_id"]
+            isOneToOne: false
+            referencedRelation: "pending_friend_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gowild_snapshots: {
         Row: {
           destination_iata: string
@@ -289,6 +355,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          data: Json | null
+          id: string
+          is_read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           created_at: string
@@ -336,6 +435,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trip_shares: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+          shared_with_user_id: string
+          status: string
+          user_flight_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          shared_with_user_id: string
+          status?: string
+          user_flight_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          shared_with_user_id?: string
+          status?: string
+          user_flight_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_shares_user_flight_id_fkey"
+            columns: ["user_flight_id"]
+            isOneToOne: false
+            referencedRelation: "user_flights"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_credit_wallet: {
         Row: {
@@ -403,13 +537,18 @@ export type Database = {
       user_info: {
         Row: {
           auth_user_id: string | null
+          avatar_url: string | null
           bio: string | null
+          display_name: string | null
           dob: string | null
           email: string
           first_name: string | null
+          home_airport: string | null
+          home_city: string | null
           home_location_id: number | null
           id: number
           image_file: string
+          is_discoverable: boolean
           last_name: string | null
           mobile_number: string | null
           onboarding_complete: string
@@ -418,13 +557,18 @@ export type Database = {
         }
         Insert: {
           auth_user_id?: string | null
+          avatar_url?: string | null
           bio?: string | null
+          display_name?: string | null
           dob?: string | null
           email: string
           first_name?: string | null
+          home_airport?: string | null
+          home_city?: string | null
           home_location_id?: number | null
           id?: number
           image_file: string
+          is_discoverable?: boolean
           last_name?: string | null
           mobile_number?: string | null
           onboarding_complete: string
@@ -433,13 +577,18 @@ export type Database = {
         }
         Update: {
           auth_user_id?: string | null
+          avatar_url?: string | null
           bio?: string | null
+          display_name?: string | null
           dob?: string | null
           email?: string
           first_name?: string | null
+          home_airport?: string | null
+          home_city?: string | null
           home_location_id?: number | null
           id?: number
           image_file?: string
+          is_discoverable?: boolean
           last_name?: string | null
           mobile_number?: string | null
           onboarding_complete?: string
@@ -494,6 +643,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          allow_friend_requests: boolean
           created_at: string
           default_departure_to_home: boolean
           notifications_enabled: boolean
@@ -501,11 +651,16 @@ export type Database = {
           notify_new_features: boolean
           notify_new_routes: boolean
           notify_pass_sales: boolean
+          show_activity_feed_to_friends: boolean
+          show_home_city_to_friends: boolean
+          show_trip_overlap_alerts: boolean
+          show_upcoming_trips_to_friends: boolean
           theme_preference: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          allow_friend_requests?: boolean
           created_at?: string
           default_departure_to_home?: boolean
           notifications_enabled?: boolean
@@ -513,11 +668,16 @@ export type Database = {
           notify_new_features?: boolean
           notify_new_routes?: boolean
           notify_pass_sales?: boolean
+          show_activity_feed_to_friends?: boolean
+          show_home_city_to_friends?: boolean
+          show_trip_overlap_alerts?: boolean
+          show_upcoming_trips_to_friends?: boolean
           theme_preference?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          allow_friend_requests?: boolean
           created_at?: string
           default_departure_to_home?: boolean
           notifications_enabled?: boolean
@@ -525,6 +685,10 @@ export type Database = {
           notify_new_features?: boolean
           notify_new_routes?: boolean
           notify_pass_sales?: boolean
+          show_activity_feed_to_friends?: boolean
+          show_home_city_to_friends?: boolean
+          show_trip_overlap_alerts?: boolean
+          show_upcoming_trips_to_friends?: boolean
           theme_preference?: string
           updated_at?: string
           user_id?: string
@@ -577,9 +741,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      friends_with_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          friend_user_id: string | null
+          home_airport: string | null
+          home_city: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
+      pending_friend_requests: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          recipient_user_id: string | null
+          requester_avatar: string | null
+          requester_user_id: string | null
+          requester_username: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      accept_friend_request: { Args: { request_id: string }; Returns: Json }
+      are_friends: {
+        Args: { _user_a: string; _user_b: string }
+        Returns: boolean
+      }
       consume_search_credits: {
         Args: {
           p_all_destinations: boolean
@@ -589,6 +780,8 @@ export type Database = {
         Returns: Json
       }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
