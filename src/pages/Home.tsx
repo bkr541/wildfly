@@ -68,7 +68,7 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
   }, []);
 
   return (
-    <div className="flex flex-col pt-6">
+    <div className="flex flex-col pt-3">
       <UpcomingFlightsScroll flights={flights} loading={loading} onNavigate={onNavigate} />
       <RecentSearches searches={searches} loading={searchesLoading} onNavigate={onNavigate} />
     </div>
