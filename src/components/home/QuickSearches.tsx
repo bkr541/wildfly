@@ -114,7 +114,8 @@ export function QuickSearches({ onNavigate }: Props) {
 
         const city = loc?.city ?? "Unknown";
         // If more than one airport in the city, use the CITY NAME in ALL CAPS as the IATA value
-        const iataCode = airports.length > 1 ? city.toUpperCase() : airports[0];
+        // Multi-airport city: send CITY:<CityName> so the API receives the correct format
+        const iataCode = airports.length > 1 ? `CITY:${city}` : airports[0];
 
         quickLocations.push({
           locationId: ul.location_id,
