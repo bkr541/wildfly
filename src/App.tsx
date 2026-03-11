@@ -237,6 +237,7 @@ const MainApp = () => {
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
+              {currentPage === "friends" && <FriendsPage />}
             </MainLayout>
           </ProfileProvider>
         )}
