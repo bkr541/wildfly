@@ -400,7 +400,13 @@ function SearchingOverlay() {
   );
 }
 
-const FlightsPage = ({ onNavigate }: { onNavigate: (page: string, data?: string) => void }) => {
+const FlightsPage = ({
+  onNavigate,
+  quickSearchData,
+}: {
+  onNavigate: (page: string, data?: string) => void;
+  quickSearchData?: string | null;
+}) => {
   const [tripType, setTripType] = useState<TripType>("one-way");
   const [airports, setAirports] = useState<Airport[]>([]);
 
