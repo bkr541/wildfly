@@ -41,9 +41,10 @@ const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 interface Props {
   flights: UserFlight[];
   loading: boolean;
+  onNavigate?: (page: string) => void;
 }
 
-export function UpcomingFlightsScroll({ flights, loading }: Props) {
+export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
   return (
     <section className="px-5 pt-1 pb-4 relative z-10">
       <div className="flex items-center justify-between mb-3 px-1">
