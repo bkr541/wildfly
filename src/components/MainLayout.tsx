@@ -204,8 +204,9 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-        <header className="flex items-center gap-3 px-6 pt-10 pb-6 relative z-10 bg-[#F2F3F3]">
-            {/* Left: hamburger */}
+        <header className="flex flex-col px-6 pt-10 pb-4 relative z-10 bg-[#F2F3F3] gap-4">
+          {/* Top row: hamburger + greeting + notification */}
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -230,7 +231,6 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               }
               const labelMap: Record<string, string> = {
                 flights: "FLIGHTS",
-                "quick-search": "QUICK SEARCH",
                 destinations: "DESTINATIONS",
                 itinerary: "ITINERARY",
                 routes: "ROUTES",
@@ -246,22 +246,33 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             })()}
 
             {currentPage === "home" && (
-              <div className="flex items-center gap-1 ml-auto">
-                <button
-                  type="button"
-                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
-                >
-                  <HugeiconsIcon icon={Search01Icon} size={22} color="currentColor" strokeWidth={2} />
-                </button>
-                <button
-                  type="button"
-                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
-                >
-                  <HugeiconsIcon icon={Notification01Icon} size={22} color="currentColor" strokeWidth={2} />
-                </button>
-              </div>
+              <button
+                type="button"
+                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
+              >
+                <HugeiconsIcon icon={Notification01Icon} size={22} color="currentColor" strokeWidth={2} />
+              </button>
             )}
-          </header>
+          </div>
+
+          {/* Search bar row — Home only */}
+          {currentPage === "home" && (
+            <div className="flex items-center bg-white rounded-full shadow-sm px-4 py-2.5 gap-3">
+              <input
+                type="text"
+                placeholder="Search flights, destinations..."
+                className="flex-1 bg-transparent text-[#2E4A4A] text-[15px] font-medium placeholder:text-[#9CA3AF] outline-none"
+              />
+              <button
+                type="button"
+                className="h-9 w-9 flex items-center justify-center rounded-full flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={Search01Icon} size={18} color="white" strokeWidth={2} />
+              </button>
+            </div>
+          )}
+        </header>
         )}
 
         <main className="flex-1 overflow-y-auto">{children}</main>
