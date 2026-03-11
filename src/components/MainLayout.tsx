@@ -22,7 +22,6 @@ const menuItems = [
   { icon: Home01Icon, label: "Home" },
   { type: "heading", label: "Explore Flights" },
   { icon: Airplane01Icon, label: "Book a Flight", indent: true },
-  { icon: UserSharingIcon, label: "Fly-A-Friend", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
@@ -35,7 +34,6 @@ const menuItems = [
 const pageMap: Record<string, string> = {
   Home: "home",
   "Book a Flight": "flights",
-  "Fly-A-Friend": "fly-a-friend",
   Itinerary: "itinerary",
   "Search Destinations": "destinations",
   Routes: "routes",
