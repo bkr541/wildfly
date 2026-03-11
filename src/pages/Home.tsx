@@ -82,22 +82,18 @@ async function fetchAndLogDayTrips(): Promise<void> {
       .gte("updated_at", sixHoursAgo)
       .maybeSingle();
 
-    if (cached?.payload) {
-      // Already cached today — log the cached result to flight_searches and return
-      await supabase.from("flight_searches").insert({
-        user_id: user.id,
-        departure_airport: originIATA,
-        arrival_airport: null,
-        departure_date: today,
-        return_date: null,
-        trip_type: "day-trip",
-        all_destinations: "Yes",
-        json_body: cached.payload,
-        credits_cost: 0,
-        arrival_airports_count: null,
-      });
-      return;
-    }
+    // Cache hit within 6 hours (ready) OR already being fetched — skip entirely
+    if (cached?.payload) return;
+
+    // Also skip if another tab/session is already fetching
+    const { data: inFlight } = await (supabase.from("flight_search_cache") as any)
+      .select("status")
+      .eq("cache_key", cacheKey)
+      .eq("status", "fetching")
+      .gte("updated_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()) // within last 5 min
+      .maybeSingle();
+
+    if (inFlight) return;
 
     // 5. Reserve cache slot (status = 'fetching') to prevent duplicate calls
     await (supabase.from("flight_search_cache") as any).upsert(
