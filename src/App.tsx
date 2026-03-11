@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { ProfileProvider } from "@/contexts/ProfileContext";
@@ -16,7 +17,10 @@ import FlightDestResults from "./pages/FlightDestResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
+import FriendsPage from "./pages/Friends";
 import IOSInstallBanner from "./components/IOSInstallBanner";
+
+const queryClient = new QueryClient();
 
 const MainApp = () => {
   const [splashDone, setSplashDone] = useState(false);
