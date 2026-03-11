@@ -205,13 +205,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-        <header className="flex flex-col px-6 pt-10 pb-4 relative z-10 bg-[#F2F3F3] gap-4">
+        <header className="flex flex-col px-5 pt-10 pb-2 relative z-10 gap-3" style={{ background: "transparent" }}>
           {/* Top row: hamburger + greeting + notification */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity"
+              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
             >
               <HugeiconsIcon icon={Menu03Icon} size={24} color="currentColor" strokeWidth={2} />
             </button>
@@ -219,7 +219,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             {currentPage && (() => {
               if (currentPage === "home") {
                 return (
-                  <div className="flex-1 flex items-baseline gap-1 select-none">
+                  <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
                     <span className="text-xl font-medium text-[#6B7280]">Hello,</span>
                     <span
                       className="text-xl font-black tracking-tight"
@@ -258,7 +258,17 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
           {/* Search bar row — Home only */}
           {currentPage === "home" && (
-            <div className="flex items-center bg-white rounded-full shadow-sm px-3 py-1.5 gap-2">
+            <div
+              className="flex items-center rounded-full gap-2"
+              style={{
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+                border: "1px solid rgba(5,150,105,0.15)",
+                boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
+                padding: "5px 5px 5px 16px",
+              }}
+            >
               <input
                 type="text"
                 placeholder="Search flights, destinations..."
