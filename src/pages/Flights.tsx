@@ -897,7 +897,7 @@ const FlightsPage = ({
                   departureDate: depFormatted,
                 };
                 if (destinationCode && destinationCode !== "__ALL__") {
-                  body.destination = destinationCode;
+                  body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
                 }
                 if (tripType === "round-trip" && arrivalDate) {
                   body.returnDate = format(arrivalDate, "yyyy-MM-dd");
