@@ -149,33 +149,44 @@ const FlightMultiDestResults = ({
   }, [destinationCodes]);
 
   // ── Build destination cards ──────────────────────────────
+  // Raw API format: each flight has top-level `destination`, `duration`, `stops`,
+  // and `rawPayload.fares` with go_wild / discount_den / standard / miles
   const cards: DestCard[] = useMemo(() => {
-    const grouped: Record<string, ParsedFlight[]> = {};
-    for (const f of flights) {
-      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
+    const grouped: Record<string, any[]> = {};
+    for (const f of rawFlights) {
+      const dest = f.destination ?? "???";
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
     }
 
     return Object.entries(grouped).map(([dest, flts]) => {
+      const cleanFare = (v: any): number | null => {
+        if (v == null) return null;
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      };
+
       const minFare = flts.reduce<number | null>((min, f) => {
-        const cheapest = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business]
-          .filter((v): v is number => v != null && v > 0)
-          .sort((a, b) => a - b)[0] ?? null;
+        const fares = f.rawPayload?.fares ?? {};
+        const candidates = [
+          cleanFare(fares.go_wild?.total),
+          cleanFare(fares.discount_den?.total),
+          cleanFare(fares.standard?.total),
+          cleanFare(f.price),
+        ].filter((v): v is number => v != null);
+        const cheapest = candidates.sort((a, b) => a - b)[0] ?? null;
         if (cheapest == null) return min;
         return min == null || cheapest < min ? cheapest : min;
       }, null);
 
-      const totalDurMins = flts.reduce((sum, f) => sum + parseDurationToMinutes(f.total_duration), 0);
+      const totalDurMins = flts.reduce((sum, f) => sum + parseDurationToMinutes(f.duration ?? ""), 0);
       const avgDurationMin = flts.length > 0 ? Math.round(totalDurMins / flts.length) : 0;
 
-      const fareTypes = new Set<string>();
-      for (const f of flts) {
-        if (f.fares.basic != null) fareTypes.add("Go Wild");
-        if (f.fares.economy != null) fareTypes.add("Discount Den");
-        if (f.fares.premium != null) fareTypes.add("Standard");
-        if (f.fares.business != null) fareTypes.add("Miles");
-      }
+      const hasGoWild = flts.some((f) => {
+        const gw = f.rawPayload?.fares?.go_wild?.total;
+        return gw != null && Number(gw) > 0;
+      });
+      const hasNonstop = flts.some((f) => (f.stops ?? 1) === 0);
 
       return {
         destination: dest,
@@ -187,13 +198,13 @@ const FlightMultiDestResults = ({
         flights: flts,
         flightCount: flts.length,
         minFare,
-        hasGoWild: flts.some((f) => f.fares.basic != null),
-        hasNonstop: flts.some((f) => f.legs.length === 1),
+        hasGoWild,
+        hasNonstop,
         avgDurationMin,
-        availableFareTypes: Array.from(fareTypes),
+        availableFareTypes: [],
       };
     });
-  }, [flights, airportMap]);
+  }, [rawFlights, airportMap]);
 
   const sortedCards = useMemo(() => {
     return [...cards].sort((a, b) => {
