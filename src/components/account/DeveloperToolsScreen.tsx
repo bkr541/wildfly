@@ -69,12 +69,18 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Not authenticated"); return; }
-      const [searchRes, cacheRes] = await Promise.all([
-        supabase.from("flight_searches").delete().eq("user_id", user.id),
-        (supabase.from("flight_search_cache") as any).delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-      ]);
-      if (searchRes.error) throw searchRes.error;
-      if (cacheRes.error) throw cacheRes.error;
+
+      // Clear user's flight_searches (allowed via RLS)
+      const { error: searchErr } = await supabase
+        .from("flight_searches")
+        .delete()
+        .eq("user_id", user.id);
+      if (searchErr) throw searchErr;
+
+      // Clear flight_search_cache via edge function (requires service role to bypass RLS)
+      const { error: cacheErr } = await supabase.functions.invoke("clear-flight-cache");
+      if (cacheErr) throw cacheErr;
+
       toast.success("Flight searches and cache cleared");
     } catch (err: any) {
       toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
