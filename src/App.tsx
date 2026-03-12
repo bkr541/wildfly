@@ -32,6 +32,7 @@ const MainApp = () => {
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
+  const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
   const accountBackRef = useRef<(() => void) | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);

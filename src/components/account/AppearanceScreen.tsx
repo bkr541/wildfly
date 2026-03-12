@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 
 interface AppearanceScreenProps {
-  onBack: () => void;
+  onBack: (configChanged?: boolean) => void;
 }
 
 const themes = [
