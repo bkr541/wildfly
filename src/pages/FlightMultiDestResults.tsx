@@ -157,12 +157,15 @@ const FlightMultiDestResults = ({
   }, [destinationCodes]);
 
   // ── Build destination cards ──────────────────────────────
-  // Raw API format: each flight has top-level `destination`, `duration`, `stops`,
-  // and `rawPayload.fares` with go_wild / discount_den / standard / miles
+  // Normalized format: each flight has `legs`, `fares.{basic,economy,premium,business}`,
+  // `total_duration`, `is_plus_one_day`, plus original fields spread in.
   const cards: DestCard[] = useMemo(() => {
     const grouped: Record<string, any[]> = {};
     for (const f of rawFlights) {
-      const dest = f.destination ?? "???";
+      // Prefer last leg destination; fall back to top-level destination field
+      const dest = (Array.isArray(f.legs) && f.legs.length > 0)
+        ? (f.legs[f.legs.length - 1]?.destination ?? f.destination ?? "???")
+        : (f.destination ?? "???");
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
     }
@@ -174,12 +177,18 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
+      // Use normalized fares first; fall back to rawPayload for cache-miss data
       const minFare = flts.reduce<number | null>((min, f) => {
-        const fares = f.rawPayload?.fares ?? {};
-        const candidates = [
-          cleanFare(fares.go_wild?.total),
-          cleanFare(fares.discount_den?.total),
-          cleanFare(fares.standard?.total),
+        const nFares = f.fares ?? {};
+        // normalized fares: basic is already the cheapest available
+        const candidates: number[] = [
+          cleanFare(nFares.basic),
+          cleanFare(nFares.economy),
+          cleanFare(nFares.premium),
+          // fallback to rawPayload in case this is an un-normalized entry
+          cleanFare(f.rawPayload?.fares?.go_wild?.total),
+          cleanFare(f.rawPayload?.fares?.discount_den?.total),
+          cleanFare(f.rawPayload?.fares?.standard?.total),
           cleanFare(f.price),
         ].filter((v): v is number => v != null);
         const cheapest = candidates.sort((a, b) => a - b)[0] ?? null;
@@ -187,14 +196,27 @@ const FlightMultiDestResults = ({
         return min == null || cheapest < min ? cheapest : min;
       }, null);
 
-      const totalDurMins = flts.reduce((sum, f) => sum + parseDurationToMinutes(f.duration ?? ""), 0);
+      // Duration: use normalized total_duration string, fall back to raw duration
+      const totalDurMins = flts.reduce((sum, f) => {
+        const durStr = f.total_duration ?? f.duration ?? "";
+        return sum + parseDurationToMinutes(durStr);
+      }, 0);
       const avgDurationMin = flts.length > 0 ? Math.round(totalDurMins / flts.length) : 0;
 
+      // GoWild: normalized fares.basic is the GoWild/cheapest fare
       const hasGoWild = flts.some((f) => {
+        const basic = f.fares?.basic;
+        if (basic != null && Number(basic) > 0) return true;
+        // fallback
         const gw = f.rawPayload?.fares?.go_wild?.total;
         return gw != null && Number(gw) > 0;
       });
-      const hasNonstop = flts.some((f) => (f.stops ?? 1) === 0);
+
+      // Nonstop: use legs array length; fall back to stops field
+      const hasNonstop = flts.some((f) => {
+        if (Array.isArray(f.legs)) return f.legs.length === 1;
+        return (f.stops ?? 1) === 0;
+      });
 
       return {
         destination: dest,
