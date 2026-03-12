@@ -586,14 +586,17 @@ const FlightsPage = ({
 
         {/* Airport + Dates Group — frosted glass card */}
         <div
-          className="rounded-2xl overflow-visible"
+          className="rounded-2xl overflow-visible transition-all duration-300"
           style={{
             background: "rgba(255,255,255,0.72)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
-            border: "1px solid rgba(255,255,255,0.55)",
-            boxShadow:
-              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+            border: isSearchFocused
+              ? "1.5px solid rgba(5,150,105,0.75)"
+              : "1px solid rgba(255,255,255,0.55)",
+            boxShadow: isSearchFocused
+              ? "0 0 0 3px rgba(5,150,105,0.12), 0 8px 32px -4px rgba(5,150,105,0.22), 0 2px 40px 0 rgba(5,150,105,0.10)"
+              : "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
           }}
         >
           <div className="relative">
@@ -605,6 +608,7 @@ const FlightsPage = ({
               onChange={setDepartures}
               airports={airports}
               containerClassName="px-3 pt-3 pb-1"
+              onFocusChange={setIsSearchFocused}
             />
 
             <MultiAirportSearchbox
@@ -616,6 +620,7 @@ const FlightsPage = ({
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
               containerClassName="px-3 pt-1 pb-1"
+              onFocusChange={setIsSearchFocused}
             />
           </div>
 
