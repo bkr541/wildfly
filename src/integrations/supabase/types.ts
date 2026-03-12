@@ -534,6 +534,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_homepage: {
+        Row: {
+          component_name: string
+          created_at: string
+          id: string
+          order: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          component_name: string
+          created_at?: string
+          id?: string
+          order: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          component_name?: string
+          created_at?: string
+          id?: string
+          order?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_info: {
         Row: {
           auth_user_id: string | null
