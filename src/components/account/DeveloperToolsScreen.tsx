@@ -39,6 +39,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const [showDesignHub, setShowDesignHub] = useState(false);
   const [designHubOpen, setDesignHubOpen] = useState(false);
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
+  const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
+  const [clearingFlights, setClearingFlights] = useState(false);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
