@@ -185,6 +185,8 @@ const MainApp = () => {
         const parsed = JSON.parse(data);
         const arrAirport: string = parsed.arrivalAirport ?? "";
         const depAirport: string = parsed.departureAirport ?? "";
+        // Raw API format: parsed.response.flights[] with top-level `destination`
+        // Normalized format: parsed.response.flights[] with `legs[last].destination`
         const responseFlights: any[] = parsed.response?.flights ?? [];
 
         const isMulti =
@@ -192,10 +194,14 @@ const MainApp = () => {
           arrAirport === "" ||
           depAirport.startsWith("CITY:");
 
-        // Also check: multiple unique destinations in the results
+        // Check for multiple unique destinations - raw API uses top-level `destination`
         const destSet = new Set<string>();
         for (const f of responseFlights) {
-          if (Array.isArray(f.legs) && f.legs.length > 0) {
+          // Raw API format
+          if (f.destination) {
+            destSet.add(f.destination);
+          // Normalized format
+          } else if (Array.isArray(f.legs) && f.legs.length > 0) {
             destSet.add(f.legs[f.legs.length - 1]?.destination ?? "");
           }
         }
