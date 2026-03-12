@@ -94,7 +94,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 py-1">
               {loading
                 ? [1, 2].map((i) => (
                     <div key={i} className="rounded-2xl border border-[#e3e6e6] bg-white px-4 py-4 animate-pulse">
@@ -127,9 +127,13 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           {s.departure_airport}
                         </span>
                         <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
-                        <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
-                          {s.all_destinations === "Yes" ? "ALL" : (s.arrival_airport ?? "—")}
-                        </span>
+                        {s.all_destinations === "Yes" ? (
+                          <HugeiconsIcon icon={GlobalSearchIcon} size={20} color="#059669" strokeWidth={2} className="flex-shrink-0" />
+                        ) : (
+                          <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
+                            {s.arrival_airport ?? "—"}
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
                         {formatTripLabel(s)}
