@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
@@ -9,6 +9,15 @@ import FlightResultsDesignScreen from "@/components/account/design/FlightResults
 import FlightResultsV2Screen from "@/components/account/design/FlightResultsV2Screen";
 import FlightResultsV3Screen from "@/components/account/design/FlightResultsV3Screen";
 import FlightResultsV4Screen from "@/components/account/design/FlightResultsV4Screen";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
@@ -41,6 +50,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
+  const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
@@ -81,7 +91,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
       const { error: cacheErr } = await supabase.functions.invoke("clear-flight-cache");
       if (cacheErr) throw cacheErr;
 
-      toast.success("Flight searches and cache cleared");
+      setClearCompleteOpen(true);
     } catch (err: any) {
       toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
     } finally {
@@ -498,6 +508,26 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
             </div>
           </div>
         )}
+
+        {/* Clear Complete Dialog */}
+        <AlertDialog open={clearCompleteOpen} onOpenChange={setClearCompleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="mx-auto h-12 w-12 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-2">
+                <HugeiconsIcon icon={Tick02Icon} size={24} color="#345C5A" strokeWidth={1.5} />
+              </div>
+              <AlertDialogTitle className="text-center">Clear Complete</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                Your flight search history and cache have been successfully cleared.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="sm:justify-center">
+              <AlertDialogAction onClick={() => setClearCompleteOpen(false)} className="bg-[#345C5A] hover:opacity-90">
+                Done
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
