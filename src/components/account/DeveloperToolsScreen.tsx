@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
