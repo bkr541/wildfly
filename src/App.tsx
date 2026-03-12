@@ -232,8 +232,8 @@ const MainApp = () => {
               onSubScreenBack={() => accountBackRef.current?.()}
               currentPage={currentPage}
             >
-              {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
-              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
+              {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}

@@ -156,7 +156,7 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
     if (themeError || deleteError) toast.error("Failed to save");
     else {
       toast.success("Appearance updated");
-      onBack();
+      onBack(true);
     }
   };
 
