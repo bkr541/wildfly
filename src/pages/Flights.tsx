@@ -426,6 +426,7 @@ const FlightsPage = ({
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [creditError, setCreditError] = useState<{
     cost: number;
     remaining_monthly: number;
