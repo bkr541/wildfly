@@ -284,6 +284,16 @@ const MainApp = () => {
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
         )}
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
+          <FlightMultiDestResults
+            onBack={() => setCurrentPage("flights")}
+            responseData={flightResultsData}
+            onViewDest={(destData) => {
+              setFlightResultsData(destData);
+              setCurrentPage("flight-results");
+            }}
+          />
+        )}
         <IOSInstallBanner />
       </div>
     </div>
