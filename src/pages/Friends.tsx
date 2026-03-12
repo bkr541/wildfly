@@ -312,6 +312,7 @@ type FriendsTab = "friends" | "requests" | "search" | "activity";
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const unreadCount = useUnreadNotificationCount();
 
   const { data: requestsData } = useFriendRequests();
