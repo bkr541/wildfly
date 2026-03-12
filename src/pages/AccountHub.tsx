@@ -30,6 +30,7 @@ interface AccountHubProps {
   onSubScreenChange?: (title: string | null) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
   onNavigate?: (page: string) => void;
+  onHomepageConfigChanged?: () => void;
 }
 
 interface MenuItem {
