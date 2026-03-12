@@ -64,10 +64,29 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
 
   const FULLSCREEN_SCREENS = ["flight-results-v2", "flight-results-v3", "flight-results-v4"];
 
+  const clearFlightSearchAndCache = async () => {
+    setClearingFlights(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const [searchRes, cacheRes] = await Promise.all([
+        supabase.from("flight_searches").delete().eq("user_id", user.id),
+        (supabase.from("flight_search_cache") as any).delete().neq("id", "00000000-0000-0000-0000-000000000000"),
+      ]);
+      if (searchRes.error) throw searchRes.error;
+      if (cacheRes.error) throw cacheRes.error;
+      toast.success("Flight searches and cache cleared");
+    } catch (err: any) {
+      toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setClearingFlights(false);
+    }
+  };
+
   const backToDesignHub = () => {
     setActiveDesignScreen(null);
     setDesignHubOpen(true);
-    onTitleChange?.("API Client");
+    onTitleChange?.("Developer Tools");
   };
 
   // Hide MainLayout header for full-screen sandbox screens
