@@ -512,6 +512,20 @@ const FlightDestResults = ({
                     </span>
                   </div>
                 )}
+                {departureDate && (
+                  <div 
+                    className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
+                    style={{ 
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                      transform: "translateY(-1px)"
+                    }}
+                  >
+                    <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                    <span className="text-[#065F46] text-xs font-semibold leading-none">
+                      {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Metrics strip at bottom of header — no background, bottom-justified */}
