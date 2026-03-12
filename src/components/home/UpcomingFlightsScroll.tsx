@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, ChevronDown } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer02Icon } from "@hugeicons/core-free-icons";
@@ -42,148 +42,157 @@ interface Props {
   flights: UserFlight[];
   loading: boolean;
   onNavigate?: (page: string) => void;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
 }
 
-export function UpcomingFlightsScroll({ flights, loading, onNavigate }: Props) {
+export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
   return (
     <section className="px-5 pt-1 pb-4 relative z-10">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-2.5 px-1">
+      {/* Section header — clickable to toggle */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between mb-2.5 px-1 group"
+      >
         <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
           <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Upcoming Flights
         </h2>
-        <button
-          type="button"
-          onClick={() => onNavigate?.("itinerary")}
-          className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
-        >
-          View All
-          <ChevronRight size={13} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div
-          className="rounded-2xl px-4 py-5"
-          style={{
-            background: "rgba(255,255,255,0.82)",
-            border: "1px solid rgba(5,150,105,0.13)",
-            boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
-          }}
-        >
-          <div className="flex gap-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="flex-1 animate-pulse">
-                <div className="h-3 w-20 rounded bg-[#e5e7eb] mb-2" />
-                <div className="h-7 w-full rounded bg-[#e5e7eb] mb-2" />
-                <div className="h-3 w-24 rounded bg-[#e5e7eb]" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : flights.length === 0 ? (
-        /* Empty state card — Height fixed by using a controlled container and scale */
-        <div
-          className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4 overflow-hidden"
-          style={{
-            background: "rgba(255,255,255,0.88)",
-            border: "1px solid rgba(5,150,105,0.13)",
-            boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
-          }}
-        >
-          {/* Illustration Container - Fixed width/height box to prevent expansion */}
-          <div className="flex-shrink-0 w-[110px] h-[70px] relative flex items-center justify-center">
-            <img
-              src="/assets/userhome/no_upcoming_flights.png"
-              alt="No upcoming flights"
-              className="w-full h-full object-contain scale-[1.4] origin-center"
-            />
-          </div>
-
-          {/* Text + CTA */}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[#1a2e2e] leading-tight mb-0.5">No upcoming flights yet</p>
-            <p className="text-[11px] text-[#6B7B7B] leading-tight mb-2.5">
-              Book a trip or save a route to build your itinerary
-            </p>
-            <button
-              type="button"
-              onClick={() => onNavigate?.("flights")}
-              className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+        <div className="flex items-center gap-2">
+          {!isCollapsed && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onNavigate?.("itinerary"); }}
+              className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
             >
-              Book a Flight
-            </button>
-          </div>
+              View All
+              <ChevronRight size={13} strokeWidth={2.5} />
+            </span>
+          )}
+          <motion.div
+            animate={{ rotate: isCollapsed ? -90 : 0 }}
+            transition={{ duration: 0.22, ease: EASE }}
+          >
+            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+          </motion.div>
         </div>
-      ) : (
-        /* Horizontal scroll of flight cards */
-        <div
-          className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
-          style={{ scrollSnapType: "x mandatory" }}
-        >
-          {flights.map((flight, i) => (
-            <motion.div
-              key={flight.id}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08, ease: EASE } }}
-              className="flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
-              style={{
-                scrollSnapAlign: "start",
-                background: "rgba(255,255,255,0.72)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(5,150,105,0.18)",
-                boxShadow: "0 4px 24px 0 rgba(5,150,105,0.13), 0 1.5px 6px 0 rgba(5,150,105,0.08)",
-              }}
-            >
-              {/* Airline logo row */}
-              <div className="h-4 flex items-center gap-2 mb-3">
-                <img
-                  src={FRONTIER_LOGO}
-                  alt="Frontier Airlines"
-                  className="h-full w-auto object-contain"
-                  loading="eager"
-                />
-                <span className="text-[10px] font-semibold text-[#2E4A4A] tracking-wide uppercase">Frontier</span>
-              </div>
+      </button>
 
-              {/* IATA + separator */}
-              <div className="flex items-center justify-between gap-1 mb-2">
-                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                  {flight.departure_airport}
-                </span>
-                <div className="flex-1 flex items-center px-1">
-                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                  <img src={planeIcon} alt="flight" className="mx-1.5 w-8 h-8 object-contain flex-shrink-0" />
-                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+      {/* Collapsible content with cascading animation */}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            key="upcoming-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: EASE }}
+            style={{ overflow: "hidden" }}
+          >
+            {loading ? (
+              <div
+                className="rounded-2xl px-4 py-5"
+                style={{
+                  background: "rgba(255,255,255,0.82)",
+                  border: "1px solid rgba(5,150,105,0.13)",
+                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
+                }}
+              >
+                <div className="flex gap-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex-1 animate-pulse">
+                      <div className="h-3 w-20 rounded bg-[#e5e7eb] mb-2" />
+                      <div className="h-7 w-full rounded bg-[#e5e7eb] mb-2" />
+                      <div className="h-3 w-24 rounded bg-[#e5e7eb]" />
+                    </div>
+                  ))}
                 </div>
-                <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                  {flight.arrival_airport}
-                </span>
               </div>
-
-              {/* Times */}
-              <div className="flex items-start justify-between">
-                <span className="text-xs font-medium text-[#059669] leading-tight">
-                  <span className="block">{formatTime(flight.departure_time)}</span>
-                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">
-                    {formatFullDate(flight.departure_time)}
-                  </span>
-                </span>
-                <span className="text-xs font-medium text-[#059669] text-right leading-tight">
-                  <span className="block">{formatTime(flight.arrival_time)}</span>
-                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">
-                    {formatFullDate(flight.arrival_time)}
-                  </span>
-                </span>
+            ) : flights.length === 0 ? (
+              <div
+                className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4 overflow-hidden"
+                style={{
+                  background: "rgba(255,255,255,0.88)",
+                  border: "1px solid rgba(5,150,105,0.13)",
+                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
+                }}
+              >
+                <div className="flex-shrink-0 w-[110px] h-[70px] relative flex items-center justify-center">
+                  <img
+                    src="/assets/userhome/no_upcoming_flights.png"
+                    alt="No upcoming flights"
+                    className="w-full h-full object-contain scale-[1.4] origin-center"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#1a2e2e] leading-tight mb-0.5">No upcoming flights yet</p>
+                  <p className="text-[11px] text-[#6B7B7B] leading-tight mb-2.5">
+                    Book a trip or save a route to build your itinerary
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate?.("flights")}
+                    className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                  >
+                    Book a Flight
+                  </button>
+                </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+            ) : (
+              <div
+                className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
+                style={{ scrollSnapType: "x mandatory" }}
+              >
+                {flights.map((flight, i) => (
+                  <motion.div
+                    key={flight.id}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      transition: { duration: 0.3, delay: i * 0.08, ease: EASE },
+                    }}
+                    className="flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
+                    style={{
+                      scrollSnapAlign: "start",
+                      background: "rgba(255,255,255,0.72)",
+                      backdropFilter: "blur(16px)",
+                      WebkitBackdropFilter: "blur(16px)",
+                      border: "1px solid rgba(5,150,105,0.18)",
+                      boxShadow: "0 4px 24px 0 rgba(5,150,105,0.13), 0 1.5px 6px 0 rgba(5,150,105,0.08)",
+                    }}
+                  >
+                    <div className="h-4 flex items-center gap-2 mb-3">
+                      <img src={FRONTIER_LOGO} alt="Frontier Airlines" className="h-full w-auto object-contain" loading="eager" />
+                      <span className="text-[10px] font-semibold text-[#2E4A4A] tracking-wide uppercase">Frontier</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.departure_airport}</span>
+                      <div className="flex-1 flex items-center px-1">
+                        <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                        <img src={planeIcon} alt="flight" className="mx-1.5 w-8 h-8 object-contain flex-shrink-0" />
+                        <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                      </div>
+                      <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.arrival_airport}</span>
+                    </div>
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs font-medium text-[#059669] leading-tight">
+                        <span className="block">{formatTime(flight.departure_time)}</span>
+                        <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                      </span>
+                      <span className="text-xs font-medium text-[#059669] text-right leading-tight">
+                        <span className="block">{formatTime(flight.arrival_time)}</span>
+                        <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
@@ -48,7 +48,6 @@ async function fetchAndLogDayTrips(): Promise<void> {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Get user's home_location_id
     const { data: info } = await supabase
       .from("user_info")
       .select("home_location_id")
@@ -57,7 +56,6 @@ async function fetchAndLogDayTrips(): Promise<void> {
 
     if (!info?.home_location_id) return;
 
-    // 2. Get the first airport IATA for that location
     const { data: airport } = await supabase
       .from("airports")
       .select("iata_code")
@@ -71,10 +69,8 @@ async function fetchAndLogDayTrips(): Promise<void> {
     const today = format(new Date(), "yyyy-MM-dd");
     const bucket = resetBucket(today);
 
-    // 3. Build cache key — use "__DAYTRIPS__" as the virtual destination
     const cacheKey = await sha256(`${originIATA}|__DAYTRIPS__|${today}`);
 
-    // 4. Check cache first (within 6 hours, status = 'ready')
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
     const { data: cached } = await (supabase.from("flight_search_cache") as any)
       .select("payload, updated_at")
@@ -83,20 +79,17 @@ async function fetchAndLogDayTrips(): Promise<void> {
       .gte("updated_at", sixHoursAgo)
       .maybeSingle();
 
-    // Cache hit within 6 hours (ready) OR already being fetched — skip entirely
     if (cached?.payload) return;
 
-    // Also skip if another tab/session is already fetching
     const { data: inFlight } = await (supabase.from("flight_search_cache") as any)
       .select("status")
       .eq("cache_key", cacheKey)
       .eq("status", "fetching")
-      .gte("updated_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()) // within last 5 min
+      .gte("updated_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
       .maybeSingle();
 
     if (inFlight) return;
 
-    // 5. Reserve cache slot (status = 'fetching') to prevent duplicate calls
     await (supabase.from("flight_search_cache") as any).upsert(
       {
         cache_key: cacheKey,
@@ -110,11 +103,9 @@ async function fetchAndLogDayTrips(): Promise<void> {
       { onConflict: "cache_key,reset_bucket" },
     );
 
-    // 6. Call the dayTrips endpoint
     const url = `https://getmydata.fly.dev/api/flights/dayTrips?origin=${originIATA}&date=${today}&nonstop=true&layovertime=6`;
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
-      // Mark cache as error
       await (supabase.from("flight_search_cache") as any).upsert(
         {
           cache_key: cacheKey,
@@ -133,7 +124,6 @@ async function fetchAndLogDayTrips(): Promise<void> {
 
     const payload = await res.json();
 
-    // 7. Write to flight_search_cache (status = 'ready')
     await (supabase.from("flight_search_cache") as any).upsert(
       {
         cache_key: cacheKey,
@@ -148,7 +138,6 @@ async function fetchAndLogDayTrips(): Promise<void> {
       { onConflict: "cache_key,reset_bucket" },
     );
 
-    // 8. Write to flight_searches
     await supabase.from("flight_searches").insert({
       user_id: user.id,
       departure_airport: originIATA,
@@ -172,24 +161,70 @@ interface HomepageComponent {
   status: string;
 }
 
-const COMPONENT_MAP: Record<string, (props: { flights: UserFlight[]; searches: FlightSearch[]; loading: boolean; searchesLoading: boolean; onNavigate?: (page: string) => void }) => JSX.Element | null> = {
-  upcoming_flights: ({ flights, loading, onNavigate }) => (
-    <UpcomingFlightsScroll key="upcoming_flights" flights={flights} loading={loading} onNavigate={onNavigate} />
+const COMPONENT_MAP: Record<
+  string,
+  (props: {
+    flights: UserFlight[];
+    searches: FlightSearch[];
+    loading: boolean;
+    searchesLoading: boolean;
+    onNavigate?: (page: string) => void;
+    isCollapsed: boolean;
+    onToggle: () => void;
+  }) => JSX.Element | null
+> = {
+  upcoming_flights: (props) => (
+    <UpcomingFlightsScroll
+      key="upcoming_flights"
+      flights={props.flights}
+      loading={props.loading}
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+    />
   ),
-  recent_searches: ({ searches, searchesLoading, onNavigate }) => (
-    <RecentSearches key="recent_searches" searches={searches} loading={searchesLoading} onNavigate={onNavigate} />
+  recent_searches: (props) => (
+    <RecentSearches
+      key="recent_searches"
+      searches={props.searches}
+      loading={props.searchesLoading}
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+    />
   ),
-  quick_searches: ({ onNavigate }) => (
-    <QuickSearches key="quick_searches" onNavigate={onNavigate} />
+  quick_searches: (props) => (
+    <QuickSearches
+      key="quick_searches"
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+    />
   ),
 };
 
-const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
+interface HomePageProps {
+  onNavigate?: (page: string) => void;
+  refreshTrigger?: number;
+}
+
+const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
   const [flights, setFlights] = useState<UserFlight[]>([]);
   const [searches, setSearches] = useState<FlightSearch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchesLoading, setSearchesLoading] = useState(true);
   const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const loadHomepageConfig = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from("user_homepage")
+      .select("component_name, order, status")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("order", { ascending: true });
+    setHomepageComponents(data || []);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -202,17 +237,9 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
         return;
       }
 
-      // Fire-and-forget: kick off day trip discovery without blocking the UI
       fetchAndLogDayTrips();
 
-      // Fetch homepage config, flights, and searches in parallel
-      const [homepageResult, flightsResult, searchesResult] = await Promise.all([
-        supabase
-          .from("user_homepage")
-          .select("component_name, order, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .order("order", { ascending: true }),
+      const [flightsResult, searchesResult] = await Promise.all([
         supabase
           .from("user_flights")
           .select("*")
@@ -228,22 +255,41 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
           .limit(2),
       ]);
 
-      setHomepageComponents(homepageResult.data || []);
+      await loadHomepageConfig(user.id);
       setFlights(flightsResult.data || []);
       setSearches(searchesResult.data || []);
       setLoading(false);
       setSearchesLoading(false);
     };
     load();
-  }, []);
+  }, [loadHomepageConfig]);
 
-  const componentProps = { flights, searches, loading, searchesLoading, onNavigate };
+  // Re-fetch homepage config whenever refreshTrigger increments (e.g. after Appearance save)
+  useEffect(() => {
+    if (refreshTrigger === undefined || refreshTrigger === 0) return;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) loadHomepageConfig(user.id);
+    });
+  }, [refreshTrigger, loadHomepageConfig]);
+
+  const toggleSection = useCallback((name: string) => {
+    setCollapsedSections((prev) => ({ ...prev, [name]: !prev[name] }));
+  }, []);
 
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
         const renderer = COMPONENT_MAP[item.component_name];
-        return renderer ? renderer(componentProps) : null;
+        if (!renderer) return null;
+        return renderer({
+          flights,
+          searches,
+          loading,
+          searchesLoading,
+          onNavigate,
+          isCollapsed: !!collapsedSections[item.component_name],
+          onToggle: () => toggleSection(item.component_name),
+        });
       })}
     </div>
   );
