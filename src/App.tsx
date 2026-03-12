@@ -14,6 +14,7 @@ import AccountHub from "./pages/AccountHub";
 import FlightsPage from "./pages/Flights";
 import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
+import FlightMultiDestResults from "./pages/FlightMultiDestResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
@@ -28,7 +29,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "itinerary" | "routes" | "friends">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "friends">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
@@ -175,7 +176,44 @@ const MainApp = () => {
   };
 
   const handleNavigate = (page: string, data?: string) => {
-    if (page === "flight-results" && data) setFlightResultsData(data);
+    if (page === "flight-results" && data) {
+      // Detect if this is a multi-destination result:
+      // - arrivalAirport is "All"
+      // - OR departureAirport starts with "CITY:" (city-area airports = multiple origins → all dests)
+      // - OR the response has flights going to multiple different destinations
+      try {
+        const parsed = JSON.parse(data);
+        const arrAirport: string = parsed.arrivalAirport ?? "";
+        const depAirport: string = parsed.departureAirport ?? "";
+        const responseFlights: any[] = parsed.response?.flights ?? [];
+
+        const isMulti =
+          arrAirport === "All" ||
+          arrAirport === "" ||
+          depAirport.startsWith("CITY:");
+
+        // Also check: multiple unique destinations in the results
+        const destSet = new Set<string>();
+        for (const f of responseFlights) {
+          if (Array.isArray(f.legs) && f.legs.length > 0) {
+            destSet.add(f.legs[f.legs.length - 1]?.destination ?? "");
+          }
+        }
+        const hasMultipleDests = destSet.size > 1;
+
+        setFlightResultsData(data);
+        if (isMulti || hasMultipleDests) {
+          setCurrentPage("flight-multi-results");
+        } else {
+          setCurrentPage("flight-results");
+        }
+        return;
+      } catch {
+        setFlightResultsData(data);
+        setCurrentPage("flight-results");
+        return;
+      }
+    }
     if (page === "flights" && data) {
       try {
         const parsed = JSON.parse(data);
@@ -245,6 +283,16 @@ const MainApp = () => {
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
+        )}
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
+          <FlightMultiDestResults
+            onBack={() => setCurrentPage("flights")}
+            responseData={flightResultsData}
+            onViewDest={(destData) => {
+              setFlightResultsData(destData);
+              setCurrentPage("flight-results");
+            }}
+          />
         )}
         <IOSInstallBanner />
       </div>
