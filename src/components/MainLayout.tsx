@@ -313,6 +313,9 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Global notifications sheet (triggered from Home bell icon) */}
+      <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </div>
   );
 };
