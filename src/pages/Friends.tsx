@@ -324,20 +324,6 @@ const FriendsPage = () => {
       {/* Notifications sheet */}
       <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
 
-      {/* Header with notifications */}
-      <div className="flex items-center justify-end px-4 pt-3 pb-0">
-        <button
-          type="button"
-          onClick={() => setShowNotifications(true)}
-          className="h-9 w-9 flex items-center justify-center rounded-full text-[#2E4A4A]/60 hover:text-[#2E4A4A] hover:bg-black/5 transition-colors relative"
-        >
-          <Bell size={20} />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
-          )}
-        </button>
-      </div>
-
       {/* Tabs */}
       <Tabs
         value={activeTab}
