@@ -17,6 +17,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
@@ -57,8 +59,10 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
+  const unreadCount = useUnreadNotificationCount();
 
   const handleMenuClick = (label: string) => {
     setDrawerOpen(false);
@@ -265,9 +269,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             {currentPage === "home" && (
               <button
                 type="button"
-                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
+                onClick={() => setNotificationsOpen(true)}
+                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto relative"
               >
                 <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                )}
               </button>
             )}
           </div>
@@ -305,6 +313,9 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
 
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Global notifications sheet (triggered from Home bell icon) */}
+      <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </div>
   );
 };

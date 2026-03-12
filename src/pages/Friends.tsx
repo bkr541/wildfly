@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Bell, Search, Users, UserPlus, Activity, ArrowLeft } from "lucide-react";
+import { Bell, Search, Users, UserPlus, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useFriends,
@@ -10,7 +10,6 @@ import {
   useAcceptFriendRequest,
   useUpdateFriendRequest,
   useSendFriendRequest,
-  useUnreadNotificationCount,
 } from "@/hooks/useFriends";
 import {
   FriendCard,
@@ -21,6 +20,8 @@ import {
   RequestCardSkeleton,
 } from "@/components/friends/FriendComponents";
 import { toast } from "@/hooks/use-toast";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -74,25 +75,6 @@ function SearchPrompt() {
   );
 }
 
-// ── Notifications Sheet (simple slide-down panel) ──────────────────────────
-
-function NotificationsPanel({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="absolute inset-x-0 top-0 z-50 bg-white rounded-b-2xl shadow-xl pt-4 pb-6 px-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold text-[#2E4A4A]">Notifications</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors p-1"
-        >
-          <ArrowLeft size={18} />
-        </button>
-      </div>
-      <p className="text-[#9CA3AF] text-sm text-center py-6">Notifications coming soon.</p>
-    </div>
-  );
-}
 
 // ── Tab: My Friends ─────────────────────────────────────────────────────────
 
@@ -366,7 +348,7 @@ type FriendsTab = "friends" | "requests" | "search" | "activity";
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
   const [showNotifications, setShowNotifications] = useState(false);
-  const { data: unreadCount } = useUnreadNotificationCount();
+  const unreadCount = useUnreadNotificationCount();
 
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
@@ -374,10 +356,8 @@ const FriendsPage = () => {
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-0px)]">
 
-      {/* Notifications panel overlay */}
-      {showNotifications && (
-        <NotificationsPanel onClose={() => setShowNotifications(false)} />
-      )}
+      {/* Notifications sheet */}
+      <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
 
       {/* Page header */}
       <div className="flex items-center justify-between px-5 pt-3 pb-1">
@@ -401,7 +381,7 @@ const FriendsPage = () => {
             className="h-9 w-9 flex items-center justify-center rounded-full text-[#2E4A4A]/60 hover:text-[#2E4A4A] hover:bg-black/5 transition-colors relative"
           >
             <Bell size={20} />
-            {(unreadCount ?? 0) > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
             )}
           </button>
