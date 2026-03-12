@@ -17,6 +17,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },

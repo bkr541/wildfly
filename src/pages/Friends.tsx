@@ -10,7 +10,6 @@ import {
   useAcceptFriendRequest,
   useUpdateFriendRequest,
   useSendFriendRequest,
-  useUnreadNotificationCount,
 } from "@/hooks/useFriends";
 import {
   FriendCard,
@@ -21,6 +20,8 @@ import {
   RequestCardSkeleton,
 } from "@/components/friends/FriendComponents";
 import { toast } from "@/hooks/use-toast";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
