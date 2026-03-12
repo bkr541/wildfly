@@ -311,18 +311,13 @@ type FriendsTab = "friends" | "requests" | "search" | "activity";
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
-  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const unreadCount = useUnreadNotificationCount();
 
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
 
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-0px)]">
-
-      {/* Notifications sheet */}
-      <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
 
       {/* Tabs */}
       <Tabs
