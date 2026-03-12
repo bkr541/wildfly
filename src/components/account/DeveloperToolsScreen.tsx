@@ -508,6 +508,26 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
             </div>
           </div>
         )}
+
+        {/* Clear Complete Dialog */}
+        <AlertDialog open={clearCompleteOpen} onOpenChange={setClearCompleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="mx-auto h-12 w-12 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-2">
+                <HugeiconsIcon icon={Tick02Icon} size={24} color="#345C5A" strokeWidth={1.5} />
+              </div>
+              <AlertDialogTitle className="text-center">Clear Complete</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                Your flight search history and cache have been successfully cleared.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="sm:justify-center">
+              <AlertDialogAction onClick={() => setClearCompleteOpen(false)} className="bg-[#345C5A] hover:opacity-90">
+                Done
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
