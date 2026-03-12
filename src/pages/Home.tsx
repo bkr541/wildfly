@@ -166,11 +166,30 @@ async function fetchAndLogDayTrips(): Promise<void> {
   }
 }
 
+interface HomepageComponent {
+  component_name: string;
+  order: number;
+  status: string;
+}
+
+const COMPONENT_MAP: Record<string, (props: { flights: UserFlight[]; searches: FlightSearch[]; loading: boolean; searchesLoading: boolean; onNavigate?: (page: string) => void }) => JSX.Element | null> = {
+  upcoming_flights: ({ flights, loading, onNavigate }) => (
+    <UpcomingFlightsScroll key="upcoming_flights" flights={flights} loading={loading} onNavigate={onNavigate} />
+  ),
+  recent_searches: ({ searches, searchesLoading, onNavigate }) => (
+    <RecentSearches key="recent_searches" searches={searches} loading={searchesLoading} onNavigate={onNavigate} />
+  ),
+  quick_searches: ({ onNavigate }) => (
+    <QuickSearches key="quick_searches" onNavigate={onNavigate} />
+  ),
+};
+
 const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
   const [flights, setFlights] = useState<UserFlight[]>([]);
   const [searches, setSearches] = useState<FlightSearch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchesLoading, setSearchesLoading] = useState(true);
+  const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -186,8 +205,14 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
       // Fire-and-forget: kick off day trip discovery without blocking the UI
       fetchAndLogDayTrips();
 
-      // Fetch upcoming flights and recent searches in parallel
-      const [flightsResult, searchesResult] = await Promise.all([
+      // Fetch homepage config, flights, and searches in parallel
+      const [homepageResult, flightsResult, searchesResult] = await Promise.all([
+        supabase
+          .from("user_homepage")
+          .select("component_name, order, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .order("order", { ascending: true }),
         supabase
           .from("user_flights")
           .select("*")
@@ -203,6 +228,7 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
           .limit(2),
       ]);
 
+      setHomepageComponents(homepageResult.data || []);
       setFlights(flightsResult.data || []);
       setSearches(searchesResult.data || []);
       setLoading(false);
@@ -211,11 +237,14 @@ const HomePage = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
     load();
   }, []);
 
+  const componentProps = { flights, searches, loading, searchesLoading, onNavigate };
+
   return (
     <div className="flex flex-col pt-3">
-      <UpcomingFlightsScroll flights={flights} loading={loading} onNavigate={onNavigate} />
-      <RecentSearches searches={searches} loading={searchesLoading} onNavigate={onNavigate} />
-      <QuickSearches onNavigate={onNavigate} />
+      {homepageComponents.map((item) => {
+        const renderer = COMPONENT_MAP[item.component_name];
+        return renderer ? renderer(componentProps) : null;
+      })}
     </div>
   );
 };
