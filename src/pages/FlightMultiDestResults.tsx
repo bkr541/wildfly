@@ -313,7 +313,7 @@ const FlightMultiDestResults = ({
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
           {[
             { label: "DESTINATIONS", value: cards.length },
-            { label: "TOTAL FLIGHTS", value: flights.length },
+            { label: "TOTAL FLIGHTS", value: rawFlights.length },
             { label: "NONSTOP", value: `${cards.filter((c) => c.hasNonstop).length} Dest.` },
             { label: "GO WILD", value: `${cards.filter((c) => c.hasGoWild).length} Dest.` },
           ].map(({ label, value }) => (
