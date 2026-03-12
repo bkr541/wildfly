@@ -118,9 +118,17 @@ const FlightMultiDestResults = ({
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
     for (const f of rawFlights) {
-      // Raw API: top-level destination/origin
-      if (f.destination) codes.add(f.destination);
-      if (f.origin) codes.add(f.origin);
+      // Normalized: use legs array for airport codes
+      if (Array.isArray(f.legs)) {
+        for (const leg of f.legs) {
+          if (leg.origin) codes.add(leg.origin);
+          if (leg.destination) codes.add(leg.destination);
+        }
+      } else {
+        // Fallback: top-level fields preserved by spread in normalizer
+        if (f.destination) codes.add(f.destination);
+        if (f.origin) codes.add(f.origin);
+      }
     }
     return Array.from(codes);
   }, [rawFlights]);
