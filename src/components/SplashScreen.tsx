@@ -8,10 +8,13 @@ const COLS = 7;
 const ROWS = 10;
 const TOTAL = COLS * ROWS;
 
-// Find the center row/col to place WILDFLY (7 chars)
+// Tile size to match SplitFlapHeader
+const TILE_SIZE = 44;
+const GAP = 3;
+
+// Find the center row to place WILDFLY (full 7 cols)
 const CENTER_ROW = Math.floor(ROWS / 2);
-const CENTER_COL_START = Math.floor((COLS - WILDFLY.length) / 2);
-// Indices of the WILDFLY tiles
+const CENTER_COL_START = 0; // WILDFLY is exactly 7 chars = fills the row
 const WILDFLY_INDICES = WILDFLY.split("").map((_, i) => CENTER_ROW * COLS + CENTER_COL_START + i);
 
 function randomChar() {
@@ -91,85 +94,88 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     };
   }, [onComplete]);
 
+  const gridWidth = COLS * TILE_SIZE + (COLS - 1) * GAP;
+
   return (
     <div
-      className={`fixed inset-0 z-50 bg-[#e8eaed] flex flex-col ${show ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 z-50 bg-[#e8eaed] flex flex-col items-center justify-center ${show ? "opacity-100" : "opacity-0"}`}
       style={{ transition: "opacity 0.6s ease" }}
     >
-      {/* Full-screen split-flap grid — fills all space */}
-      <div
-        className="flex-1 grid"
-        style={{
-          gridTemplateColumns: `repeat(${COLS}, 1fr)`,
-          gridTemplateRows: `repeat(${ROWS}, 1fr)`,
-          gap: "3px",
-          padding: "3px",
-        }}
-      >
-        {tiles.map((tile, i) => (
-          <div
-            key={i}
-            className="relative flex flex-col items-center justify-center rounded-lg overflow-hidden shadow-md"
-            style={{
-              background: tile.revealed
-                ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)"
-                : "#e8eaed",
-              border: tile.revealed ? "1px solid #064E3B" : "1px solid #d1d5db",
-              transition: tile.revealed ? "background 0.3s ease, border 0.3s ease" : undefined,
-            }}
-          >
-            {/* Center divider line */}
-            <div
-              className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
-              style={{ background: tile.revealed ? "#064E3Baa" : "#b0b5bdaa" }}
-            />
-            {/* Left peg */}
-            <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
-              style={{
-                background: tile.revealed ? "#10B981" : "#e8eaed",
-                borderColor: tile.revealed ? "#064E3B" : "#d1d5db",
-              }}
-            />
-            {/* Right peg */}
-            <div
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
-              style={{
-                background: tile.revealed ? "#10B981" : "#e8eaed",
-                borderColor: tile.revealed ? "#064E3B" : "#d1d5db",
-              }}
-            />
-            <span
-              className="font-black text-lg leading-none select-none z-10"
-              style={{
-                color: tile.revealed ? "#fff" : "#9ca3af",
-                letterSpacing: "0.04em",
-              }}
-            >
-              {tile.char}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Tagline — sits below the grid, fades in after WILDFLY is revealed */}
-      <div
-        className="flex items-center justify-center py-6"
-        style={{
-          opacity: showTagline ? 1 : 0,
-          transition: "opacity 0.8s ease",
-        }}
-      >
-        <p
+      <div style={{ width: gridWidth }}>
+        {/* Split-flap grid */}
+        <div
           style={{
-            fontSize: "clamp(11px, 2.8vw, 14px)",
-            letterSpacing: "0.14em",
-            color: "#6b7280",
-            fontWeight: 500,
+            display: "grid",
+            gridTemplateColumns: `repeat(${COLS}, ${TILE_SIZE}px)`,
+            gridTemplateRows: `repeat(${ROWS}, ${TILE_SIZE}px)`,
+            gap: `${GAP}px`,
           }}
         >
-          Plan Smarter. Fly Wilder.
-        </p>
+          {tiles.map((tile, i) => (
+            <div
+              key={i}
+              className="relative flex flex-col items-center justify-center rounded-lg overflow-hidden shadow-md"
+              style={{
+                background: tile.revealed
+                  ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)"
+                  : "#e8eaed",
+                border: tile.revealed ? "1px solid #064E3B" : "1px solid #d1d5db",
+                transition: tile.revealed ? "background 0.3s ease, border 0.3s ease" : undefined,
+              }}
+            >
+              {/* Center divider line */}
+              <div
+                className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+                style={{ background: tile.revealed ? "#064E3Baa" : "#b0b5bdaa" }}
+              />
+              {/* Left peg */}
+              <div
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+                style={{
+                  background: tile.revealed ? "#10B981" : "#e8eaed",
+                  borderColor: tile.revealed ? "#064E3B" : "#d1d5db",
+                }}
+              />
+              {/* Right peg */}
+              <div
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+                style={{
+                  background: tile.revealed ? "#10B981" : "#e8eaed",
+                  borderColor: tile.revealed ? "#064E3B" : "#d1d5db",
+                }}
+              />
+              <span
+                className="font-black text-lg leading-none select-none z-10"
+                style={{
+                  color: tile.revealed ? "#fff" : "#9ca3af",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {tile.char}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tagline directly below the grid */}
+        <div
+          className="flex items-center justify-center mt-3"
+          style={{
+            opacity: showTagline ? 1 : 0,
+            transition: "opacity 0.8s ease",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "clamp(11px, 2.8vw, 13px)",
+              letterSpacing: "0.14em",
+              color: "#6b7280",
+              fontWeight: 500,
+            }}
+          >
+            Plan Smarter. Fly Wilder.
+          </p>
+        </div>
       </div>
     </div>
   );
