@@ -331,49 +331,63 @@ const FriendsPage = () => {
         className="flex flex-col flex-1"
       >
         <div className="px-4 pt-3 pb-0">
-          {/* Search bar - always visible */}
-          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 bg-muted/50 border border-border mb-3">
-            <Search size={16} className="text-muted-foreground flex-shrink-0" />
-            <input
-              type="text"
-              value={activeTab === "search" ? searchQuery : ""}
-              onChange={(e) => {
-                if (activeTab !== "search") setActiveTab("search");
-                setSearchQuery(e.target.value);
-              }}
-              placeholder="Search friends or people"
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-            />
-            {activeTab === "search" && searchQuery && (
+          {/* Search bar - frosted glass style matching Flight UI */}
+          <div
+            className="rounded-2xl overflow-visible px-3 pt-3 pb-1 mb-4"
+            style={{
+              background: "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
+            }}
+          >
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">
+              Find People
+            </label>
+            <div className="app-input-container">
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <Search size={20} strokeWidth={2} />
+              </button>
+              <input
+                type="text"
+                value={activeTab === "search" ? searchQuery : ""}
+                onChange={(e) => {
+                  if (activeTab !== "search") setActiveTab("search");
+                  setSearchQuery(e.target.value);
+                }}
+                placeholder="Search by username or city"
+                className="app-input"
+              />
+              {activeTab === "search" && searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowNotifications(true)}
+                className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors relative mr-1"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive" />
+                )}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowNotifications(true)}
-              className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors relative"
-            >
-              <Bell size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-destructive" />
-              )}
-            </button>
+            </div>
           </div>
 
-          {/* Normal tabs */}
-          <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-border rounded-none">
+          {/* Normal tabs - active has green border and green text */}
+          <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-border rounded-none mt-3">
             <TabsTrigger
               value="friends"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent",
-                "data-[state=active]:border-primary data-[state=active]:text-foreground",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground",
               )}
             >
@@ -382,8 +396,8 @@ const FriendsPage = () => {
             <TabsTrigger
               value="requests"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent relative",
-                "data-[state=active]:border-primary data-[state=active]:text-foreground",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground",
               )}
             >
@@ -397,8 +411,8 @@ const FriendsPage = () => {
             <TabsTrigger
               value="search"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent",
-                "data-[state=active]:border-primary data-[state=active]:text-foreground",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground",
               )}
             >
@@ -407,8 +421,8 @@ const FriendsPage = () => {
             <TabsTrigger
               value="activity"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent",
-                "data-[state=active]:border-primary data-[state=active]:text-foreground",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground",
               )}
             >
