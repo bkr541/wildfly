@@ -50,6 +50,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
+  const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
