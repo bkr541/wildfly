@@ -622,7 +622,6 @@ const FlightsPage = ({
               onChange={setDepartures}
               airports={airports}
               containerClassName="px-3 pt-3 pb-1"
-              onFocusChange={setIsSearchFocused}
             />
 
             <MultiAirportSearchbox
