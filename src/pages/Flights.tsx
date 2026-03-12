@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { getLogger } from "@/lib/logger";
@@ -74,6 +75,7 @@ const MultiAirportSearchbox = ({
   containerClassName,
   disabled = false,
   placeholder = "Search airport or city...",
+  onFocusChange,
 }: {
   label: string;
   icon: any;
@@ -83,6 +85,7 @@ const MultiAirportSearchbox = ({
   containerClassName?: string;
   disabled?: boolean;
   placeholder?: string;
+  onFocusChange?: (focused: boolean) => void;
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -187,9 +190,11 @@ const MultiAirportSearchbox = ({
             }
             setOpen(true);
             setIsFocused(true);
+            onFocusChange?.(true);
           }}
           onBlur={() => {
             setIsFocused(false);
+            onFocusChange?.(false);
             setTimeout(() => setOpen(false), 200);
             if (selected.length === 0) setQuery("");
           }}
@@ -422,6 +427,7 @@ const FlightsPage = ({
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [creditError, setCreditError] = useState<{
     cost: number;
     remaining_monthly: number;
@@ -529,6 +535,20 @@ const FlightsPage = ({
     <>
       {loading && <SearchingOverlay />}
 
+      {/* Dim overlay when search inputs are focused */}
+      <AnimatePresence>
+        {isSearchFocused && (
+          <motion.div
+            key="search-dim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[5] pointer-events-none"
+            style={{ background: "rgba(0,0,0,0.25)" }}
+          />
+        )}
+      </AnimatePresence>
 
       <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}
@@ -581,14 +601,17 @@ const FlightsPage = ({
 
         {/* Airport + Dates Group — frosted glass card */}
         <div
-          className="rounded-2xl overflow-visible"
+          className="rounded-2xl overflow-visible transition-all duration-300"
           style={{
             background: "rgba(255,255,255,0.72)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
-            border: "1px solid rgba(255,255,255,0.55)",
-            boxShadow:
-              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+            border: isSearchFocused
+              ? "1.5px solid rgba(5,150,105,0.75)"
+              : "1px solid rgba(255,255,255,0.55)",
+            boxShadow: isSearchFocused
+              ? "0 0 0 3px rgba(5,150,105,0.12), 0 8px 32px -4px rgba(5,150,105,0.22), 0 2px 40px 0 rgba(5,150,105,0.10)"
+              : "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
           }}
         >
           <div className="relative">
@@ -600,6 +623,7 @@ const FlightsPage = ({
               onChange={setDepartures}
               airports={airports}
               containerClassName="px-3 pt-3 pb-1"
+              onFocusChange={setIsSearchFocused}
             />
 
             <MultiAirportSearchbox
@@ -611,6 +635,7 @@ const FlightsPage = ({
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
               containerClassName="px-3 pt-1 pb-1"
+              onFocusChange={setIsSearchFocused}
             />
           </div>
 
