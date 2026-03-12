@@ -93,9 +93,11 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               <div
                 className="rounded-2xl px-4 py-5"
                 style={{
-                  background: "rgba(255,255,255,0.82)",
-                  border: "1px solid rgba(5,150,105,0.13)",
-                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
+                  background: "rgba(255,255,255,0.72)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(255,255,255,0.55)",
+                  boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                 }}
               >
                 <div className="flex gap-3">
@@ -112,9 +114,11 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               <div
                 className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4 overflow-hidden"
                 style={{
-                  background: "rgba(255,255,255,0.88)",
-                  border: "1px solid rgba(5,150,105,0.13)",
-                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.09)",
+                  background: "rgba(255,255,255,0.72)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(255,255,255,0.55)",
+                  boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                 }}
               >
                 <div className="flex-shrink-0 w-[110px] h-[70px] relative flex items-center justify-center">
@@ -157,10 +161,10 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     style={{
                       scrollSnapAlign: "start",
                       background: "rgba(255,255,255,0.72)",
-                      backdropFilter: "blur(16px)",
-                      WebkitBackdropFilter: "blur(16px)",
-                      border: "1px solid rgba(5,150,105,0.18)",
-                      boxShadow: "0 4px 24px 0 rgba(5,150,105,0.13), 0 1.5px 6px 0 rgba(5,150,105,0.08)",
+                      backdropFilter: "blur(18px)",
+                      WebkitBackdropFilter: "blur(18px)",
+                      border: "1px solid rgba(255,255,255,0.55)",
+                      boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                     }}
                   >
                     <div className="h-4 flex items-center gap-2 mb-3">

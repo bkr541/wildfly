@@ -178,79 +178,87 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
             <div className="flex flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
               {loading
                 ? [1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl animate-pulse flex-shrink-0"
-                      style={{ height: 110, minWidth: "58vw", background: "rgba(5,150,105,0.10)" }}
-                    />
-                  ))
+                  <div
+                    key={i}
+                    className="rounded-2xl animate-pulse flex-shrink-0"
+                    style={{
+                      height: 110,
+                      minWidth: "58vw",
+                      background: "rgba(255,255,255,0.72)",
+                      backdropFilter: "blur(18px)",
+                      WebkitBackdropFilter: "blur(18px)",
+                      border: "1px solid rgba(255,255,255,0.55)",
+                      boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                    }}
+                  />
+                ))
                 : locations.map((loc, i) => {
-                    const style = CARD_STYLES[i % CARD_STYLES.length];
-                    const weekendLabel = loc.isWeekend ? "This Weekend" : "This Weekend";
+                  const style = CARD_STYLES[i % CARD_STYLES.length];
+                  const weekendLabel = loc.isWeekend ? "This Weekend" : "This Weekend";
 
-                    return (
-                      <motion.div
-                        key={loc.locationId}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{
-                          opacity: 1,
-                          y: 0,
-                          transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
-                        }}
-                        className="flex-shrink-0 rounded-2xl overflow-hidden"
-                        style={{
-                          minWidth: "58vw",
-                          maxWidth: "58vw",
-                          background: style.gradient,
-                          boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
-                        }}
-                      >
-                        <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                          <HugeiconsIcon icon={Location01Icon} className="w-3.5 h-3.5 text-white opacity-80" />
-                          <span className="text-white font-extrabold text-[13px] tracking-wide uppercase">
-                            {loc.city}
+                  return (
+                    <motion.div
+                      key={loc.locationId}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
+                      }}
+                      className="flex-shrink-0 rounded-2xl overflow-hidden"
+                      style={{
+                        minWidth: "58vw",
+                        maxWidth: "58vw",
+                        background: style.gradient,
+                        boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
+                      }}
+                    >
+                      <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+                        <HugeiconsIcon icon={Location01Icon} className="w-3.5 h-3.5 text-white opacity-80" />
+                        <span className="text-white font-extrabold text-[13px] tracking-wide uppercase">
+                          {loc.city}
+                        </span>
+                        {loc.airportCount > 1 && (
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
+                            style={{ background: style.accent, color: "rgba(255,255,255,0.85)" }}
+                          >
+                            {loc.airportCount} airports
                           </span>
-                          {loc.airportCount > 1 && (
-                            <span
-                              className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
-                              style={{ background: style.accent, color: "rgba(255,255,255,0.85)" }}
-                            >
-                              {loc.airportCount} airports
-                            </span>
-                          )}
-                        </div>
-                        <div className="mx-4 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
-                        <div className="flex gap-2.5 px-4 pb-3.5">
+                        )}
+                      </div>
+                      <div className="mx-4 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
+                      <div className="flex gap-2.5 px-4 pb-3.5">
+                        <button
+                          type="button"
+                          onClick={() => handleClick(loc, "Today", loc.todayDate)}
+                          className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
+                          style={{ background: style.pill }}
+                        >
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">Depart</span>
+                          <span className="text-white font-extrabold text-[13px] leading-tight">Today</span>
+                          <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
+                            {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
+                          </span>
+                        </button>
+                        {loc.todayDate !== loc.weekendDate && (
                           <button
                             type="button"
-                            onClick={() => handleClick(loc, "Today", loc.todayDate)}
+                            onClick={() => handleClick(loc, weekendLabel, loc.weekendDate)}
                             className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
                             style={{ background: style.pill }}
                           >
                             <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">Depart</span>
-                            <span className="text-white font-extrabold text-[13px] leading-tight">Today</span>
+                            <span className="text-white font-extrabold text-[13px] leading-tight">This Weekend</span>
                             <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
-                              {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
+                              {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
                             </span>
                           </button>
-                          {loc.todayDate !== loc.weekendDate && (
-                            <button
-                              type="button"
-                              onClick={() => handleClick(loc, weekendLabel, loc.weekendDate)}
-                              className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
-                              style={{ background: style.pill }}
-                            >
-                              <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">Depart</span>
-                              <span className="text-white font-extrabold text-[13px] leading-tight">This Weekend</span>
-                              <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
-                                {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
-                              </span>
-                            </button>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
             </div>
           </motion.div>
         )}
