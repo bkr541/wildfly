@@ -202,7 +202,9 @@ export function normalizeGetMyDataResponse(raw: any, departureDate?: string): No
  *        duration (HH:MM:SS), stops, fares { standard, discount_den, go_wild }.
  */
 export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsResponse {
-  const rawFlights: any[] = raw?.data?.json?.flights || [];
+  // Support both legacy edge-function shape (raw.data.json.flights) and
+  // direct API shape (raw.flights) returned by getmydata.fly.dev /api/flights/search
+  const rawFlights: any[] = raw?.data?.json?.flights ?? raw?.flights ?? [];
   log.info("normalizeAllDestinations", { inputCount: rawFlights.length });
   // Deduplicate by composite key
   const seen = new Set<string>();
