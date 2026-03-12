@@ -91,7 +91,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
       const { error: cacheErr } = await supabase.functions.invoke("clear-flight-cache");
       if (cacheErr) throw cacheErr;
 
-      toast.success("Flight searches and cache cleared");
+      setClearCompleteOpen(true);
     } catch (err: any) {
       toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
     } finally {
