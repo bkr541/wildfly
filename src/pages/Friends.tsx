@@ -367,7 +367,7 @@ type FriendsTab = "friends" | "requests" | "search" | "activity";
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
   const [showNotifications, setShowNotifications] = useState(false);
-  const { data: unreadCount } = useUnreadNotificationCount();
+  const unreadCount = useUnreadNotificationCount();
 
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
@@ -375,10 +375,8 @@ const FriendsPage = () => {
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-0px)]">
 
-      {/* Notifications panel overlay */}
-      {showNotifications && (
-        <NotificationsPanel onClose={() => setShowNotifications(false)} />
-      )}
+      {/* Notifications sheet */}
+      <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
 
       {/* Page header */}
       <div className="flex items-center justify-between px-5 pt-3 pb-1">
@@ -402,7 +400,7 @@ const FriendsPage = () => {
             className="h-9 w-9 flex items-center justify-center rounded-full text-[#2E4A4A]/60 hover:text-[#2E4A4A] hover:bg-black/5 transition-colors relative"
           >
             <Bell size={20} />
-            {(unreadCount ?? 0) > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
             )}
           </button>
