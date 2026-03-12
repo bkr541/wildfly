@@ -324,7 +324,21 @@ const FriendsPage = () => {
       {/* Notifications sheet */}
       <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
 
-      {/* Tabs - moved below searchbox area */}
+      {/* Header with notifications */}
+      <div className="flex items-center justify-end px-4 pt-3 pb-0">
+        <button
+          type="button"
+          onClick={() => setShowNotifications(true)}
+          className="h-9 w-9 flex items-center justify-center rounded-full text-[#2E4A4A]/60 hover:text-[#2E4A4A] hover:bg-black/5 transition-colors relative"
+        >
+          <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
+          )}
+        </button>
+      </div>
+
+      {/* Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as FriendsTab)}
@@ -340,9 +354,6 @@ const FriendsPage = () => {
               WebkitBackdropFilter: "blur(18px)",
             }}
           >
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">
-              Find People
-            </label>
             <div className="app-input-container">
               <button type="button" tabIndex={-1} className="app-input-icon-btn">
                 <Search size={20} strokeWidth={2} />
@@ -368,27 +379,17 @@ const FriendsPage = () => {
                   </svg>
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setShowNotifications(true)}
-                className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors relative mr-1"
-              >
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </button>
             </div>
           </div>
 
-          {/* Normal tabs - active has green border and green text */}
+          {/* Normal tabs - active has green border and green text, NO background */}
           <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-border rounded-none mt-3">
             <TabsTrigger
               value="friends"
               className={cn(
                 "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
               My Friends
@@ -397,8 +398,8 @@ const FriendsPage = () => {
               value="requests"
               className={cn(
                 "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
               Requests
@@ -412,8 +413,8 @@ const FriendsPage = () => {
               value="search"
               className={cn(
                 "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
               Search
@@ -422,8 +423,8 @@ const FriendsPage = () => {
               value="activity"
               className={cn(
                 "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669]",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground",
+                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
               Activity
