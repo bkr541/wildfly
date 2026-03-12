@@ -276,10 +276,12 @@ const FlightMultiDestResults = ({
   const originCity = airportMap[departureAirport]?.city || departureAirport;
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
+    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5]">
+      {/* ── Sticky Header + Sort Bar ────────────────────────── */}
+      <div className="sticky top-0 z-20">
       {/* ── Hero Header ─────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-20 flex flex-col px-5 pt-6 pb-[124px] overflow-hidden"
+        className="flex flex-col px-5 pt-6 pb-[124px] overflow-hidden relative"
         style={{
           backgroundImage: `url('/assets/locations/init_background.png')`,
           backgroundSize: "cover",
@@ -358,7 +360,7 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="relative z-10 bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
         <span className="text-[13px] font-semibold">
           <span className="text-[#10B981] font-black">{sortedCards.length}</span>
           <span className="text-[#6B7B7B] font-medium"> Destinations</span>
@@ -381,6 +383,7 @@ const FlightMultiDestResults = ({
           ))}
         </div>
       </div>
+      </div>{/* end sticky wrapper */}
 
       {/* ── Destination cards list ───────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 py-4 gap-4 relative z-10">
