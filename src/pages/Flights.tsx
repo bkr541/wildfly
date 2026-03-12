@@ -534,6 +534,20 @@ const FlightsPage = ({
     <>
       {loading && <SearchingOverlay />}
 
+      {/* Dim overlay when search inputs are focused */}
+      <AnimatePresence>
+        {isSearchFocused && (
+          <motion.div
+            key="search-dim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[5] pointer-events-none"
+            style={{ background: "rgba(0,0,0,0.25)" }}
+          />
+        )}
+      </AnimatePresence>
 
       <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}
