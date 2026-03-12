@@ -189,9 +189,11 @@ const MultiAirportSearchbox = ({
             }
             setOpen(true);
             setIsFocused(true);
+            onFocusChange?.(true);
           }}
           onBlur={() => {
             setIsFocused(false);
+            onFocusChange?.(false);
             setTimeout(() => setOpen(false), 200);
             if (selected.length === 0) setQuery("");
           }}
