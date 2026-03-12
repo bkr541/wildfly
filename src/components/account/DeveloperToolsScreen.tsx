@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
@@ -9,6 +9,15 @@ import FlightResultsDesignScreen from "@/components/account/design/FlightResults
 import FlightResultsV2Screen from "@/components/account/design/FlightResultsV2Screen";
 import FlightResultsV3Screen from "@/components/account/design/FlightResultsV3Screen";
 import FlightResultsV4Screen from "@/components/account/design/FlightResultsV4Screen";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeveloperToolsScreenProps {
   onBack: () => void;
