@@ -1,0 +1,508 @@
+import { useMemo, useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Calendar03Icon,
+  Location01Icon,
+  AirplaneTakeOff01Icon,
+  FilterIcon,
+  SortByDown02Icon,
+  TicketStarIcon,
+  TimingIcon,
+  Route02Icon,
+} from "@hugeicons/core-free-icons";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+
+// ── Types ────────────────────────────────────────────────────
+
+interface ParsedFlight {
+  total_duration: string;
+  is_plus_one_day: boolean;
+  fares: {
+    basic: number | null;
+    economy: number | null;
+    premium: number | null;
+    business: number | null;
+  };
+  legs: { origin: string; destination: string; departure_time: string; arrival_time: string }[];
+}
+
+interface DestCard {
+  destination: string;
+  city: string;
+  stateCode: string;
+  country: string;
+  airportName: string;
+  locationId: number | null;
+  flights: ParsedFlight[];
+  flightCount: number;
+  minFare: number | null;
+  hasGoWild: boolean;
+  hasNonstop: boolean;
+  avgDurationMin: number;
+  availableFareTypes: string[];
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+
+function parseDurationToMinutes(duration: string): number {
+  const raw = String(duration).trim();
+  if (!raw) return 0;
+  if (raw.includes(":")) {
+    const parts = raw.split(":").map((p) => p.trim());
+    if (parts.length >= 3) {
+      const hoursPart = parts[0];
+      let days = 0, hours = 0;
+      if (hoursPart.includes(".")) {
+        const [d, h] = hoursPart.split(".");
+        days = parseInt(d, 10) || 0;
+        hours = parseInt(h, 10) || 0;
+      } else {
+        hours = parseInt(hoursPart, 10) || 0;
+      }
+      const minutes = parseInt(parts[1], 10) || 0;
+      return days * 24 * 60 + hours * 60 + minutes;
+    }
+    if (parts.length === 2) {
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+  }
+  const hoursMatch = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
+  const minsMatch = raw.match(/(\d+)\s*(min|m)\b/i);
+  return ((parseInt(hoursMatch?.[1] ?? "0", 10) || 0) * 60) + (parseInt(minsMatch?.[1] ?? "0", 10) || 0);
+}
+
+function formatDurationMinutes(mins: number): string {
+  if (!mins) return "—";
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+// ── Component ────────────────────────────────────────────────
+
+const FlightMultiDestResults = ({
+  onBack,
+  responseData,
+  onViewDest,
+}: {
+  onBack: () => void;
+  responseData: string;
+  /** Navigate into a single destination's results */
+  onViewDest: (destResponseData: string) => void;
+}) => {
+  const [airportMap, setAirportMap] = useState<
+    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
+  >({});
+  const [sortBy, setSortBy] = useState<"city" | "fare" | "flights">("city");
+
+  // ── Parse payload ────────────────────────────────────────
+  const { flights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
+    try {
+      const parsed = JSON.parse(responseData);
+      return {
+        flights: (parsed.response?.flights ?? []) as ParsedFlight[],
+        departureDate: parsed.departureDate ?? null,
+        arrivalDate: parsed.arrivalDate ?? null,
+        tripType: parsed.tripType ?? "One Way",
+        departureAirport: parsed.departureAirport ?? "",
+      };
+    } catch {
+      return { flights: [] as ParsedFlight[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "" };
+    }
+  }, [responseData]);
+
+  // ── Fetch airport metadata ───────────────────────────────
+  const destinationCodes = useMemo(() => {
+    const codes = new Set<string>();
+    for (const f of flights) {
+      if (f.legs.length > 0) codes.add(f.legs[f.legs.length - 1].destination);
+      if (f.legs[0]) codes.add(f.legs[0].origin);
+    }
+    return Array.from(codes);
+  }, [flights]);
+
+  useEffect(() => {
+    if (destinationCodes.length === 0) return;
+    (async () => {
+      const { data } = await supabase
+        .from("airports")
+        .select("iata_code, name, location_id, locations(city, state_code, country)")
+        .in("iata_code", destinationCodes);
+      if (data) {
+        const map: typeof airportMap = {};
+        for (const a of data as any[]) {
+          map[a.iata_code] = {
+            city: a.locations?.city ?? "",
+            stateCode: a.locations?.state_code ?? "",
+            country: a.locations?.country ?? "",
+            name: a.name ?? "",
+            locationId: a.location_id ?? null,
+          };
+        }
+        setAirportMap(map);
+      }
+    })();
+  }, [destinationCodes]);
+
+  // ── Build destination cards ──────────────────────────────
+  const cards: DestCard[] = useMemo(() => {
+    const grouped: Record<string, ParsedFlight[]> = {};
+    for (const f of flights) {
+      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
+      if (!grouped[dest]) grouped[dest] = [];
+      grouped[dest].push(f);
+    }
+
+    return Object.entries(grouped).map(([dest, flts]) => {
+      const minFare = flts.reduce<number | null>((min, f) => {
+        const cheapest = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business]
+          .filter((v): v is number => v != null && v > 0)
+          .sort((a, b) => a - b)[0] ?? null;
+        if (cheapest == null) return min;
+        return min == null || cheapest < min ? cheapest : min;
+      }, null);
+
+      const totalDurMins = flts.reduce((sum, f) => sum + parseDurationToMinutes(f.total_duration), 0);
+      const avgDurationMin = flts.length > 0 ? Math.round(totalDurMins / flts.length) : 0;
+
+      const fareTypes = new Set<string>();
+      for (const f of flts) {
+        if (f.fares.basic != null) fareTypes.add("Go Wild");
+        if (f.fares.economy != null) fareTypes.add("Discount Den");
+        if (f.fares.premium != null) fareTypes.add("Standard");
+        if (f.fares.business != null) fareTypes.add("Miles");
+      }
+
+      return {
+        destination: dest,
+        city: airportMap[dest]?.city ?? dest,
+        stateCode: airportMap[dest]?.stateCode ?? "",
+        country: airportMap[dest]?.country ?? "",
+        airportName: airportMap[dest]?.name ?? "",
+        locationId: airportMap[dest]?.locationId ?? null,
+        flights: flts,
+        flightCount: flts.length,
+        minFare,
+        hasGoWild: flts.some((f) => f.fares.basic != null),
+        hasNonstop: flts.some((f) => f.legs.length === 1),
+        avgDurationMin,
+        availableFareTypes: Array.from(fareTypes),
+      };
+    });
+  }, [flights, airportMap]);
+
+  const sortedCards = useMemo(() => {
+    return [...cards].sort((a, b) => {
+      if (sortBy === "fare") {
+        if (a.minFare == null && b.minFare == null) return 0;
+        if (a.minFare == null) return 1;
+        if (b.minFare == null) return -1;
+        return a.minFare - b.minFare;
+      }
+      if (sortBy === "flights") return b.flightCount - a.flightCount;
+      return a.city.localeCompare(b.city);
+    });
+  }, [cards, sortBy]);
+
+  // ── Build single-dest payload for drilling in ────────────
+  const handleViewDest = (card: DestCard) => {
+    const singleDestFlights = card.flights;
+    const singlePayload = JSON.stringify({
+      response: { flights: singleDestFlights },
+      departureDate,
+      arrivalDate,
+      tripType,
+      departureAirport,
+      arrivalAirport: card.destination,
+      fromCache: false,
+    });
+    onViewDest(singlePayload);
+  };
+
+  const formattedDate = useMemo(() => {
+    if (!departureDate) return null;
+    return new Date(departureDate).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  }, [departureDate]);
+
+  const originCity = airportMap[departureAirport]?.city || departureAirport;
+
+  return (
+    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
+      {/* ── Hero Header ─────────────────────────────────────── */}
+      <header
+        className="relative z-10 flex flex-col px-5 pt-6 pb-[124px] overflow-hidden"
+        style={{
+          backgroundImage: `url('/assets/locations/init_background.png')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Green gradient overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+          style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
+        />
+
+        {/* Back button */}
+        <div className="relative flex items-center w-full">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
+          >
+            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Title */}
+        <div className="relative mt-3">
+          <p
+            className="text-white/70 text-[22px] font-light leading-tight"
+            style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+          >
+            {originCity} to
+          </p>
+          <p
+            className="text-white leading-tight"
+            style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+          >
+            <span className="text-[36px] font-black">All Destinations</span>
+          </p>
+
+          {formattedDate && (
+            <div
+              className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
+              style={{
+                boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                transform: "translateY(-1px)",
+              }}
+            >
+              <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+              <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Stats strip */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
+          {[
+            { label: "DESTINATIONS", value: cards.length },
+            { label: "TOTAL FLIGHTS", value: flights.length },
+            { label: "NONSTOP", value: `${cards.filter((c) => c.hasNonstop).length} Dest.` },
+            { label: "GO WILD", value: `${cards.filter((c) => c.hasGoWild).length} Dest.` },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex-1 flex flex-col items-center">
+              <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
+                {label}
+              </span>
+              <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      {/* ── Sort / filter bar ───────────────────────────────── */}
+      <div className="relative z-10 bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
+        <span className="text-[13px] font-semibold">
+          <span className="text-[#10B981] font-black">{sortedCards.length}</span>
+          <span className="text-[#6B7B7B] font-medium"> Destinations</span>
+        </span>
+        <div className="flex items-center gap-2">
+          {/* Sort pills */}
+          {(["city", "fare", "flights"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSortBy(s)}
+              className={cn(
+                "h-7 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                sortBy === s
+                  ? "bg-[#10B981] text-white border-[#10B981]"
+                  : "bg-white text-[#6B7B7B] border-[#E8EBEB] hover:border-[#10B981] hover:text-[#10B981]",
+              )}
+            >
+              {s === "city" ? "A–Z" : s === "fare" ? "Price" : "Flights"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Destination cards list ───────────────────────────── */}
+      <div className="flex-1 flex flex-col px-4 py-4 gap-4 relative z-10">
+        {sortedCards.map((card) => {
+          const bgImage = card.locationId
+            ? `/assets/locations/${card.locationId}_background.png`
+            : null;
+
+          return (
+            <div
+              key={card.destination}
+              className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB]"
+              style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+            >
+              {/* City photo */}
+              <div className="relative h-[130px] overflow-hidden bg-[#C8D5D5]">
+                {bgImage ? (
+                  <img
+                    src={bgImage}
+                    alt={card.city}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full"
+                    style={{
+                      background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)",
+                      opacity: 0.6,
+                    }}
+                  />
+                )}
+                {/* Gradient scrim */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
+                  }}
+                />
+                {/* GoWild badge */}
+                {card.hasGoWild && (
+                  <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                    <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
+                    <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
+                  </div>
+                )}
+                {/* Nonstop badge */}
+                {card.hasNonstop && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
+                    <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Card body */}
+              <div className="px-4 pt-3 pb-3">
+                {/* City name + IATA */}
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
+                      {card.city || card.destination}
+                      {card.stateCode ? (
+                        <span className="text-[#6B7B7B] font-light text-[16px]"> ({card.destination})</span>
+                      ) : card.country ? (
+                        <span className="text-[#6B7B7B] font-light text-[16px]"> ({card.destination})</span>
+                      ) : null}
+                    </h3>
+                    <p className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
+                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
+                    </p>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-[#F0F3F3] my-2.5" />
+
+                {/* Stats row */}
+                <div className="flex flex-col gap-1.5 mb-3">
+                  {card.minFare != null && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "rgba(16,185,129,0.12)" }}
+                      >
+                        <HugeiconsIcon icon={TicketStarIcon} size={13} color="#10B981" strokeWidth={2} />
+                      </div>
+                      <span className="text-[13px] text-[#2E4A4A]">
+                        From{" "}
+                        <span className="font-bold text-[#1A2E2E]">
+                          ${card.minFare.toFixed(2)} USD
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {card.avgDurationMin > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "rgba(107,123,123,0.10)" }}
+                      >
+                        <HugeiconsIcon icon={TimingIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                      </div>
+                      <span className="text-[13px] text-[#2E4A4A]">
+                        Avg. Duration:{" "}
+                        <span className="font-semibold">~{formatDurationMinutes(card.avgDurationMin)}</span>
+                      </span>
+                    </div>
+                  )}
+                  {(card.hasNonstop || !card.hasNonstop) && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "rgba(107,123,123,0.10)" }}
+                      >
+                        <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                      </div>
+                      <span className="text-[13px] text-[#2E4A4A]">
+                        {card.hasNonstop ? "Non-Stop & Connecting" : "Connecting Only"}
+                      </span>
+                    </div>
+                  )}
+                  {card.availableFareTypes.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "rgba(107,123,123,0.10)" }}
+                      >
+                        <HugeiconsIcon icon={Route02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                      </div>
+                      <span className="text-[13px] text-[#2E4A4A] truncate">
+                        {card.availableFareTypes.join(", ")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* View Flights button */}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleViewDest(card)}
+                    className="flex items-center gap-2 h-10 px-5 bg-[#065F46] text-white text-[13px] font-bold rounded-xl hover:bg-[#047857] transition-colors"
+                  >
+                    View Flights
+                    <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {sortedCards.length === 0 && (
+          <div className="flex-1 flex items-center justify-center py-20">
+            <p className="text-sm text-[#6B7B7B] text-center">No destinations found.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FlightMultiDestResults;
