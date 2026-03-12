@@ -14,6 +14,7 @@ import AccountHub from "./pages/AccountHub";
 import FlightsPage from "./pages/Flights";
 import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
+import FlightMultiDestResults from "./pages/FlightMultiDestResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
