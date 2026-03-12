@@ -89,6 +89,11 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     onTitleChange?.("Developer Tools");
   };
 
+  // Set title on mount and restore when sub-screens close
+  useEffect(() => {
+    onTitleChange?.("Developer Tools");
+  }, []);
+
   // Hide MainLayout header for full-screen sandbox screens
   useEffect(() => {
     if (activeDesignScreen && FULLSCREEN_SCREENS.includes(activeDesignScreen)) {
@@ -97,7 +102,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   }, [activeDesignScreen]);
 
   if (showApiClient) {
-    return <ApiClientScreen onBack={() => setShowApiClient(false)} />;
+    return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
   }
 
   if (activeDesignScreen === "flight-results") {
