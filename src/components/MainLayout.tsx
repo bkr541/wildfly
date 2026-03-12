@@ -266,7 +266,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
               );
             })()}
 
-            {currentPage === "home" && (
+            {(currentPage === "home" || currentPage === "friends") && (
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(true)}

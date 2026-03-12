@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Bell, Search, Users, UserPlus, Activity } from "lucide-react";
+import { Search, Users, UserPlus, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useFriends,
@@ -20,8 +20,7 @@ import {
   RequestCardSkeleton,
 } from "@/components/friends/FriendComponents";
 import { toast } from "@/hooks/use-toast";
-import { NotificationsSheet } from "@/components/NotificationsSheet";
-import { useUnreadNotificationCount } from "@/hooks/useNotifications";
+
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -311,32 +310,13 @@ type FriendsTab = "friends" | "requests" | "search" | "activity";
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
-  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const unreadCount = useUnreadNotificationCount();
 
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
 
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-0px)]">
-
-      {/* Notifications sheet */}
-      <NotificationsSheet open={showNotifications} onClose={() => setShowNotifications(false)} />
-
-      {/* Header with notifications */}
-      <div className="flex items-center justify-end px-4 pt-3 pb-0">
-        <button
-          type="button"
-          onClick={() => setShowNotifications(true)}
-          className="h-9 w-9 flex items-center justify-center rounded-full text-[#2E4A4A]/60 hover:text-[#2E4A4A] hover:bg-black/5 transition-colors relative"
-        >
-          <Bell size={20} />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
-          )}
-        </button>
-      </div>
 
       {/* Tabs */}
       <Tabs
