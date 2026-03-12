@@ -116,7 +116,14 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
-  if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
+  if (activeScreen === "appearance") return (
+    <AppearanceScreen
+      onBack={(configChanged?: boolean) => {
+        if (configChanged) onHomepageConfigChanged?.();
+        handleBack();
+      }}
+    />
+  );
   if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
