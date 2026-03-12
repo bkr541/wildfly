@@ -32,6 +32,7 @@ const MainApp = () => {
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
+  const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
   const accountBackRef = useRef<(() => void) | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
@@ -231,8 +232,8 @@ const MainApp = () => {
               onSubScreenBack={() => accountBackRef.current?.()}
               currentPage={currentPage}
             >
-              {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
-              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} />}
+              {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}

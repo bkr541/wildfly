@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { ChevronRight, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, ArrowRight, ChevronDown } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
@@ -45,75 +45,101 @@ interface Props {
   searches: FlightSearch[];
   loading: boolean;
   onNavigate?: (page: string) => void;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
 }
 
-export function RecentSearches({ searches, loading, onNavigate }: Props) {
+export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
   if (!loading && searches.length === 0) return null;
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      {/* Header — clickable to toggle */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between mb-3 px-1 group"
+      >
         <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
           <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Recent Searches
         </h2>
-        <button
-          type="button"
-          onClick={() => onNavigate?.("flights")}
-          className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
-        >
-          See More
-          <ChevronRight size={13} strokeWidth={2.5} />
-        </button>
-      </div>
+        <div className="flex items-center gap-2">
+          {!isCollapsed && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onNavigate?.("flights"); }}
+              className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
+            >
+              See More
+              <ChevronRight size={13} strokeWidth={2.5} />
+            </span>
+          )}
+          <motion.div
+            animate={{ rotate: isCollapsed ? -90 : 0 }}
+            transition={{ duration: 0.22, ease: EASE }}
+          >
+            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+          </motion.div>
+        </div>
+      </button>
 
-      {/* Cards grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {loading
-          ? [1, 2].map((i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-[#e3e6e6] bg-white px-4 py-4 animate-pulse"
-              >
-                <div className="h-6 w-28 rounded bg-[#e5e7eb] mb-2" />
-                <div className="h-3 w-20 rounded bg-[#e5e7eb]" />
-              </div>
-            ))
-          : searches.map((s, i) => (
-              <motion.button
-                key={s.id}
-                type="button"
-                onClick={() => onNavigate?.("flights")}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: 0.28, delay: i * 0.07, ease: EASE } }}
-                className="text-left rounded-2xl px-4 py-4 active:scale-[0.97] transition-transform"
-                style={{
-                  background: "rgba(255,255,255,0.82)",
-                  backdropFilter: "blur(16px)",
-                  WebkitBackdropFilter: "blur(16px)",
-                  border: "1px solid rgba(5,150,105,0.15)",
-                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
-                }}
-              >
-                {/* Route */}
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
-                    {s.departure_airport}
-                  </span>
-                  <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
-                  <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
-                    {s.all_destinations === "Yes" ? "ALL" : (s.arrival_airport ?? "—")}
-                  </span>
-                </div>
-
-                {/* Meta */}
-                <p className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
-                  {formatTripLabel(s)}
-                </p>
-              </motion.button>
-            ))}
-      </div>
+      {/* Collapsible content */}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            key="recent-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: EASE }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {loading
+                ? [1, 2].map((i) => (
+                    <div key={i} className="rounded-2xl border border-[#e3e6e6] bg-white px-4 py-4 animate-pulse">
+                      <div className="h-6 w-28 rounded bg-[#e5e7eb] mb-2" />
+                      <div className="h-3 w-20 rounded bg-[#e5e7eb]" />
+                    </div>
+                  ))
+                : searches.map((s, i) => (
+                    <motion.button
+                      key={s.id}
+                      type="button"
+                      onClick={() => onNavigate?.("flights")}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
+                      }}
+                      className="text-left rounded-2xl px-4 py-4 active:scale-[0.97] transition-transform"
+                      style={{
+                        background: "rgba(255,255,255,0.82)",
+                        backdropFilter: "blur(16px)",
+                        WebkitBackdropFilter: "blur(16px)",
+                        border: "1px solid rgba(5,150,105,0.15)",
+                        boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
+                      }}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
+                          {s.departure_airport}
+                        </span>
+                        <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
+                        <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
+                          {s.all_destinations === "Yes" ? "ALL" : (s.arrival_airport ?? "—")}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
+                        {formatTripLabel(s)}
+                      </p>
+                    </motion.button>
+                  ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

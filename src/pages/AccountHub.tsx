@@ -30,6 +30,7 @@ interface AccountHubProps {
   onSubScreenChange?: (title: string | null) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
   onNavigate?: (page: string) => void;
+  onHomepageConfigChanged?: () => void;
 }
 
 interface MenuItem {
@@ -60,7 +61,7 @@ const screenTitles: Record<string, string> = {
   developer: "API Client",
 };
 
-const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps) => {
+const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
@@ -115,7 +116,14 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps)
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
   if (activeScreen === "notifications") return <NotificationsScreen onBack={handleBack} />;
-  if (activeScreen === "appearance") return <AppearanceScreen onBack={handleBack} />;
+  if (activeScreen === "appearance") return (
+    <AppearanceScreen
+      onBack={(configChanged?: boolean) => {
+        if (configChanged) onHomepageConfigChanged?.();
+        handleBack();
+      }}
+    />
+  );
   if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;

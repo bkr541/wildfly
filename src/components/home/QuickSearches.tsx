@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { format, nextSaturday, isSaturday, isSunday, nextSunday } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { format, nextSaturday, isSaturday, isSunday } from "date-fns";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AirplaneTakeOff01Icon, FlashIcon, Location01Icon } from "@hugeicons/core-free-icons";
@@ -12,7 +13,7 @@ interface QuickSearchLocation {
   airportCount: number;
   todayDate: string;
   weekendDate: string;
-  isWeekend: boolean; // true if today is already Sat/Sun
+  isWeekend: boolean;
 }
 
 function buildLocations(
@@ -34,7 +35,6 @@ function buildLocations(
 
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
-// Distinct gradient pairs per card index
 const CARD_STYLES = [
   {
     gradient: "linear-gradient(135deg, #0f766e 0%, #059669 100%)",
@@ -64,9 +64,11 @@ const CARD_STYLES = [
 
 interface Props {
   onNavigate?: (page: string, data?: string) => void;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
 }
 
-export function QuickSearches({ onNavigate }: Props) {
+export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Props) {
   const [locations, setLocations] = useState<QuickSearchLocation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -144,104 +146,115 @@ export function QuickSearches({ onNavigate }: Props) {
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      {/* Header — clickable to toggle */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between mb-3 px-1 group"
+      >
         <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
           <HugeiconsIcon icon={FlashIcon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Quick Searches
         </h2>
-      </div>
+        <motion.div
+          animate={{ rotate: isCollapsed ? -90 : 0 }}
+          transition={{ duration: 0.22, ease: EASE }}
+        >
+          <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+        </motion.div>
+      </button>
 
-      {/* Cards */}
-      <div className="flex flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-        {loading
-          ? [1, 2].map((i) => (
-              <div
-                key={i}
-                className="rounded-2xl animate-pulse"
-                style={{ height: 110, background: "rgba(5,150,105,0.10)" }}
-              />
-            ))
-          : locations.map((loc, i) => {
-              const style = CARD_STYLES[i % CARD_STYLES.length];
-              const weekendLabel = loc.isWeekend ? "This Weekend" : "This Weekend";
+      {/* Collapsible content with cascading cards */}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            key="quick-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: EASE }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="flex flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+              {loading
+                ? [1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="rounded-2xl animate-pulse flex-shrink-0"
+                      style={{ height: 110, minWidth: "58vw", background: "rgba(5,150,105,0.10)" }}
+                    />
+                  ))
+                : locations.map((loc, i) => {
+                    const style = CARD_STYLES[i % CARD_STYLES.length];
+                    const weekendLabel = loc.isWeekend ? "This Weekend" : "This Weekend";
 
-              return (
-                <motion.div
-                  key={loc.locationId}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
-                  }}
-                  className="flex-shrink-0 rounded-2xl overflow-hidden"
-                  style={{
-                    minWidth: "58vw",
-                    maxWidth: "58vw",
-                    background: style.gradient,
-                    boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
-                  }}
-                >
-                  {/* City header */}
-                  <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                    <HugeiconsIcon icon={Location01Icon} className="w-3.5 h-3.5 text-white opacity-80" />
-                    <span className="text-white font-extrabold text-[13px] tracking-wide uppercase">
-                      {loc.city}
-                    </span>
-                    {loc.airportCount > 1 && (
-                      <span
-                        className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
-                        style={{ background: style.accent, color: "rgba(255,255,255,0.85)" }}
+                    return (
+                      <motion.div
+                        key={loc.locationId}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
+                        }}
+                        className="flex-shrink-0 rounded-2xl overflow-hidden"
+                        style={{
+                          minWidth: "58vw",
+                          maxWidth: "58vw",
+                          background: style.gradient,
+                          boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
+                        }}
                       >
-                        {loc.airportCount} airports
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Divider */}
-                  <div className="mx-4 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
-
-                  {/* Time slot pills */}
-                  <div className="flex gap-2.5 px-4 pb-3.5">
-                    {/* Today */}
-                    <button
-                      type="button"
-                      onClick={() => handleClick(loc, "Today", loc.todayDate)}
-                      className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
-                      style={{ background: style.pill }}
-                    >
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">
-                        Depart
-                      </span>
-                      <span className="text-white font-extrabold text-[13px] leading-tight">Today</span>
-                      <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
-                        {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
-                      </span>
-                    </button>
-
-                    {/* This Weekend */}
-                    {loc.todayDate !== loc.weekendDate && (
-                      <button
-                        type="button"
-                        onClick={() => handleClick(loc, weekendLabel, loc.weekendDate)}
-                        className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
-                        style={{ background: style.pill }}
-                      >
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">
-                          Depart
-                        </span>
-                        <span className="text-white font-extrabold text-[13px] leading-tight">This Weekend</span>
-                        <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
-                          {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-      </div>
+                        <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+                          <HugeiconsIcon icon={Location01Icon} className="w-3.5 h-3.5 text-white opacity-80" />
+                          <span className="text-white font-extrabold text-[13px] tracking-wide uppercase">
+                            {loc.city}
+                          </span>
+                          {loc.airportCount > 1 && (
+                            <span
+                              className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
+                              style={{ background: style.accent, color: "rgba(255,255,255,0.85)" }}
+                            >
+                              {loc.airportCount} airports
+                            </span>
+                          )}
+                        </div>
+                        <div className="mx-4 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
+                        <div className="flex gap-2.5 px-4 pb-3.5">
+                          <button
+                            type="button"
+                            onClick={() => handleClick(loc, "Today", loc.todayDate)}
+                            className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
+                            style={{ background: style.pill }}
+                          >
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">Depart</span>
+                            <span className="text-white font-extrabold text-[13px] leading-tight">Today</span>
+                            <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
+                              {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
+                            </span>
+                          </button>
+                          {loc.todayDate !== loc.weekendDate && (
+                            <button
+                              type="button"
+                              onClick={() => handleClick(loc, weekendLabel, loc.weekendDate)}
+                              className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
+                              style={{ background: style.pill }}
+                            >
+                              <span className="text-[9px] font-bold uppercase tracking-widest text-white opacity-75 mb-0.5">Depart</span>
+                              <span className="text-white font-extrabold text-[13px] leading-tight">This Weekend</span>
+                              <span className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>
+                                {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
+                              </span>
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
