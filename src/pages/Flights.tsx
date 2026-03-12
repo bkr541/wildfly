@@ -633,7 +633,6 @@ const FlightsPage = ({
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
               containerClassName="px-3 pt-1 pb-1"
-              onFocusChange={setIsSearchFocused}
             />
           </div>
 
