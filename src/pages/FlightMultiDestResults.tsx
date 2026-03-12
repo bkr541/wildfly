@@ -99,30 +99,31 @@ const FlightMultiDestResults = ({
   const [sortBy, setSortBy] = useState<"city" | "fare" | "flights">("city");
 
   // ── Parse payload ────────────────────────────────────────
-  const { flights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
+  const { rawFlights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
-        flights: (parsed.response?.flights ?? []) as ParsedFlight[],
+        rawFlights: (parsed.response?.flights ?? []) as any[],
         departureDate: parsed.departureDate ?? null,
         arrivalDate: parsed.arrivalDate ?? null,
         tripType: parsed.tripType ?? "One Way",
         departureAirport: parsed.departureAirport ?? "",
       };
     } catch {
-      return { flights: [] as ParsedFlight[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "" };
+      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "" };
     }
   }, [responseData]);
 
   // ── Fetch airport metadata ───────────────────────────────
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
-    for (const f of flights) {
-      if (f.legs.length > 0) codes.add(f.legs[f.legs.length - 1].destination);
-      if (f.legs[0]) codes.add(f.legs[0].origin);
+    for (const f of rawFlights) {
+      // Raw API: top-level destination/origin
+      if (f.destination) codes.add(f.destination);
+      if (f.origin) codes.add(f.origin);
     }
     return Array.from(codes);
-  }, [flights]);
+  }, [rawFlights]);
 
   useEffect(() => {
     if (destinationCodes.length === 0) return;
