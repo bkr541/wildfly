@@ -269,9 +269,13 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             {currentPage === "home" && (
               <button
                 type="button"
-                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
+                onClick={() => setNotificationsOpen(true)}
+                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto relative"
               >
                 <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                )}
               </button>
             )}
           </div>
