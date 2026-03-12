@@ -164,6 +164,7 @@ export type Database = {
           departure_date: string
           id: string
           json_body: Json | null
+          request_body: Json | null
           return_date: string | null
           search_timestamp: string
           trip_type: string
@@ -178,6 +179,7 @@ export type Database = {
           departure_date: string
           id?: string
           json_body?: Json | null
+          request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
           trip_type: string
@@ -192,6 +194,7 @@ export type Database = {
           departure_date?: string
           id?: string
           json_body?: Json | null
+          request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
           trip_type?: string

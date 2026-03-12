@@ -1,0 +1,1 @@
+ALTER TABLE public.flight_searches ADD COLUMN IF NOT EXISTS request_body jsonb DEFAULT NULL;

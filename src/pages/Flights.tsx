@@ -991,6 +991,37 @@ const FlightsPage = ({
                   } = await supabase.auth.getUser();
                   if (user) {
                     const arrivalAirportValue = searchAll || destinationCode === "__ALL__" ? null : destinationCode;
+
+                    // Build request_body capturing the outbound API call details
+                    let requestBody: Record<string, unknown>;
+                    if (tripType === "day-trip") {
+                      requestBody = {
+                        endpoint: "GET https://getmydata.fly.dev/api/flights/dayTrips",
+                        params: { origin: originCode, date: depFormatted, nonstop: "true", layovertime: "6" },
+                      };
+                    } else if (tripType === "round-trip" && arrivalDate) {
+                      requestBody = {
+                        endpoint: "POST https://getmydata.fly.dev/api/flights/roundTrip",
+                        headers: { "Content-Type": "application/json" },
+                        body: {
+                          origin: originCode,
+                          destination: destinationCode,
+                          departureDate: depFormatted,
+                          returnDate: format(arrivalDate, "yyyy-MM-dd"),
+                        },
+                      };
+                    } else {
+                      const searchBody: Record<string, string> = { origin: originCode, departureDate: depFormatted };
+                      if (!searchAll && destinationCode && destinationCode !== "__ALL__") {
+                        searchBody.destination = destinationCode;
+                      }
+                      requestBody = {
+                        endpoint: "POST https://getmydata.fly.dev/api/flights/search",
+                        headers: { "Content-Type": "application/json" },
+                        body: searchBody,
+                      };
+                    }
+
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
                       departure_airport: originCode,
@@ -1000,6 +1031,7 @@ const FlightsPage = ({
                       trip_type: tripTypeMapping,
                       all_destinations: searchAll ? "Yes" : "No",
                       json_body: normalized as any,
+                      request_body: requestBody as any,
                       credits_cost: creditsCost,
                       arrival_airports_count: arrivalAirportsCount,
                     });
