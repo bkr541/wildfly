@@ -9,7 +9,7 @@ import {
   FilterIcon,
   SortByDown02Icon,
   TicketStarIcon,
-  TimingIcon,
+  Clock01Icon,
   Route02Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
