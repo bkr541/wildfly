@@ -564,7 +564,7 @@ const FlightDestResults = ({
         })()}
       {/* Tab group */}
       {!hideHeader && (
-        <div className="relative z-10 flex items-center gap-0 bg-white px-3 border-b border-gray-200">
+        <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200">
           {(
             [
               { label: "Info", icon: InformationCircleIcon },
@@ -576,11 +576,11 @@ const FlightDestResults = ({
               key={label}
               onClick={() => setActiveTab(label)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-3.5 text-[15px] font-semibold transition-colors relative",
-                label === activeTab ? "text-[#2E5C58]" : "text-gray-400 hover:text-gray-600",
+                "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative",
+                label === activeTab ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
               )}
             >
-              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === activeTab ? 2 : 1.5} />
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === activeTab ? 2.5 : 1.5} color={label === activeTab ? "#10B981" : undefined} />
               {label}
               {label === activeTab && (
                 <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
