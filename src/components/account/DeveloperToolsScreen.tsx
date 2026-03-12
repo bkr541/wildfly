@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
@@ -39,6 +39,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const [showDesignHub, setShowDesignHub] = useState(false);
   const [designHubOpen, setDesignHubOpen] = useState(false);
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
+  const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
+  const [clearingFlights, setClearingFlights] = useState(false);
 
   const runSnapshot = async () => {
     setSnapshotRunning(true);
@@ -62,10 +64,29 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
 
   const FULLSCREEN_SCREENS = ["flight-results-v2", "flight-results-v3", "flight-results-v4"];
 
+  const clearFlightSearchAndCache = async () => {
+    setClearingFlights(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const [searchRes, cacheRes] = await Promise.all([
+        supabase.from("flight_searches").delete().eq("user_id", user.id),
+        (supabase.from("flight_search_cache") as any).delete().neq("id", "00000000-0000-0000-0000-000000000000"),
+      ]);
+      if (searchRes.error) throw searchRes.error;
+      if (cacheRes.error) throw cacheRes.error;
+      toast.success("Flight searches and cache cleared");
+    } catch (err: any) {
+      toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setClearingFlights(false);
+    }
+  };
+
   const backToDesignHub = () => {
     setActiveDesignScreen(null);
     setDesignHubOpen(true);
-    onTitleChange?.("API Client");
+    onTitleChange?.("Developer Tools");
   };
 
   // Hide MainLayout header for full-screen sandbox screens
@@ -337,6 +358,53 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
                       Running
                     </span>
                   ) : "Run"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SQL Triggers */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSqlTriggersOpen((o) => !o)}
+            className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+          >
+            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={SqlIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-[#2E4A4A]">SQL Triggers</p>
+              <p className="text-xs text-[#6B7B7B]">Run SQL statements for manual updates</p>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform duration-200 ${sqlTriggersOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {sqlTriggersOpen && (
+            <div className="border-t border-[#F0F1F1] px-4 py-3 animate-fade-in">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#2E4A4A]">Clear Flight Search & Cache</p>
+                  <p className="text-xs text-[#6B7B7B]">Delete all rows in flight_searches and flight_search_cache</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearFlightSearchAndCache}
+                  disabled={clearingFlights}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[80px]"
+                >
+                  {clearingFlights ? (
+                    <span className="flex items-center gap-1.5 justify-center">
+                      <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      Running
+                    </span>
+                  ) : "Clear"}
                 </button>
               </div>
             </div>

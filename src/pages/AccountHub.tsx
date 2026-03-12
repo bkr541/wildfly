@@ -58,7 +58,7 @@ const screenTitles: Record<string, string> = {
   subscription: "Subscription",
   help: "Help & Support",
   security: "Security & Privacy",
-  developer: "API Client",
+  developer: "Developer Tools",
 };
 
 const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
