@@ -74,6 +74,7 @@ const MultiAirportSearchbox = ({
   containerClassName,
   disabled = false,
   placeholder = "Search airport or city...",
+  onFocusChange,
 }: {
   label: string;
   icon: any;
@@ -83,6 +84,7 @@ const MultiAirportSearchbox = ({
   containerClassName?: string;
   disabled?: boolean;
   placeholder?: string;
+  onFocusChange?: (focused: boolean) => void;
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
