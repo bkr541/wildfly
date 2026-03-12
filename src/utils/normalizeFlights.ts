@@ -5,6 +5,7 @@ const log = getLogger("Normalize");
 // ── Types ────────────────────────────────────────────────────
 
 export interface NormalizedFlight {
+  // ── Added / overridden by normalizer ──
   total_duration: string;
   is_plus_one_day: boolean;
   fares: {
@@ -19,6 +20,8 @@ export interface NormalizedFlight {
     departure_time: string;
     arrival_time: string;
   }>;
+  // ── All original fields from the API response are preserved ──
+  [key: string]: any;
 }
 
 export interface NormalizedFlightsResponse {
@@ -85,11 +88,11 @@ export function normalizeSingleRouteResponse(raw: any): NormalizedFlightsRespons
     },
     legs: Array.isArray(f.legs)
       ? f.legs.map((leg: any) => ({
-          origin: leg.origin ?? "",
-          destination: leg.destination ?? "",
-          departure_time: leg.departure_time ?? "",
-          arrival_time: leg.arrival_time ?? "",
-        }))
+        origin: leg.origin ?? "",
+        destination: leg.destination ?? "",
+        departure_time: leg.departure_time ?? "",
+        arrival_time: leg.arrival_time ?? "",
+      }))
       : [],
   }));
 
@@ -117,21 +120,17 @@ function timeStringToISO(timeStr: string, dateStr: string): string {
 }
 
 /**
- * Normalize a getmydata.fly.dev /api/flights/search response.
+ * Enrich a getmydata.fly.dev /api/flights/search response.
  *
- * Input schema:
- *   { flights: Array<{ id, airline, flightNumber, origin, destination,
- *       departureTime ("HH:MM AM/PM"), arrivalTime ("HH:MM AM/PM"),
- *       duration ("HH:MM:SS"), stops, cabin, price, currency, notes,
- *       rawPayload: { departure_time (ISO), arrival_time (ISO),
- *         fares: { go_wild, discount_den, standard, miles } (each with .total),
- *         segments: [{ departure_airport, arrival_airport,
- *                      departure_time (ISO), arrival_time (ISO), ... }]
- *       }
- *     }>
- *   }
+ * All original fields from each flight object (id, airline, flightNumber,
+ * origin, destination, departureTime, arrivalTime, duration, stops, cabin,
+ * price, currency, notes, rawPayload, …) are preserved as-is.
  *
- * Output: NormalizedFlightsResponse (unified schema used by FlightDestResults).
+ * The normalizer adds / overrides only:
+ *   - legs         — built from rawPayload.segments (ISO times) or top-level times
+ *   - fares        — mapped from rawPayload.fares (go_wild/discount_den/standard)
+ *   - is_plus_one_day — derived from first-leg dep vs last-leg arr
+ *   - total_duration  — aliased from f.duration for convenience
  */
 export function normalizeGetMyDataResponse(raw: any, departureDate?: string): NormalizedFlightsResponse {
   const rawFlights: any[] = raw?.flights || [];
@@ -150,20 +149,20 @@ export function normalizeGetMyDataResponse(raw: any, departureDate?: string): No
     // Build legs from segments (ISO times available there), fall back to top-level
     const legs = segments.length > 0
       ? segments.map((seg: any) => ({
-          origin: seg.departure_airport ?? f.origin ?? "",
-          destination: seg.arrival_airport ?? f.destination ?? "",
-          departure_time: seg.departure_time ?? "",
-          arrival_time: seg.arrival_time ?? "",
-        }))
+        origin: seg.departure_airport ?? f.origin ?? "",
+        destination: seg.arrival_airport ?? f.destination ?? "",
+        departure_time: seg.departure_time ?? "",
+        arrival_time: seg.arrival_time ?? "",
+      }))
       : [
-          {
-            origin: f.origin ?? "",
-            destination: f.destination ?? "",
-            // Convert "HH:MM AM/PM" to ISO using departureDate when available
-            departure_time: departureDate ? timeStringToISO(f.departureTime ?? "", departureDate) : (f.departureTime ?? ""),
-            arrival_time: departureDate ? timeStringToISO(f.arrivalTime ?? "", departureDate) : (f.arrivalTime ?? ""),
-          },
-        ];
+        {
+          origin: f.origin ?? "",
+          destination: f.destination ?? "",
+          // Convert "HH:MM AM/PM" to ISO using departureDate when available
+          departure_time: departureDate ? timeStringToISO(f.departureTime ?? "", departureDate) : (f.departureTime ?? ""),
+          arrival_time: departureDate ? timeStringToISO(f.arrivalTime ?? "", departureDate) : (f.arrivalTime ?? ""),
+        },
+      ];
 
     // Fares: rawPayload.fares has go_wild / discount_den / standard / miles each with .total
     const fares = rp.fares ?? {};
@@ -178,7 +177,9 @@ export function normalizeGetMyDataResponse(raw: any, departureDate?: string): No
     const lastArr = legs[legs.length - 1]?.arrival_time ?? "";
     const plusOne = isPlusOneDay(firstDep, lastArr);
 
+    // Spread ALL original fields first, then add/override the computed ones
     return {
+      ...f,
       total_duration: f.duration ?? "",
       is_plus_one_day: plusOne,
       fares: {
