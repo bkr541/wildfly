@@ -61,7 +61,7 @@ const screenTitles: Record<string, string> = {
   developer: "API Client",
 };
 
-const AccountHub = ({ onSubScreenChange, backRef, onNavigate }: AccountHubProps) => {
+const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
