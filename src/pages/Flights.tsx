@@ -697,7 +697,7 @@ const FlightsPage = ({
             </div>
 
             {/* Search All Destinations */}
-            <div className="flex items-center justify-end gap-2 py-2 px-1">
+            <div className="flex items-center justify-end gap-2 pt-3 pb-3 px-1">
               <label htmlFor="search-all" className="text-[10px] font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
                 Search All Destinations
               </label>
