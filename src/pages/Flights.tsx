@@ -599,7 +599,7 @@ const FlightsPage = ({
               selected={departures}
               onChange={setDepartures}
               airports={airports}
-              containerClassName="px-3 pt-3 pb-1"
+              containerClassName="px-3 pt-3 pb-3"
             />
 
             <MultiAirportSearchbox
