@@ -423,7 +423,7 @@ const MultiAirportSearchbox = ({
         onChange={handleSelect}
       />
 
-      <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">{label}</label>
+      <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block">{label}</label>
 
       <div
         className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer")}
@@ -439,7 +439,7 @@ const MultiAirportSearchbox = ({
 
         <span
           className={cn("app-input truncate flex-1 flex items-center", disabled && "cursor-not-allowed")}
-          style={{ color: displayValue ? "#1F2937" : "#9CA3AF" }}
+          style={{ color: displayValue ? "#1F2937" : "#6B7280" }}
         >
           {displayValue || (disabled ? "" : placeholder)}
         </span>
@@ -710,7 +710,7 @@ const FlightsPage = ({
       {loading && <SearchingOverlay />}
 
 
-      <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-3 animate-fade-in">
+      <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-6 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}
         <div
           className="rounded-full p-[2px] flex relative"
@@ -741,13 +741,13 @@ const FlightsPage = ({
                 onClick={() => setTripType(opt.value)}
                 style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
                 className={cn(
-                  "py-2.5 px-3 text-xs font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                  "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
                   isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
                 <HugeiconsIcon
                   icon={opt.icon}
-                  size={16}
+                  size={18}
                   color="currentColor"
                   strokeWidth={2}
                   className="shrink-0 transition-transform duration-300"
@@ -778,7 +778,7 @@ const FlightsPage = ({
               selected={departures}
               onChange={setDepartures}
               airports={airports}
-              containerClassName="px-3 pt-3 pb-3"
+              containerClassName="px-5 pt-5 pb-3"
             />
 
             <AnimatePresence initial={false}>
@@ -799,7 +799,7 @@ const FlightsPage = ({
                     airports={airports}
                     disabled={false}
                     placeholder="Search airport or city..."
-                    containerClassName="px-3 pt-3 pb-3"
+                    containerClassName="px-5 pt-3 pb-3"
                   />
                 </motion.div>
               )}
@@ -807,10 +807,10 @@ const FlightsPage = ({
           </div>
 
           {/* Dates */}
-          <div className="px-3 pt-3 pb-3">
+          <div className="px-5 pt-3 pb-0">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">
+                <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block cursor-pointer">
                   Departure Date
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
@@ -824,8 +824,8 @@ const FlightsPage = ({
                         <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
                       </span>
                       <span
-                        className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
-                        style={{ color: departureDate ? "#1F2937" : "#9CA3AF" }}
+                        className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
+                        style={{ color: departureDate ? "#1F2937" : "#6B7280" }}
                       >
                         {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
                       </span>
@@ -838,6 +838,8 @@ const FlightsPage = ({
                       onSelect={(date) => {
                         setDepartureDate(date);
                         setDepDateOpen(false);
+                        // Blur the trigger to remove the green focus border after selection
+                        (document.activeElement as HTMLElement)?.blur();
                         if (arrivalDate && date && startOfDay(arrivalDate) < startOfDay(date))
                           setArrivalDate(undefined);
                       }}
@@ -851,7 +853,7 @@ const FlightsPage = ({
 
               {showReturnDate && (
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
+                  <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                       <button
@@ -863,8 +865,8 @@ const FlightsPage = ({
                           <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
                         </span>
                         <span
-                          className="flex-1 truncate font-semibold px-[0.8em] py-[0.7em] text-base"
-                          style={{ color: arrivalDate ? "#1F2937" : "#9CA3AF" }}
+                          className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
+                          style={{ color: arrivalDate ? "#1F2937" : "#6B7280" }}
                         >
                           {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
                         </span>
@@ -877,6 +879,8 @@ const FlightsPage = ({
                         onSelect={(date) => {
                           setArrivalDate(date);
                           setRetDateOpen(false);
+                          // Blur the trigger to remove the green focus border after selection
+                          (document.activeElement as HTMLElement)?.blur();
                         }}
                         disabled={(date) => date < startOfDay(departureDate ?? today)}
                         initialFocus
@@ -889,8 +893,8 @@ const FlightsPage = ({
             </div>
 
             {/* Search All Destinations */}
-            <div className="flex items-center justify-end gap-2 pt-3 pb-3 px-1">
-              <label htmlFor="search-all" className="text-[10px] font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
+            <div className="flex items-center justify-end gap-2 pt-5 pb-5">
+              <label htmlFor="search-all" className="text-sm font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
                 Search All Destinations
               </label>
 
