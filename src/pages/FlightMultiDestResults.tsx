@@ -245,7 +245,10 @@ const FlightMultiDestResults = ({
   }, [rawFlights, airportMap]);
 
   const sortedCards = useMemo(() => {
-    return [...cards].sort((a, b) => {
+    let filtered = [...cards];
+    if (filterNonstopOnly) filtered = filtered.filter((c) => c.hasNonstop);
+    if (filterGoWildOnly) filtered = filtered.filter((c) => c.hasGoWild);
+    return filtered.sort((a, b) => {
       if (sortBy === "fare") {
         if (a.minFare == null && b.minFare == null) return 0;
         if (a.minFare == null) return 1;
@@ -253,9 +256,10 @@ const FlightMultiDestResults = ({
         return a.minFare - b.minFare;
       }
       if (sortBy === "flights") return b.flightCount - a.flightCount;
+      if (sortBy === "duration") return a.avgDurationMin - b.avgDurationMin;
       return a.city.localeCompare(b.city);
     });
-  }, [cards, sortBy]);
+  }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly]);
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
