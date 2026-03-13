@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format, startOfDay, getYear, getMonth, getDate, setYear, setMonth, setDate as setDayOfMonth, getDaysInMonth } from "date-fns";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
+import { isBlackoutDate } from "@/utils/blackoutDates";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
