@@ -94,7 +94,7 @@ const MainLayout = ({
 
   return (
     <div
-      className="relative flex min-h-screen overflow-hidden"
+      className="relative flex h-full overflow-hidden"
       style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
     >
       {/* ── Sidebar drawer panel ── */}
