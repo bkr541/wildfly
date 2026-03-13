@@ -12,8 +12,8 @@ import {
   Route02Icon,
   CheckmarkCircle02Icon,
   DollarCircleIcon,
-  ArrowUpDown01Icon,
-  FlightIcon,
+  ArrowDown01Icon,
+  AirplaneTakeOff02Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
