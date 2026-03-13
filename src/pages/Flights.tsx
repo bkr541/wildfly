@@ -603,16 +603,29 @@ const FlightsPage = ({
               containerClassName="px-3 pt-3 pb-3"
             />
 
-            <MultiAirportSearchbox
-              label="Arrival"
-              icon={AirplaneLanding01Icon}
-              selected={arrivals}
-              onChange={setArrivals}
-              airports={airports}
-              disabled={searchAll}
-              placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="px-3 pt-3 pb-3"
-            />
+            <AnimatePresence initial={false}>
+              {!searchAll && (
+                <motion.div
+                  key="arrival-input"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <MultiAirportSearchbox
+                    label="Arrival"
+                    icon={AirplaneLanding01Icon}
+                    selected={arrivals}
+                    onChange={setArrivals}
+                    airports={airports}
+                    disabled={false}
+                    placeholder="Search airport or city..."
+                    containerClassName="px-3 pt-3 pb-3"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Dates */}
