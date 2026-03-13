@@ -525,10 +525,10 @@ const FlightMultiDestResults = ({
                   <button
                     type="button"
                     onClick={() => handleViewDest(card)}
-                    className="flex items-center gap-2 h-10 px-5 bg-[#065F46] text-white text-[13px] font-bold rounded-xl hover:bg-[#047857] transition-colors"
+                    className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                   >
                     View Flights
-                    <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
                   </button>
                 </div>
               </div>
