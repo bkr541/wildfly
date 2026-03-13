@@ -886,7 +886,7 @@ const FlightDestResults = ({
                           <div
                             key={`flight-${idx}`}
                             data-flight-card
-                            className="relative flex justify-center w-full py-1.5 px-4"
+                            className="relative flex justify-center w-full py-1.5 px-[6px]"
                             style={{
                               animationDelay: `${tIdx * 70}ms`,
                               animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
