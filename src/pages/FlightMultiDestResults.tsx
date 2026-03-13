@@ -1,17 +1,21 @@
 import { useMemo, useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Calendar03Icon,
-  Location01Icon,
   AirplaneTakeOff01Icon,
   FilterIcon,
   SortByDown02Icon,
   TicketStarIcon,
   Clock01Icon,
   Route02Icon,
+  CheckmarkCircle02Icon,
+  DollarCircleIcon,
+  ArrowUpDown01Icon,
+  FlightIcon,
 } from "@hugeicons/core-free-icons";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
