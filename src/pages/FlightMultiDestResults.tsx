@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -105,6 +105,9 @@ const FlightMultiDestResults = ({
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [compactHeader, setCompactHeader] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   // ── Parse payload ────────────────────────────────────────
   const { rawFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
@@ -141,6 +144,18 @@ const FlightMultiDestResults = ({
     }
     return Array.from(codes);
   }, [rawFlights]);
+
+  // Collapse hero into compact bar once 60% of it scrolls past
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handler = () => {
+      const heroH = heroRef.current?.offsetHeight ?? 200;
+      setCompactHeader(el.scrollTop > heroH * 0.6);
+    };
+    el.addEventListener("scroll", handler, { passive: true });
+    return () => el.removeEventListener("scroll", handler);
+  }, []);
 
   useEffect(() => {
     if (destinationCodes.length === 0) return;
@@ -288,12 +303,74 @@ const FlightMultiDestResults = ({
 
   const originCity = airportMap[departureAirport]?.city || departureAirport;
 
+  // Derive destination label
+  const destinationLabel = useMemo(() => {
+    if (arrivalAirport?.startsWith("CITY:")) {
+      return arrivalAirport.replace("CITY:", "").replace(/\+/g, " ").toLowerCase()
+        .split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    }
+    return "All Destinations";
+  }, [arrivalAirport]);
+
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F1F5F5]">
-      {/* ── Sticky Header + Sort Bar ────────────────────────── */}
-      <div className="sticky top-0 z-20">
+
+      {/* ── Compact sticky header (appears when hero scrolls away) ── */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 bg-white border-b border-[#E8EBEB]"
+        style={{ maxWidth: "768px", margin: "0 auto" }}
+        initial={false}
+        animate={{
+          height: compactHeader ? 56 : 0,
+          opacity: compactHeader ? 1 : 0,
+          pointerEvents: compactHeader ? "auto" : "none",
+        }}
+        transition={{ duration: 0.22, ease: "easeInOut" }}
+      >
+        <button
+          type="button"
+          onClick={onBack}
+          className="h-10 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
+        >
+          <FontAwesomeIcon icon={faChevronLeft} className="w-4 h-4" />
+        </button>
+
+        <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
+          <span className="text-[17px] font-black text-[#1A2E2E] tracking-tight">{departureAirport}</span>
+          <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="#10B981" strokeWidth={2} />
+          <span className="text-[17px] font-black text-[#1A2E2E] tracking-tight truncate">{destinationLabel}</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setSortSheet(true)}
+            className={cn(
+              "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+              sortBy !== "city" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+            )}
+          >
+            <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "white" : "#6B7B7B"} strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterSheet(true)}
+            className={cn(
+              "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+              (filterNonstopOnly || filterGoWildOnly) ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+            )}
+          >
+            <HugeiconsIcon icon={FilterIcon} size={16} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={2} />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* ── Scrollable content ────────────────────────────────── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+
       {/* ── Hero Header ─────────────────────────────────────── */}
       <header
+        ref={heroRef}
         className="flex flex-col px-5 pt-6 pb-[124px] overflow-hidden relative"
         style={{
           backgroundImage: `url('/assets/locations/init_background.png')`,
@@ -337,17 +414,7 @@ const FlightMultiDestResults = ({
             className="text-white leading-tight"
             style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
           >
-            {(() => {
-              // Check if this was a city area search
-              if (arrivalAirport?.startsWith("CITY:")) {
-                const cityName = arrivalAirport.replace("CITY:", "").replace(/\+/g, " ").toLowerCase()
-                  .split(" ")
-                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ");
-                return <span className="text-[36px] font-black">{cityName}</span>;
-              }
-              return <span className="text-[36px] font-black">All Destinations</span>;
-            })()}
+            <span className="text-[36px] font-black">{destinationLabel}</span>
           </p>
 
           {formattedDate && (
@@ -383,7 +450,7 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2 sticky top-0 z-20">
         {/* Active filter indicator */}
         {(filterNonstopOnly || filterGoWildOnly) && (
           <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
@@ -417,7 +484,6 @@ const FlightMultiDestResults = ({
           <HugeiconsIcon icon={FilterIcon} size={18} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={2} />
         </button>
       </div>
-      </div>{/* end sticky wrapper */}
 
       {/* ── Destination cards list ───────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 py-4 gap-4 relative z-10">
@@ -577,6 +643,8 @@ const FlightMultiDestResults = ({
           </div>
         )}
       </div>
+
+      </div>{/* end scrollRef */}
 
       {/* ── Sort Sheet ──────────────────────────────────────── */}
       <AnimatePresence>
