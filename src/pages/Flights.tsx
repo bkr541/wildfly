@@ -611,7 +611,7 @@ const FlightsPage = ({
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-                  style={{ overflow: "hidden" }}
+                  style={{ overflow: "visible" }}
                 >
                   <MultiAirportSearchbox
                     label="Arrival"
