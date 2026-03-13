@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { getLogger } from "@/lib/logger";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -23,9 +22,10 @@ import {
   GlobalSearchIcon,
   Cancel01Icon,
   AddCircleIcon,
+  CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
-import { format, startOfDay } from "date-fns";
+import { format, startOfDay, getYear, getMonth, getDate, setYear, setMonth, setDate as setDayOfMonth, getDaysInMonth } from "date-fns";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 
 /** SHA-256 hex hash (Web Crypto) */
