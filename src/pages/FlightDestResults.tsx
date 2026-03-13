@@ -27,7 +27,12 @@ import {
   Location06Icon,
   FilterIcon,
   SortByDown02Icon,
+  CheckmarkCircle02Icon,
+  DollarCircleIcon,
+  AirplaneTakeOff02Icon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -230,6 +235,12 @@ const FlightDestResults = ({
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
+  // Sort & filter state
+  const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
+  const [sortSheet, setSortSheet] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
+  const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
   useEffect(() => {
     fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
@@ -395,6 +406,7 @@ const FlightDestResults = ({
     [airportMap, airportCoords],
   );
 
+  // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
     for (const f of flights) {
@@ -414,6 +426,43 @@ const FlightDestResults = ({
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
   }, [flights, airportMap]);
+
+  // Per-group sorted+filtered flights for the timeline
+  const sortedGroups: DestinationGroup[] = useMemo(() => {
+    const parseDur = (s: string): number => {
+      const raw = String(s ?? "").trim();
+      if (!raw) return 0;
+      if (raw.includes(":")) {
+        const parts = raw.split(":").map(Number);
+        if (parts.length >= 3) return (parts[0] || 0) * 60 + (parts[1] || 0);
+        return (parts[0] || 0) * 60 + (parts[1] || 0);
+      }
+      const h = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
+      const m = raw.match(/(\d+)\s*(min|m)\b/i);
+      return (parseInt(h?.[1] ?? "0") || 0) * 60 + (parseInt(m?.[1] ?? "0") || 0);
+    };
+    const minFare = (f: ParsedFlight): number => {
+      const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
+      return vals.length ? Math.min(...vals) : Infinity;
+    };
+    return groups.map((g) => {
+      let flts = [...g.flights];
+      // Apply filters
+      if (filterNonstopOnly) flts = flts.filter((f) => f.legs.length === 1);
+      if (filterGoWildOnly) flts = flts.filter((f) => f.fares.basic != null);
+      // Apply sort
+      flts.sort((a, b) => {
+        if (sortBy === "fare") return minFare(a) - minFare(b);
+        if (sortBy === "duration") return parseDur(a.total_duration) - parseDur(b.total_duration);
+        if (sortBy === "stops") return a.legs.length - b.legs.length;
+        // "time" — sort by departure hour
+        const ha = parseHour(a.legs[0]?.departure_time ?? "") ?? 0;
+        const hb = parseHour(b.legs[0]?.departure_time ?? "") ?? 0;
+        return ha - hb;
+      });
+      return { ...g, flights: flts };
+    });
+  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly]);
 
   const origin = useMemo(() => {
     if (flights.length === 0) return "";
@@ -680,22 +729,42 @@ const FlightDestResults = ({
               <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
             </span>
             <div className="flex items-center gap-2">
+              {/* Active filter chip */}
+              {(filterNonstopOnly || filterGoWildOnly) && (
+                <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+                  {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+                </span>
+              )}
               <button
-                className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors"
+                type="button"
+                onClick={() => setSortSheet(true)}
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
+                  sortBy !== "time"
+                    ? "bg-[#10B981] border-[#10B981]"
+                    : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                )}
                 style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
               >
-                <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "white" : "#6B7B7B"} strokeWidth={1.5} />
               </button>
               <button
-                className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#E8EBEB] bg-white hover:bg-[#F4F8F8] transition-colors"
+                type="button"
+                onClick={() => setFilterSheet(true)}
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
+                  (filterNonstopOnly || filterGoWildOnly)
+                    ? "bg-[#10B981] border-[#10B981]"
+                    : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                )}
                 style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
               >
-                <HugeiconsIcon icon={FilterIcon} size={16} color="#6B7B7B" strokeWidth={1.5} />
+                <HugeiconsIcon icon={FilterIcon} size={16} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={1.5} />
               </button>
             </div>
           </div>
           <div className="flex flex-col gap-2.5">
-            {groups.map((group) => {
+            {sortedGroups.map((group) => {
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
               const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
 
@@ -1042,6 +1111,164 @@ const FlightDestResults = ({
       >
         {toast.message}
       </div>
+
+      {/* ── Sort Sheet ──────────────────────────────────────── */}
+      <AnimatePresence>
+        {sortSheet && (
+          <>
+            <motion.div
+              key="sort-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+              onClick={() => setSortSheet(false)}
+            />
+            <motion.div
+              key="sort-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
+              style={{ maxWidth: "768px", margin: "0 auto" }}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+                <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                  <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
+                </div>
+                <h2 className="text-base font-bold text-[#2E4A4A]">Sort By</h2>
+              </div>
+              <div className="flex flex-col py-2 pb-8">
+                {([
+                  { key: "time",     label: "Departure Time", desc: "Earliest flights first",    icon: Clock01Icon },
+                  { key: "fare",     label: "Lowest Price",   desc: "Cheapest fares first",       icon: DollarCircleIcon },
+                  { key: "duration", label: "Shortest Flight",desc: "Quickest flights first",     icon: AirplaneTakeOff02Icon },
+                  { key: "stops",    label: "Fewest Stops",   desc: "Nonstop flights first",      icon: CheckmarkCircle02Icon },
+                ] as const).map(({ key, label, desc, icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setSortBy(key); setSortSheet(false); }}
+                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                  >
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: sortBy === key ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                    >
+                      <HugeiconsIcon icon={icon} size={17} color={sortBy === key ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn("text-sm font-semibold", sortBy === key ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className="text-xs text-[#9CA3AF]">{desc}</p>
+                    </div>
+                    {sortBy === key && (
+                      <div className="h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color="white" strokeWidth={2.5} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Filter Sheet ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {filterSheet && (
+          <>
+            <motion.div
+              key="filter-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+              onClick={() => setFilterSheet(false)}
+            />
+            <motion.div
+              key="filter-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
+              style={{ maxWidth: "768px", margin: "0 auto" }}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                    <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
+                  </div>
+                  <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
+                </div>
+                {(filterNonstopOnly || filterGoWildOnly) && (
+                  <button
+                    type="button"
+                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                    className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-col py-2">
+                {([
+                  { key: "nonstop", label: "Nonstop Only",  desc: "Show only nonstop flights",            icon: AirplaneTakeOff01Icon, active: filterNonstopOnly, toggle: () => setFilterNonstopOnly((v) => !v) },
+                  { key: "gowild",  label: "GoWild Fares",  desc: "Show only flights with GoWild pricing", icon: TicketStarIcon,        active: filterGoWildOnly,  toggle: () => setFilterGoWildOnly((v) => !v) },
+                ]).map(({ key, label, desc, icon, active, toggle }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={toggle}
+                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                  >
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                    >
+                      <HugeiconsIcon icon={icon} size={17} color={active ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn("text-sm font-semibold", active ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className="text-xs text-[#9CA3AF]">{desc}</p>
+                    </div>
+                    <div
+                      className="w-11 h-6 rounded-full flex items-center transition-all flex-shrink-0 px-0.5"
+                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "#E5E7EB" }}
+                    >
+                      <motion.div
+                        animate={{ x: active ? 20 : 2 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                        className="h-5 w-5 rounded-full bg-white shadow-sm"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="px-5 pb-8 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setFilterSheet(false)}
+                  className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
