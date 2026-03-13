@@ -100,7 +100,11 @@ const FlightMultiDestResults = ({
   const [airportMap, setAirportMap] = useState<
     Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
   >({});
-  const [sortBy, setSortBy] = useState<"city" | "fare" | "flights">("city");
+  const [sortBy, setSortBy] = useState<"city" | "fare" | "flights" | "duration">("city");
+  const [sortSheet, setSortSheet] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
+  const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
   // ── Parse payload ────────────────────────────────────────
   const { rawFlights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
