@@ -212,12 +212,16 @@ const FlightDestResults = ({
   responseData,
   hideHeader,
   hideBackground,
+  onBackOverride,
 }: {
   onBack: () => void;
   responseData: string;
   hideHeader?: boolean;
   hideBackground?: boolean;
+  /** If provided, the back button calls this instead of onBack */
+  onBackOverride?: () => void;
 }) => {
+  const handleBack = onBackOverride ?? onBack;
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
@@ -471,7 +475,7 @@ const FlightDestResults = ({
               <div className="relative flex items-center w-full">
                 <button
                   type="button"
-                  onClick={onBack}
+                  onClick={handleBack}
                   className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
                 >
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
@@ -702,9 +706,8 @@ const FlightDestResults = ({
               const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
               group.flights.forEach((flight, idx) => {
                 const dep = flight.legs[0]?.departure_time;
-                if (!dep) return;
-                const h = parseHour(dep);
-                if (h === null) return;
+                // Use hour 0 as fallback so flights without a parseable time still appear
+                const h = dep ? (parseHour(dep) ?? 0) : 0;
                 if (!hourMap[h]) hourMap[h] = [];
                 hourMap[h].push({ flight, idx });
               });

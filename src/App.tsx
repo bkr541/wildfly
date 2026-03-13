@@ -31,6 +31,10 @@ const MainApp = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "friends">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
+  /** When true, the flight-results back button returns to flight-multi-results */
+  const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
+  /** Saved multi-results data to restore when navigating back from single-dest drill-down */
+  const [multiResultsData, setMultiResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
@@ -209,6 +213,8 @@ const MainApp = () => {
 
         setFlightResultsData(data);
         if (isMulti || hasMultipleDests) {
+          setMultiResultsData(data);
+          setFlightResultsFromMulti(false);
           setCurrentPage("flight-multi-results");
         } else {
           setCurrentPage("flight-results");
@@ -288,14 +294,24 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
+          <FlightDestResults
+            onBack={() => setCurrentPage("flights")}
+            responseData={flightResultsData}
+            onBackOverride={flightResultsFromMulti ? () => {
+              setFlightResultsFromMulti(false);
+              setFlightResultsData(multiResultsData);
+              setCurrentPage("flight-multi-results");
+            } : undefined}
+          />
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
           <FlightMultiDestResults
             onBack={() => setCurrentPage("flights")}
             responseData={flightResultsData}
             onViewDest={(destData) => {
+              setMultiResultsData(flightResultsData);
               setFlightResultsData(destData);
+              setFlightResultsFromMulti(true);
               setCurrentPage("flight-results");
             }}
           />
