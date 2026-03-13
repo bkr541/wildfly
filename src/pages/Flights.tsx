@@ -138,7 +138,13 @@ function AirportSearchSheet({
   useEffect(() => {
     if (open) {
       setQuery("");
-      setTimeout(() => sheetInputRef.current?.focus(), 80);
+      // Use requestAnimationFrame + small timeout to ensure the element is
+      // mounted and visible before focusing — triggers iOS keyboard reliably
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          sheetInputRef.current?.focus();
+        }, 50);
+      });
     }
   }, [open]);
 
