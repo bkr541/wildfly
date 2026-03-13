@@ -294,27 +294,31 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <FlightDestResults
-            onBack={() => setCurrentPage("flights")}
-            responseData={flightResultsData}
-            onBackOverride={flightResultsFromMulti ? () => {
-              setFlightResultsFromMulti(false);
-              setFlightResultsData(multiResultsData);
-              setCurrentPage("flight-multi-results");
-            } : undefined}
-          />
+          <div className="h-full flex flex-col overflow-hidden">
+            <FlightDestResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
+              onBackOverride={flightResultsFromMulti ? () => {
+                setFlightResultsFromMulti(false);
+                setFlightResultsData(multiResultsData);
+                setCurrentPage("flight-multi-results");
+              } : undefined}
+            />
+          </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
-          <FlightMultiDestResults
-            onBack={() => setCurrentPage("flights")}
-            responseData={flightResultsData}
-            onViewDest={(destData) => {
-              setMultiResultsData(flightResultsData);
-              setFlightResultsData(destData);
-              setFlightResultsFromMulti(true);
-              setCurrentPage("flight-results");
-            }}
-          />
+          <div className="h-full flex flex-col overflow-hidden">
+            <FlightMultiDestResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
+              onViewDest={(destData) => {
+                setMultiResultsData(flightResultsData);
+                setFlightResultsData(destData);
+                setFlightResultsFromMulti(true);
+                setCurrentPage("flight-results");
+              }}
+            />
+          </div>
         )}
         <IOSInstallBanner />
       </div>
