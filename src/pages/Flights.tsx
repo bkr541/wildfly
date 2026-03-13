@@ -1245,15 +1245,22 @@ const FlightsPage = ({
 
             const depFormatted = format(departureDate, "yyyy-MM-dd");
 
+            // Normalize city name to match API expectations (e.g. "New York, NY" → "NEW YORK CITY")
+            const normalizeCityForApi = (city: string): string => {
+              const upper = city.toUpperCase().replace(/,.*$/, "").trim();
+              if (upper === "NEW YORK") return "NEW YORK CITY";
+              return upper;
+            };
+
             // Build origin: if multiple airports share a city, send CITY:<CityName>
             const depCity = departures[0].locations?.city;
             const allSameDepCity = departures.length > 1 && depCity && departures.every(a => a.locations?.city === depCity);
-            const originCode = allSameDepCity ? `CITY:${depCity}` : departures[0].iata_code;
+            const originCode = allSameDepCity ? `CITY:${normalizeCityForApi(depCity!)}` : departures[0].iata_code;
 
             // Build destination: same logic for arrivals
             const arrCity = arrivals[0]?.locations?.city;
             const allSameArrCity = arrivals.length > 1 && arrCity && arrivals.every(a => a.locations?.city === arrCity);
-            const destinationCode = arrivals.length === 0 ? "__ALL__" : (allSameArrCity ? `CITY:${arrCity}` : arrivals[0].iata_code);
+            const destinationCode = arrivals.length === 0 ? "__ALL__" : (allSameArrCity ? `CITY:${normalizeCityForApi(arrCity!)}` : arrivals[0].iata_code);
 
             const cacheOrigin = originCode;
             const cacheDest = searchAll ? "__ALL__" : destinationCode;

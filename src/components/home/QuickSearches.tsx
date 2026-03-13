@@ -116,7 +116,12 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
         const airports = airportsByLocation[ul.location_id] ?? [];
         if (airports.length === 0) continue;
         const city = loc?.city ?? "Unknown";
-        const iataCode = airports.length > 1 ? `CITY:${city}` : airports[0];
+        const normalizeCityForApi = (c: string) => {
+          const upper = c.toUpperCase().replace(/,.*$/, "").trim();
+          if (upper === "NEW YORK") return "NEW YORK CITY";
+          return upper;
+        };
+        const iataCode = airports.length > 1 ? `CITY:${normalizeCityForApi(city)}` : airports[0];
         rawLocs.push({ locationId: ul.location_id, city, iataCode, airportCount: airports.length });
       }
 
