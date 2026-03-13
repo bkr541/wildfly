@@ -1035,86 +1035,72 @@ const FlightsPage = ({
 
           {/* Dates */}
           <div className="px-5 pt-3 pb-0">
+            {/* Date Picker Sheets (portaled) */}
+            <DatePickerSheet
+              open={depDateOpen}
+              onClose={() => setDepDateOpen(false)}
+              label="Departure Date"
+              selected={departureDate}
+              onSelect={(date) => {
+                setDepartureDate(date);
+                if (arrivalDate && startOfDay(arrivalDate) < startOfDay(date))
+                  setArrivalDate(undefined);
+              }}
+              minDate={today}
+            />
+            {showReturnDate && (
+              <DatePickerSheet
+                open={retDateOpen}
+                onClose={() => setRetDateOpen(false)}
+                label="Return Date"
+                selected={arrivalDate}
+                onSelect={setArrivalDate}
+                minDate={departureDate ?? today}
+              />
+            )}
+
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block cursor-pointer">
                   Departure Date
                 </label>
-                <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="app-input-container w-full text-left outline-none"
-                      style={{ minHeight: 48 }}
-                    >
-                      <span className="app-input-icon-btn">
-                        <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
-                      </span>
-                      <span
-                        className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
-                        style={{ color: departureDate ? "#1F2937" : "#6B7280" }}
-                      >
-                        {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
-                      </span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={departureDate}
-                      onSelect={(date) => {
-                        setDepartureDate(date);
-                        setDepDateOpen(false);
-                        // Blur the trigger to remove the green focus border after selection
-                        (document.activeElement as HTMLElement)?.blur();
-                        if (arrivalDate && date && startOfDay(arrivalDate) < startOfDay(date))
-                          setArrivalDate(undefined);
-                      }}
-                      disabled={(date) => date < today}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <button
+                  type="button"
+                  className="app-input-container w-full text-left outline-none"
+                  style={{ minHeight: 48 }}
+                  onClick={() => setDepDateOpen(true)}
+                >
+                  <span className="app-input-icon-btn">
+                    <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
+                  </span>
+                  <span
+                    className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
+                    style={{ color: departureDate ? "#1F2937" : "#6B7280" }}
+                  >
+                    {departureDate ? format(departureDate, "MMM d, yyyy") : "Select date"}
+                  </span>
+                </button>
               </div>
 
               {showReturnDate && (
                 <div>
-                  <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block cursor-pointer">Return date</label>
-                  <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="app-input-container w-full text-left outline-none"
-                        style={{ minHeight: 48 }}
-                      >
-                        <span className="app-input-icon-btn">
-                          <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
-                        </span>
-                        <span
-                          className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
-                          style={{ color: arrivalDate ? "#1F2937" : "#6B7280" }}
-                        >
-                          {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
-                        </span>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={arrivalDate}
-                        onSelect={(date) => {
-                          setArrivalDate(date);
-                          setRetDateOpen(false);
-                          // Blur the trigger to remove the green focus border after selection
-                          (document.activeElement as HTMLElement)?.blur();
-                        }}
-                        disabled={(date) => date < startOfDay(departureDate ?? today)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block cursor-pointer">Return Date</label>
+                  <button
+                    type="button"
+                    className="app-input-container w-full text-left outline-none"
+                    style={{ minHeight: 48 }}
+                    onClick={() => setRetDateOpen(true)}
+                  >
+                    <span className="app-input-icon-btn">
+                      <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
+                    </span>
+                    <span
+                      className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
+                      style={{ color: arrivalDate ? "#1F2937" : "#6B7280" }}
+                    >
+                      {arrivalDate ? format(arrivalDate, "MMM d, yyyy") : "Select date"}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
