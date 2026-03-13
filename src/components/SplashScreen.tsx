@@ -3,23 +3,36 @@ import { useEffect, useState, useRef } from "react";
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const WILDFLY = "WILDFLY";
 
-// Tile size to match SplitFlapHeader
 const TILE_SIZE = 44;
 const GAP = 3;
 
-// WILDFLY_COL_START is computed dynamically per grid width (see below)
-
-// Viewport-filling grid: compute cols/rows to cover full screen + 2 extra on each side
 function calcGrid(viewW: number, viewH: number) {
   const cellSize = TILE_SIZE + GAP;
-  // Enough cols to fill screen plus 2 extra columns off-screen on each side
   const visibleCols = Math.ceil(viewW / cellSize) + 4;
-  // Ensure at least WILDFLY.length + 4 padding cols
   const cols = Math.max(visibleCols, WILDFLY.length + 4);
   const rows = Math.ceil(viewH / cellSize) + 4;
   return { cols, rows };
 }
-...
+
+function randomChar() {
+  return CHARS[Math.floor(Math.random() * CHARS.length)];
+}
+
+interface SplashScreenProps {
+  onComplete: () => void;
+}
+
+const SplashScreen = ({ onComplete }: SplashScreenProps) => {
+  const [show, setShow] = useState(true);
+  const [showTagline, setShowTagline] = useState(false);
+  const [dims, setDims] = useState(() => calcGrid(window.innerWidth, window.innerHeight));
+
+  useEffect(() => {
+    const onResize = () => setDims(calcGrid(window.innerWidth, window.innerHeight));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const { cols, rows } = dims;
   const TOTAL = cols * rows;
   const CENTER_ROW = Math.floor(rows / 2);
@@ -30,12 +43,11 @@ function calcGrid(viewW: number, viewH: number) {
   const [tiles, setTiles] = useState<{ char: string; isWildfly: boolean; revealed: boolean }[]>(
     () => Array(TOTAL).fill(null).map((_, i) => ({
       char: randomChar(),
-      isWildfly: false,
+      isWildfly: WILDFLY_INDICES.includes(i),
       revealed: false,
     }))
   );
 
-  // Reinitialise tiles when dims change (resize)
   useEffect(() => {
     setTiles(Array(TOTAL).fill(null).map((_, i) => ({
       char: randomChar(),
@@ -49,7 +61,6 @@ function calcGrid(viewW: number, viewH: number) {
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    // Phase 1: All tiles randomly flicker
     const flickerInterval = setInterval(() => {
       setTiles(prev => prev.map(tile =>
         tile.revealed ? tile : { ...tile, char: randomChar() }
@@ -57,7 +68,6 @@ function calcGrid(viewW: number, viewH: number) {
     }, 80);
     intervalsRef.current.push(flickerInterval);
 
-    // Phase 2: Reveal WILDFLY letters one by one
     WILDFLY.split("").forEach((letter, i) => {
       const tileIdx = WILDFLY_INDICES[i];
       const t = setTimeout(() => {
@@ -80,7 +90,6 @@ function calcGrid(viewW: number, viewH: number) {
       timeoutsRef.current.push(t);
     });
 
-    // Phase 3: Show tagline, stop flicker, fade out
     const showTaglineTimer = setTimeout(() => setShowTagline(true), 2600);
     timeoutsRef.current.push(showTaglineTimer);
 
@@ -101,7 +110,6 @@ function calcGrid(viewW: number, viewH: number) {
   }, [onComplete, cols, rows]);
 
   const cellSize = TILE_SIZE + GAP;
-  // Offset so the grid is centred on the viewport
   const gridPxW = cols * cellSize - GAP;
   const gridPxH = rows * cellSize - GAP;
   const offsetX = (window.innerWidth - gridPxW) / 2;
@@ -112,7 +120,6 @@ function calcGrid(viewW: number, viewH: number) {
       className={`fixed inset-0 z-50 overflow-hidden ${show ? "opacity-100" : "opacity-0"}`}
       style={{ background: "#e8eaed", transition: "opacity 0.6s ease" }}
     >
-      {/* Full-screen tile grid, centred */}
       <div
         style={{
           position: "absolute",
@@ -136,12 +143,10 @@ function calcGrid(viewW: number, viewH: number) {
               transition: tile.revealed ? "background 0.3s ease, border 0.3s ease" : undefined,
             }}
           >
-            {/* Center divider line */}
             <div
               className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
               style={{ background: tile.revealed ? "#064E3Baa" : "#b0b5bdaa" }}
             />
-            {/* Left peg */}
             <div
               className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
               style={{
@@ -149,7 +154,6 @@ function calcGrid(viewW: number, viewH: number) {
                 borderColor: tile.revealed ? "#064E3B" : "#d1d5db",
               }}
             />
-            {/* Right peg */}
             <div
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
               style={{
@@ -170,7 +174,7 @@ function calcGrid(viewW: number, viewH: number) {
         ))}
       </div>
 
-      {/* Tagline — centred over the grid, just below WILDFLY row */}
+      {/* Tagline centred below WILDFLY row */}
       <div
         className="absolute inset-x-0 flex items-center justify-center pointer-events-none"
         style={{
