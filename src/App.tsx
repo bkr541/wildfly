@@ -249,8 +249,8 @@ const MainApp = () => {
     ["home", "account", "flights", "destinations", "itinerary", "routes", "friends"].includes(currentPage);
 
   return (
-    <div className="flex justify-center min-h-screen bg-white">
-      <div className="w-full max-w-[768px] relative">
+    <div className="flex justify-center h-[100dvh] overflow-hidden bg-white">
+      <div className="w-full max-w-[768px] relative h-full overflow-hidden flex flex-col">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
         {splashDone && checkingSession && (
