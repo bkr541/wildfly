@@ -213,6 +213,8 @@ const MainApp = () => {
 
         setFlightResultsData(data);
         if (isMulti || hasMultipleDests) {
+          setMultiResultsData(data);
+          setFlightResultsFromMulti(false);
           setCurrentPage("flight-multi-results");
         } else {
           setCurrentPage("flight-results");
