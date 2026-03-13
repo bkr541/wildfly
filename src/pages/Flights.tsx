@@ -240,12 +240,40 @@ function AirportSearchSheet({
           {/* Results */}
           <div className="flex-1 overflow-y-auto overscroll-contain">
             {!shouldShow ? (
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                <div className="h-14 w-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
-                  <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={24} color="#059669" strokeWidth={2} />
+              <div className="px-4 pt-5">
+                {recentAirports.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-3">Recent Airports</p>
+                    <div className="flex flex-wrap gap-2">
+                      {recentAirports.map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => addAirport(a)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                          style={{
+                            background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                            color: "#065F46",
+                            border: "1px solid #6EE7B7",
+                          }}
+                        >
+                          <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#059669" strokeWidth={2.5} />
+                          {a.iata_code}
+                          {a.locations?.city && (
+                            <span className="opacity-70 font-medium">{a.locations.city}</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="h-14 w-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
+                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={24} color="#059669" strokeWidth={2} />
+                  </div>
+                  <p className="text-[#2E4A4A] font-semibold text-sm mb-1">Search for an airport</p>
+                  <p className="text-[#9CA3AF] text-xs">Type 2 or more letters to see results</p>
                 </div>
-                <p className="text-[#2E4A4A] font-semibold text-sm mb-1">Search for an airport</p>
-                <p className="text-[#9CA3AF] text-xs">Type 2 or more letters to see results</p>
               </div>
             ) : Object.keys(groupedAirports).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
