@@ -298,6 +298,7 @@ const MainApp = () => {
             responseData={flightResultsData}
             onViewDest={(destData) => {
               setFlightResultsData(destData);
+              setFlightResultsFromMulti(true);
               setCurrentPage("flight-results");
             }}
           />
