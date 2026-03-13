@@ -475,7 +475,7 @@ const FlightDestResults = ({
               <div className="relative flex items-center w-full">
                 <button
                   type="button"
-                  onClick={onBack}
+                  onClick={handleBack}
                   className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
                 >
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
