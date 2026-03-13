@@ -18,6 +18,15 @@ function randomChar() {
   return CHARS[Math.floor(Math.random() * CHARS.length)];
 }
 
+interface TileState {
+  char: string;
+  isWildfly: boolean;
+  revealed: boolean;
+  dimmed: boolean;
+  faded: boolean;
+  flipping: boolean;
+}
+
 interface SplashScreenProps {
   onComplete: () => void;
 }
@@ -40,12 +49,14 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const wildflyColStart = Math.floor((cols - WILDFLY.length) / 2);
   const WILDFLY_INDICES = WILDFLY.split("").map((_, i) => CENTER_ROW * cols + wildflyColStart + i);
 
-  const [tiles, setTiles] = useState<{ char: string; isWildfly: boolean; revealed: boolean; dimmed: boolean }[]>(
+  const [tiles, setTiles] = useState<TileState[]>(
     () => Array(TOTAL).fill(null).map((_, i) => ({
       char: randomChar(),
       isWildfly: WILDFLY_INDICES.includes(i),
       revealed: false,
       dimmed: false,
+      faded: false,
+      flipping: false,
     }))
   );
 
@@ -55,6 +66,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       isWildfly: WILDFLY_INDICES.includes(i),
       revealed: false,
       dimmed: false,
+      faded: false,
+      flipping: false,
     })));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOTAL, cols, rows]);
@@ -63,30 +76,56 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    // Total animation: 8 seconds
-    // WILDFLY reveal: 2000ms + i*200ms (last letter at ~3200ms)
-    // Spotlight: 3500ms
-    // Tagline: 3700ms
-    // Stop flicker: 3900ms
-    // Fade out: 7400ms → complete at 8000ms
+    // Timeline:
+    // 0ms        – background tiles flicker
+    // 1400ms     – all 7 WILDFLY tiles start flipping together
+    // 2200ms     – reveal letters one by one (staggered 180ms each, last ~3460ms)
+    // 3700ms     – spotlight dims background tiles
+    // 3900ms     – tagline appears
+    // 4100ms     – stop background flicker
+    // 4800ms     – non-WILDFLY tiles fade out entirely
+    // 7400ms     – screen fade out
+    // 8100ms     – onComplete
 
+    // Background flicker
     const flickerInterval = setInterval(() => {
       setTiles(prev => prev.map(tile =>
-        tile.revealed ? tile : { ...tile, char: randomChar() }
+        tile.revealed || tile.flipping ? tile : { ...tile, char: randomChar() }
       ));
     }, 80);
     intervalsRef.current.push(flickerInterval);
 
+    // Phase 1: All WILDFLY tiles start flipping simultaneously at 1400ms
+    const startFlipping = setTimeout(() => {
+      // Mark all WILDFLY tiles as flipping so background flicker stops on them
+      setTiles(prev => prev.map((tile, idx) =>
+        WILDFLY_INDICES.includes(idx) ? { ...tile, flipping: true } : tile
+      ));
+
+      // Each WILDFLY tile flips rapidly with random chars
+      WILDFLY_INDICES.forEach((tileIdx) => {
+        const flapInterval = setInterval(() => {
+          setTiles(prev => prev.map((tile, idx) =>
+            idx === tileIdx && !tile.revealed ? { ...tile, char: randomChar() } : tile
+          ));
+        }, 55);
+        intervalsRef.current.push(flapInterval);
+      });
+    }, 1400);
+    timeoutsRef.current.push(startFlipping);
+
+    // Phase 2: Reveal each WILDFLY letter one by one starting at 2200ms
     WILDFLY.split("").forEach((letter, i) => {
       const tileIdx = WILDFLY_INDICES[i];
       const t = setTimeout(() => {
+        // Do a few more rapid flips before landing on the real letter
         let step = 0;
-        const flapInterval = setInterval(() => {
+        const landInterval = setInterval(() => {
           step++;
-          if (step >= 6) {
-            clearInterval(flapInterval);
+          if (step >= 5) {
+            clearInterval(landInterval);
             setTiles(prev => prev.map((tile, idx) =>
-              idx === tileIdx ? { ...tile, char: letter, revealed: true } : tile
+              idx === tileIdx ? { ...tile, char: letter, revealed: true, flipping: false } : tile
             ));
           } else {
             setTiles(prev => prev.map((tile, idx) =>
@@ -94,26 +133,35 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             ));
           }
         }, 55);
-        intervalsRef.current.push(flapInterval);
-      }, 2000 + i * 200);
+        intervalsRef.current.push(landInterval);
+      }, 2200 + i * 180);
       timeoutsRef.current.push(t);
     });
 
-    // Spotlight: dim all non-WILDFLY tiles after reveal
+    // Spotlight: dim all non-WILDFLY tiles
     const spotlightTimer = setTimeout(() => {
       setSpotlightActive(true);
       setTiles(prev => prev.map(tile =>
         tile.revealed ? tile : { ...tile, dimmed: true }
       ));
-    }, 3500);
+    }, 3700);
     timeoutsRef.current.push(spotlightTimer);
 
-    const showTaglineTimer = setTimeout(() => setShowTagline(true), 3700);
+    const showTaglineTimer = setTimeout(() => setShowTagline(true), 3900);
     timeoutsRef.current.push(showTaglineTimer);
 
-    const stopFlicker = setTimeout(() => clearInterval(flickerInterval), 3900);
+    const stopFlicker = setTimeout(() => clearInterval(flickerInterval), 4100);
     timeoutsRef.current.push(stopFlicker);
 
+    // Phase 3: Fade out non-WILDFLY tiles entirely
+    const fadeOutTiles = setTimeout(() => {
+      setTiles(prev => prev.map(tile =>
+        tile.revealed ? tile : { ...tile, faded: true }
+      ));
+    }, 4800);
+    timeoutsRef.current.push(fadeOutTiles);
+
+    // Final fade out
     const fadeOut = setTimeout(() => {
       setShow(false);
       setTimeout(onComplete, 700);
@@ -166,19 +214,26 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             style={{
               background: tile.revealed
                 ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)"
-                : tile.dimmed
-                  ? "#c8cdd6"
-                  : "#e8eaed",
+                : tile.faded
+                  ? "transparent"
+                  : tile.dimmed
+                    ? "#c8cdd6"
+                    : "#e8eaed",
               border: tile.revealed
                 ? "1px solid #064E3B"
-                : tile.dimmed
-                  ? "1px solid #b0b5c0"
-                  : "1px solid #d1d5db",
+                : tile.faded
+                  ? "1px solid transparent"
+                  : tile.dimmed
+                    ? "1px solid #b0b5c0"
+                    : "1px solid #d1d5db",
+              opacity: tile.faded ? 0 : 1,
               transition: tile.revealed
                 ? "background 0.3s ease, border 0.3s ease"
-                : tile.dimmed
-                  ? "background 0.8s ease, border 0.8s ease"
-                  : undefined,
+                : tile.faded
+                  ? "opacity 1.4s ease, background 1.4s ease, border 1.4s ease"
+                  : tile.dimmed
+                    ? "background 0.8s ease, border 0.8s ease"
+                    : undefined,
               boxShadow: tile.revealed && spotlightActive
                 ? "0 0 18px 4px rgba(16,185,129,0.45), 0 2px 8px rgba(0,0,0,0.18)"
                 : undefined,
@@ -205,9 +260,13 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             <span
               className="font-black text-lg leading-none select-none z-10"
               style={{
-                color: tile.revealed ? "#fff" : tile.dimmed ? "#b0b5bd" : "#9ca3af",
+                color: tile.revealed ? "#fff" : tile.faded ? "transparent" : tile.dimmed ? "#b0b5bd" : "#9ca3af",
                 letterSpacing: "0.04em",
-                transition: tile.dimmed ? "color 0.8s ease" : undefined,
+                transition: tile.faded
+                  ? "color 1.4s ease"
+                  : tile.dimmed
+                    ? "color 0.8s ease"
+                    : undefined,
               }}
             >
               {tile.char}
