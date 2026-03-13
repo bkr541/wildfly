@@ -353,7 +353,7 @@ const FlightMultiDestResults = ({
               <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                 {label}
               </span>
-              <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+              <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
             </div>
           ))}
         </div>
