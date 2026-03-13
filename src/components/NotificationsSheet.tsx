@@ -155,7 +155,7 @@ export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
                   <Bell size={15} color="white" strokeWidth={2} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#2E4A4A] leading-tight">Notifications</h2>
+                  <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Notifications</h2>
                   {unreadCount > 0 && (
                     <p className="text-[10px] text-emerald-600 font-semibold">{unreadCount} unread</p>
                   )}

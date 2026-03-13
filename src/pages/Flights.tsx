@@ -11,6 +11,8 @@ import {
   AirplaneTakeOff01Icon,
   AirplaneLanding01Icon,
   Location01Icon,
+  Location04Icon,
+  AirportIcon,
   Building04Icon,
   CalendarCheckOut02Icon,
   CalendarCheckIn02Icon,
@@ -218,34 +220,46 @@ function AirportSearchSheet({
             transition={{ type: "spring", damping: 32, stiffness: 340 }}
             className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
           >
-            {/* Title row */}
-            <div className="flex items-center justify-between px-5 pt-6 pb-3">
-              <span className="text-[22px] font-medium text-[#6B7280]">
-                Select {label}
-              </span>
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+            </div>
+
+            {/* Title row — matches Notifications sheet */}
+            <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="h-8 w-8 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
+                </div>
+                <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">
+                  Select {label}
+                </h2>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="h-10 w-10 flex items-center justify-center rounded-full text-[#6B7B7B] hover:bg-[#F2F3F3] transition-colors shrink-0"
+                className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
               >
-                <HugeiconsIcon icon={AddCircleIcon} size={24} color="currentColor" strokeWidth={2} className="rotate-45" />
+                <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
               </button>
             </div>
 
             {/* Search input row */}
             <div className="px-5 pb-4">
-              <div className="app-input-container" style={{ minHeight: 52 }}>
-                <span className="app-input-icon-btn">
-                  <HugeiconsIcon icon={Location01Icon} size={20} color="#059669" strokeWidth={2} />
-                </span>
+              <div className="app-input-container">
+                <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                  <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+                </button>
                 <input
                   ref={sheetInputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={`Search airport or city…`}
-                  className="app-input font-semibold"
-                  style={{ fontSize: 17 }}
+                  className="app-input"
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
@@ -295,7 +309,7 @@ function AirportSearchSheet({
                   )}
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
-                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={28} color="#059669" strokeWidth={2} />
+                      <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
                     </div>
                     <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for an airport</p>
                     <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
@@ -319,7 +333,7 @@ function AirportSearchSheet({
                             onClick={() => addAreaAirports(cityAirports)}
                             className="w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
                           >
-                            <HugeiconsIcon icon={Building04Icon} size={16} color="currentColor" strokeWidth={2} className="opacity-60" />
+                            <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
                             {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
                             <span className="ml-auto text-xs font-semibold text-[#059669]">Add all</span>
                           </button>
@@ -332,12 +346,12 @@ function AirportSearchSheet({
                               type="button"
                               onClick={() => addAirport(a)}
                               className={cn(
-                                "w-full text-left pr-5 py-4 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-4 overflow-hidden",
+                                "w-full text-left pr-5 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-4 overflow-hidden",
                                 isSingle ? "pl-5" : "pl-12",
                                 isSelected && "bg-[#345C5A]/5",
                               )}
                             >
-                              <HugeiconsIcon icon={Location01Icon} size={20} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+                              <HugeiconsIcon icon={AirportIcon} size={20} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-1">
                                   <span className="font-bold text-[#345C5A] text-lg shrink-0">{a.iata_code}</span>
@@ -413,7 +427,7 @@ const MultiAirportSearchbox = ({
 
       <div
         className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer")}
-        style={{ minHeight: 44 }}
+        style={{ minHeight: 48 }}
         onClick={() => {
           if (disabled) return;
           setSheetOpen(true);
@@ -424,8 +438,8 @@ const MultiAirportSearchbox = ({
         </button>
 
         <span
-          className={cn("app-input font-semibold truncate flex-1 flex items-center", disabled && "cursor-not-allowed")}
-          style={{ fontSize: 16, color: displayValue ? "#1F2937" : "#9CA3AF" }}
+          className={cn("app-input truncate flex-1 flex items-center", disabled && "cursor-not-allowed")}
+          style={{ color: displayValue ? "#1F2937" : "#9CA3AF" }}
         >
           {displayValue || (disabled ? "" : placeholder)}
         </span>
@@ -714,9 +728,8 @@ const FlightsPage = ({
             style={{
               background: "#10B981",
               width: `calc((100% - 4px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})`,
-              left: `calc(2px + (100% - 4px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${
-                tripOptions.length - 1 + ACTIVE_TRIP_FLEX
-              })`,
+              left: `calc(2px + (100% - 4px) * ${tripOptions.findIndex((o) => o.value === tripType)} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX
+                })`,
             }}
           />
           {tripOptions.map((opt) => {
@@ -802,10 +815,10 @@ const FlightsPage = ({
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
                   <PopoverTrigger asChild>
-                     <button
+                    <button
                       type="button"
                       className="app-input-container w-full text-left outline-none"
-                      style={{ minHeight: 44 }}
+                      style={{ minHeight: 48 }}
                     >
                       <span className="app-input-icon-btn">
                         <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
@@ -841,10 +854,10 @@ const FlightsPage = ({
                   <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">Return Date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
-                       <button
+                      <button
                         type="button"
                         className="app-input-container w-full text-left outline-none"
-                        style={{ minHeight: 44 }}
+                        style={{ minHeight: 48 }}
                       >
                         <span className="app-input-icon-btn">
                           <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
