@@ -107,7 +107,7 @@ const FlightMultiDestResults = ({
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
   // ── Parse payload ────────────────────────────────────────
-  const { rawFlights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
+  const { rawFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
@@ -116,9 +116,10 @@ const FlightMultiDestResults = ({
         arrivalDate: parsed.arrivalDate ?? null,
         tripType: parsed.tripType ?? "One Way",
         departureAirport: parsed.departureAirport ?? "",
+        arrivalAirport: parsed.arrivalAirport ?? "",
       };
     } catch {
-      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "" };
+      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "" };
     }
   }, [responseData]);
 
@@ -336,7 +337,17 @@ const FlightMultiDestResults = ({
             className="text-white leading-tight"
             style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
           >
-            <span className="text-[36px] font-black">All Destinations</span>
+            {(() => {
+              // Check if this was a city area search
+              if (arrivalAirport?.startsWith("CITY:")) {
+                const cityName = arrivalAirport.replace("CITY:", "").replace(/\+/g, " ").toLowerCase()
+                  .split(" ")
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+                return <span className="text-[36px] font-black">{cityName}</span>;
+              }
+              return <span className="text-[36px] font-black">All Destinations</span>;
+            })()}
           </p>
 
           {formattedDate && (
