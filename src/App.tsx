@@ -33,6 +33,8 @@ const MainApp = () => {
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
+  /** Saved multi-results data to restore when navigating back from single-dest drill-down */
+  const [multiResultsData, setMultiResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
