@@ -153,6 +153,8 @@ const FlightMultiDestResults = ({
     const handler = () => {
       const heroH = heroRef.current?.offsetHeight ?? 200;
       setCompactHeader(el.scrollTop > heroH * 0.6);
+      // Parallax: move bg at 40% of scroll speed
+      setParallaxY(el.scrollTop * 0.4);
     };
     el.addEventListener("scroll", handler, { passive: true });
     return () => el.removeEventListener("scroll", handler);
