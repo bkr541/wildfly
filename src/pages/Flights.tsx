@@ -260,13 +260,13 @@ function AirportSearchSheet({
                 {recentAirports.length > 0 && (
                   <div className="mb-6">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-3">Recent Airports</p>
-                    <div className="flex flex-wrap gap-2">
+              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: "none" }}>
                       {recentAirports.map((a) => (
                         <button
                           key={a.id}
                           type="button"
                           onClick={() => addAirport(a)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap"
                           style={{
                             background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                             color: "#065F46",
@@ -274,9 +274,9 @@ function AirportSearchSheet({
                           }}
                         >
                           <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#059669" strokeWidth={2.5} />
-                          {a.iata_code}
+                          <span className="font-bold">{a.iata_code}</span>
                           {a.locations?.city && (
-                            <span className="opacity-70 font-medium">{a.locations.city}</span>
+                            <span className="opacity-60 font-medium">{a.locations.city}</span>
                           )}
                         </button>
                       ))}
