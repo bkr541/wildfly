@@ -475,6 +475,7 @@ function DatePickerSheet({
   selected,
   onSelect,
   minDate,
+  departureDate,
 }: {
   open: boolean;
   onClose: () => void;
@@ -482,6 +483,7 @@ function DatePickerSheet({
   selected?: Date;
   onSelect: (date: Date) => void;
   minDate?: Date;
+  departureDate?: Date;
 }) {
   const today = startOfDay(new Date());
   const min = minDate ? startOfDay(minDate) : today;
