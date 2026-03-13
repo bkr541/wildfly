@@ -500,7 +500,7 @@ const FlightDestResults = ({
             : `/assets/locations/init_background.png`;
           return (
             <header
-              className="relative z-10 flex flex-col px-5 pt-6 pb-[124px] overflow-hidden"
+              className="relative z-10 flex flex-col px-5 pt-6 pb-[112px] overflow-hidden"
               style={{
                 backgroundImage: `url('${headerBg}')`,
                 backgroundSize: "cover",
