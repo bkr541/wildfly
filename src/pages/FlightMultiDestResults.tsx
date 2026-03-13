@@ -316,12 +316,11 @@ const FlightMultiDestResults = ({
   }, [arrivalAirport]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5]">
+    <div className="relative flex flex-col h-full bg-[#F1F5F5]">
 
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
       <motion.div
-        className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 bg-white border-b border-[#E8EBEB]"
-        style={{ maxWidth: "768px", margin: "0 auto" }}
+        className="sticky top-0 z-30 flex items-center justify-between px-4 bg-white border-b border-[#E8EBEB] overflow-hidden"
         initial={false}
         animate={{
           height: compactHeader ? 56 : 0,
@@ -369,7 +368,7 @@ const FlightMultiDestResults = ({
       </motion.div>
 
       {/* ── Scrollable content ────────────────────────────────── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
 
       {/* ── Hero Header ─────────────────────────────────────── */}
       <header
@@ -454,7 +453,7 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2 sticky top-0 z-20">
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
         {/* Active filter indicator */}
         {(filterNonstopOnly || filterGoWildOnly) && (
           <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
