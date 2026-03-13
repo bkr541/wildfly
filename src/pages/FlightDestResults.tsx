@@ -723,46 +723,86 @@ const FlightDestResults = ({
       {activeTab === "Flights" && (
         <div className="flex-1 flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
           {/* Count row + sort/filter */}
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#2E4A4A]">
-              <span className="text-[#10B981] font-black">{flights.length}</span>
-              <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
-            </span>
-            <div className="flex items-center gap-2">
-              {/* Active filter chip */}
-              {(filterNonstopOnly || filterGoWildOnly) && (
-                <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                  {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => setSortSheet(true)}
-                className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                  sortBy !== "time"
-                    ? "bg-[#10B981] border-[#10B981]"
-                    : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+          {(() => {
+            const isFiltered = filterNonstopOnly || filterGoWildOnly;
+            const isSorted = sortBy !== "time";
+            const hasActive = isFiltered || isSorted;
+            const filteredCount = sortedGroups.reduce((sum, g) => sum + g.flights.length, 0);
+            return (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  {/* Left: count */}
+                  <span className="text-[13px] font-semibold text-[#2E4A4A]">
+                    {isFiltered ? (
+                      <>
+                        <span className="text-[#10B981] font-black">{filteredCount}</span>
+                        <span className="text-[#6B7B7B] font-medium"> of </span>
+                        <span className="text-[#2E4A4A] font-black">{flights.length}</span>
+                        <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[#10B981] font-black">{flights.length}</span>
+                        <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
+                      </>
+                    )}
+                  </span>
+                  {/* Right: icon buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSortSheet(true)}
+                      className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
+                        isSorted ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                      )}
+                      style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
+                    >
+                      <HugeiconsIcon icon={SortByDown02Icon} size={16} color={isSorted ? "white" : "#6B7B7B"} strokeWidth={1.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterSheet(true)}
+                      className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
+                        isFiltered ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                      )}
+                      style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
+                    >
+                      <HugeiconsIcon icon={FilterIcon} size={16} color={isFiltered ? "white" : "#6B7B7B"} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+                {/* Clear-all chip — only when sort or filter is active */}
+                {hasActive && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {isSorted && (
+                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+                        {{ time: "Time", fare: "Price", duration: "Duration", stops: "Stops" }[sortBy]}
+                      </span>
+                    )}
+                    {filterNonstopOnly && (
+                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+                        Nonstop
+                      </span>
+                    )}
+                    {filterGoWildOnly && (
+                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+                        GoWild
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                      className="text-[11px] font-semibold text-[#9CA3AF] hover:text-[#EF4444] transition-colors px-2.5 py-1 rounded-full border border-[#E8EBEB] bg-white"
+                    >
+                      Clear all ×
+                    </button>
+                  </div>
                 )}
-                style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
-              >
-                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "white" : "#6B7B7B"} strokeWidth={1.5} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterSheet(true)}
-                className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                  (filterNonstopOnly || filterGoWildOnly)
-                    ? "bg-[#10B981] border-[#10B981]"
-                    : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
-                )}
-                style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
-              >
-                <HugeiconsIcon icon={FilterIcon} size={16} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={1.5} />
-              </button>
-            </div>
-          </div>
+              </div>
+            );
+          })()}
           <div className="flex flex-col gap-2.5">
             {sortedGroups.map((group) => {
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
