@@ -449,7 +449,7 @@ const FlightMultiDestResults = ({
                       "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                   }}
                 />
-                {/* GoWild badge */}
+                {/* GoWild badge — only shown if GoWild fares exist */}
                 {card.hasGoWild && (
                   <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
                     <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
@@ -467,21 +467,19 @@ const FlightMultiDestResults = ({
 
               {/* Card body */}
               <div className="px-4 pt-3 pb-3">
-                {/* City name + IATA */}
-                <div className="flex items-start justify-between mb-1">
-                  <div>
-                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
-                      {card.city || card.destination}
-                      {card.stateCode ? (
-                        <span className="text-[#6B7B7B] font-light text-[16px]"> ({card.destination})</span>
-                      ) : card.country ? (
-                        <span className="text-[#6B7B7B] font-light text-[16px]"> ({card.destination})</span>
-                      ) : null}
-                    </h3>
-                    <p className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
-                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
-                    </p>
-                  </div>
+                {/* City, State  |  IATA code */}
+                <div className="flex items-baseline justify-between mb-1">
+                  <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
+                    {card.city || card.destination}
+                    {(card.stateCode || card.country) && (
+                      <span className="text-[#6B7B7B] font-normal text-[16px]">
+                        {", "}{card.stateCode || card.country}
+                      </span>
+                    )}
+                  </h3>
+                  <span className="text-[15px] font-bold text-[#6B7B7B] leading-tight flex-shrink-0 ml-2">
+                    {card.destination}
+                  </span>
                 </div>
 
                 {/* Divider */}
@@ -519,17 +517,13 @@ const FlightMultiDestResults = ({
                       </span>
                     </div>
                   )}
-                  {(card.hasNonstop || !card.hasNonstop) && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: "rgba(107,123,123,0.10)" }}
-                      >
-                        <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                  {/* Nonstop pill — replaces the old "Non-Stop & Connecting" text row */}
+                  {card.hasNonstop && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1 bg-white border border-[#E8EBEB] rounded-full px-2.5 py-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                        <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
+                        <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
                       </div>
-                      <span className="text-[13px] text-[#2E4A4A]">
-                        {card.hasNonstop ? "Non-Stop & Connecting" : "Connecting Only"}
-                      </span>
                     </div>
                   )}
                   {card.availableFareTypes.length > 0 && (
@@ -547,8 +541,11 @@ const FlightMultiDestResults = ({
                   )}
                 </div>
 
-                {/* View Flights button */}
-                <div className="flex justify-end">
+                {/* View Flights button row — flight count left, button right */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-[#6B7B7B] font-medium">
+                    {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleViewDest(card)}
