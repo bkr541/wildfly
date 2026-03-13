@@ -297,6 +297,7 @@ const MainApp = () => {
             responseData={flightResultsData}
             onBackOverride={flightResultsFromMulti ? () => {
               setFlightResultsFromMulti(false);
+              setFlightResultsData(multiResultsData);
               setCurrentPage("flight-multi-results");
             } : undefined}
           />
