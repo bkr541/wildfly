@@ -360,11 +360,7 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
-        <span className="text-[13px] font-semibold">
-          <span className="text-[#10B981] font-black">{sortedCards.length}</span>
-          <span className="text-[#6B7B7B] font-medium"> Destinations</span>
-        </span>
+      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-end">
         <div className="flex items-center gap-2">
           {/* Sort pills */}
           {(["city", "fare", "flights"] as const).map((s) => (
