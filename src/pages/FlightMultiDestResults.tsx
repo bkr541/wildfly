@@ -644,6 +644,8 @@ const FlightMultiDestResults = ({
         )}
       </div>
 
+      </div>{/* end scrollRef */}
+
       {/* ── Sort Sheet ──────────────────────────────────────── */}
       <AnimatePresence>
         {sortSheet && (
