@@ -615,7 +615,7 @@ const FlightsPage = ({
           </div>
 
           {/* Dates */}
-          <div className="px-3 pt-1 pb-3">
+          <div className="px-3 pt-3 pb-3">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">
