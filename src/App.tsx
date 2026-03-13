@@ -31,6 +31,8 @@ const MainApp = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "friends">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
+  /** When true, the flight-results back button returns to flight-multi-results */
+  const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
