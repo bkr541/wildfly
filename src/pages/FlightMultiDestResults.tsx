@@ -372,24 +372,39 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-end">
-        <div className="flex items-center gap-2">
-          {/* Sort pills */}
-          {(["city", "fare", "flights"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSortBy(s)}
-              className={cn(
-                "h-7 px-3 rounded-full text-[11px] font-semibold border transition-all",
-                sortBy === s
-                  ? "bg-[#10B981] text-white border-[#10B981]"
-                  : "bg-white text-[#6B7B7B] border-[#E8EBEB] hover:border-[#10B981] hover:text-[#10B981]",
-              )}
-            >
-              {s === "city" ? "A–Z" : s === "fare" ? "Price" : "Flights"}
-            </button>
-          ))}
-        </div>
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
+        {/* Active filter indicator */}
+        {(filterNonstopOnly || filterGoWildOnly) && (
+          <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+            {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+          </span>
+        )}
+        {/* Sort icon button */}
+        <button
+          type="button"
+          onClick={() => setSortSheet(true)}
+          className={cn(
+            "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+            sortBy !== "city"
+              ? "bg-[#10B981] border-[#10B981] text-white"
+              : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+          )}
+        >
+          <HugeiconsIcon icon={SortByDown02Icon} size={18} color={sortBy !== "city" ? "white" : "#6B7B7B"} strokeWidth={2} />
+        </button>
+        {/* Filter icon button */}
+        <button
+          type="button"
+          onClick={() => setFilterSheet(true)}
+          className={cn(
+            "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+            (filterNonstopOnly || filterGoWildOnly)
+              ? "bg-[#10B981] border-[#10B981] text-white"
+              : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+          )}
+        >
+          <HugeiconsIcon icon={FilterIcon} size={18} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={2} />
+        </button>
       </div>
       </div>{/* end sticky wrapper */}
 
