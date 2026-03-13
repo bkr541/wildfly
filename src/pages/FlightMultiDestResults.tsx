@@ -106,6 +106,7 @@ const FlightMultiDestResults = ({
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
+  const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
