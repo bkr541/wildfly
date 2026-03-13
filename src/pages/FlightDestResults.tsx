@@ -619,7 +619,7 @@ const FlightDestResults = ({
                         <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                           {label}
                         </span>
-                        <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">
+                        <span className="text-[15px] font-bold text-white leading-tight mt-0.5 text-center">
                           {value}
                         </span>
                       </div>
