@@ -706,9 +706,8 @@ const FlightDestResults = ({
               const hourMap: Record<number, { flight: ParsedFlight; idx: number }[]> = {};
               group.flights.forEach((flight, idx) => {
                 const dep = flight.legs[0]?.departure_time;
-                if (!dep) return;
-                const h = parseHour(dep);
-                if (h === null) return;
+                // Use hour 0 as fallback so flights without a parseable time still appear
+                const h = dep ? (parseHour(dep) ?? 0) : 0;
                 if (!hourMap[h]) hourMap[h] = [];
                 hourMap[h].push({ flight, idx });
               });
