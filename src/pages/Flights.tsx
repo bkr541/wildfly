@@ -664,32 +664,56 @@ function DatePickerSheet({
                   const weeks: (number | null)[][] = [];
                   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
+                  // Range highlight: dep date → selected return date
+                  const isReturnPicker = label === "Return Date" && !!departureDate;
+                  const depDay = departureDate ? startOfDay(departureDate) : null;
+
                   return weeks.map((week, wi) => (
                     <div key={wi} className="grid grid-cols-7 mb-0.5">
                       {week.map((day, di) => {
-                        if (!day) return <div key={di} />;
+                        if (!day) {
+                          return <div key={di} />;
+                        }
                         const thisDate = startOfDay(new Date(selYear, selMonth, day));
                         const isDisabled = thisDate < min;
                         const isSelected = calDate &&
                           thisDate.getFullYear() === calDate.getFullYear() &&
                           thisDate.getMonth() === calDate.getMonth() &&
                           thisDate.getDate() === calDate.getDate();
+                        const isDeparture = depDay && thisDate.getTime() === depDay.getTime();
+                        const isInRange = isReturnPicker && depDay && calDate &&
+                          thisDate > depDay && thisDate < calDate;
+                        const isRangeStart = isDeparture && isReturnPicker && calDate && depDay && calDate > depDay;
+                        const isRangeEnd = isSelected && isReturnPicker && depDay && calDate && calDate > depDay;
                         const isToday = thisDate.getTime() === today.getTime();
 
+                        // Determine which sides of the cell get the range background
+                        const rangeLeft = (isInRange || isRangeEnd) && di !== 0;
+                        const rangeRight = (isInRange || isRangeStart) && di !== 6;
+
                         return (
-                          <div key={di} className="flex items-center justify-center py-1">
+                          <div key={di} className="relative flex items-center justify-center py-1">
+                            {/* Range band — left half */}
+                            {rangeLeft && (
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+                            )}
+                            {/* Range band — right half */}
+                            {rangeRight && (
+                              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+                            )}
                             <button
                               type="button"
                               disabled={isDisabled}
                               onClick={() => !isDisabled && handleCalendarSelect(thisDate)}
                               className={cn(
-                                "h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                                "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                                 isDisabled && "opacity-30 cursor-default",
-                                isSelected && "text-[#065F46]",
-                                !isSelected && !isDisabled && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
-                                isToday && !isSelected && "font-black",
+                                (isSelected || isDeparture) && "text-[#065F46]",
+                                !isSelected && !isDeparture && !isDisabled && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
+                                isInRange && !isSelected && !isDeparture && "text-[#059669]",
+                                isToday && !isSelected && !isDeparture && "font-black",
                               )}
-                              style={isSelected ? {
+                              style={(isSelected || isDeparture) ? {
                                 background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                                 border: "1px solid #6EE7B7",
                               } : undefined}
@@ -708,16 +732,16 @@ function DatePickerSheet({
               <div className="h-4" />
             </div>
 
-            {/* Select Date button — sticky footer */}
+            {/* Select Date button — styled like Search Flights button */}
             <div className="px-5 py-4 border-t border-[#F0F1F1] bg-white">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="w-full h-12 rounded-2xl text-white text-base font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                className="w-full h-12 rounded-full text-white text-sm font-black uppercase tracking-[0.45em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                 style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
               >
-                <HugeiconsIcon icon={label === "Return Date" ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={18} color="white" strokeWidth={2} />
-                Select {calDate ? format(calDate, "MMM d, yyyy") : "Date"}
+                <HugeiconsIcon icon={GlobalSearchIcon} size={20} color="white" strokeWidth={2} />
+                {calDate ? format(calDate, "MMM d, yyyy") : "Select Date"}
               </button>
             </div>
           </motion.div>
