@@ -138,7 +138,13 @@ function AirportSearchSheet({
   useEffect(() => {
     if (open) {
       setQuery("");
-      setTimeout(() => sheetInputRef.current?.focus(), 80);
+      // Use requestAnimationFrame + small timeout to ensure the element is
+      // mounted and visible before focusing — triggers iOS keyboard reliably
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          sheetInputRef.current?.focus();
+        }, 50);
+      });
     }
   }, [open]);
 
@@ -202,8 +208,11 @@ function AirportSearchSheet({
           transition={{ type: "spring", damping: 32, stiffness: 340 }}
           className="fixed inset-0 z-[9999] flex flex-col bg-white"
         >
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 pt-12 pb-3 border-b border-[#F0F1F1]">
+          {/* Title row */}
+          <div className="flex items-center justify-between px-4 pt-12 pb-2">
+            <p className="text-base font-bold text-[#2E4A4A]">
+              {label === "Departure" ? "Select Departure" : label === "Arrival" ? "Select Arrival" : `Select ${label}`}
+            </p>
             <button
               type="button"
               onClick={onClose}
@@ -211,7 +220,11 @@ function AirportSearchSheet({
             >
               <HugeiconsIcon icon={Cancel01Icon} size={18} color="currentColor" strokeWidth={2} />
             </button>
-            <div className="flex-1 app-input-container" style={{ minHeight: 44 }}>
+          </div>
+
+          {/* Search input row */}
+          <div className="px-4 pb-3 border-b border-[#F0F1F1]">
+            <div className="app-input-container" style={{ minHeight: 44 }}>
               <span className="app-input-icon-btn">
                 <HugeiconsIcon icon={Location01Icon} size={18} color="#059669" strokeWidth={2} />
               </span>
@@ -220,10 +233,13 @@ function AirportSearchSheet({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search ${label.toLowerCase()} airport or city…`}
+                placeholder={`Search airport or city…`}
                 className="app-input font-semibold"
                 style={{ fontSize: 16 }}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
               {query.length > 0 && (
                 <button
@@ -244,13 +260,13 @@ function AirportSearchSheet({
                 {recentAirports.length > 0 && (
                   <div className="mb-6">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-3">Recent Airports</p>
-                    <div className="flex flex-wrap gap-2">
+              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: "none" }}>
                       {recentAirports.map((a) => (
                         <button
                           key={a.id}
                           type="button"
                           onClick={() => addAirport(a)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap"
                           style={{
                             background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                             color: "#065F46",
@@ -258,9 +274,9 @@ function AirportSearchSheet({
                           }}
                         >
                           <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#059669" strokeWidth={2.5} />
-                          {a.iata_code}
+                          <span className="font-bold">{a.iata_code}</span>
                           {a.locations?.city && (
-                            <span className="opacity-70 font-medium">{a.locations.city}</span>
+                            <span className="opacity-60 font-medium">{a.locations.city}</span>
                           )}
                         </button>
                       ))}
