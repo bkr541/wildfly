@@ -1029,7 +1029,14 @@ const FlightsPage = ({
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setTripType(opt.value)}
+                onClick={() => {
+                  const prevShowReturn = showReturnDate;
+                  setTripType(opt.value);
+                  // Clear return date when switching away from round-trip or multi-day
+                  if (prevShowReturn && !(opt.value === "round-trip" || opt.value === "multi-day")) {
+                    setArrivalDate(undefined);
+                  }
+                }}
                 style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
                 className={cn(
                   "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
