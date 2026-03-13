@@ -462,6 +462,233 @@ const MultiAirportSearchbox = ({
   );
 };
 
+/* ── Date Picker Sheet ─────────────────────────────────────── */
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
+
+function DatePickerSheet({
+  open,
+  onClose,
+  label,
+  selected,
+  onSelect,
+  minDate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  label: string;
+  selected?: Date;
+  onSelect: (date: Date) => void;
+  minDate?: Date;
+}) {
+  const today = startOfDay(new Date());
+  const min = minDate ? startOfDay(minDate) : today;
+
+  // Internal calendar state — sync from `selected` when sheet opens
+  const [calDate, setCalDate] = useState<Date>(selected ?? today);
+
+  // Dropdown state (controlled separately so dropdowns drive the calendar)
+  const [selMonth, setSelMonth] = useState(getMonth(calDate));
+  const [selDay, setSelDay] = useState(getDate(calDate));
+  const [selYear, setSelYear] = useState(getYear(calDate));
+
+  // When sheet opens, reset internal state to `selected` (or today)
+  useEffect(() => {
+    if (open) {
+      const base = selected && selected >= min ? selected : today;
+      setCalDate(base);
+      setSelMonth(getMonth(base));
+      setSelDay(getDate(base));
+      setSelYear(getYear(base));
+    }
+  }, [open]);
+
+  // Sync calendar when dropdowns change
+  useEffect(() => {
+    const daysInMonth = getDaysInMonth(new Date(selYear, selMonth, 1));
+    const safeDay = Math.min(selDay, daysInMonth);
+    const candidate = startOfDay(new Date(selYear, selMonth, safeDay));
+    if (candidate >= min) {
+      setCalDate(candidate);
+      setSelDay(safeDay);
+    }
+  }, [selMonth, selDay, selYear]);
+
+  // Sync dropdowns when calendar day is clicked
+  const handleCalendarSelect = (date?: Date) => {
+    if (!date) return;
+    setCalDate(date);
+    setSelMonth(getMonth(date));
+    setSelDay(getDate(date));
+    setSelYear(getYear(date));
+  };
+
+  // Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  const handleConfirm = () => {
+    onSelect(calDate);
+    onClose();
+  };
+
+  // Build year options: today's year → +2
+  const currentYear = getYear(today);
+  const years = [currentYear, currentYear + 1, currentYear + 2];
+
+  // Build day options: 1..daysInMonth
+  const daysInCurMonth = getDaysInMonth(new Date(selYear, selMonth, 1));
+  const days = Array.from({ length: daysInCurMonth }, (_, i) => i + 1);
+
+  const content = (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="date-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9998] bg-black/40"
+            onClick={onClose}
+          />
+          {/* Sheet */}
+          <motion.div
+            key="date-sheet"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 32, stiffness: 340 }}
+            className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="h-8 w-8 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  <HugeiconsIcon icon={label === "Return Date" ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={15} color="white" strokeWidth={2} />
+                </div>
+                <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">{label}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+              >
+                <HugeiconsIcon icon={CancelCircleIcon} size={22} color="currentColor" strokeWidth={1.8} />
+              </button>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              {/* Month / Day / Year dropdowns */}
+              <div className="px-5 pt-5 pb-4 flex gap-2">
+                {/* Month */}
+                <div className="flex-[2]">
+                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Month</label>
+                  <div className="relative">
+                    <select
+                      value={selMonth}
+                      onChange={(e) => setSelMonth(Number(e.target.value))}
+                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
+                    >
+                      {MONTHS.map((m, i) => (
+                        <option key={m} value={i}>{m}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
+                  </div>
+                </div>
+                {/* Day */}
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Day</label>
+                  <div className="relative">
+                    <select
+                      value={selDay}
+                      onChange={(e) => setSelDay(Number(e.target.value))}
+                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
+                    >
+                      {days.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
+                  </div>
+                </div>
+                {/* Year */}
+                <div className="flex-[1.2]">
+                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Year</label>
+                  <div className="relative">
+                    <select
+                      value={selYear}
+                      onChange={(e) => setSelYear(Number(e.target.value))}
+                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
+                    >
+                      {years.map((y) => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Calendar */}
+              <div className="flex justify-center px-2 pb-4">
+                <Calendar
+                  mode="single"
+                  selected={calDate}
+                  onSelect={handleCalendarSelect}
+                  month={calDate}
+                  onMonthChange={(m) => {
+                    setSelMonth(getMonth(m));
+                    setSelYear(getYear(m));
+                  }}
+                  disabled={(date) => date < min}
+                  className="p-3 pointer-events-auto w-full"
+                />
+              </div>
+
+              {/* Bottom safe area */}
+              <div className="h-4" />
+            </div>
+
+            {/* Select Date button — sticky footer */}
+            <div className="px-5 py-4 border-t border-[#F0F1F1] bg-white">
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className="w-full h-12 rounded-2xl text-white text-base font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={label === "Return Date" ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={18} color="white" strokeWidth={2} />
+                Select {calDate ? format(calDate, "MMM d, yyyy") : "Date"}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  return createPortal(content, document.body);
+}
+
 /* ── Flights Page ──────────────────────────────────────────── */
 /* ── Departure-board searching overlay ───────────────────── */
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
