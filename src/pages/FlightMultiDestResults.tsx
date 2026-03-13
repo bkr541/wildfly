@@ -105,6 +105,9 @@ const FlightMultiDestResults = ({
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [compactHeader, setCompactHeader] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   // ── Parse payload ────────────────────────────────────────
   const { rawFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
