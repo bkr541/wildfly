@@ -453,7 +453,7 @@ const FlightMultiDestResults = ({
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2 sticky top-0 z-20">
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
         {/* Active filter indicator */}
         {(filterNonstopOnly || filterGoWildOnly) && (
           <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
