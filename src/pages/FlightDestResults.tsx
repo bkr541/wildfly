@@ -610,18 +610,17 @@ const FlightDestResults = ({
                       return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     };
                     return [
-                      { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—", suffix: "" },
-                      { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—", suffix: "" },
-                      { label: "NONSTOP", value: nonstopCnt, suffix: " Avail." },
-                      { label: "GOWILD", value: goWildCnt, suffix: " Avail." },
-                    ].map(({ label, value, suffix }) => (
+                      { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—" },
+                      { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—" },
+                      { label: "NONSTOP", value: nonstopCnt },
+                      { label: "GOWILD", value: goWildCnt },
+                    ].map(({ label, value }) => (
                       <div key={label} className="flex-1 flex flex-col items-center">
                         <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                           {label}
                         </span>
-                        <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">
+                        <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">
                           {value}
-                          {suffix}
                         </span>
                       </div>
                     ));
