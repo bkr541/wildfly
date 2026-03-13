@@ -66,6 +66,47 @@ interface Airport {
   };
 }
 
+/* ── Hook: recent IATA codes from flight_searches ─────────── */
+function useRecentAirports() {
+  const [recentCodes, setRecentCodes] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("flight_searches")
+        .select("departure_airport, arrival_airport")
+        .eq("user_id", user.id)
+        .order("search_timestamp", { ascending: false })
+        .limit(30)
+        .then(({ data }) => {
+          if (!data) return;
+          const seen = new Set<string>();
+          const codes: string[] = [];
+          for (const row of data) {
+            for (const code of [row.departure_airport, row.arrival_airport]) {
+              if (
+                code &&
+                code !== "null" &&
+                !code.toLowerCase().includes("all") &&
+                /^[A-Z]{3}$/.test(code) &&
+                !seen.has(code)
+              ) {
+                seen.add(code);
+                codes.push(code);
+                if (codes.length >= 8) break;
+              }
+            }
+            if (codes.length >= 8) break;
+          }
+          setRecentCodes(codes);
+        });
+    });
+  }, []);
+
+  return recentCodes;
+}
+
 /* ── Airport Search Sheet (full-screen bottom sheet) ──────── */
 function AirportSearchSheet({
   open,
@@ -85,6 +126,13 @@ function AirportSearchSheet({
   const [query, setQuery] = useState("");
   const sheetInputRef = useRef<HTMLInputElement>(null);
   const selectedIds = new Set(selected.map((a) => a.id));
+  const recentCodes = useRecentAirports();
+
+  // Map recent codes → Airport objects (for quick-select)
+  const recentAirports = useMemo(
+    () => recentCodes.map((code) => airports.find((a) => a.iata_code === code)).filter(Boolean) as Airport[],
+    [recentCodes, airports],
+  );
 
   // Focus input when sheet opens
   useEffect(() => {
