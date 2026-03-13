@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format, startOfDay, getYear, getMonth, getDate, setYear, setMonth, setDate as setDayOfMonth, getDaysInMonth } from "date-fns";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
+import { isBlackoutDate } from "@/utils/blackoutDates";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
@@ -686,6 +687,7 @@ function DatePickerSheet({
                         const isRangeStart = isDeparture && isReturnPicker && calDate && depDay && calDate > depDay;
                         const isRangeEnd = isSelected && isReturnPicker && depDay && calDate && calDate > depDay;
                         const isToday = thisDate.getTime() === today.getTime();
+                        const isBlackout = isBlackoutDate(format(thisDate, "yyyy-MM-dd"));
 
                         // Determine which sides of the cell get the range background
                         const rangeLeft = (isInRange || isRangeEnd) && di !== 0;
@@ -708,10 +710,11 @@ function DatePickerSheet({
                               className={cn(
                                 "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                                 isDisabled && "opacity-30 cursor-default",
-                                (isSelected || isDeparture) && "text-[#065F46]",
-                                !isSelected && !isDeparture && !isDisabled && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
-                                isInRange && !isSelected && !isDeparture && "text-[#059669]",
-                                isToday && !isSelected && !isDeparture && "font-black",
+                                isBlackout && !isSelected && !isDeparture && "bg-[#374151] text-white hover:bg-[#4B5563]",
+                                (isSelected || isDeparture) && !isBlackout && "text-[#065F46]",
+                                !isSelected && !isDeparture && !isDisabled && !isBlackout && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
+                                isInRange && !isSelected && !isDeparture && !isBlackout && "text-[#059669]",
+                                isToday && !isSelected && !isDeparture && !isBlackout && "font-black",
                               )}
                               style={(isSelected || isDeparture) ? {
                                 background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
