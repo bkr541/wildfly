@@ -106,6 +106,7 @@ const FlightMultiDestResults = ({
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
+  const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +153,8 @@ const FlightMultiDestResults = ({
     const handler = () => {
       const heroH = heroRef.current?.offsetHeight ?? 200;
       setCompactHeader(el.scrollTop > heroH * 0.6);
+      // Parallax: move bg at 40% of scroll speed
+      setParallaxY(el.scrollTop * 0.4);
     };
     el.addEventListener("scroll", handler, { passive: true });
     return () => el.removeEventListener("scroll", handler);
@@ -375,7 +378,8 @@ const FlightMultiDestResults = ({
         style={{
           backgroundImage: `url('/assets/locations/init_background.png')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: `center ${parallaxY}px`,
+          willChange: "background-position",
         }}
       >
         {/* Green gradient overlay */}
