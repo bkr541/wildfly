@@ -55,7 +55,15 @@ interface MainLayoutProps {
   currentPage?: string;
 }
 
-const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, subScreenTitle, onSubScreenBack, currentPage }: MainLayoutProps) => {
+const MainLayout = ({
+  children,
+  onSignOut,
+  onNavigate,
+  hideHeaderRight = false,
+  subScreenTitle,
+  onSubScreenBack,
+  currentPage,
+}: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,12 +87,16 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
   // Prevent body scroll when drawer is open
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [drawerOpen]);
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}>
-
+    <div
+      className="relative flex min-h-screen overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
+    >
       {/* ── Sidebar drawer panel ── */}
       <div
         className="fixed inset-y-0 left-0 z-40 flex flex-col bg-white"
@@ -99,7 +111,10 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
         <div className="flex items-center gap-3 px-6 pt-10 pb-2">
           <Avatar
             className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => { setDrawerOpen(false); setTimeout(() => onNavigate("account"), 300); }}
+            onClick={() => {
+              setDrawerOpen(false);
+              setTimeout(() => onNavigate("account"), 300);
+            }}
           >
             <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
             <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">{initials}</AvatarFallback>
@@ -123,7 +138,10 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
           {menuItems.map((item) => {
             if ((item as any).type === "heading") {
               return (
-                <p key={item.label} className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
+                <p
+                  key={item.label}
+                  className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5"
+                >
                   {item.label}
                 </p>
               );
@@ -141,7 +159,12 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                   isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
                 )}
               >
-                <HugeiconsIcon icon={(item as any).icon} size={20} color="currentColor" strokeWidth={isActive ? 2 : 1.5} />
+                <HugeiconsIcon
+                  icon={(item as any).icon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={isActive ? 2 : 1.5}
+                />
                 <span className={cn("text-base", isActive ? "font-extrabold" : "font-semibold")}>{item.label}</span>
               </button>
             );
@@ -183,10 +206,9 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
           background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)",
           transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "translateX(0)",
           borderRadius: drawerOpen ? "20px" : "0px",
-          boxShadow: drawerOpen
-            ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)"
-            : "none",
-          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1), border-radius 0.32s cubic-bezier(0.4,0,0.2,1), box-shadow 0.32s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: drawerOpen ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)" : "none",
+          transition:
+            "transform 0.32s cubic-bezier(0.4,0,0.2,1), border-radius 0.32s cubic-bezier(0.4,0,0.2,1), box-shadow 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
           overflow: drawerOpen ? "hidden" : "visible",
         }}
@@ -205,7 +227,7 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-          <header className="flex flex-col px-5 pt-10 pb-2 relative z-10 gap-3" style={{ background: "transparent" }}>
+          <header className="flex flex-col px-5 pt-6 pb-2 relative z-10 gap-3" style={{ background: "transparent" }}>
             {/* Top row: hamburger + greeting + notification */}
             <div className="flex items-center gap-2">
               <button
@@ -216,56 +238,61 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
                 <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
               </button>
 
-              {currentPage && (() => {
-                if (currentPage === "home") {
+              {currentPage &&
+                (() => {
+                  if (currentPage === "home") {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">Hello,</span>
+                        <span
+                          className="text-[22px] font-black tracking-tight"
+                          style={{
+                            background: "linear-gradient(90deg, #059669 0%, #10b981 100%)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                          }}
+                        >
+                          {userName ?? "Explorer"}
+                        </span>
+                      </div>
+                    );
+                  }
+                  if (currentPage === "flights") {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">Explore</span>
+                        <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Flights</span>
+                      </div>
+                    );
+                  }
+                  const prefixMap: Record<string, string> = {
+                    destinations: "Explore",
+                    routes: "Explore",
+                    itinerary: "My",
+                    friends: "Find",
+                  };
+                  const labelMap: Record<string, string> = {
+                    destinations: "DESTINATIONS",
+                    itinerary: "ITINERARY",
+                    routes: "ROUTES",
+                    account: "ACCOUNT",
+                  };
+                  const prefix = prefixMap[currentPage];
+                  const label = labelMap[currentPage] ?? currentPage.toUpperCase();
+                  if (prefix) {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
+                        <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
+                      </div>
+                    );
+                  }
                   return (
-                    <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
-                      <span className="text-[22px] font-medium text-[#6B7280]">Hello,</span>
-                      <span
-                        className="text-[22px] font-black tracking-tight"
-                        style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
-                      >
-                        {userName ?? "Explorer"}
-                      </span>
-                    </div>
+                    <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
+                      {label}
+                    </span>
                   );
-                }
-                if (currentPage === "flights") {
-                  return (
-                    <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
-                      <span className="text-[22px] font-medium text-[#6B7280]">Explore</span>
-                      <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Flights</span>
-                    </div>
-                  );
-                }
-                const prefixMap: Record<string, string> = {
-                  destinations: "Explore",
-                  routes: "Explore",
-                  itinerary: "My",
-                  friends: "Find",
-                };
-                const labelMap: Record<string, string> = {
-                  destinations: "DESTINATIONS",
-                  itinerary: "ITINERARY",
-                  routes: "ROUTES",
-                  account: "ACCOUNT",
-                };
-                const prefix = prefixMap[currentPage];
-                const label = labelMap[currentPage] ?? currentPage.toUpperCase();
-                if (prefix) {
-                  return (
-                    <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
-                      <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
-                      <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
-                    </div>
-                  );
-                }
-                return (
-                  <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
-                    {label}
-                  </span>
-                );
-              })()}
+                })()}
 
               {(currentPage === "home" || currentPage === "friends") && (
                 <button
