@@ -378,7 +378,8 @@ const FlightMultiDestResults = ({
         style={{
           backgroundImage: `url('/assets/locations/init_background.png')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: `center ${parallaxY}px`,
+          willChange: "background-position",
         }}
       >
         {/* Green gradient overlay */}
