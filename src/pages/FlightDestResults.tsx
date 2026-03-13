@@ -235,6 +235,12 @@ const FlightDestResults = ({
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [debugEnabled, setDebugEnabled] = useState(false);
+  // Sort & filter state
+  const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
+  const [sortSheet, setSortSheet] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
+  const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
   useEffect(() => {
     fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
