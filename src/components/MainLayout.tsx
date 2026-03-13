@@ -205,110 +205,111 @@ const MainLayout = ({ children, onSignOut, onNavigate, hideHeaderRight = false, 
             <div className="w-10" />
           </header>
         ) : (
-        <header className="flex flex-col px-5 pt-10 pb-2 relative z-10 gap-3" style={{ background: "transparent" }}>
-          {/* Top row: hamburger + greeting + notification */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
-            >
-              <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
-            </button>
-
-            {currentPage && (() => {
-              if (currentPage === "home") {
-                return (
-                  <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
-                    <span className="text-[22px] font-medium text-[#6B7280]">Hello,</span>
-                    <span
-                      className="text-[22px] font-black tracking-tight"
-                      style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
-                    >
-                      {userName ?? "Explorer"}
-                    </span>
-                  </div>
-                );
-              }
-              if (currentPage === "flights") {
-                return (
-                  <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
-                    <span className="text-[22px] font-medium text-[#6B7280]">Explore</span>
-                    <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Flights</span>
-                  </div>
-                );
-              }
-              const prefixMap: Record<string, string> = {
-                destinations: "Explore",
-                routes: "Explore",
-                itinerary: "My",
-              };
-              const labelMap: Record<string, string> = {
-                destinations: "DESTINATIONS",
-                itinerary: "ITINERARY",
-                routes: "ROUTES",
-                account: "ACCOUNT",
-              };
-              const prefix = prefixMap[currentPage];
-              const label = labelMap[currentPage] ?? currentPage.toUpperCase();
-              if (prefix) {
-                return (
-                  <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
-                    <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
-                    <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
-                  </div>
-                );
-              }
-              return (
-                <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
-                  {label}
-                </span>
-              );
-            })()}
-
-            {(currentPage === "home" || currentPage === "friends") && (
+          <header className="flex flex-col px-5 pt-10 pb-2 relative z-10 gap-3" style={{ background: "transparent" }}>
+            {/* Top row: hamburger + greeting + notification */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setNotificationsOpen(true)}
-                className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto relative"
+                onClick={() => setDrawerOpen(true)}
+                className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
               >
-                <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
-                )}
+                <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
               </button>
-            )}
-          </div>
 
-          {/* Search bar row — Home only */}
-          {currentPage === "home" && (
-            <div
-              className="flex items-center rounded-full gap-2"
-              style={{
-                background: "rgba(255,255,255,0.72)",
-                backdropFilter: "blur(18px)",
-                WebkitBackdropFilter: "blur(18px)",
-                border: "1px solid rgba(5,150,105,0.15)",
-                boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
-                padding: "5px 5px 5px 16px",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Search flights, destinations..."
-                className="flex-1 bg-transparent text-[#2E4A4A] text-base font-medium placeholder:text-[#9CA3AF] outline-none"
-                style={{ fontSize: "16px" }}
-              />
-              <button
-                type="button"
-                className="h-7 w-7 flex items-center justify-center rounded-full flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-              >
-                <HugeiconsIcon icon={Search01Icon} size={15} color="white" strokeWidth={2} />
-              </button>
+              {currentPage && (() => {
+                if (currentPage === "home") {
+                  return (
+                    <div className="flex-1 flex items-baseline gap-1 select-none -ml-1">
+                      <span className="text-[22px] font-medium text-[#6B7280]">Hello,</span>
+                      <span
+                        className="text-[22px] font-black tracking-tight"
+                        style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                      >
+                        {userName ?? "Explorer"}
+                      </span>
+                    </div>
+                  );
+                }
+                if (currentPage === "flights") {
+                  return (
+                    <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                      <span className="text-[22px] font-medium text-[#6B7280]">Explore</span>
+                      <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Flights</span>
+                    </div>
+                  );
+                }
+                const prefixMap: Record<string, string> = {
+                  destinations: "Explore",
+                  routes: "Explore",
+                  itinerary: "My",
+                  friends: "Find",
+                };
+                const labelMap: Record<string, string> = {
+                  destinations: "DESTINATIONS",
+                  itinerary: "ITINERARY",
+                  routes: "ROUTES",
+                  account: "ACCOUNT",
+                };
+                const prefix = prefixMap[currentPage];
+                const label = labelMap[currentPage] ?? currentPage.toUpperCase();
+                if (prefix) {
+                  return (
+                    <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                      <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
+                      <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <span className="flex-1 text-[22px] font-black tracking-widest uppercase select-none text-[#10B981]">
+                    {label}
+                  </span>
+                );
+              })()}
+
+              {(currentPage === "home" || currentPage === "friends") && (
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(true)}
+                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto relative"
+                >
+                  <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                  )}
+                </button>
+              )}
             </div>
-          )}
-        </header>
+
+            {/* Search bar row — Home only */}
+            {currentPage === "home" && (
+              <div
+                className="flex items-center rounded-full gap-2"
+                style={{
+                  background: "rgba(255,255,255,0.72)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(5,150,105,0.15)",
+                  boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
+                  padding: "5px 5px 5px 16px",
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Search flights, destinations..."
+                  className="flex-1 bg-transparent text-[#2E4A4A] text-base font-medium placeholder:text-[#9CA3AF] outline-none"
+                  style={{ fontSize: "16px" }}
+                />
+                <button
+                  type="button"
+                  className="h-7 w-7 flex items-center justify-center rounded-full flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  <HugeiconsIcon icon={Search01Icon} size={15} color="white" strokeWidth={2} />
+                </button>
+              </div>
+            )}
+          </header>
         )}
 
         <main className="flex-1 overflow-y-auto">{children}</main>

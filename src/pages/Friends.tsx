@@ -39,10 +39,10 @@ function EmptyFriends({ onFindFriends }: { onFindFriends: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
       <div
-        className="h-20 w-20 rounded-full flex items-center justify-center mb-4"
-        style={{ background: "linear-gradient(135deg, #E3FEEF 0%, #D1FAE5 100%)" }}
+        className="h-20 w-20 rounded-full flex items-center justify-center mb-4 shadow-sm"
+        style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
       >
-        <Users size={32} className="text-[#059669]" />
+        <Users size={32} className="text-white" />
       </div>
       <p className="text-[#2E4A4A] font-semibold text-base mb-1">No friends yet</p>
       <p className="text-[#9CA3AF] text-sm mb-5">You haven't added any friends yet.</p>
@@ -265,8 +265,8 @@ function SearchTab({ query, onQueryChange }: { query: string; onQueryChange: (q:
             const uid = u.auth_user_id ?? "";
             const state =
               friendIds.has(uid) ? "friends" :
-              pendingIds.has(uid) ? "pending" :
-              "none";
+                pendingIds.has(uid) ? "pending" :
+                  "none";
             return (
               <UserSearchResultCard
                 key={uid}
@@ -324,16 +324,8 @@ const FriendsPage = () => {
         onValueChange={(v) => setActiveTab(v as FriendsTab)}
         className="flex flex-col flex-1"
       >
-        <div className="px-4 pt-3 pb-0">
-          {/* Search bar - frosted glass style matching Flight UI */}
-          <div
-            className="rounded-2xl overflow-visible px-3 pt-3 pb-1 mb-4"
-            style={{
-              background: "rgba(255,255,255,0.72)",
-              backdropFilter: "blur(18px)",
-              WebkitBackdropFilter: "blur(18px)",
-            }}
-          >
+        <div className="px-5 pt-3 pb-0">
+          <div className="pb-4">
             <div className="app-input-container">
               <button type="button" tabIndex={-1} className="app-input-icon-btn">
                 <Search size={20} strokeWidth={2} />
@@ -367,21 +359,23 @@ const FriendsPage = () => {
             <TabsTrigger
               value="friends"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
                 "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
+              <Users size={16} />
               My Friends
             </TabsTrigger>
             <TabsTrigger
               value="requests"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative flex items-center justify-center gap-2",
                 "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
+              <UserPlus size={16} />
               Requests
               {incomingCount > 0 && (
                 <span className="ml-1.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
@@ -392,21 +386,23 @@ const FriendsPage = () => {
             <TabsTrigger
               value="search"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
                 "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
+              <Search size={16} />
               Search
             </TabsTrigger>
             <TabsTrigger
               value="activity"
               className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent",
+                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
                 "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
                 "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
               )}
             >
+              <Activity size={16} />
               Activity
             </TabsTrigger>
           </TabsList>
@@ -429,8 +425,8 @@ const FriendsPage = () => {
             <ActivityTab />
           </TabsContent>
         </div>
-      </Tabs>
-    </div>
+      </Tabs >
+    </div >
   );
 };
 
