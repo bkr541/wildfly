@@ -896,7 +896,7 @@ const FlightDestResults = ({
                               className={cn(
                                 "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm w-full",
                                 flight.fares.basic != null
-                                  ? "border-[#10B981]"
+                                  ? "border-[#E8EBEB] border-l-[3px] border-l-[#10B981]"
                                   : isFlightOpen
                                     ? "border-[#345C5A]/20"
                                     : "border-[#E8EBEB]",
