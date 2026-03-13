@@ -249,8 +249,8 @@ const MainApp = () => {
     ["home", "account", "flights", "destinations", "itinerary", "routes", "friends"].includes(currentPage);
 
   return (
-    <div className="flex justify-center min-h-screen bg-white">
-      <div className="w-full max-w-[768px] relative">
+    <div className="flex justify-center h-[100dvh] overflow-hidden bg-white">
+      <div className="w-full max-w-[768px] relative h-full overflow-hidden flex flex-col">
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
         {splashDone && checkingSession && (
@@ -294,27 +294,31 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <FlightDestResults
-            onBack={() => setCurrentPage("flights")}
-            responseData={flightResultsData}
-            onBackOverride={flightResultsFromMulti ? () => {
-              setFlightResultsFromMulti(false);
-              setFlightResultsData(multiResultsData);
-              setCurrentPage("flight-multi-results");
-            } : undefined}
-          />
+          <div className="h-full flex flex-col overflow-hidden">
+            <FlightDestResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
+              onBackOverride={flightResultsFromMulti ? () => {
+                setFlightResultsFromMulti(false);
+                setFlightResultsData(multiResultsData);
+                setCurrentPage("flight-multi-results");
+              } : undefined}
+            />
+          </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
-          <FlightMultiDestResults
-            onBack={() => setCurrentPage("flights")}
-            responseData={flightResultsData}
-            onViewDest={(destData) => {
-              setMultiResultsData(flightResultsData);
-              setFlightResultsData(destData);
-              setFlightResultsFromMulti(true);
-              setCurrentPage("flight-results");
-            }}
-          />
+          <div className="h-full flex flex-col overflow-hidden">
+            <FlightMultiDestResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
+              onViewDest={(destData) => {
+                setMultiResultsData(flightResultsData);
+                setFlightResultsData(destData);
+                setFlightResultsFromMulti(true);
+                setCurrentPage("flight-results");
+              }}
+            />
+          </div>
         )}
         <IOSInstallBanner />
       </div>
