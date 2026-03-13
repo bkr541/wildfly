@@ -500,7 +500,7 @@ const FlightDestResults = ({
             : `/assets/locations/init_background.png`;
           return (
             <header
-              className="relative z-10 flex flex-col px-5 pt-6 pb-[124px] overflow-hidden"
+              className="relative z-10 flex flex-col px-5 pt-6 pb-[112px] overflow-hidden"
               style={{
                 backgroundImage: `url('${headerBg}')`,
                 backgroundSize: "cover",
@@ -566,17 +566,19 @@ const FlightDestResults = ({
                   </div>
                 )}
                 {departureDate && (
-                  <div 
-                    className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-                    style={{ 
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                      transform: "translateY(-1px)"
-                    }}
-                  >
-                    <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                    <span className="text-[#065F46] text-xs font-semibold leading-none">
-                      {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                    </span>
+                  <div className="flex mt-2">
+                    <div 
+                      className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
+                      style={{ 
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                        transform: "translateY(-1px)"
+                      }}
+                    >
+                      <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                      <span className="text-[#065F46] text-xs font-semibold leading-none">
+                        {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -608,18 +610,17 @@ const FlightDestResults = ({
                       return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     };
                     return [
-                      { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—", suffix: "" },
-                      { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—", suffix: "" },
-                      { label: "NONSTOP", value: nonstopCnt, suffix: " Avail." },
-                      { label: "GOWILD", value: goWildCnt, suffix: " Avail." },
-                    ].map(({ label, value, suffix }) => (
+                      { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—" },
+                      { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—" },
+                      { label: "NONSTOP", value: nonstopCnt },
+                      { label: "GOWILD", value: goWildCnt },
+                    ].map(({ label, value }) => (
                       <div key={label} className="flex-1 flex flex-col items-center">
                         <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                           {label}
                         </span>
-                        <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">
+                        <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">
                           {value}
-                          {suffix}
                         </span>
                       </div>
                     ));
