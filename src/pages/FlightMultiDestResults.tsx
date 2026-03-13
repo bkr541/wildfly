@@ -145,6 +145,18 @@ const FlightMultiDestResults = ({
     return Array.from(codes);
   }, [rawFlights]);
 
+  // Collapse hero into compact bar once 60% of it scrolls past
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handler = () => {
+      const heroH = heroRef.current?.offsetHeight ?? 200;
+      setCompactHeader(el.scrollTop > heroH * 0.6);
+    };
+    el.addEventListener("scroll", handler, { passive: true });
+    return () => el.removeEventListener("scroll", handler);
+  }, []);
+
   useEffect(() => {
     if (destinationCodes.length === 0) return;
     (async () => {
