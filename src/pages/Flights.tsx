@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
@@ -142,136 +143,124 @@ function AirportSearchSheet({
     onClose();
   };
 
-  return (
+  const content = (
     <AnimatePresence>
       {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="airport-sheet-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-[2px]"
-            onClick={onClose}
-          />
-          {/* Sheet */}
-          <motion.div
-            key="airport-sheet"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 32, stiffness: 340 }}
-            className="fixed inset-0 z-[201] flex flex-col bg-white"
-            style={{ maxWidth: 768, margin: "0 auto" }}
-          >
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 pt-12 pb-3 border-b border-[#F0F1F1]">
-              <button
-                type="button"
-                onClick={onClose}
-                className="h-9 w-9 flex items-center justify-center rounded-full text-[#6B7B7B] hover:bg-[#F2F3F3] transition-colors shrink-0"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={18} color="currentColor" strokeWidth={2} />
-              </button>
-              <div className="flex-1 app-input-container" style={{ minHeight: 44 }}>
-                <span className="app-input-icon-btn">
-                  <HugeiconsIcon icon={Location01Icon} size={18} color="#059669" strokeWidth={2} />
-                </span>
-                <input
-                  ref={sheetInputRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={`Search ${label.toLowerCase()} airport or city…`}
-                  className="app-input font-semibold"
-                  style={{ fontSize: 16 }}
-                  autoComplete="off"
-                />
-                {query.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery("")}
-                    className="app-input-reset app-input-reset--visible"
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Results */}
-            <div className="flex-1 overflow-y-auto overscroll-contain">
-              {!shouldShow ? (
-                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                  <div className="h-14 w-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
-                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={24} color="#059669" strokeWidth={2} />
-                  </div>
-                  <p className="text-[#2E4A4A] font-semibold text-sm mb-1">Search for an airport</p>
-                  <p className="text-[#9CA3AF] text-xs">Type 2 or more letters to see results</p>
-                </div>
-              ) : Object.keys(groupedAirports).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                  <p className="text-[#2E4A4A] font-semibold text-sm mb-1">No airports found</p>
-                  <p className="text-[#9CA3AF] text-xs">Try a different city or airport code</p>
-                </div>
-              ) : (
-                <div className="py-2">
-                  {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
-                    const isSingle = cityGroup.startsWith("__single__");
-                    const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
-                    return (
-                      <div key={cityGroup} className="mb-1 last:mb-0">
-                        {!isSingle && (
-                          <button
-                            type="button"
-                            onClick={() => addAreaAirports(cityAirports)}
-                            className="w-full px-4 py-2 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
-                          >
-                            <HugeiconsIcon icon={Building04Icon} size={13} color="currentColor" strokeWidth={2} className="opacity-60" />
-                            {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
-                          </button>
-                        )}
-                        {cityAirports.map((a) => {
-                          const isSelected = selectedIds.has(a.id);
-                          return (
-                            <button
-                              key={a.id}
-                              type="button"
-                              onClick={() => addAirport(a)}
-                              className={cn(
-                                "w-full text-left pr-4 py-3 text-sm hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
-                                isSingle ? "pl-4" : "pl-11",
-                                isSelected && "bg-[#345C5A]/5",
-                              )}
-                            >
-                              <HugeiconsIcon icon={Location01Icon} size={16} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-[#345C5A] text-base shrink-0">{a.iata_code}</span>
-                                  <span className="text-[#6B7B7B] truncate text-sm">{a.locations?.city ?? a.name}</span>
-                                </div>
-                                <p className="text-xs text-[#9CA3AF] truncate mt-0.5">{a.name}</p>
-                              </div>
-                              {isSelected && (
-                                <span className="text-[#059669] text-xs font-bold shrink-0">✓</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
+        <motion.div
+          key="airport-sheet"
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 32, stiffness: 340 }}
+          className="fixed inset-0 z-[9999] flex flex-col bg-white"
+        >
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 pt-12 pb-3 border-b border-[#F0F1F1]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 w-9 flex items-center justify-center rounded-full text-[#6B7B7B] hover:bg-[#F2F3F3] transition-colors shrink-0"
+            >
+              <HugeiconsIcon icon={Cancel01Icon} size={18} color="currentColor" strokeWidth={2} />
+            </button>
+            <div className="flex-1 app-input-container" style={{ minHeight: 44 }}>
+              <span className="app-input-icon-btn">
+                <HugeiconsIcon icon={Location01Icon} size={18} color="#059669" strokeWidth={2} />
+              </span>
+              <input
+                ref={sheetInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={`Search ${label.toLowerCase()} airport or city…`}
+                className="app-input font-semibold"
+                style={{ fontSize: 16 }}
+                autoComplete="off"
+              />
+              {query.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
               )}
-              <div className="h-8" />
             </div>
-          </motion.div>
-        </>
+          </div>
+
+          {/* Results */}
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {!shouldShow ? (
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="h-14 w-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
+                  <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={24} color="#059669" strokeWidth={2} />
+                </div>
+                <p className="text-[#2E4A4A] font-semibold text-sm mb-1">Search for an airport</p>
+                <p className="text-[#9CA3AF] text-xs">Type 2 or more letters to see results</p>
+              </div>
+            ) : Object.keys(groupedAirports).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <p className="text-[#2E4A4A] font-semibold text-sm mb-1">No airports found</p>
+                <p className="text-[#9CA3AF] text-xs">Try a different city or airport code</p>
+              </div>
+            ) : (
+              <div className="py-2">
+                {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+                  const isSingle = cityGroup.startsWith("__single__");
+                  const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+                  return (
+                    <div key={cityGroup} className="mb-1 last:mb-0">
+                      {!isSingle && (
+                        <button
+                          type="button"
+                          onClick={() => addAreaAirports(cityAirports)}
+                          className="w-full px-4 py-2 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
+                        >
+                          <HugeiconsIcon icon={Building04Icon} size={13} color="currentColor" strokeWidth={2} className="opacity-60" />
+                          {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                        </button>
+                      )}
+                      {cityAirports.map((a) => {
+                        const isSelected = selectedIds.has(a.id);
+                        return (
+                          <button
+                            key={a.id}
+                            type="button"
+                            onClick={() => addAirport(a)}
+                            className={cn(
+                              "w-full text-left pr-4 py-3 text-sm hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
+                              isSingle ? "pl-4" : "pl-11",
+                              isSelected && "bg-[#345C5A]/5",
+                            )}
+                          >
+                            <HugeiconsIcon icon={Location01Icon} size={16} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-[#345C5A] text-base shrink-0">{a.iata_code}</span>
+                                <span className="text-[#6B7B7B] truncate text-sm">{a.locations?.city ?? a.name}</span>
+                              </div>
+                              <p className="text-xs text-[#9CA3AF] truncate mt-0.5">{a.name}</p>
+                            </div>
+                            {isSelected && (
+                              <span className="text-[#059669] text-xs font-bold shrink-0">✓</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="h-8" />
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(content, document.body);
 }
 
 /* ── Multi-select Airport Searchbox ───────────────────────── */
