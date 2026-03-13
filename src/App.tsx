@@ -304,8 +304,9 @@ const MainApp = () => {
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
           <FlightMultiDestResults
             onBack={() => setCurrentPage("flights")}
-            responseData={flightResultsData}
+            responseData={multiResultsData || flightResultsData}
             onViewDest={(destData) => {
+              setMultiResultsData(multiResultsData || flightResultsData);
               setFlightResultsData(destData);
               setFlightResultsFromMulti(true);
               setCurrentPage("flight-results");
