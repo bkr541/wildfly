@@ -1120,6 +1120,7 @@ const FlightsPage = ({
                 selected={arrivalDate}
                 onSelect={setArrivalDate}
                 minDate={departureDate ?? today}
+                departureDate={departureDate}
               />
             )}
 
