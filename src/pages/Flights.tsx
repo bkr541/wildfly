@@ -546,6 +546,22 @@ function DatePickerSheet({
   const daysInCurMonth = getDaysInMonth(new Date(selYear, selMonth, 1));
   const days = Array.from({ length: daysInCurMonth }, (_, i) => i + 1);
 
+  // Navigate month with arrow buttons
+  const goToPrevMonth = () => {
+    const prev = new Date(selYear, selMonth - 1, 1);
+    if (prev >= new Date(min.getFullYear(), min.getMonth(), 1)) {
+      setSelMonth(getMonth(prev));
+      setSelYear(getYear(prev));
+    }
+  };
+  const goToNextMonth = () => {
+    const next = new Date(selYear, selMonth + 1, 1);
+    setSelMonth(getMonth(next));
+    setSelYear(getYear(next));
+  };
+
+  const canGoPrev = new Date(selYear, selMonth - 1, 1) >= new Date(min.getFullYear(), min.getMonth(), 1);
+
   const content = (
     <AnimatePresence>
       {open && (
@@ -596,72 +612,94 @@ function DatePickerSheet({
 
             {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto overscroll-contain">
-              {/* Month / Day / Year dropdowns */}
-              <div className="px-5 pt-5 pb-4 flex gap-2">
-                {/* Month */}
-                <div className="flex-[2]">
-                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Month</label>
-                  <div className="relative">
-                    <select
-                      value={selMonth}
-                      onChange={(e) => setSelMonth(Number(e.target.value))}
-                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
-                    >
-                      {MONTHS.map((m, i) => (
-                        <option key={m} value={i}>{m}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
-                  </div>
-                </div>
-                {/* Day */}
-                <div className="flex-1">
-                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Day</label>
-                  <div className="relative">
-                    <select
-                      value={selDay}
-                      onChange={(e) => setSelDay(Number(e.target.value))}
-                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
-                    >
-                      {days.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
-                  </div>
-                </div>
-                {/* Year */}
-                <div className="flex-[1.2]">
-                  <label className="text-xs font-bold text-[#059669] uppercase tracking-wider mb-1 block">Year</label>
-                  <div className="relative">
-                    <select
-                      value={selYear}
-                      onChange={(e) => setSelYear(Number(e.target.value))}
-                      className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2.5 text-sm font-semibold text-[#2E4A4A] focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
-                    >
-                      {years.map((y) => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[#9CA3AF]">▾</div>
-                  </div>
+              {/* Month Year nav row */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                <span className="text-[19px] font-bold text-[#2E4A4A]">
+                  {MONTHS[selMonth]}, {selYear}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={goToPrevMonth}
+                    disabled={!canGoPrev}
+                    className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3] disabled:opacity-30"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToNextMonth}
+                    className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3]"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
                 </div>
               </div>
 
-              {/* Calendar */}
-              <div className="flex justify-center px-2 pb-4">
-                <Calendar
-                  mode="single"
-                  selected={calDate}
-                  onSelect={handleCalendarSelect}
-                  month={calDate}
-                  onMonthChange={(m) => {
-                    setSelMonth(getMonth(m));
-                    setSelYear(getYear(m));
-                  }}
-                  disabled={(date) => date < min}
-                  className="p-3 pointer-events-auto w-full"
-                />
+              {/* Custom Calendar Grid */}
+              <div className="px-4 pb-4">
+                {/* Day-of-week headers */}
+                <div className="grid grid-cols-7 mb-1">
+                  {["Mo","Tu","We","Th","Fr","Sa","Su"].map((d) => (
+                    <div key={d} className="flex items-center justify-center py-1">
+                      <span className="text-xs font-semibold text-[#9CA3AF]">{d}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Calendar days */}
+                {(() => {
+                  const firstDay = new Date(selYear, selMonth, 1);
+                  // Monday-based: Mon=0 … Sun=6
+                  const startDow = (firstDay.getDay() + 6) % 7;
+                  const daysCount = getDaysInMonth(firstDay);
+                  const cells: (number | null)[] = [
+                    ...Array(startDow).fill(null),
+                    ...Array.from({ length: daysCount }, (_, i) => i + 1),
+                  ];
+                  // Pad to complete last row
+                  while (cells.length % 7 !== 0) cells.push(null);
+
+                  const weeks: (number | null)[][] = [];
+                  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+                  return weeks.map((week, wi) => (
+                    <div key={wi} className="grid grid-cols-7 mb-0.5">
+                      {week.map((day, di) => {
+                        if (!day) return <div key={di} />;
+                        const thisDate = startOfDay(new Date(selYear, selMonth, day));
+                        const isDisabled = thisDate < min;
+                        const isSelected = calDate &&
+                          thisDate.getFullYear() === calDate.getFullYear() &&
+                          thisDate.getMonth() === calDate.getMonth() &&
+                          thisDate.getDate() === calDate.getDate();
+                        const isToday = thisDate.getTime() === today.getTime();
+
+                        return (
+                          <div key={di} className="flex items-center justify-center py-1">
+                            <button
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => !isDisabled && handleCalendarSelect(thisDate)}
+                              className={cn(
+                                "h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                                isDisabled && "opacity-30 cursor-default",
+                                isSelected && "text-[#065F46]",
+                                !isSelected && !isDisabled && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
+                                isToday && !isSelected && "font-black",
+                              )}
+                              style={isSelected ? {
+                                background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                                border: "1px solid #6EE7B7",
+                              } : undefined}
+                            >
+                              {day}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ));
+                })()}
               </div>
 
               {/* Bottom safe area */}
