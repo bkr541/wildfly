@@ -27,7 +27,12 @@ import {
   Location06Icon,
   FilterIcon,
   SortByDown02Icon,
+  CheckmarkCircle02Icon,
+  DollarCircleIcon,
+  AirplaneTakeOff02Icon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
