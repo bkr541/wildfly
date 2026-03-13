@@ -423,7 +423,7 @@ const MultiAirportSearchbox = ({
         onChange={handleSelect}
       />
 
-      <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block">{label}</label>
+      <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">{label}</label>
 
       <div
         className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer")}
@@ -810,7 +810,7 @@ const FlightsPage = ({
           <div className="px-5 pt-3 pb-0">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
-                <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block cursor-pointer">
+                <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block cursor-pointer">
                   Departure Date
                 </label>
                 <Popover open={depDateOpen} onOpenChange={setDepDateOpen}>
@@ -853,7 +853,7 @@ const FlightsPage = ({
 
               {showReturnDate && (
                 <div>
-                  <label className="text-sm font-bold uppercase tracking-widest text-[#059669] ml-1 mb-0 block cursor-pointer">Return Date</label>
+                  <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block cursor-pointer">Return date</label>
                   <Popover open={retDateOpen} onOpenChange={setRetDateOpen}>
                     <PopoverTrigger asChild>
                       <button
@@ -894,8 +894,8 @@ const FlightsPage = ({
 
             {/* Search All Destinations */}
             <div className="flex items-center justify-end gap-2 pt-5 pb-5">
-              <label htmlFor="search-all" className="text-sm font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
-                Search All Destinations
+              <label htmlFor="search-all" className="text-sm font-bold text-[#059669] cursor-pointer select-none">
+                Search all destinations
               </label>
 
               <button
