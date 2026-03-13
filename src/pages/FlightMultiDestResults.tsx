@@ -346,25 +346,21 @@ const FlightMultiDestResults = ({
           {[
             { label: "DESTINATIONS", value: cards.length },
             { label: "TOTAL FLIGHTS", value: rawFlights.length },
-            { label: "NONSTOP", value: `${cards.filter((c) => c.hasNonstop).length} Dest.` },
-            { label: "GO WILD", value: `${cards.filter((c) => c.hasGoWild).length} Dest.` },
+            { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
+            { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
           ].map(({ label, value }) => (
             <div key={label} className="flex-1 flex flex-col items-center">
               <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                 {label}
               </span>
-              <span className="text-[17px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+              <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
             </div>
           ))}
         </div>
       </header>
 
       {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
-        <span className="text-[13px] font-semibold">
-          <span className="text-[#10B981] font-black">{sortedCards.length}</span>
-          <span className="text-[#6B7B7B] font-medium"> Destinations</span>
-        </span>
+      <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-end">
         <div className="flex items-center gap-2">
           {/* Sort pills */}
           {(["city", "fare", "flights"] as const).map((s) => (
@@ -529,10 +525,10 @@ const FlightMultiDestResults = ({
                   <button
                     type="button"
                     onClick={() => handleViewDest(card)}
-                    className="flex items-center gap-2 h-10 px-5 bg-[#065F46] text-white text-[13px] font-bold rounded-xl hover:bg-[#047857] transition-colors"
+                    className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                   >
                     View Flights
-                    <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
                   </button>
                 </div>
               </div>
