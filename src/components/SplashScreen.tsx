@@ -14,36 +14,18 @@ function calcGrid(viewW: number, viewH: number) {
   const cellSize = TILE_SIZE + GAP;
   // Enough cols to fill screen plus 2 extra columns off-screen on each side
   const visibleCols = Math.ceil(viewW / cellSize) + 4;
-  // Make sure we have at least WILDFLY_COL_START + 7 columns
-  const cols = Math.max(visibleCols, WILDFLY_COL_START + WILDFLY.length + PAD_COLS + 2);
+  // Ensure at least WILDFLY.length + 4 padding cols
+  const cols = Math.max(visibleCols, WILDFLY.length + 4);
   const rows = Math.ceil(viewH / cellSize) + 4;
   return { cols, rows };
 }
-
-function randomChar() {
-  return CHARS[Math.floor(Math.random() * CHARS.length)];
-}
-
-interface SplashScreenProps {
-  onComplete: () => void;
-}
-
-const SplashScreen = ({ onComplete }: SplashScreenProps) => {
-  const [show, setShow] = useState(true);
-  const [showTagline, setShowTagline] = useState(false);
-  const [dims, setDims] = useState(() => calcGrid(window.innerWidth, window.innerHeight));
-
-  // Recompute grid on resize
-  useEffect(() => {
-    const onResize = () => setDims(calcGrid(window.innerWidth, window.innerHeight));
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
+...
   const { cols, rows } = dims;
   const TOTAL = cols * rows;
   const CENTER_ROW = Math.floor(rows / 2);
-  const WILDFLY_INDICES = WILDFLY.split("").map((_, i) => CENTER_ROW * cols + WILDFLY_COL_START + i);
+  // Center WILDFLY horizontally in the grid
+  const wildflyColStart = Math.floor((cols - WILDFLY.length) / 2);
+  const WILDFLY_INDICES = WILDFLY.split("").map((_, i) => CENTER_ROW * cols + wildflyColStart + i);
 
   const [tiles, setTiles] = useState<{ char: string; isWildfly: boolean; revealed: boolean }[]>(
     () => Array(TOTAL).fill(null).map((_, i) => ({
