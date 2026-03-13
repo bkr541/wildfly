@@ -406,6 +406,7 @@ const FlightDestResults = ({
     [airportMap, airportCoords],
   );
 
+  // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
     for (const f of flights) {
@@ -425,6 +426,43 @@ const FlightDestResults = ({
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
   }, [flights, airportMap]);
+
+  // Per-group sorted+filtered flights for the timeline
+  const sortedGroups: DestinationGroup[] = useMemo(() => {
+    const parseDur = (s: string): number => {
+      const raw = String(s ?? "").trim();
+      if (!raw) return 0;
+      if (raw.includes(":")) {
+        const parts = raw.split(":").map(Number);
+        if (parts.length >= 3) return (parts[0] || 0) * 60 + (parts[1] || 0);
+        return (parts[0] || 0) * 60 + (parts[1] || 0);
+      }
+      const h = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
+      const m = raw.match(/(\d+)\s*(min|m)\b/i);
+      return (parseInt(h?.[1] ?? "0") || 0) * 60 + (parseInt(m?.[1] ?? "0") || 0);
+    };
+    const minFare = (f: ParsedFlight): number => {
+      const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
+      return vals.length ? Math.min(...vals) : Infinity;
+    };
+    return groups.map((g) => {
+      let flts = [...g.flights];
+      // Apply filters
+      if (filterNonstopOnly) flts = flts.filter((f) => f.legs.length === 1);
+      if (filterGoWildOnly) flts = flts.filter((f) => f.fares.basic != null);
+      // Apply sort
+      flts.sort((a, b) => {
+        if (sortBy === "fare") return minFare(a) - minFare(b);
+        if (sortBy === "duration") return parseDur(a.total_duration) - parseDur(b.total_duration);
+        if (sortBy === "stops") return a.legs.length - b.legs.length;
+        // "time" — sort by departure hour
+        const ha = parseHour(a.legs[0]?.departure_time ?? "") ?? 0;
+        const hb = parseHour(b.legs[0]?.departure_time ?? "") ?? 0;
+        return ha - hb;
+      });
+      return { ...g, flights: flts };
+    });
+  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly]);
 
   const origin = useMemo(() => {
     if (flights.length === 0) return "";
