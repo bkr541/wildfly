@@ -107,7 +107,7 @@ const FlightMultiDestResults = ({
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
   // ── Parse payload ────────────────────────────────────────
-  const { rawFlights, departureDate, arrivalDate, tripType, departureAirport } = useMemo(() => {
+  const { rawFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
       return {
@@ -116,9 +116,10 @@ const FlightMultiDestResults = ({
         arrivalDate: parsed.arrivalDate ?? null,
         tripType: parsed.tripType ?? "One Way",
         departureAirport: parsed.departureAirport ?? "",
+        arrivalAirport: parsed.arrivalAirport ?? "",
       };
     } catch {
-      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "" };
+      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "" };
     }
   }, [responseData]);
 
