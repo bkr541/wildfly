@@ -7,10 +7,7 @@ const WILDFLY = "WILDFLY";
 const TILE_SIZE = 44;
 const GAP = 3;
 
-// How many columns of padding on each side of WILDFLY (so it's not touching edges)
-const PAD_COLS = 2;
-// WILDFLY is 7 chars, pad on each side → total "visible" cols = 7 + 4
-const WILDFLY_COL_START = PAD_COLS; // 0-indexed col where W starts
+// WILDFLY_COL_START is computed dynamically per grid width (see below)
 
 // Viewport-filling grid: compute cols/rows to cover full screen + 2 extra on each side
 function calcGrid(viewW: number, viewH: number) {
