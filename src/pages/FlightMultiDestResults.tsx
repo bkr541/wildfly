@@ -569,6 +569,186 @@ const FlightMultiDestResults = ({
           </div>
         )}
       </div>
+
+      {/* ── Sort Sheet ──────────────────────────────────────── */}
+      <AnimatePresence>
+        {sortSheet && (
+          <>
+            <motion.div
+              key="sort-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+              onClick={() => setSortSheet(false)}
+            />
+            <motion.div
+              key="sort-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
+              style={{ maxWidth: "768px", margin: "0 auto" }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              {/* Header */}
+              <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+                <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                  <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
+                </div>
+                <h2 className="text-base font-bold text-[#2E4A4A]">Sort By</h2>
+              </div>
+              {/* Options */}
+              <div className="flex flex-col py-2 pb-8">
+                {([
+                  { key: "city", label: "A–Z (City Name)", desc: "Alphabetical order", icon: CheckmarkCircle02Icon },
+                  { key: "fare", label: "Lowest Price", desc: "Cheapest fares first", icon: DollarCircleIcon },
+                  { key: "flights", label: "Most Flights", desc: "Most available flights first", icon: AirplaneTakeOff02Icon },
+                  { key: "duration", label: "Shortest Duration", desc: "Quickest flights first", icon: Clock01Icon },
+                ] as const).map(({ key, label, desc, icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setSortBy(key); setSortSheet(false); }}
+                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                  >
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: sortBy === key ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                    >
+                      <HugeiconsIcon icon={icon} size={17} color={sortBy === key ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn("text-sm font-semibold", sortBy === key ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className="text-xs text-[#9CA3AF]">{desc}</p>
+                    </div>
+                    {sortBy === key && (
+                      <div className="h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color="white" strokeWidth={2.5} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Filter Sheet ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {filterSheet && (
+          <>
+            <motion.div
+              key="filter-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+              onClick={() => setFilterSheet(false)}
+            />
+            <motion.div
+              key="filter-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
+              style={{ maxWidth: "768px", margin: "0 auto" }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                    <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
+                  </div>
+                  <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
+                </div>
+                {(filterNonstopOnly || filterGoWildOnly) && (
+                  <button
+                    type="button"
+                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                    className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              {/* Filter options */}
+              <div className="flex flex-col py-2 pb-8">
+                {([
+                  {
+                    key: "nonstop",
+                    label: "Nonstop Only",
+                    desc: "Show only destinations with nonstop flights",
+                    icon: AirplaneTakeOff01Icon,
+                    active: filterNonstopOnly,
+                    toggle: () => setFilterNonstopOnly((v) => !v),
+                  },
+                  {
+                    key: "gowild",
+                    label: "GoWild Fares",
+                    desc: "Show only destinations with GoWild pricing",
+                    icon: TicketStarIcon,
+                    active: filterGoWildOnly,
+                    toggle: () => setFilterGoWildOnly((v) => !v),
+                  },
+                ]).map(({ key, label, desc, icon, active, toggle }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={toggle}
+                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                  >
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                    >
+                      <HugeiconsIcon icon={icon} size={17} color={active ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn("text-sm font-semibold", active ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className="text-xs text-[#9CA3AF]">{desc}</p>
+                    </div>
+                    {/* Toggle pill */}
+                    <div
+                      className="w-11 h-6 rounded-full flex items-center transition-all flex-shrink-0 px-0.5"
+                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "#E5E7EB" }}
+                    >
+                      <motion.div
+                        animate={{ x: active ? 20 : 2 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                        className="h-5 w-5 rounded-full bg-white shadow-sm"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {/* Apply button */}
+              <div className="px-5 pb-8">
+                <button
+                  type="button"
+                  onClick={() => setFilterSheet(false)}
+                  className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
