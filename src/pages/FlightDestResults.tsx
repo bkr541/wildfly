@@ -918,7 +918,7 @@ const FlightDestResults = ({
                                       );
                                   }
                                 }}
-                                className="flex items-center px-3 py-3 text-left w-full"
+                                className="flex items-center px-3 py-[15px] text-left w-full"
                               >
                                 <div className="flex items-center gap-2.5 w-full">
                                   <img
