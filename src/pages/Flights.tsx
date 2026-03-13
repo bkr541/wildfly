@@ -530,7 +530,7 @@ const FlightsPage = ({
       {loading && <SearchingOverlay />}
 
 
-      <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-2 animate-fade-in">
+      <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-3 animate-fade-in">
         {/* Trip Type Switch — frosted glass pill */}
         <div
           className="rounded-full p-[2px] flex relative"
@@ -599,7 +599,7 @@ const FlightsPage = ({
               selected={departures}
               onChange={setDepartures}
               airports={airports}
-              containerClassName="px-3 pt-3 pb-1"
+              containerClassName="px-3 pt-3 pb-3"
             />
 
             <MultiAirportSearchbox
@@ -610,12 +610,12 @@ const FlightsPage = ({
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="px-3 pt-1 pb-1"
+              containerClassName="px-3 pt-3 pb-3"
             />
           </div>
 
           {/* Dates */}
-          <div className="px-3 pt-1 pb-3">
+          <div className="px-3 pt-3 pb-3">
             <div className={cn("grid gap-3", showReturnDate ? "grid-cols-2" : "grid-cols-1")}>
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block cursor-pointer">
@@ -697,7 +697,7 @@ const FlightsPage = ({
             </div>
 
             {/* Search All Destinations */}
-            <div className="flex items-center justify-end gap-2 py-2 px-1">
+            <div className="flex items-center justify-end gap-2 pt-3 pb-3 px-1">
               <label htmlFor="search-all" className="text-[10px] font-bold uppercase tracking-widest text-[#059669] cursor-pointer select-none">
                 Search All Destinations
               </label>
