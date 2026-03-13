@@ -290,7 +290,14 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <FlightDestResults onBack={() => setCurrentPage("flights")} responseData={flightResultsData} />
+          <FlightDestResults
+            onBack={() => setCurrentPage("flights")}
+            responseData={flightResultsData}
+            onBackOverride={flightResultsFromMulti ? () => {
+              setFlightResultsFromMulti(false);
+              setCurrentPage("flight-multi-results");
+            } : undefined}
+          />
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
           <FlightMultiDestResults
