@@ -65,6 +65,215 @@ interface Airport {
   };
 }
 
+/* ── Airport Search Sheet (full-screen bottom sheet) ──────── */
+function AirportSearchSheet({
+  open,
+  onClose,
+  label,
+  airports,
+  selected,
+  onChange,
+}: {
+  open: boolean;
+  onClose: () => void;
+  label: string;
+  airports: Airport[];
+  selected: Airport[];
+  onChange: (a: Airport[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const sheetInputRef = useRef<HTMLInputElement>(null);
+  const selectedIds = new Set(selected.map((a) => a.id));
+
+  // Focus input when sheet opens
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      setTimeout(() => sheetInputRef.current?.focus(), 80);
+    }
+  }, [open]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  const shouldShow = query.trim().length >= 2;
+
+  const groupedAirports = useMemo(() => {
+    if (!shouldShow) return {};
+    const q = query.toLowerCase();
+    const filteredList = airports
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.iata_code.toLowerCase().includes(q) ||
+          (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
+      )
+      .slice(0, 40);
+
+    const grouped = filteredList.reduce(
+      (acc, airport) => {
+        const city = airport.locations?.city;
+        const state = airport.locations?.state_code;
+        const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(airport);
+        return acc;
+      },
+      {} as Record<string, Airport[]>,
+    );
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, aps]) => [aps.length > 1 ? key : `__single__${key}`, aps]),
+    );
+  }, [query, airports, shouldShow]);
+
+  const addAirport = (a: Airport) => {
+    if (!selectedIds.has(a.id)) onChange([...selected, a]);
+    onClose();
+  };
+
+  const addAreaAirports = (areaAirports: Airport[]) => {
+    const newOnes = areaAirports.filter((a) => !selectedIds.has(a.id));
+    if (newOnes.length > 0) onChange([...selected, ...newOnes]);
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="airport-sheet-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-[2px]"
+            onClick={onClose}
+          />
+          {/* Sheet */}
+          <motion.div
+            key="airport-sheet"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 32, stiffness: 340 }}
+            className="fixed inset-0 z-[201] flex flex-col bg-white"
+            style={{ maxWidth: 768, margin: "0 auto" }}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 pt-12 pb-3 border-b border-[#F0F1F1]">
+              <button
+                type="button"
+                onClick={onClose}
+                className="h-9 w-9 flex items-center justify-center rounded-full text-[#6B7B7B] hover:bg-[#F2F3F3] transition-colors shrink-0"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={18} color="currentColor" strokeWidth={2} />
+              </button>
+              <div className="flex-1 app-input-container" style={{ minHeight: 44 }}>
+                <span className="app-input-icon-btn">
+                  <HugeiconsIcon icon={Location01Icon} size={18} color="#059669" strokeWidth={2} />
+                </span>
+                <input
+                  ref={sheetInputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={`Search ${label.toLowerCase()} airport or city…`}
+                  className="app-input font-semibold"
+                  style={{ fontSize: 16 }}
+                  autoComplete="off"
+                />
+                {query.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="app-input-reset app-input-reset--visible"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              {!shouldShow ? (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                  <div className="h-14 w-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
+                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={24} color="#059669" strokeWidth={2} />
+                  </div>
+                  <p className="text-[#2E4A4A] font-semibold text-sm mb-1">Search for an airport</p>
+                  <p className="text-[#9CA3AF] text-xs">Type 2 or more letters to see results</p>
+                </div>
+              ) : Object.keys(groupedAirports).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                  <p className="text-[#2E4A4A] font-semibold text-sm mb-1">No airports found</p>
+                  <p className="text-[#9CA3AF] text-xs">Try a different city or airport code</p>
+                </div>
+              ) : (
+                <div className="py-2">
+                  {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+                    const isSingle = cityGroup.startsWith("__single__");
+                    const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+                    return (
+                      <div key={cityGroup} className="mb-1 last:mb-0">
+                        {!isSingle && (
+                          <button
+                            type="button"
+                            onClick={() => addAreaAirports(cityAirports)}
+                            className="w-full px-4 py-2 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
+                          >
+                            <HugeiconsIcon icon={Building04Icon} size={13} color="currentColor" strokeWidth={2} className="opacity-60" />
+                            {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                          </button>
+                        )}
+                        {cityAirports.map((a) => {
+                          const isSelected = selectedIds.has(a.id);
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => addAirport(a)}
+                              className={cn(
+                                "w-full text-left pr-4 py-3 text-sm hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
+                                isSingle ? "pl-4" : "pl-11",
+                                isSelected && "bg-[#345C5A]/5",
+                              )}
+                            >
+                              <HugeiconsIcon icon={Location01Icon} size={16} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-[#345C5A] text-base shrink-0">{a.iata_code}</span>
+                                  <span className="text-[#6B7B7B] truncate text-sm">{a.locations?.city ?? a.name}</span>
+                                </div>
+                                <p className="text-xs text-[#9CA3AF] truncate mt-0.5">{a.name}</p>
+                              </div>
+                              {isSelected && (
+                                <span className="text-[#059669] text-xs font-bold shrink-0">✓</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="h-8" />
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ── Multi-select Airport Searchbox ───────────────────────── */
 const MultiAirportSearchbox = ({
   label,
@@ -85,130 +294,56 @@ const MultiAirportSearchbox = ({
   disabled?: boolean;
   placeholder?: string;
 }) => {
-  const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const shouldShow = query.trim().length > 2;
-  const selectedIds = new Set(selected.map((a) => a.id));
-
-  const groupedAirports = useMemo(() => {
-    if (!shouldShow || disabled) return {};
-    const q = query.toLowerCase();
-
-    const filteredList = airports
-      .filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          a.iata_code.toLowerCase().includes(q) ||
-          (a.locations?.city && a.locations.city.toLowerCase().includes(q)),
-      )
-      .slice(0, 30);
-
-    const grouped = filteredList.reduce(
-      (acc, airport) => {
-        const city = airport.locations?.city;
-        const state = airport.locations?.state_code;
-        const groupKey = city && state ? `${city}, ${state}` : "Other Locations";
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(airport);
-        return acc;
-      },
-      {} as Record<string, Airport[]>,
-    );
-    // Only keep group headers for cities with multiple airports
-    return Object.fromEntries(
-      Object.entries(grouped).map(([key, airports]) => [airports.length > 1 ? key : `__single__${key}`, airports]),
-    );
-  }, [query, airports, shouldShow, disabled]);
-
-  const addAirport = (a: Airport) => {
-    if (!selectedIds.has(a.id)) {
-      onChange([...selected, a]);
-    }
-    setQuery("");
-    inputRef.current?.focus();
-  };
-
-  const addAreaAirports = (areaAirports: Airport[]) => {
-    const newOnes = areaAirports.filter((a) => !selectedIds.has(a.id));
-    if (newOnes.length > 0) {
-      onChange([...selected, ...newOnes]);
-    }
-    setQuery("");
-    inputRef.current?.focus();
-  };
-
-  const removeAirport = (id: number) => {
-    onChange(selected.filter((a) => a.id !== id));
-  };
-
-  const showClear = selected.length > 0 && !disabled;
-
-  // Display text: "IATA | City" for the first selected airport (single-select display)
   const displayValue =
-    selected.length > 0 && !query
+    selected.length > 0
       ? `${selected[0].iata_code} | ${selected[0].locations?.city ?? selected[0].name}`
-      : query;
+      : "";
+
+  const handleSelect = (newSelected: Airport[]) => {
+    onChange(newSelected);
+  };
 
   return (
     <div className={cn("relative", containerClassName)}>
+      <AirportSearchSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        label={label}
+        airports={airports}
+        selected={selected}
+        onChange={handleSelect}
+      />
+
       <label className="text-[10px] font-bold uppercase tracking-widest text-[#059669] ml-1 mb-1 block">{label}</label>
 
       <div
-        className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-text")}
+        className={cn("app-input-container", disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer")}
         style={{ minHeight: 44 }}
         onClick={() => {
           if (disabled) return;
-          inputRef.current?.focus();
-          setOpen(true);
+          setSheetOpen(true);
         }}
       >
         <button type="button" tabIndex={-1} className="app-input-icon-btn">
           <HugeiconsIcon icon={icon} size={20} color="currentColor" strokeWidth={2} />
         </button>
 
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={disabled ? "" : placeholder}
-          disabled={disabled}
-          value={displayValue}
-          onChange={(e) => {
-            if (disabled) return;
-            if (selected.length > 0) onChange([]);
-            setQuery(e.target.value);
-            if (!open) setOpen(true);
-          }}
-          onFocus={() => {
-            if (disabled) return;
-            if (selected.length > 0) {
-              setQuery(`${selected[0].iata_code} | ${selected[0].locations?.city ?? ""}`);
-            }
-            setOpen(true);
-            setIsFocused(true);
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-            setTimeout(() => setOpen(false), 200);
-            if (selected.length === 0) setQuery("");
-          }}
-          className={cn("app-input font-semibold truncate", disabled && "cursor-not-allowed")}
-          style={{ fontSize: 16 }}
-        />
+        <span
+          className={cn("app-input font-semibold truncate flex-1 flex items-center", disabled && "cursor-not-allowed")}
+          style={{ fontSize: 16, color: displayValue ? "#1F2937" : "#9CA3AF" }}
+        >
+          {displayValue || (disabled ? "" : placeholder)}
+        </span>
 
-        {showClear && (
+        {selected.length > 0 && !disabled && (
           <button
             type="button"
-            aria-label={`Clear all ${label}`}
-            onMouseDown={(e) => e.preventDefault()}
+            aria-label={`Clear ${label}`}
             onClick={(e) => {
               e.stopPropagation();
               onChange([]);
-              setQuery("");
-              setOpen(true);
-              requestAnimationFrame(() => inputRef.current?.focus());
             }}
             className="app-input-reset app-input-reset--visible"
           >
@@ -216,69 +351,6 @@ const MultiAirportSearchbox = ({
           </button>
         )}
       </div>
-
-      {open && !disabled && shouldShow && Object.keys(groupedAirports).length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-[#E3E6E6] max-h-64 overflow-y-auto z-50 py-2">
-          {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
-            const isSingle = cityGroup.startsWith("__single__");
-            const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
-            return (
-              <div key={cityGroup} className="mb-2 last:mb-0">
-                {!isSingle && (
-                  <button
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => addAreaAirports(cityAirports)}
-                    className="w-full px-4 py-1.5 text-xs font-bold text-[#9CA3AF] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors cursor-pointer"
-                  >
-                    <HugeiconsIcon
-                      icon={Building04Icon}
-                      size={12}
-                      color="currentColor"
-                      strokeWidth={2}
-                      className="opacity-60"
-                    />
-                    {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
-                  </button>
-                )}
-
-                {cityAirports.map((a) => {
-                  const isSelected = selectedIds.has(a.id);
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        if (isSelected) removeAirport(a.id);
-                        else addAirport(a);
-                      }}
-                      className={cn(
-                        "w-full text-left pr-4 py-2 text-sm hover:bg-[#F2F3F3] transition-colors flex flex-col gap-0.5 overflow-hidden",
-                        isSingle ? "pl-4" : "pl-11",
-                        isSelected && "bg-[#345C5A]/5",
-                      )}
-                    >
-                      <div className="flex items-center text-[#2E4A4A] w-full min-w-0">
-                        <HugeiconsIcon
-                          icon={Location01Icon}
-                          size={12}
-                          color="#9CA3AF"
-                          strokeWidth={2}
-                          className="mr-2 shrink-0"
-                        />
-                        <span className="font-semibold text-[#345C5A] shrink-0">{a.iata_code}</span>
-                        <span className="ml-2 truncate">{a.name}</span>
-                        {isSelected && <span className="ml-auto text-[#345C5A] text-xs font-semibold shrink-0">✓</span>}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 };
