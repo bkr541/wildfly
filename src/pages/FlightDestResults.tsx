@@ -558,9 +558,15 @@ const FlightDestResults = ({
                   )}
                 </p>
                 {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
-                  <div className="mt-2 inline-flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
-                    <HugeiconsIcon icon={Location01Icon} size={13} color="white" strokeWidth={1.5} />
-                    <span className="text-white text-xs font-medium leading-none">
+                  <div
+                    className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
+                    style={{
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                      transform: "translateY(-1px)",
+                    }}
+                  >
+                    <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                    <span className="text-[#065F46] text-xs font-semibold leading-none">
                       {airportMap[arrivalAirport].name}
                     </span>
                   </div>
@@ -880,7 +886,7 @@ const FlightDestResults = ({
                           <div
                             key={`flight-${idx}`}
                             data-flight-card
-                            className="relative flex justify-center w-full py-1.5 px-4"
+                            className="relative flex justify-center w-full py-1.5 px-[6px]"
                             style={{
                               animationDelay: `${tIdx * 70}ms`,
                               animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
@@ -912,7 +918,7 @@ const FlightDestResults = ({
                                       );
                                   }
                                 }}
-                                className="flex items-center px-3 py-3 text-left w-full"
+                                className="flex items-center px-3 py-[15px] text-left w-full"
                               >
                                 <div className="flex items-center gap-2.5 w-full">
                                   <img
