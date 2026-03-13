@@ -212,12 +212,16 @@ const FlightDestResults = ({
   responseData,
   hideHeader,
   hideBackground,
+  onBackOverride,
 }: {
   onBack: () => void;
   responseData: string;
   hideHeader?: boolean;
   hideBackground?: boolean;
+  /** If provided, the back button calls this instead of onBack */
+  onBackOverride?: () => void;
 }) => {
+  const handleBack = onBackOverride ?? onBack;
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
