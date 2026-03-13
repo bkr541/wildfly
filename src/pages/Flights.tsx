@@ -208,8 +208,11 @@ function AirportSearchSheet({
           transition={{ type: "spring", damping: 32, stiffness: 340 }}
           className="fixed inset-0 z-[9999] flex flex-col bg-white"
         >
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 pt-12 pb-3 border-b border-[#F0F1F1]">
+          {/* Title row */}
+          <div className="flex items-center justify-between px-4 pt-12 pb-2">
+            <p className="text-base font-bold text-[#2E4A4A]">
+              {label === "Departure" ? "Select Departure" : label === "Arrival" ? "Select Arrival" : `Select ${label}`}
+            </p>
             <button
               type="button"
               onClick={onClose}
@@ -217,7 +220,11 @@ function AirportSearchSheet({
             >
               <HugeiconsIcon icon={Cancel01Icon} size={18} color="currentColor" strokeWidth={2} />
             </button>
-            <div className="flex-1 app-input-container" style={{ minHeight: 44 }}>
+          </div>
+
+          {/* Search input row */}
+          <div className="px-4 pb-3 border-b border-[#F0F1F1]">
+            <div className="app-input-container" style={{ minHeight: 44 }}>
               <span className="app-input-icon-btn">
                 <HugeiconsIcon icon={Location01Icon} size={18} color="#059669" strokeWidth={2} />
               </span>
@@ -226,10 +233,13 @@ function AirportSearchSheet({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search ${label.toLowerCase()} airport or city…`}
+                placeholder={`Search airport or city…`}
                 className="app-input font-semibold"
                 style={{ fontSize: 16 }}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
               {query.length > 0 && (
                 <button
