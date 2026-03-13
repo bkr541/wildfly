@@ -610,7 +610,7 @@ const FlightsPage = ({
               airports={airports}
               disabled={searchAll}
               placeholder={searchAll ? "Searching all destinations" : "Search airport or city..."}
-              containerClassName="px-3 pt-1 pb-1"
+              containerClassName="px-3 pt-3 pb-3"
             />
           </div>
 
