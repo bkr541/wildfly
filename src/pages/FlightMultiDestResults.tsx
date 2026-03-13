@@ -346,8 +346,8 @@ const FlightMultiDestResults = ({
           {[
             { label: "DESTINATIONS", value: cards.length },
             { label: "TOTAL FLIGHTS", value: rawFlights.length },
-            { label: "NONSTOP", value: `${cards.filter((c) => c.hasNonstop).length} Dest.` },
-            { label: "GO WILD", value: `${cards.filter((c) => c.hasGoWild).length} Dest.` },
+            { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
+            { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
           ].map(({ label, value }) => (
             <div key={label} className="flex-1 flex flex-col items-center">
               <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
