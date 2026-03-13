@@ -337,7 +337,17 @@ const FlightMultiDestResults = ({
             className="text-white leading-tight"
             style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
           >
-            <span className="text-[36px] font-black">All Destinations</span>
+            {(() => {
+              // Check if this was a city area search
+              if (arrivalAirport?.startsWith("CITY:")) {
+                const cityName = arrivalAirport.replace("CITY:", "").replace(/\+/g, " ").toLowerCase()
+                  .split(" ")
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+                return <span className="text-[36px] font-black">{cityName}</span>;
+              }
+              return <span className="text-[36px] font-black">All Destinations</span>;
+            })()}
           </p>
 
           {formattedDate && (
