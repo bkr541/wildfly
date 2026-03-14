@@ -176,7 +176,7 @@ const FlightMultiDestResults = ({
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, location_id, locations(city, state_code, country)")
+        .select("iata_code, name, location_id, latitude, longitude, locations(city, state_code, country)")
         .in("iata_code", destinationCodes);
       if (data) {
         const map: typeof airportMap = {};
@@ -187,6 +187,8 @@ const FlightMultiDestResults = ({
             country: a.locations?.country ?? "",
             name: a.name ?? "",
             locationId: a.location_id ?? null,
+            latitude: a.latitude ?? null,
+            longitude: a.longitude ?? null,
           };
         }
         setAirportMap(map);
