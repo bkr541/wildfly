@@ -105,12 +105,12 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-3">
               {loading
                 ? [1, 2].map((i) => (
                   <div
                     key={i}
-                    className="rounded-2xl px-4 py-4 animate-pulse"
+                    className="rounded-2xl px-4 py-4 animate-pulse w-fit"
                     style={{
                       background: "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(18px)",
@@ -142,7 +142,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         y: 0,
                         transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                       }}
-                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform"
+                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform w-fit"
                       style={{
                         background: "rgba(255,255,255,0.82)",
                         backdropFilter: "blur(18px)",
