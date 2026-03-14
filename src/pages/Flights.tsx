@@ -627,12 +627,15 @@ function DatePickerSheet({
                   background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                   border: isToday ? "2px solid #10B981" : "1px solid #6EE7B7",
                 };
-              } else if (isToday && !isBlackout) {
+              } else if (isBlackout && !isSelected && !isDeparture) {
+                buttonStyle = {
+                  background: "#374151",
+                  ...(isToday ? { border: "2px solid #10B981" } : {}),
+                };
+              } else if (isToday) {
                 buttonStyle = {
                   border: "2px solid #10B981",
                 };
-              } else if (isBlackout && !isSelected && !isDeparture) {
-                buttonStyle = { background: "#374151" };
               }
 
               return (
