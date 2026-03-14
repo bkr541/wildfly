@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronDown, ArrowRight, CalendarDays } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, Earth01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon, EarthIcon } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 
 interface FlightSearch {
