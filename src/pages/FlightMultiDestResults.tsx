@@ -514,59 +514,51 @@ const FlightMultiDestResults = ({
         </header>
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-2">
-          {/* AppInput styled search */}
+        <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
+          {/* Left: active filter indicator */}
           <div className="flex-1">
-            <AppInput
-              icon={Search01Icon}
-              placeholder="Filter destinations..."
-              type="text"
-            />
-          </div>
-
-          {/* Right-aligned controls */}
-          <div className="flex items-center gap-2 justify-end flex-shrink-0">
-            {/* Active filter indicator */}
             {(filterNonstopOnly || filterGoWildOnly) && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
               </span>
             )}
-            {/* Sort button — icon only */}
+          </div>
+
+          {/* Right-aligned controls */}
+          <div className="flex items-center gap-2 justify-end flex-shrink-0">
+            {/* Map button */}
+            <button
+              type="button"
+              onClick={() => setMapSheet(true)}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E8EBEB] bg-white transition-all flex-shrink-0"
+            >
+              <HugeiconsIcon icon={MapsLocation02Icon} size={16} color="#10B981" strokeWidth={2} />
+            </button>
+            {/* Sort button */}
             <button
               type="button"
               onClick={() => setSortSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 sortBy !== "city"
-                  ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#10B981]",
+                  ? "bg-[#10B981] border-[#10B981]"
+                  : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon
-                icon={SortByDown02Icon}
-                size={16}
-                color="#10B981"
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#10B981" strokeWidth={2} />
             </button>
-            {/* Filter button — icon only */}
+            {/* Filter button */}
             <button
               type="button"
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 filterNonstopOnly || filterGoWildOnly
-                  ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#10B981]",
+                  ? "bg-[#10B981] border-[#10B981]"
+                  : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon
-                icon={FilterIcon}
-                size={16}
-                color="#10B981"
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={FilterIcon} size={16} color="#10B981" strokeWidth={2} />
             </button>
           </div>
         </div>
