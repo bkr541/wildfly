@@ -152,42 +152,42 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       }}
                     >
                       {/* Airport codes row */}
-                      <div className="flex items-center gap-1 mb-2.5">
-                        <span className="text-[22px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                      <div className="flex items-center gap-0.5 mb-2">
+                        <span className="text-[20px] font-black text-[#1a2e2e] leading-none tracking-tight">
                           {depCode}
                         </span>
-                        <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
+                        <ArrowRight size={13} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
                         {isAllDest ? (
                           <HugeiconsIcon
                             icon={EarthIcon}
-                            className="w-[22px] h-[22px] text-[#1a2e2e]"
+                            className="w-5 h-5 text-[#1a2e2e]"
                             strokeWidth={2.5}
                           />
                         ) : (
-                          <span className="text-[22px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                          <span className="text-[20px] font-black text-[#1a2e2e] leading-none tracking-tight">
                             {arrCode ?? "—"}
                           </span>
                         )}
                       </div>
 
-                      {/* Date row */}
-                      <div className="flex items-center gap-1 mb-2">
-                        <CalendarDays size={11} strokeWidth={2} className="text-[#9CA3AF] flex-shrink-0" />
-                        <span className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
-                          {dateRange}
+                      {/* Date + trip type on same row */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1 rounded-full px-2 py-0.5" style={{ background: "rgba(107,114,128,0.1)" }}>
+                          <CalendarDays size={10} strokeWidth={2} className="text-[#6B7280] flex-shrink-0" />
+                          <span className="text-[10px] font-semibold text-[#6B7280] leading-none whitespace-nowrap">
+                            {dateRange}
+                          </span>
+                        </div>
+                        <span
+                          className="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+                          style={{
+                            background: "rgba(16,185,129,0.13)",
+                            color: "#059669",
+                          }}
+                        >
+                          {tripLabel}
                         </span>
                       </div>
-
-                      {/* Trip type pill */}
-                      <span
-                        className="inline-block text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full"
-                        style={{
-                          background: "rgba(16,185,129,0.13)",
-                          color: "#059669",
-                        }}
-                      >
-                        {tripLabel}
-                      </span>
                     </motion.button>
                   );
                 })}
