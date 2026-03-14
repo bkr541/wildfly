@@ -142,7 +142,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         y: 0,
                         transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                       }}
-                      className="text-left rounded-2xl px-4 py-3.5 active:scale-[0.97] transition-transform"
+                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform"
                       style={{
                         background: "rgba(255,255,255,0.82)",
                         backdropFilter: "blur(18px)",
