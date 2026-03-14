@@ -152,7 +152,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       }}
                     >
                       {/* Airport codes row */}
-                      <div className="flex items-center gap-0.5 mb-2">
+                      <div className="flex items-center justify-center gap-0.5 mb-2">
                         <span className="text-[20px] font-black text-[#1a2e2e] leading-none tracking-tight">
                           {depCode}
                         </span>
