@@ -15,7 +15,7 @@ import {
   ArrowDown01Icon,
   AirplaneTakeOff02Icon,
   Search01Icon,
-  SunRise01Icon,
+  SunriseIcon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
