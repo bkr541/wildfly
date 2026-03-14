@@ -625,9 +625,9 @@ function DatePickerSheet({
               if ((isSelected || isDeparture) && !isBlackout) {
                 buttonStyle = {
                   background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
-                  border: "1px solid #6EE7B7",
+                  border: isToday ? "2px solid #10B981" : "1px solid #6EE7B7",
                 };
-              } else if (isToday && !isSelected && !isDeparture && !isBlackout) {
+              } else if (isToday && !isBlackout) {
                 buttonStyle = {
                   border: "2px solid #10B981",
                 };
