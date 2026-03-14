@@ -471,27 +471,26 @@ const FlightMultiDestResults = ({
           </div>
 
           {/* Title */}
-          <div className="relative mt-3">
+          <div className="relative mt-2">
             <div
-              className="flex items-baseline gap-2 leading-tight"
+              className="flex flex-col gap-2 leading-tight"
               style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
             >
               <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
+              {formattedDate && (
+                <div
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start"
+                  style={{
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                    transform: "translateY(-1px)",
+                  }}
+                >
+                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                  <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
+                </div>
+              )}
             </div>
-
-            {formattedDate && (
-              <div
-                className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-                style={{
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                  transform: "translateY(-1px)",
-                }}
-              >
-                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
-              </div>
-            )}
           </div>
 
           {/* Stats strip */}
@@ -502,11 +501,11 @@ const FlightMultiDestResults = ({
               { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
               { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
             ].map(({ label, value }) => (
-              <div key={label} className="flex-1 flex flex-col items-center">
+              <div key={label} className="flex-1 flex flex-col items-center gap-0">
                 <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                   {label}
                 </span>
-                <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+                <span className="text-[32px] font-bold text-white leading-tight text-center">{value}</span>
               </div>
             ))}
           </div>
