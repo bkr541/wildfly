@@ -195,7 +195,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
                           className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                          style={{ background: "rgba(16,185,129,0.13)", color: "#059669" }}
+                          style={{ background: "rgba(234,179,8,0.15)", color: "#854d0e" }}
                         >
                           <HugeiconsIcon icon={CalendarCheckOut02Icon} className="w-3 h-3" strokeWidth={2} />
                           {dateRange}
