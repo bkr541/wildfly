@@ -58,7 +58,8 @@ function parseDurationToMinutes(duration: string): number {
     const parts = raw.split(":").map((p) => p.trim());
     if (parts.length >= 3) {
       const hoursPart = parts[0];
-      let days = 0, hours = 0;
+      let days = 0,
+        hours = 0;
       if (hoursPart.includes(".")) {
         const [d, h] = hoursPart.split(".");
         days = parseInt(d, 10) || 0;
@@ -75,7 +76,7 @@ function parseDurationToMinutes(duration: string): number {
   }
   const hoursMatch = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
   const minsMatch = raw.match(/(\d+)\s*(min|m)\b/i);
-  return ((parseInt(hoursMatch?.[1] ?? "0", 10) || 0) * 60) + (parseInt(minsMatch?.[1] ?? "0", 10) || 0);
+  return (parseInt(hoursMatch?.[1] ?? "0", 10) || 0) * 60 + (parseInt(minsMatch?.[1] ?? "0", 10) || 0);
 }
 
 function formatDurationMinutes(mins: number): string {
@@ -123,7 +124,14 @@ const FlightMultiDestResults = ({
         arrivalAirport: parsed.arrivalAirport ?? "",
       };
     } catch {
-      return { rawFlights: [] as any[], departureDate: null, arrivalDate: null, tripType: "One Way", departureAirport: "", arrivalAirport: "" };
+      return {
+        rawFlights: [] as any[],
+        departureDate: null,
+        arrivalDate: null,
+        tripType: "One Way",
+        departureAirport: "",
+        arrivalAirport: "",
+      };
     }
   }, [responseData]);
 
@@ -190,9 +198,10 @@ const FlightMultiDestResults = ({
     const grouped: Record<string, any[]> = {};
     for (const f of rawFlights) {
       // Prefer last leg destination; fall back to top-level destination field
-      const dest = (Array.isArray(f.legs) && f.legs.length > 0)
-        ? (f.legs[f.legs.length - 1]?.destination ?? f.destination ?? "???")
-        : (f.destination ?? "???");
+      const dest =
+        Array.isArray(f.legs) && f.legs.length > 0
+          ? (f.legs[f.legs.length - 1]?.destination ?? f.destination ?? "???")
+          : (f.destination ?? "???");
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
     }
@@ -309,15 +318,19 @@ const FlightMultiDestResults = ({
   // Derive destination label
   const destinationLabel = useMemo(() => {
     if (arrivalAirport?.startsWith("CITY:")) {
-      return arrivalAirport.replace("CITY:", "").replace(/\+/g, " ").toLowerCase()
-        .split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      return arrivalAirport
+        .replace("CITY:", "")
+        .replace(/\+/g, " ")
+        .toLowerCase()
+        .split(" ")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
     }
     return "All Destinations";
   }, [arrivalAirport]);
 
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
-
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
       <motion.div
         className="sticky top-0 z-30 px-4 bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
@@ -361,7 +374,7 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                (filterNonstopOnly || filterGoWildOnly) ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
               )}
             >
               <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
@@ -387,285 +400,287 @@ const FlightMultiDestResults = ({
 
       {/* ── Scrollable content ────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
-
-      {/* ── Hero Header ─────────────────────────────────────── */}
-      <header
-        ref={heroRef}
-        className="flex flex-col px-5 pt-6 pb-[124px] overflow-hidden relative"
-        style={{
-          backgroundImage: `url('/assets/locations/init_background.png')`,
-          backgroundSize: "cover",
-          backgroundPosition: `center ${parallaxY}px`,
-          willChange: "background-position",
-        }}
-      >
-        {/* Green gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
+        {/* ── Hero Header ─────────────────────────────────────── */}
+        <header
+          ref={heroRef}
+          className="flex flex-col px-5 pt-6 pb-[112px] overflow-hidden relative"
           style={{
-            background:
-              "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
+            backgroundImage: `url('/assets/locations/init_background.png')`,
+            backgroundSize: "cover",
+            backgroundPosition: `center ${parallaxY}px`,
+            willChange: "background-position",
           }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
-          style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
-        />
+        >
+          {/* Green gradient overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
+            }}
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
+          />
 
-        {/* Back button */}
-        <div className="relative flex items-center w-full">
+          {/* Back button */}
+          <div className="relative flex items-center w-full">
+            <button
+              type="button"
+              onClick={onBack}
+              className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Title */}
+          <div className="relative mt-3">
+            <div
+              className="flex items-baseline gap-2 leading-tight"
+              style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+            >
+              <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
+              <span className="text-white text-[36px] font-black">{destinationLabel}</span>
+            </div>
+
+            {formattedDate && (
+              <div
+                className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
+                style={{
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                  transform: "translateY(-1px)",
+                }}
+              >
+                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Stats strip */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
+            {[
+              { label: "DESTINATIONS", value: cards.length },
+              { label: "TOTAL FLIGHTS", value: rawFlights.length },
+              { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
+              { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex-1 flex flex-col items-center">
+                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
+                  {label}
+                </span>
+                <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+              </div>
+            ))}
+          </div>
+        </header>
+
+        {/* ── Sort / filter bar ───────────────────────────────── */}
+        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
+          {/* Active filter indicator */}
+          {(filterNonstopOnly || filterGoWildOnly) && (
+            <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
+              {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+            </span>
+          )}
+          {/* Sort icon button */}
           <button
             type="button"
-            onClick={onBack}
-            className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
+            onClick={() => setSortSheet(true)}
+            className={cn(
+              "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+              sortBy !== "city"
+                ? "bg-[#10B981] border-[#10B981] text-white"
+                : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+            )}
           >
-            <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+            <HugeiconsIcon
+              icon={SortByDown02Icon}
+              size={18}
+              color={sortBy !== "city" ? "white" : "#6B7B7B"}
+              strokeWidth={2}
+            />
+          </button>
+          {/* Filter icon button */}
+          <button
+            type="button"
+            onClick={() => setFilterSheet(true)}
+            className={cn(
+              "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+              filterNonstopOnly || filterGoWildOnly
+                ? "bg-[#10B981] border-[#10B981] text-white"
+                : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+            )}
+          >
+            <HugeiconsIcon
+              icon={FilterIcon}
+              size={18}
+              color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
+              strokeWidth={2}
+            />
           </button>
         </div>
 
-        {/* Title */}
-        <div className="relative mt-3">
-          <p
-            className="text-white/70 text-[22px] font-light leading-tight"
-            style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
-          >
-            {originCity} to
-          </p>
-          <p
-            className="text-white leading-tight"
-            style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
-          >
-            <span className="text-[36px] font-black">{destinationLabel}</span>
-          </p>
+        {/* ── Destination cards list ───────────────────────────── */}
+        <div className="flex-1 flex flex-col px-4 py-4 gap-4 relative z-10">
+          {sortedCards.map((card) => {
+            const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
 
-          {formattedDate && (
-            <div
-              className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-              style={{
-                boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                transform: "translateY(-1px)",
-              }}
-            >
-              <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-              <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Stats strip */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
-          {[
-            { label: "DESTINATIONS", value: cards.length },
-            { label: "TOTAL FLIGHTS", value: rawFlights.length },
-            { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
-            { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex-1 flex flex-col items-center">
-              <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
-                {label}
-              </span>
-              <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
-            </div>
-          ))}
-        </div>
-      </header>
-
-      {/* ── Sort / filter bar ───────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
-        {/* Active filter indicator */}
-        {(filterNonstopOnly || filterGoWildOnly) && (
-          <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-            {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
-          </span>
-        )}
-        {/* Sort icon button */}
-        <button
-          type="button"
-          onClick={() => setSortSheet(true)}
-          className={cn(
-            "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
-            sortBy !== "city"
-              ? "bg-[#10B981] border-[#10B981] text-white"
-              : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
-          )}
-        >
-          <HugeiconsIcon icon={SortByDown02Icon} size={18} color={sortBy !== "city" ? "white" : "#6B7B7B"} strokeWidth={2} />
-        </button>
-        {/* Filter icon button */}
-        <button
-          type="button"
-          onClick={() => setFilterSheet(true)}
-          className={cn(
-            "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
-            (filterNonstopOnly || filterGoWildOnly)
-              ? "bg-[#10B981] border-[#10B981] text-white"
-              : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
-          )}
-        >
-          <HugeiconsIcon icon={FilterIcon} size={18} color={(filterNonstopOnly || filterGoWildOnly) ? "white" : "#6B7B7B"} strokeWidth={2} />
-        </button>
-      </div>
-
-      {/* ── Destination cards list ───────────────────────────── */}
-      <div className="flex-1 flex flex-col px-4 py-4 gap-4 relative z-10">
-        {sortedCards.map((card) => {
-          const bgImage = card.locationId
-            ? `/assets/locations/${card.locationId}_background.png`
-            : null;
-
-          return (
-            <div
-              key={card.destination}
-              className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB]"
-              style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
-            >
-              {/* City photo */}
-              <div className="relative h-[130px] overflow-hidden bg-[#C8D5D5]">
-                {bgImage ? (
-                  <img
-                    src={bgImage}
-                    alt={card.city}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                ) : (
+            return (
+              <div
+                key={card.destination}
+                className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB]"
+                style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+              >
+                {/* City photo */}
+                <div className="relative h-[130px] overflow-hidden bg-[#C8D5D5]">
+                  {bgImage ? (
+                    <img
+                      src={bgImage}
+                      alt={card.city}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full"
+                      style={{
+                        background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)",
+                        opacity: 0.6,
+                      }}
+                    />
+                  )}
+                  {/* Gradient scrim */}
                   <div
-                    className="w-full h-full"
+                    className="absolute inset-0 pointer-events-none"
                     style={{
-                      background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)",
-                      opacity: 0.6,
+                      background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                     }}
                   />
-                )}
-                {/* Gradient scrim */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
-                  }}
-                />
-                {/* GoWild badge — only shown if GoWild fares exist */}
-                {card.hasGoWild && (
-                  <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
-                    <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
-                    <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
-                  </div>
-                )}
-                {/* Nonstop badge */}
-                {card.hasNonstop && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                    <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Card body */}
-              <div className="px-4 pt-3 pb-3">
-                {/* City, State  |  IATA code */}
-                <div className="flex items-baseline justify-between mb-1">
-                  <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
-                    {card.city || card.destination}
-                    {(card.stateCode || card.country) && (
-                      <span className="text-[#6B7B7B] font-normal text-[16px]">
-                        {", "}{card.stateCode || card.country}
-                      </span>
-                    )}
-                  </h3>
-                  <span className="text-[15px] font-bold text-[#6B7B7B] leading-tight flex-shrink-0 ml-2">
-                    {card.destination}
-                  </span>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-[#F0F3F3] my-2.5" />
-
-                {/* Stats row */}
-                <div className="flex flex-col gap-1.5 mb-3">
-                  {card.minFare != null && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: "rgba(16,185,129,0.12)" }}
-                      >
-                        <HugeiconsIcon icon={TicketStarIcon} size={13} color="#10B981" strokeWidth={2} />
-                      </div>
-                      <span className="text-[13px] text-[#2E4A4A]">
-                        From{" "}
-                        <span className="font-bold text-[#1A2E2E]">
-                          ${card.minFare.toFixed(2)} USD
-                        </span>
-                      </span>
+                  {/* GoWild badge — only shown if GoWild fares exist */}
+                  {card.hasGoWild && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                      <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
+                      <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
                     </div>
                   )}
-                  {card.avgDurationMin > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: "rgba(107,123,123,0.10)" }}
-                      >
-                        <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-                      </div>
-                      <span className="text-[13px] text-[#2E4A4A]">
-                        Avg. Duration:{" "}
-                        <span className="font-semibold">~{formatDurationMinutes(card.avgDurationMin)}</span>
-                      </span>
-                    </div>
-                  )}
-                  {/* Nonstop pill — replaces the old "Non-Stop & Connecting" text row */}
+                  {/* Nonstop badge */}
                   {card.hasNonstop && (
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex items-center gap-1 bg-white border border-[#E8EBEB] rounded-full px-2.5 py-1" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                        <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                        <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
-                      </div>
-                    </div>
-                  )}
-                  {card.availableFareTypes.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: "rgba(107,123,123,0.10)" }}
-                      >
-                        <HugeiconsIcon icon={Route02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-                      </div>
-                      <span className="text-[13px] text-[#2E4A4A] truncate">
-                        {card.availableFareTypes.join(", ")}
-                      </span>
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
+                      <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
                     </div>
                   )}
                 </div>
 
-                {/* View Flights button row — flight count left, button right */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-[#6B7B7B] font-medium">
-                    {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleViewDest(card)}
-                    className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
-                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-                  >
-                    View Flights
-                  </button>
+                {/* Card body */}
+                <div className="px-4 pt-3 pb-3">
+                  {/* City, State  |  IATA code */}
+                  <div className="flex items-baseline justify-between mb-1">
+                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
+                      {card.city || card.destination}
+                      {(card.stateCode || card.country) && (
+                        <span className="text-[#6B7B7B] font-normal text-[16px]">
+                          {", "}
+                          {card.stateCode || card.country}
+                        </span>
+                      )}
+                    </h3>
+                    <span className="text-[15px] font-bold text-[#6B7B7B] leading-tight flex-shrink-0 ml-2">
+                      {card.destination}
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-[#F0F3F3] my-2.5" />
+
+                  {/* Stats row */}
+                  <div className="flex flex-col gap-1.5 mb-3">
+                    {card.minFare != null && (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(16,185,129,0.12)" }}
+                        >
+                          <HugeiconsIcon icon={TicketStarIcon} size={13} color="#10B981" strokeWidth={2} />
+                        </div>
+                        <span className="text-[13px] text-[#2E4A4A]">
+                          From <span className="font-bold text-[#1A2E2E]">${card.minFare.toFixed(2)} USD</span>
+                        </span>
+                      </div>
+                    )}
+                    {card.avgDurationMin > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                        </div>
+                        <span className="text-[13px] text-[#2E4A4A]">
+                          Avg. Duration:{" "}
+                          <span className="font-semibold">~{formatDurationMinutes(card.avgDurationMin)}</span>
+                        </span>
+                      </div>
+                    )}
+                    {/* Nonstop pill — replaces the old "Non-Stop & Connecting" text row */}
+                    {card.hasNonstop && (
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="flex items-center gap-1 bg-white border border-[#E8EBEB] rounded-full px-2.5 py-1"
+                          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+                        >
+                          <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
+                          <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
+                        </div>
+                      </div>
+                    )}
+                    {card.availableFareTypes.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={Route02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                        </div>
+                        <span className="text-[13px] text-[#2E4A4A] truncate">
+                          {card.availableFareTypes.join(", ")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* View Flights button row — flight count left, button right */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-[#6B7B7B] font-medium">
+                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleViewDest(card)}
+                      className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
+                      style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                    >
+                      View Flights
+                    </button>
+                  </div>
                 </div>
               </div>
+            );
+          })}
+
+          {sortedCards.length === 0 && (
+            <div className="flex-1 flex items-center justify-center py-20">
+              <p className="text-sm text-[#6B7B7B] text-center">No destinations found.</p>
             </div>
-          );
-        })}
-
-        {sortedCards.length === 0 && (
-          <div className="flex-1 flex items-center justify-center py-20">
-            <p className="text-sm text-[#6B7B7B] text-center">No destinations found.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-
-      </div>{/* end scrollRef */}
+      {/* end scrollRef */}
 
       {/* ── Sort Sheet ──────────────────────────────────────── */}
       <AnimatePresence>
@@ -695,37 +710,65 @@ const FlightMultiDestResults = ({
               </div>
               {/* Header */}
               <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                <div
+                  className="h-8 w-8 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
                   <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
                 </div>
                 <h2 className="text-base font-bold text-[#2E4A4A]">Sort By</h2>
               </div>
               {/* Options */}
               <div className="flex flex-col py-2 pb-8">
-                {([
-                  { key: "city", label: "A–Z (City Name)", desc: "Alphabetical order", icon: CheckmarkCircle02Icon },
-                  { key: "fare", label: "Lowest Price", desc: "Cheapest fares first", icon: DollarCircleIcon },
-                  { key: "flights", label: "Most Flights", desc: "Most available flights first", icon: AirplaneTakeOff02Icon },
-                  { key: "duration", label: "Shortest Duration", desc: "Quickest flights first", icon: Clock01Icon },
-                ] as const).map(({ key, label, desc, icon }) => (
+                {(
+                  [
+                    { key: "city", label: "A–Z (City Name)", desc: "Alphabetical order", icon: CheckmarkCircle02Icon },
+                    { key: "fare", label: "Lowest Price", desc: "Cheapest fares first", icon: DollarCircleIcon },
+                    {
+                      key: "flights",
+                      label: "Most Flights",
+                      desc: "Most available flights first",
+                      icon: AirplaneTakeOff02Icon,
+                    },
+                    { key: "duration", label: "Shortest Duration", desc: "Quickest flights first", icon: Clock01Icon },
+                  ] as const
+                ).map(({ key, label, desc, icon }) => (
                   <button
                     key={key}
                     type="button"
-                    onClick={() => { setSortBy(key); setSortSheet(false); }}
+                    onClick={() => {
+                      setSortBy(key);
+                      setSortSheet(false);
+                    }}
                     className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
                   >
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: sortBy === key ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                      style={{
+                        background:
+                          sortBy === key
+                            ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                            : "rgba(107,123,123,0.10)",
+                      }}
                     >
-                      <HugeiconsIcon icon={icon} size={17} color={sortBy === key ? "white" : "#6B7B7B"} strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={icon}
+                        size={17}
+                        color={sortBy === key ? "white" : "#6B7B7B"}
+                        strokeWidth={2}
+                      />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className={cn("text-sm font-semibold", sortBy === key ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className={cn("text-sm font-semibold", sortBy === key ? "text-[#059669]" : "text-[#2E4A4A]")}>
+                        {label}
+                      </p>
                       <p className="text-xs text-[#9CA3AF]">{desc}</p>
                     </div>
                     {sortBy === key && (
-                      <div className="h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                      <div
+                        className="h-5 w-5 rounded-full flex items-center justify-center"
+                        style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                      >
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color="white" strokeWidth={2.5} />
                       </div>
                     )}
@@ -766,7 +809,10 @@ const FlightMultiDestResults = ({
               {/* Header */}
               <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                  >
                     <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
                   </div>
                   <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
@@ -774,7 +820,10 @@ const FlightMultiDestResults = ({
                 {(filterNonstopOnly || filterGoWildOnly) && (
                   <button
                     type="button"
-                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                    onClick={() => {
+                      setFilterNonstopOnly(false);
+                      setFilterGoWildOnly(false);
+                    }}
                     className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
                   >
                     Clear all
@@ -783,7 +832,7 @@ const FlightMultiDestResults = ({
               </div>
               {/* Filter options */}
               <div className="flex flex-col py-2 pb-8">
-                {([
+                {[
                   {
                     key: "nonstop",
                     label: "Nonstop Only",
@@ -800,7 +849,7 @@ const FlightMultiDestResults = ({
                     active: filterGoWildOnly,
                     toggle: () => setFilterGoWildOnly((v) => !v),
                   },
-                ]).map(({ key, label, desc, icon, active, toggle }) => (
+                ].map(({ key, label, desc, icon, active, toggle }) => (
                   <button
                     key={key}
                     type="button"
@@ -809,12 +858,18 @@ const FlightMultiDestResults = ({
                   >
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                      style={{
+                        background: active
+                          ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                          : "rgba(107,123,123,0.10)",
+                      }}
                     >
                       <HugeiconsIcon icon={icon} size={17} color={active ? "white" : "#6B7B7B"} strokeWidth={2} />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className={cn("text-sm font-semibold", active ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                      <p className={cn("text-sm font-semibold", active ? "text-[#059669]" : "text-[#2E4A4A]")}>
+                        {label}
+                      </p>
                       <p className="text-xs text-[#9CA3AF]">{desc}</p>
                     </div>
                     {/* Toggle pill */}
