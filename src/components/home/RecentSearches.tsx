@@ -39,6 +39,17 @@ const TRIP_LABELS: Record<string, string> = {
   "multi_day": "Multi Day",
 };
 
+const TRIP_ICONS: Record<string, React.ComponentType<any>> = {
+  "one-way": ArrowRight04Icon,
+  "one_way": ArrowRight04Icon,
+  "round-trip": CircleArrowReload01Icon,
+  "round_trip": CircleArrowReload01Icon,
+  "day-trip": SunCloud01Icon,
+  "day_trip": SunCloud01Icon,
+  "multi-day": MapPinpoint01Icon,
+  "multi_day": MapPinpoint01Icon,
+};
+
 /** Extract display code from airport or city string */
 function displayCode(code: string | null): string | null {
   if (!code) return null;
