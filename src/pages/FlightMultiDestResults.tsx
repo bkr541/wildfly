@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -12,16 +12,17 @@ import {
   Route02Icon,
   CheckmarkCircle02Icon,
   DollarCircleIcon,
-  ArrowDown01Icon,
   AirplaneTakeOff02Icon,
-  Search01Icon,
   SunriseIcon,
+  MapsLocation02Icon,
+  AirportIcon,
+  MapPinHouseIcon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-import { AppInput } from "@/components/ui/app-input";
+const MultiDestMap = lazy(() => import("@/components/MultiDestMap"));
 
 // ── Types ────────────────────────────────────────────────────
 
