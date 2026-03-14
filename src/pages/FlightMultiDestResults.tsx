@@ -49,6 +49,8 @@ interface DestCard {
   hasGoWild: boolean;
   hasNonstop: boolean;
   avgDurationMin: number;
+  minDurationMin: number;
+  departureWindow: string | null;
   availableFareTypes: string[];
 }
 
