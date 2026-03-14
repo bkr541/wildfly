@@ -471,27 +471,26 @@ const FlightMultiDestResults = ({
           </div>
 
           {/* Title */}
-          <div className="relative mt-3">
+          <div className="relative mt-2">
             <div
-              className="flex items-baseline gap-2 leading-tight"
+              className="flex flex-col gap-2 leading-tight"
               style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
             >
               <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
+              {formattedDate && (
+                <div
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start"
+                  style={{
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                    transform: "translateY(-1px)",
+                  }}
+                >
+                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                  <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
+                </div>
+              )}
             </div>
-
-            {formattedDate && (
-              <div
-                className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-                style={{
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                  transform: "translateY(-1px)",
-                }}
-              >
-                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
-              </div>
-            )}
           </div>
 
           {/* Stats strip */}
@@ -502,11 +501,11 @@ const FlightMultiDestResults = ({
               { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
               { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
             ].map(({ label, value }) => (
-              <div key={label} className="flex-1 flex flex-col items-center">
+              <div key={label} className="flex-1 flex flex-col items-center gap-0">
                 <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                   {label}
                 </span>
-                <span className="text-[34px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
+                <span className="text-[32px] font-bold text-white leading-tight text-center">{value}</span>
               </div>
             ))}
           </div>
@@ -539,13 +538,13 @@ const FlightMultiDestResults = ({
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 sortBy !== "city"
                   ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+                  : "bg-white border-[#E8EBEB] text-[#10B981]",
               )}
             >
               <HugeiconsIcon
                 icon={SortByDown02Icon}
                 size={16}
-                color={sortBy !== "city" ? "white" : "#6B7B7B"}
+                color="#10B981"
                 strokeWidth={2}
               />
             </button>
@@ -557,13 +556,13 @@ const FlightMultiDestResults = ({
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 filterNonstopOnly || filterGoWildOnly
                   ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+                  : "bg-white border-[#E8EBEB] text-[#10B981]",
               )}
             >
               <HugeiconsIcon
                 icon={FilterIcon}
                 size={16}
-                color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
+                color="#10B981"
                 strokeWidth={2}
               />
             </button>
@@ -613,13 +612,6 @@ const FlightMultiDestResults = ({
                     <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
                       <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
                       <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
-                    </div>
-                  )}
-                  {/* Nonstop badge — top LEFT of hero image */}
-                  {card.hasNonstop && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                      <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
                     </div>
                   )}
                 </div>
@@ -688,18 +680,6 @@ const FlightMultiDestResults = ({
                           Departs:{" "}
                           <span className="font-semibold">{card.departureWindow}</span>
                         </span>
-                      </div>
-                    )}
-                    {/* Nonstop pill */}
-                    {card.hasNonstop && (
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="flex items-center gap-1 bg-white border border-[#E8EBEB] rounded-full px-2.5 py-1"
-                          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-                        >
-                          <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                          <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
-                        </div>
                       </div>
                     )}
                     {card.availableFareTypes.length > 0 && (
