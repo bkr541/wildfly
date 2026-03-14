@@ -383,8 +383,9 @@ const FlightMultiDestResults = ({
       fromCache: false,
     });
     onViewDest(singlePayload);
-  };
-
+      };
+    });
+  }, [rawFlights, airportMap]);
   const formattedDate = useMemo(() => {
     if (!departureDate) return null;
     return new Date(departureDate).toLocaleDateString("en-US", {
