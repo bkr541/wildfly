@@ -21,7 +21,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 import { AppInput } from "@/components/ui/app-input";
-import { Search01Icon } from "@hugeicons/core-free-icons";
 
 // ── Types ────────────────────────────────────────────────────
 
