@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -12,16 +12,15 @@ import {
   Route02Icon,
   CheckmarkCircle02Icon,
   DollarCircleIcon,
-  ArrowDown01Icon,
   AirplaneTakeOff02Icon,
-  Search01Icon,
   SunriseIcon,
+  MapsLocation02Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-import { AppInput } from "@/components/ui/app-input";
+const MultiDestMap = lazy(() => import("@/components/MultiDestMap"));
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -105,11 +104,12 @@ const FlightMultiDestResults = ({
   onViewDest: (destResponseData: string) => void;
 }) => {
   const [airportMap, setAirportMap] = useState<
-    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
+    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null; latitude: number | null; longitude: number | null }>
   >({});
   const [sortBy, setSortBy] = useState<"city" | "fare" | "flights" | "duration">("city");
   const [sortSheet, setSortSheet] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [mapSheet, setMapSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
@@ -176,7 +176,7 @@ const FlightMultiDestResults = ({
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, location_id, locations(city, state_code, country)")
+        .select("iata_code, name, location_id, latitude, longitude, locations(city, state_code, country)")
         .in("iata_code", destinationCodes);
       if (data) {
         const map: typeof airportMap = {};
@@ -187,6 +187,8 @@ const FlightMultiDestResults = ({
             country: a.locations?.country ?? "",
             name: a.name ?? "",
             locationId: a.location_id ?? null,
+            latitude: a.latitude ?? null,
+            longitude: a.longitude ?? null,
           };
         }
         setAirportMap(map);
@@ -364,6 +366,25 @@ const FlightMultiDestResults = ({
     return "All Destinations";
   }, [arrivalAirport]);
 
+  // ── Map data ──────────────────────────────────────────────
+  const depLatLng = useMemo<[number, number] | null>(() => {
+    const a = airportMap[departureAirport];
+    if (a?.latitude != null && a?.longitude != null) return [a.latitude, a.longitude];
+    return null;
+  }, [airportMap, departureAirport]);
+
+  const mapDestinations = useMemo(() => {
+    return cards
+      .map((c) => {
+        const a = airportMap[c.destination];
+        if (a?.latitude != null && a?.longitude != null) {
+          return { iata: c.destination, latLng: [a.latitude, a.longitude] as [number, number] };
+        }
+        return null;
+      })
+      .filter((d): d is { iata: string; latLng: [number, number] } => d !== null);
+  }, [cards, airportMap]);
+
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
@@ -512,59 +533,51 @@ const FlightMultiDestResults = ({
         </header>
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-2">
-          {/* AppInput styled search */}
+        <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
+          {/* Left: active filter indicator */}
           <div className="flex-1">
-            <AppInput
-              icon={Search01Icon}
-              placeholder="Filter destinations..."
-              type="text"
-            />
-          </div>
-
-          {/* Right-aligned controls */}
-          <div className="flex items-center gap-2 justify-end flex-shrink-0">
-            {/* Active filter indicator */}
             {(filterNonstopOnly || filterGoWildOnly) && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
               </span>
             )}
-            {/* Sort button — icon only */}
+          </div>
+
+          {/* Right-aligned controls */}
+          <div className="flex items-center gap-2 justify-end flex-shrink-0">
+            {/* Map button */}
+            <button
+              type="button"
+              onClick={() => setMapSheet(true)}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E8EBEB] bg-white transition-all flex-shrink-0"
+            >
+              <HugeiconsIcon icon={MapsLocation02Icon} size={16} color="#10B981" strokeWidth={2} />
+            </button>
+            {/* Sort button */}
             <button
               type="button"
               onClick={() => setSortSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 sortBy !== "city"
-                  ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#10B981]",
+                  ? "bg-[#10B981] border-[#10B981]"
+                  : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon
-                icon={SortByDown02Icon}
-                size={16}
-                color="#10B981"
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#10B981" strokeWidth={2} />
             </button>
-            {/* Filter button — icon only */}
+            {/* Filter button */}
             <button
               type="button"
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 filterNonstopOnly || filterGoWildOnly
-                  ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#10B981]",
+                  ? "bg-[#10B981] border-[#10B981]"
+                  : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon
-                icon={FilterIcon}
-                size={16}
-                color="#10B981"
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={FilterIcon} size={16} color="#10B981" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -934,6 +947,83 @@ const FlightMultiDestResults = ({
                 >
                   Apply Filters
                 </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Map Sheet ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {mapSheet && (
+          <>
+            <motion.div
+              key="map-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+              onClick={() => setMapSheet(false)}
+            />
+            <motion.div
+              key="map-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl overflow-hidden"
+              style={{ maxWidth: "768px", margin: "0 auto", height: "72vh" }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1] flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                  >
+                    <HugeiconsIcon icon={MapsLocation02Icon} size={15} color="white" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#2E4A4A] leading-tight">Route Map</h2>
+                    <p className="text-[11px] text-[#9CA3AF]">{departureAirport} → {mapDestinations.length} destination{mapDestinations.length !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMapSheet(false)}
+                  className="h-8 w-8 flex items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280]"
+                >
+                  <span className="text-lg leading-none">×</span>
+                </button>
+              </div>
+              {/* Map */}
+              <div className="flex-1 relative min-h-0">
+                {depLatLng && mapDestinations.length > 0 ? (
+                  <Suspense fallback={
+                    <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                      <span className="text-sm text-[#6B7B7B]">Loading map…</span>
+                    </div>
+                  }>
+                    <MultiDestMap
+                      depIata={departureAirport}
+                      depLatLng={depLatLng}
+                      destinations={mapDestinations}
+                    />
+                  </Suspense>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                    <p className="text-sm text-[#6B7B7B] text-center px-8">
+                      {depLatLng == null
+                        ? "Departure airport coordinates not available."
+                        : "No destination coordinates available yet."}
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </>
