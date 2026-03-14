@@ -682,7 +682,7 @@ const FlightMultiDestResults = ({
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
-                          <HugeiconsIcon icon={SunRise01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
                         <span className="text-[13px] text-[#2E4A4A]">
                           Departs:{" "}
