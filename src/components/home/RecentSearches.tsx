@@ -39,7 +39,7 @@ const TRIP_LABELS: Record<string, string> = {
   "multi_day": "Multi Day",
 };
 
-const TRIP_ICONS: Record<string, React.ComponentType<any>> = {
+const TRIP_ICONS: Record<string, any> = {
   "one-way": ArrowRight04Icon,
   "one_way": ArrowRight04Icon,
   "round-trip": CircleArrowReload01Icon,
