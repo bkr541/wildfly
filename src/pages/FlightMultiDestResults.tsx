@@ -614,13 +614,6 @@ const FlightMultiDestResults = ({
                       <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
                     </div>
                   )}
-                  {/* Nonstop badge — top LEFT of hero image */}
-                  {card.hasNonstop && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                      <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Card body */}
