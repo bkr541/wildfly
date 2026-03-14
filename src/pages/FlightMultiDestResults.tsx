@@ -538,13 +538,13 @@ const FlightMultiDestResults = ({
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 sortBy !== "city"
                   ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+                  : "bg-white border-[#E8EBEB] text-[#10B981]",
               )}
             >
               <HugeiconsIcon
                 icon={SortByDown02Icon}
                 size={16}
-                color={sortBy !== "city" ? "white" : "#6B7B7B"}
+                color="#10B981"
                 strokeWidth={2}
               />
             </button>
@@ -556,13 +556,13 @@ const FlightMultiDestResults = ({
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 filterNonstopOnly || filterGoWildOnly
                   ? "bg-[#10B981] border-[#10B981] text-white"
-                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+                  : "bg-white border-[#E8EBEB] text-[#10B981]",
               )}
             >
               <HugeiconsIcon
                 icon={FilterIcon}
                 size={16}
-                color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
+                color="#10B981"
                 strokeWidth={2}
               />
             </button>
