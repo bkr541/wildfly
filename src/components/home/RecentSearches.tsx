@@ -163,7 +163,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         y: 0,
                         transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                       }}
-                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform w-fit"
+                      className="text-left rounded-2xl px-2.5 py-2 active:scale-[0.97] transition-transform w-fit"
                       style={{
                         background: "rgba(255,255,255,0.82)",
                         backdropFilter: "blur(18px)",
@@ -195,13 +195,13 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
                           className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                          style={{ background: "rgba(16,185,129,0.13)", color: "#059669" }}
+                          style={{ background: "rgba(234,179,8,0.15)", color: "#854d0e" }}
                         >
                           <HugeiconsIcon icon={CalendarCheckOut02Icon} className="w-3 h-3" strokeWidth={2} />
                           {dateRange}
                         </span>
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
                           style={{ background: "rgba(16,185,129,0.13)", color: "#059669" }}
                         >
                           <HugeiconsIcon icon={tripIcon} className="w-3 h-3" strokeWidth={2} />
