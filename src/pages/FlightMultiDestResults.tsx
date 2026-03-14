@@ -237,7 +237,83 @@ const FlightMultiDestResults = ({
         return min == null || cheapest < min ? cheapest : min;
       }, null);
 
-      // Duration: use normalized total_duration string, fall back to raw duration
+      // Duration: min (shortest) and avg
+      let minDurationMin = Infinity;
+      const totalDurMins = flts.reduce((sum, f) => {
+        const durStr = f.total_duration ?? f.duration ?? "";
+        const mins = parseDurationToMinutes(durStr);
+        if (mins > 0 && mins < minDurationMin) minDurationMin = mins;
+        return sum + mins;
+      }, 0);
+      const avgDurationMin = flts.length > 0 ? Math.round(totalDurMins / flts.length) : 0;
+      if (minDurationMin === Infinity) minDurationMin = 0;
+
+      // Departure window: earliest and latest departure times across all flights
+      const depTimes: number[] = [];
+      for (const f of flts) {
+        const depStr: string =
+          (Array.isArray(f.legs) && f.legs.length > 0 ? f.legs[0]?.departure_time : null) ??
+          f.departureTime ??
+          f.depart_time ??
+          "";
+        if (!depStr) continue;
+        const d = new Date(depStr);
+        if (!isNaN(d.getTime())) {
+          depTimes.push(d.getHours() * 60 + d.getMinutes());
+        } else {
+          const m = depStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+          if (m) {
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            if (m[3].toUpperCase() === "PM" && h !== 12) h += 12;
+            if (m[3].toUpperCase() === "AM" && h === 12) h = 0;
+            depTimes.push(h * 60 + min);
+          }
+        }
+      }
+      const fmtWindowTime = (totalMins: number) => {
+        const h24 = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        const ampm = h24 >= 12 ? "PM" : "AM";
+        const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+        return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+      };
+      let departureWindow: string | null = null;
+      if (depTimes.length > 0) {
+        departureWindow = `${fmtWindowTime(Math.min(...depTimes))} – ${fmtWindowTime(Math.max(...depTimes))}`;
+      }
+
+      // GoWild: normalized fares.basic is the GoWild/cheapest fare
+      const hasGoWild = flts.some((f) => {
+        const basic = f.fares?.basic;
+        if (basic != null && Number(basic) > 0) return true;
+        const gw = f.rawPayload?.fares?.go_wild?.total;
+        return gw != null && Number(gw) > 0;
+      });
+
+      // Nonstop: use legs array length; fall back to stops field
+      const hasNonstop = flts.some((f) => {
+        if (Array.isArray(f.legs)) return f.legs.length === 1;
+        return (f.stops ?? 1) === 0;
+      });
+
+      return {
+        destination: dest,
+        city: airportMap[dest]?.city ?? dest,
+        stateCode: airportMap[dest]?.stateCode ?? "",
+        country: airportMap[dest]?.country ?? "",
+        airportName: airportMap[dest]?.name ?? "",
+        locationId: airportMap[dest]?.locationId ?? null,
+        flights: flts,
+        flightCount: flts.length,
+        minFare,
+        hasGoWild,
+        hasNonstop,
+        avgDurationMin,
+        minDurationMin,
+        departureWindow,
+        availableFareTypes: [],
+      };
       const totalDurMins = flts.reduce((sum, f) => {
         const durStr = f.total_duration ?? f.duration ?? "";
         return sum + parseDurationToMinutes(durStr);
