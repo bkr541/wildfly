@@ -366,6 +366,25 @@ const FlightMultiDestResults = ({
     return "All Destinations";
   }, [arrivalAirport]);
 
+  // ── Map data ──────────────────────────────────────────────
+  const depLatLng = useMemo<[number, number] | null>(() => {
+    const a = airportMap[departureAirport];
+    if (a?.latitude != null && a?.longitude != null) return [a.latitude, a.longitude];
+    return null;
+  }, [airportMap, departureAirport]);
+
+  const mapDestinations = useMemo(() => {
+    return cards
+      .map((c) => {
+        const a = airportMap[c.destination];
+        if (a?.latitude != null && a?.longitude != null) {
+          return { iata: c.destination, latLng: [a.latitude, a.longitude] as [number, number] };
+        }
+        return null;
+      })
+      .filter((d): d is { iata: string; latLng: [number, number] } => d !== null);
+  }, [cards, airportMap]);
+
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
