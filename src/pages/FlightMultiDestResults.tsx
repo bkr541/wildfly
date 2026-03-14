@@ -682,18 +682,6 @@ const FlightMultiDestResults = ({
                         </span>
                       </div>
                     )}
-                    {/* Nonstop pill */}
-                    {card.hasNonstop && (
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="flex items-center gap-1 bg-white border border-[#E8EBEB] rounded-full px-2.5 py-1"
-                          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-                        >
-                          <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
-                          <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
-                        </div>
-                      </div>
-                    )}
                     {card.availableFareTypes.length > 0 && (
                       <div className="flex items-center gap-2">
                         <div
