@@ -19,8 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-// Import the new animated input components
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/animated-input";
+import { AppInput } from "@/components/ui/app-input";
+import { Search01Icon } from "@hugeicons/core-free-icons";
 
 // ── Types ────────────────────────────────────────────────────
 
