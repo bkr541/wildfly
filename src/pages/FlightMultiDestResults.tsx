@@ -952,6 +952,83 @@ const FlightMultiDestResults = ({
           </>
         )}
       </AnimatePresence>
+
+      {/* ── Map Sheet ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {mapSheet && (
+          <>
+            <motion.div
+              key="map-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+              onClick={() => setMapSheet(false)}
+            />
+            <motion.div
+              key="map-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl overflow-hidden"
+              style={{ maxWidth: "768px", margin: "0 auto", height: "72vh" }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1] flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                  >
+                    <HugeiconsIcon icon={MapsLocation02Icon} size={15} color="white" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#2E4A4A] leading-tight">Route Map</h2>
+                    <p className="text-[11px] text-[#9CA3AF]">{departureAirport} → {mapDestinations.length} destination{mapDestinations.length !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMapSheet(false)}
+                  className="h-8 w-8 flex items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280]"
+                >
+                  <span className="text-lg leading-none">×</span>
+                </button>
+              </div>
+              {/* Map */}
+              <div className="flex-1 relative min-h-0">
+                {depLatLng && mapDestinations.length > 0 ? (
+                  <Suspense fallback={
+                    <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                      <span className="text-sm text-[#6B7B7B]">Loading map…</span>
+                    </div>
+                  }>
+                    <MultiDestMap
+                      depIata={departureAirport}
+                      depLatLng={depLatLng}
+                      destinations={mapDestinations}
+                    />
+                  </Suspense>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                    <p className="text-sm text-[#6B7B7B] text-center px-8">
+                      {depLatLng == null
+                        ? "Departure airport coordinates not available."
+                        : "No destination coordinates available yet."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
