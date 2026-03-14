@@ -15,6 +15,7 @@ import {
   ArrowDown01Icon,
   AirplaneTakeOff02Icon,
   Search01Icon,
+  SunriseIcon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,8 @@ interface DestCard {
   hasGoWild: boolean;
   hasNonstop: boolean;
   avgDurationMin: number;
+  minDurationMin: number;
+  departureWindow: string | null;
   availableFareTypes: string[];
 }
 
@@ -142,14 +145,12 @@ const FlightMultiDestResults = ({
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
     for (const f of rawFlights) {
-      // Normalized: use legs array for airport codes
       if (Array.isArray(f.legs)) {
         for (const leg of f.legs) {
           if (leg.origin) codes.add(leg.origin);
           if (leg.destination) codes.add(leg.destination);
         }
       } else {
-        // Fallback: top-level fields preserved by spread in normalizer
         if (f.destination) codes.add(f.destination);
         if (f.origin) codes.add(f.origin);
       }
@@ -164,7 +165,6 @@ const FlightMultiDestResults = ({
     const handler = () => {
       const heroH = heroRef.current?.offsetHeight ?? 200;
       setCompactHeader(el.scrollTop > heroH * 0.6);
-      // Parallax: move bg at 40% of scroll speed
       setParallaxY(el.scrollTop * 0.4);
     };
     el.addEventListener("scroll", handler, { passive: true });
@@ -195,12 +195,9 @@ const FlightMultiDestResults = ({
   }, [destinationCodes]);
 
   // ── Build destination cards ──────────────────────────────
-  // Normalized format: each flight has `legs`, `fares.{basic,economy,premium,business}`,
-  // `total_duration`, `is_plus_one_day`, plus original fields spread in.
   const cards: DestCard[] = useMemo(() => {
     const grouped: Record<string, any[]> = {};
     for (const f of rawFlights) {
-      // Prefer last leg destination; fall back to top-level destination field
       const dest =
         Array.isArray(f.legs) && f.legs.length > 0
           ? (f.legs[f.legs.length - 1]?.destination ?? f.destination ?? "???")
@@ -216,15 +213,12 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      // Use normalized fares first; fall back to rawPayload for cache-miss data
       const minFare = flts.reduce<number | null>((min, f) => {
         const nFares = f.fares ?? {};
-        // normalized fares: basic is already the cheapest available
         const candidates: number[] = [
           cleanFare(nFares.basic),
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
-          // fallback to rawPayload in case this is an un-normalized entry
           cleanFare(f.rawPayload?.fares?.go_wild?.total),
           cleanFare(f.rawPayload?.fares?.discount_den?.total),
           cleanFare(f.rawPayload?.fares?.standard?.total),
@@ -235,18 +229,56 @@ const FlightMultiDestResults = ({
         return min == null || cheapest < min ? cheapest : min;
       }, null);
 
-      // Duration: use normalized total_duration string, fall back to raw duration
+      // Duration: shortest (min) and avg
+      let minDurationMin = Infinity;
       const totalDurMins = flts.reduce((sum, f) => {
         const durStr = f.total_duration ?? f.duration ?? "";
-        return sum + parseDurationToMinutes(durStr);
+        const mins = parseDurationToMinutes(durStr);
+        if (mins > 0 && mins < minDurationMin) minDurationMin = mins;
+        return sum + mins;
       }, 0);
       const avgDurationMin = flts.length > 0 ? Math.round(totalDurMins / flts.length) : 0;
+      if (minDurationMin === Infinity) minDurationMin = 0;
+
+      // Departure window: earliest and latest departure times across all flights
+      const depTimeMins: number[] = [];
+      for (const f of flts) {
+        const depStr: string =
+          (Array.isArray(f.legs) && f.legs.length > 0 ? f.legs[0]?.departure_time : null) ??
+          f.departureTime ??
+          f.depart_time ??
+          "";
+        if (!depStr) continue;
+        const d = new Date(depStr);
+        if (!isNaN(d.getTime())) {
+          depTimeMins.push(d.getHours() * 60 + d.getMinutes());
+        } else {
+          const m = depStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+          if (m) {
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            if (m[3].toUpperCase() === "PM" && h !== 12) h += 12;
+            if (m[3].toUpperCase() === "AM" && h === 12) h = 0;
+            depTimeMins.push(h * 60 + min);
+          }
+        }
+      }
+      const fmtWindowTime = (totalMins: number) => {
+        const h24 = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        const ampm = h24 >= 12 ? "PM" : "AM";
+        const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+        return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+      };
+      let departureWindow: string | null = null;
+      if (depTimeMins.length > 0) {
+        departureWindow = `${fmtWindowTime(Math.min(...depTimeMins))} – ${fmtWindowTime(Math.max(...depTimeMins))}`;
+      }
 
       // GoWild: normalized fares.basic is the GoWild/cheapest fare
       const hasGoWild = flts.some((f) => {
         const basic = f.fares?.basic;
         if (basic != null && Number(basic) > 0) return true;
-        // fallback
         const gw = f.rawPayload?.fares?.go_wild?.total;
         return gw != null && Number(gw) > 0;
       });
@@ -270,6 +302,8 @@ const FlightMultiDestResults = ({
         hasGoWild,
         hasNonstop,
         avgDurationMin,
+        minDurationMin,
+        departureWindow,
         availableFareTypes: [],
       };
     });
@@ -294,9 +328,8 @@ const FlightMultiDestResults = ({
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
-    const singleDestFlights = card.flights;
     const singlePayload = JSON.stringify({
-      response: { flights: singleDestFlights },
+      response: { flights: card.flights },
       departureDate,
       arrivalDate,
       tripType,
@@ -318,7 +351,6 @@ const FlightMultiDestResults = ({
 
   const originCity = airportMap[departureAirport]?.city || departureAirport;
 
-  // Derive destination label
   const destinationLabel = useMemo(() => {
     if (arrivalAirport?.startsWith("CITY:")) {
       return arrivalAirport
@@ -499,12 +531,12 @@ const FlightMultiDestResults = ({
                 {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
               </span>
             )}
-            {/* Sort button */}
+            {/* Sort button — icon only */}
             <button
               type="button"
               onClick={() => setSortSheet(true)}
               className={cn(
-                "h-9 flex items-center justify-center gap-1.5 rounded-full border px-3 transition-all flex-shrink-0",
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 sortBy !== "city"
                   ? "bg-[#10B981] border-[#10B981] text-white"
                   : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
@@ -516,14 +548,13 @@ const FlightMultiDestResults = ({
                 color={sortBy !== "city" ? "white" : "#6B7B7B"}
                 strokeWidth={2}
               />
-              <span className="text-[12px] font-semibold">Sort</span>
             </button>
-            {/* Filter button */}
+            {/* Filter button — icon only */}
             <button
               type="button"
               onClick={() => setFilterSheet(true)}
               className={cn(
-                "h-9 flex items-center justify-center gap-1.5 rounded-full border px-3 transition-all flex-shrink-0",
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
                 filterNonstopOnly || filterGoWildOnly
                   ? "bg-[#10B981] border-[#10B981] text-white"
                   : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
@@ -535,7 +566,6 @@ const FlightMultiDestResults = ({
                 color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
                 strokeWidth={2}
               />
-              <span className="text-[12px] font-semibold">Filter</span>
             </button>
           </div>
         </div>
@@ -578,16 +608,16 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                     }}
                   />
-                  {/* GoWild badge — only shown if GoWild fares exist */}
+                  {/* GoWild badge — top RIGHT of hero image */}
                   {card.hasGoWild && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
                       <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
                       <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
                     </div>
                   )}
-                  {/* Nonstop badge */}
+                  {/* Nonstop badge — top LEFT of hero image */}
                   {card.hasNonstop && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
                       <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={11} color="#065F46" strokeWidth={2} />
                       <span className="text-[10px] font-bold text-[#065F46] leading-none">NONSTOP</span>
                     </div>
@@ -630,7 +660,8 @@ const FlightMultiDestResults = ({
                         </span>
                       </div>
                     )}
-                    {card.avgDurationMin > 0 && (
+                    {/* Shortest (quickest) duration */}
+                    {card.minDurationMin > 0 && (
                       <div className="flex items-center gap-2">
                         <div
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
@@ -639,12 +670,27 @@ const FlightMultiDestResults = ({
                           <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
                         <span className="text-[13px] text-[#2E4A4A]">
-                          Avg. Duration:{" "}
-                          <span className="font-semibold">~{formatDurationMinutes(card.avgDurationMin)}</span>
+                          Quickest:{" "}
+                          <span className="font-semibold">{formatDurationMinutes(card.minDurationMin)}</span>
                         </span>
                       </div>
                     )}
-                    {/* Nonstop pill — replaces the old "Non-Stop & Connecting" text row */}
+                    {/* Departure window */}
+                    {card.departureWindow && (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                        </div>
+                        <span className="text-[13px] text-[#2E4A4A]">
+                          Departs:{" "}
+                          <span className="font-semibold">{card.departureWindow}</span>
+                        </span>
+                      </div>
+                    )}
+                    {/* Nonstop pill */}
                     {card.hasNonstop && (
                       <div className="flex items-center gap-1.5">
                         <div
@@ -671,7 +717,7 @@ const FlightMultiDestResults = ({
                     )}
                   </div>
 
-                  {/* View Flights button row — flight count left, button right */}
+                  {/* View Flights button row */}
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] text-[#6B7B7B] font-medium">
                       {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
@@ -832,7 +878,7 @@ const FlightMultiDestResults = ({
                   >
                     <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
                   </div>
-                  <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
+                  <h2 className="text-base font-bold text-[#2E4A4A]">Filter Results</h2>
                 </div>
                 {(filterNonstopOnly || filterGoWildOnly) && (
                   <button
@@ -841,9 +887,9 @@ const FlightMultiDestResults = ({
                       setFilterNonstopOnly(false);
                       setFilterGoWildOnly(false);
                     }}
-                    className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+                    className="text-xs font-semibold text-[#10B981]"
                   >
-                    Clear all
+                    Clear All
                   </button>
                 )}
               </div>
@@ -851,24 +897,22 @@ const FlightMultiDestResults = ({
               <div className="flex flex-col py-2 pb-8">
                 {[
                   {
-                    key: "nonstop",
                     label: "Nonstop Only",
                     desc: "Show only destinations with nonstop flights",
-                    icon: AirplaneTakeOff01Icon,
                     active: filterNonstopOnly,
                     toggle: () => setFilterNonstopOnly((v) => !v),
+                    icon: AirplaneTakeOff01Icon,
                   },
                   {
-                    key: "gowild",
-                    label: "GoWild Fares",
-                    desc: "Show only destinations with GoWild pricing",
-                    icon: TicketStarIcon,
+                    label: "Go Wild! Fares",
+                    desc: "Show only destinations with Go Wild fares",
                     active: filterGoWildOnly,
                     toggle: () => setFilterGoWildOnly((v) => !v),
+                    icon: TicketStarIcon,
                   },
-                ].map(({ key, label, desc, icon, active, toggle }) => (
+                ].map(({ label, desc, active, toggle, icon }) => (
                   <button
-                    key={key}
+                    key={label}
                     type="button"
                     onClick={toggle}
                     className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
@@ -889,16 +933,13 @@ const FlightMultiDestResults = ({
                       </p>
                       <p className="text-xs text-[#9CA3AF]">{desc}</p>
                     </div>
-                    {/* Toggle pill */}
                     <div
-                      className="w-11 h-6 rounded-full flex items-center transition-all flex-shrink-0 px-0.5"
-                      style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "#E5E7EB" }}
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all",
+                        active ? "border-[#10B981] bg-[#10B981]" : "border-[#D1D5DB] bg-transparent",
+                      )}
                     >
-                      <motion.div
-                        animate={{ x: active ? 20 : 2 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                        className="h-5 w-5 rounded-full bg-white shadow-sm"
-                      />
+                      {active && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={11} color="white" strokeWidth={3} />}
                     </div>
                   </button>
                 ))}
@@ -908,7 +949,7 @@ const FlightMultiDestResults = ({
                 <button
                   type="button"
                   onClick={() => setFilterSheet(false)}
-                  className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
+                  className="w-full py-3 rounded-2xl text-sm font-bold text-white"
                   style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                 >
                   Apply Filters
