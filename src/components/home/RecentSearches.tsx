@@ -201,7 +201,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           {dateRange}
                         </span>
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
                           style={{ background: "rgba(16,185,129,0.13)", color: "#059669" }}
                         >
                           <HugeiconsIcon icon={tripIcon} className="w-3 h-3" strokeWidth={2} />
