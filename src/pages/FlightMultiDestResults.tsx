@@ -19,6 +19,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+// Import the new animated input components
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/animated-input";
+
 // ── Types ────────────────────────────────────────────────────
 
 interface ParsedFlight {
@@ -478,49 +481,70 @@ const FlightMultiDestResults = ({
         </header>
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
-          {/* Active filter indicator */}
-          {(filterNonstopOnly || filterGoWildOnly) && (
-            <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-              {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
-            </span>
-          )}
-          {/* Sort icon button */}
-          <button
-            type="button"
-            onClick={() => setSortSheet(true)}
-            className={cn(
-              "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
-              sortBy !== "city"
-                ? "bg-[#10B981] border-[#10B981] text-white"
-                : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-start justify-between gap-2">
+          {/* Animated Input (Accordion) added to the left */}
+          <div className="flex-1 max-w-[200px]">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="search" className="border-none">
+                <AccordionTrigger className="py-1.5 px-3 bg-[#F1F5F5] rounded-xl text-[13px] font-semibold text-[#6B7B7B] hover:no-underline">
+                  Search
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <input
+                    type="text"
+                    placeholder="Filter destinations..."
+                    className="w-full bg-white border border-[#E8EBEB] rounded-lg px-3 py-1.5 text-[13px] outline-none focus:border-[#10B981] transition-colors shadow-sm"
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* Existing right-aligned controls */}
+          <div className="flex items-center gap-2 justify-end pt-0.5">
+            {/* Active filter indicator */}
+            {(filterNonstopOnly || filterGoWildOnly) && (
+              <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
+                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+              </span>
             )}
-          >
-            <HugeiconsIcon
-              icon={SortByDown02Icon}
-              size={18}
-              color={sortBy !== "city" ? "white" : "#6B7B7B"}
-              strokeWidth={2}
-            />
-          </button>
-          {/* Filter icon button */}
-          <button
-            type="button"
-            onClick={() => setFilterSheet(true)}
-            className={cn(
-              "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
-              filterNonstopOnly || filterGoWildOnly
-                ? "bg-[#10B981] border-[#10B981] text-white"
-                : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
-            )}
-          >
-            <HugeiconsIcon
-              icon={FilterIcon}
-              size={18}
-              color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
-              strokeWidth={2}
-            />
-          </button>
+            {/* Sort icon button */}
+            <button
+              type="button"
+              onClick={() => setSortSheet(true)}
+              className={cn(
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
+                sortBy !== "city"
+                  ? "bg-[#10B981] border-[#10B981] text-white"
+                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+              )}
+            >
+              <HugeiconsIcon
+                icon={SortByDown02Icon}
+                size={18}
+                color={sortBy !== "city" ? "white" : "#6B7B7B"}
+                strokeWidth={2}
+              />
+            </button>
+            {/* Filter icon button */}
+            <button
+              type="button"
+              onClick={() => setFilterSheet(true)}
+              className={cn(
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
+                filterNonstopOnly || filterGoWildOnly
+                  ? "bg-[#10B981] border-[#10B981] text-white"
+                  : "bg-white border-[#E8EBEB] text-[#6B7B7B]",
+              )}
+            >
+              <HugeiconsIcon
+                icon={FilterIcon}
+                size={18}
+                color={filterNonstopOnly || filterGoWildOnly ? "white" : "#6B7B7B"}
+                strokeWidth={2}
+              />
+            </button>
+          </div>
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
