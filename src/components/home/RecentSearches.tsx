@@ -159,7 +159,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
                         {isAllDest ? (
                           <HugeiconsIcon
-                            icon={Earth01Icon}
+                            icon={EarthIcon}
                             className="w-[22px] h-[22px] text-[#1a2e2e]"
                             strokeWidth={2.5}
                           />
