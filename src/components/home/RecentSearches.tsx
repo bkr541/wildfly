@@ -133,13 +133,6 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
 
                   return (
                     <motion.button
-                      style={{
-                        background: "rgba(255,255,255,0.82)",
-                        backdropFilter: "blur(18px)",
-                        WebkitBackdropFilter: "blur(18px)",
-                        border: "1px solid rgba(255,255,255,0.65)",
-                        boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
-                      }}
                       key={s.id}
                       type="button"
                       onClick={() => onNavigate?.("flights")}
@@ -149,7 +142,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         y: 0,
                         transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                       }}
-                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform"
+                      className="text-left rounded-2xl px-3 py-3 active:scale-[0.97] transition-transform w-fit"
                       style={{
                         background: "rgba(255,255,255,0.82)",
                         backdropFilter: "blur(18px)",
