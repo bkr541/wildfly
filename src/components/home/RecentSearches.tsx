@@ -105,7 +105,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-3">
               {loading
                 ? [1, 2].map((i) => (
                   <div
