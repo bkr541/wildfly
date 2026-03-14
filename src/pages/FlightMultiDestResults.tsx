@@ -104,11 +104,12 @@ const FlightMultiDestResults = ({
   onViewDest: (destResponseData: string) => void;
 }) => {
   const [airportMap, setAirportMap] = useState<
-    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
+    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null; latitude: number | null; longitude: number | null }>
   >({});
   const [sortBy, setSortBy] = useState<"city" | "fare" | "flights" | "duration">("city");
   const [sortSheet, setSortSheet] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [mapSheet, setMapSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
   const [compactHeader, setCompactHeader] = useState(false);
