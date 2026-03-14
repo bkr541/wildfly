@@ -110,7 +110,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                 ? [1, 2].map((i) => (
                   <div
                     key={i}
-                    className="rounded-2xl px-4 py-4 animate-pulse"
+                    className="rounded-2xl px-4 py-4 animate-pulse w-fit"
                     style={{
                       background: "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(18px)",
