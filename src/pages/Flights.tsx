@@ -25,7 +25,7 @@ import {
   CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
-import { format, startOfDay, getYear, getMonth, getDate, setYear, setMonth, setDate as setDayOfMonth, getDaysInMonth } from "date-fns";
+import { format, startOfDay, getYear, getMonth, getDaysInMonth } from "date-fns";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 
@@ -489,42 +489,29 @@ function DatePickerSheet({
   const today = startOfDay(new Date());
   const min = minDate ? startOfDay(minDate) : today;
 
-  // Internal calendar state — sync from `selected` when sheet opens
-  const [calDate, setCalDate] = useState<Date>(selected ?? today);
+  // Internal calendar state — no default selection; null means nothing chosen yet
+  const [calDate, setCalDate] = useState<Date | null>(selected ?? null);
 
-  // Dropdown state (controlled separately so dropdowns drive the calendar)
-  const [selMonth, setSelMonth] = useState(getMonth(calDate));
-  const [selDay, setSelDay] = useState(getDate(calDate));
-  const [selYear, setSelYear] = useState(getYear(calDate));
+  // Month/year navigation state — start at selected month or today's month
+  const initialBase = selected ?? today;
+  const [selMonth, setSelMonth] = useState(getMonth(initialBase));
+  const [selYear, setSelYear] = useState(getYear(initialBase));
 
-  // When sheet opens, reset internal state to `selected` (or today)
+  // When sheet opens, reset internal state to `selected` (or no selection)
   useEffect(() => {
     if (open) {
-      const base = selected && selected >= min ? selected : today;
+      const base = selected ?? null;
       setCalDate(base);
-      setSelMonth(getMonth(base));
-      setSelDay(getDate(base));
-      setSelYear(getYear(base));
+      const navBase = selected ?? today;
+      setSelMonth(getMonth(navBase));
+      setSelYear(getYear(navBase));
     }
   }, [open]);
 
-  // Sync calendar when dropdowns change
-  useEffect(() => {
-    const daysInMonth = getDaysInMonth(new Date(selYear, selMonth, 1));
-    const safeDay = Math.min(selDay, daysInMonth);
-    const candidate = startOfDay(new Date(selYear, selMonth, safeDay));
-    if (candidate >= min) {
-      setCalDate(candidate);
-      setSelDay(safeDay);
-    }
-  }, [selMonth, selDay, selYear]);
-
   // Sync dropdowns when calendar day is clicked
-  const handleCalendarSelect = (date?: Date) => {
-    if (!date) return;
+  const handleCalendarSelect = (date: Date) => {
     setCalDate(date);
     setSelMonth(getMonth(date));
-    setSelDay(getDate(date));
     setSelYear(getYear(date));
   };
 
@@ -537,17 +524,10 @@ function DatePickerSheet({
   }, [open, onClose]);
 
   const handleConfirm = () => {
+    if (!calDate) return;
     onSelect(calDate);
     onClose();
   };
-
-  // Build year options: today's year → +2
-  const currentYear = getYear(today);
-  const years = [currentYear, currentYear + 1, currentYear + 2];
-
-  // Build day options: 1..daysInMonth
-  const daysInCurMonth = getDaysInMonth(new Date(selYear, selMonth, 1));
-  const days = Array.from({ length: daysInCurMonth }, (_, i) => i + 1);
 
   // Navigate month with arrow buttons
   const goToPrevMonth = () => {
@@ -564,6 +544,129 @@ function DatePickerSheet({
   };
 
   const canGoPrev = new Date(selYear, selMonth - 1, 1) >= new Date(min.getFullYear(), min.getMonth(), 1);
+
+  // Build the two-month calendar (current + next)
+  const monthsToShow = [
+    { month: selMonth, year: selYear },
+    { month: (selMonth + 1) % 12, year: selMonth === 11 ? selYear + 1 : selYear },
+  ];
+
+  const isReturnPicker = label === "Return Date" && !!departureDate;
+  const depDay = departureDate ? startOfDay(departureDate) : null;
+
+  const renderMonth = (monthIdx: number, year: number) => {
+    const firstDay = new Date(year, monthIdx, 1);
+    // Sunday-based: Sun=0
+    const startDow = firstDay.getDay();
+    const daysCount = getDaysInMonth(firstDay);
+    const cells: (number | null)[] = [
+      ...Array(startDow).fill(null),
+      ...Array.from({ length: daysCount }, (_, i) => i + 1),
+    ];
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    const weeks: (number | null)[][] = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+    // Sunday=0, Saturday=6 → weekend cols in Sun-first grid are 0 and 6
+    const weekendCols = new Set([0, 6]);
+
+    return (
+      <div key={`${year}-${monthIdx}`} className="px-4 pb-2">
+        {/* Month label */}
+        <div className="flex items-center justify-between pt-5 pb-3">
+          <span className="text-[22px] font-bold text-[#2E4A4A]">
+            {MONTHS[monthIdx]} {year}
+          </span>
+        </div>
+
+        {/* Day-of-week headers: Sun first, weekends red */}
+        <div className="grid grid-cols-7 mb-1">
+          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d, i) => (
+            <div key={d} className="flex items-center justify-center py-1">
+              <span className={`text-[11px] font-semibold ${weekendCols.has(i) ? "text-red-400" : "text-[#9CA3AF]"}`}>{d}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar days */}
+        {weeks.map((week, wi) => (
+          <div key={wi} className="grid grid-cols-7 mb-0.5">
+            {week.map((day, di) => {
+              if (!day) return <div key={di} />;
+
+              const thisDate = startOfDay(new Date(year, monthIdx, day));
+              const isPast = thisDate < min;
+              const isSelected = calDate &&
+                thisDate.getFullYear() === calDate.getFullYear() &&
+                thisDate.getMonth() === calDate.getMonth() &&
+                thisDate.getDate() === calDate.getDate();
+              const isDeparture = depDay && thisDate.getTime() === depDay.getTime();
+              const isInRange = isReturnPicker && depDay && calDate &&
+                thisDate > depDay && thisDate < calDate;
+              const isRangeStart = isDeparture && isReturnPicker && calDate && depDay && calDate > depDay;
+              const isRangeEnd = isSelected && isReturnPicker && depDay && calDate && calDate > depDay;
+              const isToday = thisDate.getTime() === today.getTime();
+              const isBlackout = isBlackoutDate(format(thisDate, "yyyy-MM-dd"));
+              const isWeekend = weekendCols.has(di);
+
+              const rangeLeft = (isInRange || isRangeEnd) && di !== 0;
+              const rangeRight = (isInRange || isRangeStart) && di !== 6;
+
+              // Text color priority
+              let textColor = "text-[#2E4A4A]";
+              if (isPast) textColor = "text-[#C4C9C9]";
+              else if (isBlackout && !isSelected && !isDeparture) textColor = "text-white";
+              else if (isSelected || isDeparture) textColor = "text-[#065F46]";
+              else if (isInRange) textColor = "text-[#059669]";
+              else if (isWeekend) textColor = "text-red-500";
+
+              let buttonStyle: React.CSSProperties | undefined;
+              if ((isSelected || isDeparture) && !isBlackout) {
+                buttonStyle = {
+                  background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                  border: "1px solid #6EE7B7",
+                };
+              } else if (isToday && !isSelected && !isDeparture && !isBlackout) {
+                buttonStyle = {
+                  border: "2px solid #10B981",
+                };
+              } else if (isBlackout && !isSelected && !isDeparture) {
+                buttonStyle = { background: "#374151" };
+              }
+
+              return (
+                <div key={di} className="relative flex items-center justify-center py-1">
+                  {rangeLeft && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+                  )}
+                  {rangeRight && (
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+                  )}
+                  <button
+                    type="button"
+                    disabled={isPast}
+                    onClick={() => !isPast && handleCalendarSelect(thisDate)}
+                    className={cn(
+                      "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                      isPast && "cursor-default",
+                      !isPast && !isSelected && !isDeparture && !isBlackout && "hover:bg-[#F0FDF4]",
+                      textColor,
+                    )}
+                    style={buttonStyle}
+                  >
+                    {day}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const isReturnLabel = label === "Return Date";
 
   const content = (
     <AnimatePresence>
@@ -600,150 +703,53 @@ function DatePickerSheet({
                   className="h-8 w-8 rounded-full flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                 >
-                  <HugeiconsIcon icon={label === "Return Date" ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={15} color="white" strokeWidth={2} />
+                  <HugeiconsIcon icon={isReturnLabel ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={15} color="white" strokeWidth={2} />
                 </div>
                 <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">{label}</h2>
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
-              >
-                <HugeiconsIcon icon={CancelCircleIcon} size={22} color="currentColor" strokeWidth={1.8} />
-              </button>
+              {/* Month nav arrows in header */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={goToPrevMonth}
+                  disabled={!canGoPrev}
+                  className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3] disabled:opacity-30"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextMonth}
+                  className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3]"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+                >
+                  <HugeiconsIcon icon={CancelCircleIcon} size={22} color="currentColor" strokeWidth={1.8} />
+                </button>
+              </div>
             </div>
 
-            {/* Scrollable body */}
+            {/* Scrollable body — two months */}
             <div className="flex-1 overflow-y-auto overscroll-contain">
-              {/* Month Year nav row */}
-              <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                <span className="text-[19px] font-bold text-[#2E4A4A]">
-                  {MONTHS[selMonth]}, {selYear}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={goToPrevMonth}
-                    disabled={!canGoPrev}
-                    className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3] disabled:opacity-30"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goToNextMonth}
-                    className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3]"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Custom Calendar Grid */}
-              <div className="px-4 pb-4">
-                {/* Day-of-week headers */}
-                <div className="grid grid-cols-7 mb-1">
-                  {["Mo","Tu","We","Th","Fr","Sa","Su"].map((d) => (
-                    <div key={d} className="flex items-center justify-center py-1">
-                      <span className="text-xs font-semibold text-[#9CA3AF]">{d}</span>
-                    </div>
-                  ))}
-                </div>
-                {/* Calendar days */}
-                {(() => {
-                  const firstDay = new Date(selYear, selMonth, 1);
-                  // Monday-based: Mon=0 … Sun=6
-                  const startDow = (firstDay.getDay() + 6) % 7;
-                  const daysCount = getDaysInMonth(firstDay);
-                  const cells: (number | null)[] = [
-                    ...Array(startDow).fill(null),
-                    ...Array.from({ length: daysCount }, (_, i) => i + 1),
-                  ];
-                  // Pad to complete last row
-                  while (cells.length % 7 !== 0) cells.push(null);
-
-                  const weeks: (number | null)[][] = [];
-                  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-
-                  // Range highlight: dep date → selected return date
-                  const isReturnPicker = label === "Return Date" && !!departureDate;
-                  const depDay = departureDate ? startOfDay(departureDate) : null;
-
-                  return weeks.map((week, wi) => (
-                    <div key={wi} className="grid grid-cols-7 mb-0.5">
-                      {week.map((day, di) => {
-                        if (!day) {
-                          return <div key={di} />;
-                        }
-                        const thisDate = startOfDay(new Date(selYear, selMonth, day));
-                        const isDisabled = thisDate < min;
-                        const isSelected = calDate &&
-                          thisDate.getFullYear() === calDate.getFullYear() &&
-                          thisDate.getMonth() === calDate.getMonth() &&
-                          thisDate.getDate() === calDate.getDate();
-                        const isDeparture = depDay && thisDate.getTime() === depDay.getTime();
-                        const isInRange = isReturnPicker && depDay && calDate &&
-                          thisDate > depDay && thisDate < calDate;
-                        const isRangeStart = isDeparture && isReturnPicker && calDate && depDay && calDate > depDay;
-                        const isRangeEnd = isSelected && isReturnPicker && depDay && calDate && calDate > depDay;
-                        const isToday = thisDate.getTime() === today.getTime();
-                        const isBlackout = isBlackoutDate(format(thisDate, "yyyy-MM-dd"));
-
-                        // Determine which sides of the cell get the range background
-                        const rangeLeft = (isInRange || isRangeEnd) && di !== 0;
-                        const rangeRight = (isInRange || isRangeStart) && di !== 6;
-
-                        return (
-                          <div key={di} className="relative flex items-center justify-center py-1">
-                            {/* Range band — left half */}
-                            {rangeLeft && (
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
-                            )}
-                            {/* Range band — right half */}
-                            {rangeRight && (
-                              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
-                            )}
-                            <button
-                              type="button"
-                              disabled={isDisabled}
-                              onClick={() => !isDisabled && handleCalendarSelect(thisDate)}
-                              className={cn(
-                                "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-                                isDisabled && "opacity-30 cursor-default",
-                                isBlackout && !isSelected && !isDeparture && "bg-[#374151] text-white hover:bg-[#4B5563]",
-                                (isSelected || isDeparture) && !isBlackout && "text-[#065F46]",
-                                !isSelected && !isDeparture && !isDisabled && !isBlackout && "text-[#2E4A4A] hover:bg-[#F0FDF4]",
-                                isInRange && !isSelected && !isDeparture && !isBlackout && "text-[#059669]",
-                                isToday && !isSelected && !isDeparture && !isBlackout && "font-black",
-                              )}
-                              style={(isSelected || isDeparture) ? {
-                                background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
-                                border: "1px solid #6EE7B7",
-                              } : undefined}
-                            >
-                              {day}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ));
-                })()}
-              </div>
-
-              {/* Bottom safe area */}
+              {monthsToShow.map(({ month, year }) => renderMonth(month, year))}
               <div className="h-4" />
             </div>
 
-            {/* Select Date button — styled like Search Flights button */}
+            {/* Select Date button */}
             <div className="px-5 py-4 border-t border-[#F0F1F1] bg-white">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="w-full h-12 rounded-full text-white text-sm font-black uppercase tracking-[0.45em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
+                disabled={!calDate}
+                className="w-full h-12 rounded-full text-white text-sm font-black uppercase tracking-[0.45em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
               >
-                <HugeiconsIcon icon={GlobalSearchIcon} size={20} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={isReturnLabel ? CalendarCheckIn02Icon : CalendarCheckOut02Icon} size={20} color="white" strokeWidth={2} />
                 {calDate ? format(calDate, "MMM d, yyyy") : "Select Date"}
               </button>
             </div>
