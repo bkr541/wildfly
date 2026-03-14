@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ArrowRight, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronDown, ArrowRight, CalendarDays } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon, Earth01Icon } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 
 interface FlightSearch {
@@ -15,28 +15,39 @@ interface FlightSearch {
   search_timestamp: string;
 }
 
-function formatTripLabel(search: FlightSearch): string {
-  const date = (() => {
-    try {
-      return format(parseISO(search.departure_date), "MMM d");
-    } catch {
-      return search.departure_date;
+function formatDateRange(search: FlightSearch): string {
+  try {
+    const dep = format(parseISO(search.departure_date), "MMM d");
+    if (search.return_date) {
+      const ret = format(parseISO(search.return_date), "d");
+      return `${dep} – ${ret}`;
     }
-  })();
+    return dep;
+  } catch {
+    return search.departure_date;
+  }
+}
 
-  const tripLabel: Record<string, string> = {
-    "one-way": "One Way",
-    "one_way": "One Way",
-    "round-trip": "Round Trip",
-    "round_trip": "Round Trip",
-    "day-trip": "Day Trip",
-    "day_trip": "Day Trip",
-    "multi-day": "Multi Day",
-    "multi_day": "Multi Day",
-  };
+const TRIP_LABELS: Record<string, string> = {
+  "one-way": "One Way",
+  "one_way": "One Way",
+  "round-trip": "Round Trip",
+  "round_trip": "Round Trip",
+  "day-trip": "Day Trip",
+  "day_trip": "Day Trip",
+  "multi-day": "Multi Day",
+  "multi_day": "Multi Day",
+};
 
-  const type = tripLabel[search.trip_type] ?? search.trip_type;
-  return `${date} • ${type}`;
+/** Extract display code from airport or city string */
+function displayCode(code: string | null): string | null {
+  if (!code) return null;
+  // CITY:CHICAGO → CHI, CITY:LOS ANGELES → LOS
+  const cityMatch = code.match(/^CITY:(.+)$/i);
+  if (cityMatch) {
+    return cityMatch[1].trim().slice(0, 3).toUpperCase();
+  }
+  return code;
 }
 
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
@@ -54,7 +65,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
-      {/* Header — clickable to toggle */}
+      {/* Header */}
       <button
         type="button"
         onClick={onToggle}
@@ -101,51 +112,85 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                     key={i}
                     className="rounded-2xl px-4 py-4 animate-pulse"
                     style={{
-                      background: "rgba(255,255,255,0.72)",
+                      background: "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(18px)",
                       WebkitBackdropFilter: "blur(18px)",
-                      border: "1px solid rgba(255,255,255,0.55)",
+                      border: "1px solid rgba(255,255,255,0.65)",
                       boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                     }}
                   >
-                    <div className="h-6 w-28 rounded bg-[#e5e7eb] mb-2" />
-                    <div className="h-3 w-20 rounded bg-[#e5e7eb]" />
+                    <div className="h-8 w-32 rounded-lg bg-[#e5e7eb] mb-3" />
+                    <div className="h-3 w-24 rounded bg-[#e5e7eb] mb-2" />
+                    <div className="h-5 w-16 rounded-full bg-[#e5e7eb]" />
                   </div>
                 ))
-                : searches.map((s, i) => (
-                  <motion.button
-                    key={s.id}
-                    type="button"
-                    onClick={() => onNavigate?.("flights")}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
-                    }}
-                    className="text-left rounded-2xl px-4 py-4 active:scale-[0.97] transition-transform"
-                    style={{
-                      background: "rgba(255,255,255,0.72)",
-                      backdropFilter: "blur(18px)",
-                      WebkitBackdropFilter: "blur(18px)",
-                      border: "1px solid rgba(255,255,255,0.55)",
-                      boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
-                        {s.departure_airport}
+                : searches.map((s, i) => {
+                  const isAllDest = s.all_destinations === "Yes";
+                  const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
+                  const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
+                  const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
+                  const dateRange = formatDateRange(s);
+
+                  return (
+                    <motion.button
+                      key={s.id}
+                      type="button"
+                      onClick={() => onNavigate?.("flights")}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
+                      }}
+                      className="text-left rounded-2xl px-4 py-3.5 active:scale-[0.97] transition-transform"
+                      style={{
+                        background: "rgba(255,255,255,0.82)",
+                        backdropFilter: "blur(18px)",
+                        WebkitBackdropFilter: "blur(18px)",
+                        border: "1px solid rgba(255,255,255,0.65)",
+                        boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      {/* Airport codes row */}
+                      <div className="flex items-center gap-1 mb-2.5">
+                        <span className="text-[22px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                          {depCode}
+                        </span>
+                        <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
+                        {isAllDest ? (
+                          <HugeiconsIcon
+                            icon={Earth01Icon}
+                            className="w-[22px] h-[22px] text-[#1a2e2e]"
+                            strokeWidth={2.5}
+                          />
+                        ) : (
+                          <span className="text-[22px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                            {arrCode ?? "—"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Date row */}
+                      <div className="flex items-center gap-1 mb-2">
+                        <CalendarDays size={11} strokeWidth={2} className="text-[#9CA3AF] flex-shrink-0" />
+                        <span className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
+                          {dateRange}
+                        </span>
+                      </div>
+
+                      {/* Trip type pill */}
+                      <span
+                        className="inline-block text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full"
+                        style={{
+                          background: "rgba(16,185,129,0.13)",
+                          color: "#059669",
+                        }}
+                      >
+                        {tripLabel}
                       </span>
-                      <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
-                      <span className="text-xl font-extrabold text-[#1a2e2e] leading-none tracking-tight">
-                        {s.all_destinations === "Yes" ? "ALL" : (s.arrival_airport ?? "—")}
-                      </span>
-                    </div>
-                    <p className="text-[11px] font-medium text-[#6B7B7B] leading-tight">
-                      {formatTripLabel(s)}
-                    </p>
-                  </motion.button>
-                ))}
+                    </motion.button>
+                  );
+                })}
             </div>
           </motion.div>
         )}
