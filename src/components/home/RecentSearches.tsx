@@ -141,6 +141,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                   const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
                   const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
                   const dateRange = formatDateRange(s);
+                  const TripIcon = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
 
                   return (
                     <motion.button
@@ -162,40 +163,45 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                       }}
                     >
-                      {/* Airport codes row */}
+                      {/* Airport codes row - larger font */}
                       <div className="flex items-center justify-center gap-0.5 mb-2">
-                        <span className="text-[20px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                        <span className="text-[24px] font-black text-[#1a2e2e] leading-none tracking-tight">
                           {depCode}
                         </span>
-                        <ArrowRight size={13} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
+                        <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
                         {isAllDest ? (
                           <HugeiconsIcon
                             icon={EarthIcon}
-                            className="w-5 h-5 text-[#1a2e2e]"
+                            className="w-[24px] h-[24px] text-[#1a2e2e]"
                             strokeWidth={2.5}
                           />
                         ) : (
-                          <span className="text-[20px] font-black text-[#1a2e2e] leading-none tracking-tight">
+                          <span className="text-[24px] font-black text-[#1a2e2e] leading-none tracking-tight">
                             {arrCode ?? "—"}
                           </span>
                         )}
                       </div>
 
-                      {/* Date + trip type on same row */}
+                      {/* Date + trip type on same row - both styled as green chips */}
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <div className="flex items-center gap-1 rounded-full px-2 py-0.5" style={{ background: "rgba(107,114,128,0.1)" }}>
-                          <CalendarDays size={10} strokeWidth={2} className="text-[#6B7280] flex-shrink-0" />
-                          <span className="text-[10px] font-semibold text-[#6B7280] leading-none whitespace-nowrap">
-                            {dateRange}
-                          </span>
-                        </div>
                         <span
-                          className="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
                           style={{
                             background: "rgba(16,185,129,0.13)",
                             color: "#059669",
                           }}
                         >
+                          <HugeiconsIcon icon={CalendarCheckOut02Icon} className="w-3 h-3" strokeWidth={2} />
+                          {dateRange}
+                        </span>
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+                          style={{
+                            background: "rgba(16,185,129,0.13)",
+                            color: "#059669",
+                          }}
+                        >
+                          <HugeiconsIcon icon={TripIcon} className="w-3 h-3" strokeWidth={2} />
                           {tripLabel}
                         </span>
                       </div>
