@@ -616,23 +616,26 @@ function DatePickerSheet({
               // Text color priority
               let textColor = "text-[#2E4A4A]";
               if (isPast) textColor = "text-[#C4C9C9]";
-              else if (isBlackout && !isSelected && !isDeparture) textColor = "text-white";
-              else if (isSelected || isDeparture) textColor = "text-[#065F46]";
+              else if (isSelected || isDeparture) textColor = "text-white";
+              else if (isBlackout) textColor = "text-white";
               else if (isInRange) textColor = "text-[#059669]";
               else if (isWeekend) textColor = "text-red-500";
 
+              // Button background/border — selected always wins with green bg
               let buttonStyle: React.CSSProperties | undefined;
-              if ((isSelected || isDeparture) && !isBlackout) {
+              if (isSelected || isDeparture) {
                 buttonStyle = {
-                  background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
-                  border: "1px solid #6EE7B7",
+                  background: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
+                  border: "none",
+                  boxShadow: "0 2px 8px rgba(16,185,129,0.35)",
                 };
-              } else if (isToday && !isSelected && !isDeparture && !isBlackout) {
+              } else if (isBlackout) {
                 buttonStyle = {
-                  border: "2px solid #10B981",
+                  background: "#374151",
+                  ...(isToday ? { border: "2px solid #10B981" } : {}),
                 };
-              } else if (isBlackout && !isSelected && !isDeparture) {
-                buttonStyle = { background: "#374151" };
+              } else if (isToday) {
+                buttonStyle = { border: "2px solid #10B981" };
               }
 
               return (
