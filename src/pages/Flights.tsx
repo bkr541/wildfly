@@ -621,24 +621,21 @@ function DatePickerSheet({
               else if (isInRange) textColor = "text-[#059669]";
               else if (isWeekend) textColor = "text-red-500";
 
+              // Button background/border — selected always wins with green bg
               let buttonStyle: React.CSSProperties | undefined;
-              if ((isSelected || isDeparture) && !isBlackout) {
+              if (isSelected || isDeparture) {
                 buttonStyle = {
-                  background: isToday
-                    ? "linear-gradient(135deg, #059669 0%, #10B981 100%)"
-                    : "linear-gradient(135deg, #059669 0%, #10B981 100%)",
-                  border: isToday ? "2px solid #fff" : "none",
+                  background: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
+                  border: "none",
                   boxShadow: "0 2px 8px rgba(16,185,129,0.35)",
                 };
-              } else if (isBlackout && !isSelected && !isDeparture) {
+              } else if (isBlackout) {
                 buttonStyle = {
                   background: "#374151",
                   ...(isToday ? { border: "2px solid #10B981" } : {}),
                 };
               } else if (isToday) {
-                buttonStyle = {
-                  border: "2px solid #10B981",
-                };
+                buttonStyle = { border: "2px solid #10B981" };
               }
 
               return (
