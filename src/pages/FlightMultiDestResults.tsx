@@ -15,8 +15,6 @@ import {
   AirplaneTakeOff02Icon,
   SunriseIcon,
   MapsLocation02Icon,
-  AirportIcon,
-  MapPinHouseIcon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
