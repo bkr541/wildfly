@@ -219,21 +219,34 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      const minFare = flts.reduce<number | null>((min, f) => {
+      // Compute per-flight cheapest fare + whether it's a GoWild fare
+      let minFare: number | null = null;
+      let maxFare: number | null = null;
+      let isMinFareGoWild = false;
+
+      for (const f of flts) {
         const nFares = f.fares ?? {};
-        const candidates: number[] = [
-          cleanFare(nFares.basic),
+        const goWildFare = cleanFare(f.rawPayload?.fares?.go_wild?.total) ?? cleanFare(nFares.basic);
+        const nonGoWildFares: (number | null)[] = [
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
-          cleanFare(f.rawPayload?.fares?.go_wild?.total),
           cleanFare(f.rawPayload?.fares?.discount_den?.total),
           cleanFare(f.rawPayload?.fares?.standard?.total),
           cleanFare(f.price),
-        ].filter((v): v is number => v != null);
-        const cheapest = candidates.sort((a, b) => a - b)[0] ?? null;
-        if (cheapest == null) return min;
-        return min == null || cheapest < min ? cheapest : min;
-      }, null);
+        ];
+        const allFares: number[] = [
+          ...(goWildFare != null ? [goWildFare] : []),
+          ...nonGoWildFares.filter((v): v is number => v != null),
+        ];
+        if (allFares.length === 0) continue;
+        const flightMin = Math.min(...allFares);
+        const flightMax = Math.max(...allFares);
+        if (maxFare == null || flightMax > maxFare) maxFare = flightMax;
+        if (minFare == null || flightMin < minFare) {
+          minFare = flightMin;
+          isMinFareGoWild = goWildFare != null && flightMin === goWildFare;
+        }
+      }
 
       // Duration: shortest (min) and avg
       let minDurationMin = Infinity;
