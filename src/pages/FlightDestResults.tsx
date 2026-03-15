@@ -491,7 +491,7 @@ const FlightDestResults = ({
   }, [selectedGroup]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
+    <div className="relative flex flex-col h-full bg-[#F1F5F5] overflow-hidden">
       {!hideHeader &&
         (() => {
           const locationId = arrivalAirport && arrivalAirport !== "All" ? airportMap[arrivalAirport]?.locationId : null;
@@ -500,7 +500,7 @@ const FlightDestResults = ({
             : `/assets/locations/init_background.png`;
           return (
             <header
-              className="relative z-10 flex flex-col px-5 pt-6 pb-[112px] overflow-hidden"
+              className="relative z-10 flex flex-col px-5 pt-6 pb-4 overflow-hidden shrink-0"
               style={{
                 backgroundImage: `url('${headerBg}')`,
                 backgroundSize: "cover",
@@ -589,9 +589,9 @@ const FlightDestResults = ({
                 )}
               </div>
 
-              {/* Metrics strip at bottom of header — no background, bottom-justified */}
+              {/* Metrics strip — flows naturally below route text */}
               {arrivalAirport && arrivalAirport !== "All" && (
-                <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
+                <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
                   {(() => {
                     const allFlights = flights;
                     let earliestH: number | null = null;
@@ -728,7 +728,7 @@ const FlightDestResults = ({
       )}
       {/* Tab: Flights */}
       {activeTab === "Flights" && (
-        <div className="flex-1 flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
+        <div className="flex-1 overflow-y-auto flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
           {/* Count row + sort/filter */}
           {(() => {
             const isFiltered = filterNonstopOnly || filterGoWildOnly;
