@@ -573,7 +573,7 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="flex flex-col px-5 pt-6 pb-[100px] overflow-hidden relative"
+          className="flex flex-col px-5 pt-6 pb-16 overflow-hidden relative"
           style={{
             backgroundImage: `url('/assets/locations/init_background.png')`,
             backgroundSize: "cover",
@@ -605,17 +605,18 @@ const FlightMultiDestResults = ({
             </button>
           </div>
 
-          {/* Title - Whitespace reduced here */}
+          {/* Title */}
           <div className="relative mt-0">
             <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
               <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
               {formattedDate && (
                 <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start mt-2"
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start mt-1"
                   style={{
                     boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
                     transform: "translateY(-1px)",
+                    textShadow: "none",
                   }}
                 >
                   <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
