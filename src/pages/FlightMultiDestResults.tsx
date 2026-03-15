@@ -573,7 +573,7 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="flex flex-col px-5 pt-6 pb-24 overflow-hidden relative"
+          className="flex flex-col px-5 pt-6 pb-20 overflow-hidden relative"
           style={{
             backgroundImage: `url('/assets/locations/init_background.png')`,
             backgroundSize: "cover",
