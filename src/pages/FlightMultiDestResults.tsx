@@ -220,25 +220,42 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      // Compute per-flight cheapest fare + whether it's a GoWild fare
+      // Compute min/max fare and whether the minimum is a GoWild fare.
+      // After normalizeAllDestinationsResponse (with ...f spread), each flight has:
+      //   f.fares.go_wild      = raw GoWild fare (number | null)
+      //   f.fares.discount_den = DiscountDen fare
+      //   f.fares.standard     = Standard fare
+      //   f.fares.basic        = pre-computed lowest of all three
+      // getMyData shape also preserved via f.rawPayload.fares.go_wild.total
       let minFare: number | null = null;
       let maxFare: number | null = null;
       let isMinFareGoWild = false;
 
       for (const f of flts) {
         const nFares = f.fares ?? {};
-        const goWildFare = cleanFare(f.rawPayload?.fares?.go_wild?.total) ?? cleanFare(nFares.basic);
+        const goWildFare =
+          cleanFare(nFares.go_wild) ??
+          cleanFare(f.rawPayload?.fares?.go_wild?.total);
+
         const nonGoWildFares: (number | null)[] = [
+          cleanFare(nFares.discount_den),
+          cleanFare(nFares.standard),
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
-          cleanFare(f.rawPayload?.fares?.discount_den?.total),
-          cleanFare(f.rawPayload?.fares?.standard?.total),
           cleanFare(f.price),
         ];
+
         const allFares: number[] = [
           ...(goWildFare != null ? [goWildFare] : []),
           ...nonGoWildFares.filter((v): v is number => v != null),
         ];
+
+        // Fall back to pre-computed basic if no individual fares found
+        if (allFares.length === 0) {
+          const basic = cleanFare(nFares.basic);
+          if (basic != null) allFares.push(basic);
+        }
+
         if (allFares.length === 0) continue;
         const flightMin = Math.min(...allFares);
         const flightMax = Math.max(...allFares);
@@ -295,11 +312,9 @@ const FlightMultiDestResults = ({
         departureWindow = `${fmtWindowTime(Math.min(...depTimeMins))} – ${fmtWindowTime(Math.max(...depTimeMins))}`;
       }
 
-      // GoWild: normalized fares.basic is the GoWild/cheapest fare
+      // GoWild: check fares.go_wild (preserved from normalizer) or rawPayload
       const hasGoWild = flts.some((f) => {
-        const basic = f.fares?.basic;
-        if (basic != null && Number(basic) > 0) return true;
-        const gw = f.rawPayload?.fares?.go_wild?.total;
+        const gw = f.fares?.go_wild ?? f.rawPayload?.fares?.go_wild?.total;
         return gw != null && Number(gw) > 0;
       });
 
