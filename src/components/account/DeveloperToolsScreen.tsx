@@ -39,7 +39,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [showApiClient, setShowApiClient] = useState(false);
-  const [showDesignHub, setShowDesignHub] = useState(false);
+  
   const [designHubOpen, setDesignHubOpen] = useState(false);
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
