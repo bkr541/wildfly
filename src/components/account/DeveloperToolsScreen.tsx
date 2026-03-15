@@ -38,38 +38,14 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
-  const [snapshotRunning, setSnapshotRunning] = useState(false);
-  const [triggersOpen, setTriggersOpen] = useState(false);
-  const [snapshotResult, setSnapshotResult] = useState<{ success: boolean; rows_inserted?: number; travel_date?: string; error?: string } | null>(null);
   const [showApiClient, setShowApiClient] = useState(false);
-  const [showDesignHub, setShowDesignHub] = useState(false);
+  
   const [designHubOpen, setDesignHubOpen] = useState(false);
   const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
   const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
 
-  const runSnapshot = async () => {
-    setSnapshotRunning(true);
-    setSnapshotResult(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("scheduledATLSnapshot", { body: {} });
-      if (error) throw error;
-      setSnapshotResult(data);
-      if (data?.success) {
-        toast.success(`Snapshot complete — ${data.rows_inserted} destinations written for ${data.travel_date}`);
-      } else {
-        toast.error(`Snapshot failed: ${data?.error ?? "Unknown error"}`);
-      }
-    } catch (err: any) {
-      toast.error(`Snapshot error: ${err?.message ?? "Unknown error"}`);
-      setSnapshotResult({ success: false, error: err?.message });
-    } finally {
-      setSnapshotRunning(false);
-    }
-  };
-
-  
 
   const clearFlightSearchAndCache = async () => {
     setClearingFlights(true);
