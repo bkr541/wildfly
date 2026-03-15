@@ -237,9 +237,10 @@ const FlightMultiDestResults = ({
           cleanFare(nFares.go_wild) ??
           cleanFare(f.rawPayload?.fares?.go_wild?.total);
 
+        const rpFares = (f.rawPayload as any)?.fares ?? {};
         const nonGoWildFares: (number | null)[] = [
-          cleanFare(nFares.discount_den),
-          cleanFare(nFares.standard),
+          cleanFare(nFares.discount_den) ?? cleanFare(rpFares.discount_den?.total),
+          cleanFare(nFares.standard) ?? cleanFare(rpFares.standard?.total),
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
           cleanFare(f.price),
