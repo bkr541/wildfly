@@ -109,7 +109,18 @@ const FlightMultiDestResults = ({
   onViewDest: (destResponseData: string) => void;
 }) => {
   const [airportMap, setAirportMap] = useState<
-    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null; latitude: number | null; longitude: number | null }>
+    Record<
+      string,
+      {
+        city: string;
+        stateCode: string;
+        country: string;
+        name: string;
+        locationId: number | null;
+        latitude: number | null;
+        longitude: number | null;
+      }
+    >
   >({});
   const [sortBy, setSortBy] = useState<"city" | "fare" | "flights" | "duration">("city");
   const [sortSheet, setSortSheet] = useState(false);
@@ -233,9 +244,7 @@ const FlightMultiDestResults = ({
 
       for (const f of flts) {
         const nFares = f.fares ?? {};
-        const goWildFare =
-          cleanFare(nFares.go_wild) ??
-          cleanFare(f.rawPayload?.fares?.go_wild?.total);
+        const goWildFare = cleanFare(nFares.go_wild) ?? cleanFare(f.rawPayload?.fares?.go_wild?.total);
 
         const rpFares = (f.rawPayload as any)?.fares ?? {};
         const nonGoWildFares: (number | null)[] = [
@@ -384,18 +393,19 @@ const FlightMultiDestResults = ({
       const segments: any[] = Array.isArray(rp.segments) ? rp.segments : [];
 
       // Rebuild legs with real ISO times from rawPayload.segments
-      const enrichedLegs = segments.length > 0
-        ? segments.map((seg: any) => ({
-            origin: seg.departure_airport ?? "",
-            destination: seg.arrival_airport ?? "",
-            departure_time: seg.departure_time ?? "",
-            arrival_time: seg.arrival_time ?? "",
-          }))
-        : (f.legs ?? []).map((leg: any) => ({
-            ...leg,
-            departure_time: leg.departure_time || rp.departure_time || "",
-            arrival_time: leg.arrival_time || rp.arrival_time || "",
-          }));
+      const enrichedLegs =
+        segments.length > 0
+          ? segments.map((seg: any) => ({
+              origin: seg.departure_airport ?? "",
+              destination: seg.arrival_airport ?? "",
+              departure_time: seg.departure_time ?? "",
+              arrival_time: seg.arrival_time ?? "",
+            }))
+          : (f.legs ?? []).map((leg: any) => ({
+              ...leg,
+              departure_time: leg.departure_time || rp.departure_time || "",
+              arrival_time: leg.arrival_time || rp.arrival_time || "",
+            }));
 
       // Enrich fares from rawPayload.fares
       const rpFares = rp.fares ?? {};
@@ -403,9 +413,7 @@ const FlightMultiDestResults = ({
       const standard: number | null = rpFares.standard?.total ?? null;
       const goWild: number | null = rpFares.go_wild?.total ?? null;
       const nonNullFares = [discountDen, standard, goWild].filter((v): v is number => v != null);
-      const basic: number | null = nonNullFares.length > 0
-        ? Math.min(...nonNullFares)
-        : (f.price ?? null);
+      const basic: number | null = nonNullFares.length > 0 ? Math.min(...nonNullFares) : (f.price ?? null);
 
       // Enrich duration — use rawPayload.total_trip_time if available
       const durRaw: string = rp.total_trip_time ?? f.total_duration ?? f.duration ?? "";
@@ -413,10 +421,11 @@ const FlightMultiDestResults = ({
       // is_plus_one_day: compare first leg dep date vs last leg arr date
       const firstDep = enrichedLegs[0]?.departure_time ?? "";
       const lastArr = enrichedLegs[enrichedLegs.length - 1]?.arrival_time ?? "";
-      const plusOne = firstDep && lastArr
-        ? new Date(firstDep).toDateString() !== new Date(lastArr).toDateString() &&
-          new Date(lastArr) > new Date(firstDep)
-        : false;
+      const plusOne =
+        firstDep && lastArr
+          ? new Date(firstDep).toDateString() !== new Date(lastArr).toDateString() &&
+            new Date(lastArr) > new Date(firstDep)
+          : false;
 
       return {
         ...f,
@@ -596,17 +605,14 @@ const FlightMultiDestResults = ({
             </button>
           </div>
 
-          {/* Title */}
-          <div className="relative mt-2">
-            <div
-              className="flex flex-col gap-2 leading-tight"
-              style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
-            >
+          {/* Title - Whitespace reduced here */}
+          <div className="relative mt-0">
+            <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
               <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
               {formattedDate && (
                 <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start"
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start mt-2"
                   style={{
                     boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
                     transform: "translateY(-1px)",
@@ -664,9 +670,7 @@ const FlightMultiDestResults = ({
               onClick={() => setSortSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                sortBy !== "city"
-                  ? "bg-[#10B981] border-[#10B981]"
-                  : "bg-white border-[#E8EBEB]",
+                sortBy !== "city" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
               )}
             >
               <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#10B981" strokeWidth={2} />
@@ -677,9 +681,7 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                filterNonstopOnly || filterGoWildOnly
-                  ? "bg-[#10B981] border-[#10B981]"
-                  : "bg-white border-[#E8EBEB]",
+                filterNonstopOnly || filterGoWildOnly ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
               )}
             >
               <HugeiconsIcon icon={FilterIcon} size={16} color="#10B981" strokeWidth={2} />
@@ -732,7 +734,9 @@ const FlightMultiDestResults = ({
                       style={{
                         background: card.isMinFareGoWild ? "#10B981" : "rgba(255,255,255,0.95)",
                         border: card.isMinFareGoWild ? "none" : "1px solid rgba(232,235,235,0.8)",
-                        boxShadow: card.isMinFareGoWild ? "0 2px 8px rgba(16,185,129,0.4)" : "0 2px 8px rgba(0,0,0,0.18)",
+                        boxShadow: card.isMinFareGoWild
+                          ? "0 2px 8px rgba(16,185,129,0.4)"
+                          : "0 2px 8px rgba(0,0,0,0.18)",
                         backdropFilter: "blur(4px)",
                       }}
                     >
@@ -819,7 +823,10 @@ const FlightMultiDestResults = ({
                           <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
                         <span className="text-[12px] text-[#2E4A4A] truncate">
-                          Quickest: <span className="font-semibold">{card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}</span>
+                          Quickest:{" "}
+                          <span className="font-semibold">
+                            {card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}
+                          </span>
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -1113,7 +1120,9 @@ const FlightMultiDestResults = ({
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-[#2E4A4A] leading-tight">Route Map</h2>
-                    <p className="text-[11px] text-[#9CA3AF]">{departureAirport} → {mapDestinations.length} destination{mapDestinations.length !== 1 ? "s" : ""}</p>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      {departureAirport} → {mapDestinations.length} destination{mapDestinations.length !== 1 ? "s" : ""}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -1127,16 +1136,14 @@ const FlightMultiDestResults = ({
               {/* Map */}
               <div className="flex-1 relative min-h-0">
                 {depLatLng && mapDestinations.length > 0 ? (
-                  <Suspense fallback={
-                    <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
-                      <span className="text-sm text-[#6B7B7B]">Loading map…</span>
-                    </div>
-                  }>
-                    <MultiDestMap
-                      depIata={departureAirport}
-                      depLatLng={depLatLng}
-                      destinations={mapDestinations}
-                    />
+                  <Suspense
+                    fallback={
+                      <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                        <span className="text-sm text-[#6B7B7B]">Loading map…</span>
+                      </div>
+                    }
+                  >
+                    <MultiDestMap depIata={departureAirport} depLatLng={depLatLng} destinations={mapDestinations} />
                   </Suspense>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
