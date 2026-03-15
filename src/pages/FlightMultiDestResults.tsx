@@ -307,6 +307,13 @@ const FlightMultiDestResults = ({
         if (Array.isArray(f.legs)) return f.legs.length === 1;
         return (f.stops ?? 1) === 0;
       });
+      const nonstopCount = flts.filter((f) => {
+        if (Array.isArray(f.legs)) return f.legs.length === 1;
+        return (f.stops ?? 1) === 0;
+      }).length;
+
+      // Earliest departure (smallest minute value → formatted time)
+      const earliestDeparture = depTimeMins.length > 0 ? fmtWindowTime(Math.min(...depTimeMins)) : null;
 
       return {
         destination: dest,
@@ -318,11 +325,15 @@ const FlightMultiDestResults = ({
         flights: flts,
         flightCount: flts.length,
         minFare,
+        maxFare,
+        isMinFareGoWild,
         hasGoWild,
         hasNonstop,
+        nonstopCount,
         avgDurationMin,
         minDurationMin,
         departureWindow,
+        earliestDeparture,
         availableFareTypes: [],
       };
     });
