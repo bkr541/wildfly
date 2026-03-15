@@ -374,8 +374,64 @@ const FlightMultiDestResults = ({
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
+    const enriched = card.flights.map((f: any) => {
+      const rp = f.rawPayload ?? {};
+      const segments: any[] = Array.isArray(rp.segments) ? rp.segments : [];
+
+      // Rebuild legs with real ISO times from rawPayload.segments
+      const enrichedLegs = segments.length > 0
+        ? segments.map((seg: any) => ({
+            origin: seg.departure_airport ?? "",
+            destination: seg.arrival_airport ?? "",
+            departure_time: seg.departure_time ?? "",
+            arrival_time: seg.arrival_time ?? "",
+          }))
+        : (f.legs ?? []).map((leg: any) => ({
+            ...leg,
+            departure_time: leg.departure_time || rp.departure_time || "",
+            arrival_time: leg.arrival_time || rp.arrival_time || "",
+          }));
+
+      // Enrich fares from rawPayload.fares
+      const rpFares = rp.fares ?? {};
+      const discountDen: number | null = rpFares.discount_den?.total ?? null;
+      const standard: number | null = rpFares.standard?.total ?? null;
+      const goWild: number | null = rpFares.go_wild?.total ?? null;
+      const nonNullFares = [discountDen, standard, goWild].filter((v): v is number => v != null);
+      const basic: number | null = nonNullFares.length > 0
+        ? Math.min(...nonNullFares)
+        : (f.price ?? null);
+
+      // Enrich duration — use rawPayload.total_trip_time if available
+      const durRaw: string = rp.total_trip_time ?? f.total_duration ?? f.duration ?? "";
+
+      // is_plus_one_day: compare first leg dep date vs last leg arr date
+      const firstDep = enrichedLegs[0]?.departure_time ?? "";
+      const lastArr = enrichedLegs[enrichedLegs.length - 1]?.arrival_time ?? "";
+      const plusOne = firstDep && lastArr
+        ? new Date(firstDep).toDateString() !== new Date(lastArr).toDateString() &&
+          new Date(lastArr) > new Date(firstDep)
+        : false;
+
+      return {
+        ...f,
+        legs: enrichedLegs,
+        fares: {
+          basic,
+          economy: discountDen,
+          premium: standard,
+          business: null,
+          go_wild: goWild,
+          discount_den: discountDen,
+          standard,
+        },
+        total_duration: durRaw,
+        is_plus_one_day: plusOne,
+      };
+    });
+
     const singlePayload = JSON.stringify({
-      response: { flights: card.flights },
+      response: { flights: enriched },
       departureDate,
       arrivalDate,
       tripType,
