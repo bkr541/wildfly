@@ -107,28 +107,12 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     onTitleChange?.("Developer Tools");
   }, []);
 
-  // Hide MainLayout header for full-screen sandbox screens
-  useEffect(() => {
-    if (activeDesignScreen && FULLSCREEN_SCREENS.includes(activeDesignScreen)) {
-      onTitleChange?.(null);
-    }
-  }, [activeDesignScreen]);
-
   if (showApiClient) {
     return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
   }
 
   if (activeDesignScreen === "flight-results") {
     return <FlightResultsDesignScreen onBack={backToDesignHub} />;
-  }
-  if (activeDesignScreen === "flight-results-v2") {
-    return <FlightResultsV2Screen onBack={backToDesignHub} />;
-  }
-  if (activeDesignScreen === "flight-results-v3") {
-    return <FlightResultsV3Screen onBack={backToDesignHub} />;
-  }
-  if (activeDesignScreen === "flight-results-v4") {
-    return <FlightResultsV4Screen onBack={backToDesignHub} />;
   }
 
   if (loading || !settings) {
