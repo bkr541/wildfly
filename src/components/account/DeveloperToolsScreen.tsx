@@ -218,9 +218,6 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
             <div className="border-t border-[#F0F1F1] animate-fade-in">
               {[
                 { key: "flight-results", label: "Playground" },
-                { key: "flight-results-v2", label: "Flight Results v2" },
-                { key: "flight-results-v3", label: "Flight Results v3" },
-                { key: "flight-results-v4", label: "Flight Results v4" },
               ].map(({ key, label }, i, arr) => (
                 <button
                   key={key}
