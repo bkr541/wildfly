@@ -237,9 +237,10 @@ const FlightMultiDestResults = ({
           cleanFare(nFares.go_wild) ??
           cleanFare(f.rawPayload?.fares?.go_wild?.total);
 
+        const rpFares = (f.rawPayload as any)?.fares ?? {};
         const nonGoWildFares: (number | null)[] = [
-          cleanFare(nFares.discount_den),
-          cleanFare(nFares.standard),
+          cleanFare(nFares.discount_den) ?? cleanFare(rpFares.discount_den?.total),
+          cleanFare(nFares.standard) ?? cleanFare(rpFares.standard?.total),
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
           cleanFare(f.price),
@@ -281,7 +282,11 @@ const FlightMultiDestResults = ({
       const depTimeMins: number[] = [];
       for (const f of flts) {
         const depStr: string =
-          (Array.isArray(f.legs) && f.legs.length > 0 ? f.legs[0]?.departure_time : null) ??
+          (Array.isArray(f.legs) && f.legs.length > 0 && f.legs[0]?.departure_time ? f.legs[0].departure_time : null) ??
+          (Array.isArray((f.rawPayload as any)?.segments) && (f.rawPayload as any).segments.length > 0
+            ? (f.rawPayload as any).segments[0]?.departure_time
+            : null) ??
+          (f.rawPayload as any)?.departure_time ??
           f.departureTime ??
           f.depart_time ??
           "";
