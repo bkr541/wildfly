@@ -491,7 +491,7 @@ const FlightDestResults = ({
   }, [selectedGroup]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#F1F5F5] overflow-hidden">
+    <div className="relative flex flex-col h-full bg-[#F1F5F5] overflow-hidden">
       {!hideHeader &&
         (() => {
           const locationId = arrivalAirport && arrivalAirport !== "All" ? airportMap[arrivalAirport]?.locationId : null;
@@ -500,7 +500,7 @@ const FlightDestResults = ({
             : `/assets/locations/init_background.png`;
           return (
             <header
-              className="relative z-10 flex flex-col px-5 pt-6 pb-[112px] overflow-hidden"
+              className="relative z-10 flex flex-col px-5 pt-6 pb-4 overflow-hidden shrink-0"
               style={{
                 backgroundImage: `url('${headerBg}')`,
                 backgroundSize: "cover",
