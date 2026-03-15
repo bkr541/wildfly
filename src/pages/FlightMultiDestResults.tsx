@@ -11,6 +11,7 @@ import {
   Clock01Icon,
   Route02Icon,
   CheckmarkCircle02Icon,
+  CircleArrowRight02Icon,
   DollarCircleIcon,
   AirplaneTakeOff02Icon,
   SunriseIcon,
