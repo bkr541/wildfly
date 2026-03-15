@@ -226,6 +226,8 @@ export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsRes
     const goWild = cleanFare(f.fares?.go_wild);
 
     return {
+      // Preserve all original fields so card builders can access raw fare keys
+      ...f,
       total_duration: hhmmssToLabel(String(f.duration ?? "")),
       is_plus_one_day: isPlusOneDay(f.depart_time ?? "", f.arrive_time ?? ""),
       fares: {
@@ -233,6 +235,10 @@ export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsRes
         economy: discountDen,
         premium: standard,
         business: null,
+        // Preserve raw fare values for GoWild detection downstream
+        go_wild: goWild,
+        discount_den: discountDen,
+        standard: standard,
       },
       legs: [
         {
