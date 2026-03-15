@@ -110,13 +110,6 @@ const DEFAULT_SAVED: SavedRequest[] = [
     url: `${SUPABASE_URL}/functions/v1/getRoundTripRoute`,
     group: "Lovable Cloud",
   },
-  {
-    id: "5",
-    name: "ATL Snapshot",
-    method: "POST",
-    url: `${SUPABASE_URL}/functions/v1/scheduledATLSnapshot`,
-    group: "Lovable Cloud",
-  },
   { id: "6", name: "Airline Routes", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsRoutes`, group: "AirLabs" },
   { id: "7", name: "Flight Schedules", method: "POST", url: `${SUPABASE_URL}/functions/v1/airlabsSchedules`, group: "AirLabs" },
 ];
@@ -146,7 +139,6 @@ const DEFAULT_BODIES: Record<string, string> = {
     null,
     2,
   ),
-  "5": JSON.stringify({}, null, 2),
   "6": JSON.stringify({ dep_iata: "ATL", arr_iata: "MIA", airline_iata: "F9" }, null, 2),
   "7": JSON.stringify({ dep_iata: "ATL", airline_iata: "F9" }, null, 2),
 };
