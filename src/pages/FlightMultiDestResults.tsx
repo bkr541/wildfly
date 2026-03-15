@@ -220,46 +220,48 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      // Compute per-flight cheapest fare + whether it's a GoWild fare
-      // Data comes from normalizeAllDestinationsResponse shape:
-      //   f.fares.basic = lowest(goWild, discountDen, standard)
-      //   f.fares.economy = discountDen
-      //   f.fares.premium = standard
-      //   Original raw fare keys: f.fares.go_wild (direct number on AllDest shape)
-      //   OR nested: f.rawPayload.fares.go_wild.total (getMyData shape)
+      // Compute min/max fare and whether the minimum is a GoWild fare.
+      // After normalizeAllDestinationsResponse (with ...f spread), each flight has:
+      //   f.fares.go_wild      = raw GoWild fare (number | null)
+      //   f.fares.discount_den = DiscountDen fare
+      //   f.fares.standard     = Standard fare
+      //   f.fares.basic        = pre-computed lowest of all three
+      // getMyData shape also preserved via f.rawPayload.fares.go_wild.total
       let minFare: number | null = null;
       let maxFare: number | null = null;
       let isMinFareGoWild = false;
 
       for (const f of flts) {
         const nFares = f.fares ?? {};
-        // GoWild fare — try both data shapes
         const goWildFare =
-          cleanFare(nFares.go_wild) ??                          // AllDest raw shape (f.fares.go_wild)
-          cleanFare(f.rawPayload?.fares?.go_wild?.total);       // getMyData shape
+          cleanFare(nFares.go_wild) ??
+          cleanFare(f.rawPayload?.fares?.go_wild?.total);
 
-        // All non-goWild fares — use premium/economy from normalized fares
         const nonGoWildFares: (number | null)[] = [
-          cleanFare(nFares.economy),   // = discountDen in normalized
-          cleanFare(nFares.premium),   // = standard in normalized
+          cleanFare(nFares.discount_den),
+          cleanFare(nFares.standard),
+          cleanFare(nFares.economy),
+          cleanFare(nFares.premium),
           cleanFare(f.price),
         ];
-
-        // basic = pre-computed lowest, use as floor for allFares if others missing
-        const basicFare = cleanFare(nFares.basic);
 
         const allFares: number[] = [
           ...(goWildFare != null ? [goWildFare] : []),
           ...nonGoWildFares.filter((v): v is number => v != null),
-          ...(basicFare != null ? [basicFare] : []),
         ];
+
+        // Fall back to pre-computed basic if no individual fares found
+        if (allFares.length === 0) {
+          const basic = cleanFare(nFares.basic);
+          if (basic != null) allFares.push(basic);
+        }
+
         if (allFares.length === 0) continue;
         const flightMin = Math.min(...allFares);
         const flightMax = Math.max(...allFares);
         if (maxFare == null || flightMax > maxFare) maxFare = flightMax;
         if (minFare == null || flightMin < minFare) {
           minFare = flightMin;
-          // It's GoWild if the lowest fare matches the goWild fare
           isMinFareGoWild = goWildFare != null && flightMin === goWildFare;
         }
       }
