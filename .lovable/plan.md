@@ -1,56 +1,92 @@
 
+## Root Cause Analysis
 
-# Fix Auth Session Gating and Onboarding Flow
+### Issue 1: Earliest Departure = `—`
 
-## Problem Summary
-When a user refreshes the page, the app may flash the wrong screen (Auth instead of Home, or Onboarding when it shouldn't) because the current auth initialization doesn't properly handle all cases -- particularly users who have a valid session but no `user_info` row yet. Additionally, after splash completes, there's no loading gate while the session is still being checked.
-
-## What's Already Working
-- Onboarding image paths are already correct (`/assets/onboarding/backgroundX.png`)
-- Background CSS properties (cover, center, no-repeat) are already in place
-- No ref is being passed to `<Onboarding />`, so no ref warning fix is needed
-
-## Changes (single file: `src/App.tsx`)
-
-### 1. Replace `checkProfile` with `hydrateFromSession(session)`
-
-A new async helper that handles all session states:
-
-- **No session/user**: Sets `isSignedIn=false`, `needsOnboarding=false`, `showProfileSetup=false`, `checkingSession=false`
-- **User exists, no `user_info` row**: Inserts a new `user_info` row (with `auth_user_id`, `email`, `onboarding_complete: "No"`, `image_file: ""`), then sets `isSignedIn=true`, `needsOnboarding=true`
-- **User exists, profile found**: Sets `isSignedIn=true`, `needsOnboarding` based on `onboarding_complete` value
-- Always calls `setCheckingSession(false)` at the end
-
-### 2. Update the `useEffect` auth listener
-
-- Call `supabase.auth.getSession()` first, pass result to `hydrateFromSession`
-- Subscribe to `onAuthStateChange` -- for events `SIGNED_IN`, `SIGNED_OUT`, `USER_UPDATED`, `INITIAL_SESSION`, call `hydrateFromSession(session)`
-- Keep `isMounted` guard and `subscription.unsubscribe()` cleanup
-
-### 3. Add a loading gate after splash
-
-After `splashDone === true`, if `checkingSession` is still `true`, render a simple loading placeholder (e.g., a centered spinner or blank screen with the app background). This prevents flashing Auth/Onboarding/Home before the session state is resolved.
-
-## Technical Details
-
-```text
-Mount
-  |
-  v
-getSession() -----> hydrateFromSession(session)
-  |                        |
-  v                        v
-onAuthStateChange -----> hydrateFromSession(session)
-  |
-  v
-checkingSession = false --> render correct screen
+The card-building `useMemo` (lines 282–302) reads departure times from:
+```
+f.legs[0]?.departure_time  OR  f.departureTime  OR  f.depart_time
 ```
 
-### Files changed:
-- `src/App.tsx` -- refactored auth initialization logic, added loading gate
+From the JSON data, `f.legs[0].departure_time` is `""` (empty string) — the real ISO times live in `f.rawPayload.departure_time` and `f.rawPayload.segments[0].departure_time`. The code never checks `rawPayload` in this section, so `depTimeMins` stays empty, and `earliestDeparture` stays `null`.
 
-### No changes needed:
-- `src/components/Onboarding.tsx` -- paths and CSS already correct
-- `src/components/AuthPage.tsx` -- sign-up/sign-in logic unchanged
-- No ref fixes needed (no ref passed to Onboarding)
+### Issue 2: Fare Range has no max (or wrong max)
 
+The `allFares` array (lines 248–258) builds from:
+- `nFares.go_wild`, `nFares.discount_den`, `nFares.standard`, `nFares.economy`, `nFares.premium`, `f.price`
+
+From the JSON: all top-level `f.fares.*` are `null`. Only `f.price` is non-null. So for each flight, `allFares = [f.price]` → `flightMin === flightMax === f.price`.
+
+The max across all flights becomes the highest `f.price` in the group. The real highest fare is `rawPayload.fares.standard.total` (e.g. $434.58), but that's never read during card-building. So the range is actually `min(all prices)` to `max(all prices)` — it's "working" but using only `f.price` not the actual highest fare tier.
+
+## Fix — Both issues are in the card-building `useMemo` only
+
+### Change 1: Enrich departure time lookup (for Earliest)
+
+In the `depTimeMins` loop, add fallback to `rawPayload`:
+```
+f.rawPayload?.segments?.[0]?.departure_time
+OR f.rawPayload?.departure_time
+```
+after checking `f.legs[0]?.departure_time`.
+
+### Change 2: Enrich fare lookup (for Fare Range max)
+
+In the fare loop, also read from `rawPayload.fares`:
+```
+rawPayload.fares.discount_den.total
+rawPayload.fares.standard.total
+rawPayload.fares.go_wild.total
+```
+These are already used in `handleViewDest` for enrichment — apply the same pattern here in the card aggregation loop.
+
+## Single file change: `src/pages/FlightMultiDestResults.tsx`
+
+### Patch A — Fare aggregation loop (~line 234)
+
+Add rawPayload fare reading alongside `nFares`:
+```typescript
+const rp = f.rawPayload ?? {};
+const rpFares = rp.fares ?? {};
+
+// Also read rawPayload fares when top-level fares are null
+const goWildFare =
+  cleanFare(nFares.go_wild) ??
+  cleanFare(f.rawPayload?.fares?.go_wild?.total);
+const discountDenFare =
+  cleanFare(nFares.discount_den) ??
+  cleanFare(rpFares.discount_den?.total);
+const standardFare =
+  cleanFare(nFares.standard) ??
+  cleanFare(rpFares.standard?.total);
+
+const nonGoWildFares = [
+  discountDenFare,
+  standardFare,
+  cleanFare(nFares.economy),
+  cleanFare(nFares.premium),
+  cleanFare(f.price),
+];
+```
+
+### Patch B — Departure time loop (~line 282)
+
+Add rawPayload fallback after the existing checks:
+```typescript
+const depStr: string =
+  (Array.isArray(f.legs) && f.legs.length > 0 && f.legs[0]?.departure_time
+    ? f.legs[0].departure_time
+    : null) ??
+  (Array.isArray(f.rawPayload?.segments) && f.rawPayload.segments.length > 0
+    ? f.rawPayload.segments[0]?.departure_time
+    : null) ??
+  f.rawPayload?.departure_time ??
+  f.departureTime ??
+  f.depart_time ??
+  "";
+```
+
+This ensures:
+- Earliest Departure reads the real `"2026-03-15T18:44:00"` ISO time from `rawPayload`
+- Fare Range max correctly uses the highest `standard.total` across all flights (e.g. $434.58)
+- No other files need changes
