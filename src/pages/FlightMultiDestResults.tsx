@@ -11,6 +11,7 @@ import {
   Clock01Icon,
   Route02Icon,
   CheckmarkCircle02Icon,
+  CircleArrowRight02Icon,
   DollarCircleIcon,
   AirplaneTakeOff02Icon,
   SunriseIcon,
@@ -46,11 +47,15 @@ interface DestCard {
   flights: ParsedFlight[];
   flightCount: number;
   minFare: number | null;
+  maxFare: number | null;
+  isMinFareGoWild: boolean;
   hasGoWild: boolean;
   hasNonstop: boolean;
+  nonstopCount: number;
   avgDurationMin: number;
   minDurationMin: number;
   departureWindow: string | null;
+  earliestDeparture: string | null;
   availableFareTypes: string[];
 }
 
@@ -215,21 +220,34 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      const minFare = flts.reduce<number | null>((min, f) => {
+      // Compute per-flight cheapest fare + whether it's a GoWild fare
+      let minFare: number | null = null;
+      let maxFare: number | null = null;
+      let isMinFareGoWild = false;
+
+      for (const f of flts) {
         const nFares = f.fares ?? {};
-        const candidates: number[] = [
-          cleanFare(nFares.basic),
+        const goWildFare = cleanFare(f.rawPayload?.fares?.go_wild?.total) ?? cleanFare(nFares.basic);
+        const nonGoWildFares: (number | null)[] = [
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
-          cleanFare(f.rawPayload?.fares?.go_wild?.total),
           cleanFare(f.rawPayload?.fares?.discount_den?.total),
           cleanFare(f.rawPayload?.fares?.standard?.total),
           cleanFare(f.price),
-        ].filter((v): v is number => v != null);
-        const cheapest = candidates.sort((a, b) => a - b)[0] ?? null;
-        if (cheapest == null) return min;
-        return min == null || cheapest < min ? cheapest : min;
-      }, null);
+        ];
+        const allFares: number[] = [
+          ...(goWildFare != null ? [goWildFare] : []),
+          ...nonGoWildFares.filter((v): v is number => v != null),
+        ];
+        if (allFares.length === 0) continue;
+        const flightMin = Math.min(...allFares);
+        const flightMax = Math.max(...allFares);
+        if (maxFare == null || flightMax > maxFare) maxFare = flightMax;
+        if (minFare == null || flightMin < minFare) {
+          minFare = flightMin;
+          isMinFareGoWild = goWildFare != null && flightMin === goWildFare;
+        }
+      }
 
       // Duration: shortest (min) and avg
       let minDurationMin = Infinity;
@@ -290,6 +308,13 @@ const FlightMultiDestResults = ({
         if (Array.isArray(f.legs)) return f.legs.length === 1;
         return (f.stops ?? 1) === 0;
       });
+      const nonstopCount = flts.filter((f) => {
+        if (Array.isArray(f.legs)) return f.legs.length === 1;
+        return (f.stops ?? 1) === 0;
+      }).length;
+
+      // Earliest departure (smallest minute value → formatted time)
+      const earliestDeparture = depTimeMins.length > 0 ? fmtWindowTime(Math.min(...depTimeMins)) : null;
 
       return {
         destination: dest,
@@ -301,11 +326,15 @@ const FlightMultiDestResults = ({
         flights: flts,
         flightCount: flts.length,
         minFare,
+        maxFare,
+        isMinFareGoWild,
         hasGoWild,
         hasNonstop,
+        nonstopCount,
         avgDurationMin,
         minDurationMin,
         departureWindow,
+        earliestDeparture,
         availableFareTypes: [],
       };
     });
@@ -459,7 +488,7 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="flex flex-col px-5 pt-6 pb-[112px] overflow-hidden relative"
+          className="flex flex-col px-5 pt-6 pb-[100px] overflow-hidden relative"
           style={{
             backgroundImage: `url('/assets/locations/init_background.png')`,
             backgroundSize: "cover",
@@ -631,9 +660,11 @@ const FlightMultiDestResults = ({
 
                 {/* Card body */}
                 <div className="px-4 pt-3 pb-3">
-                  {/* City, State  |  IATA code */}
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
+                  {/* Row 1: IATA | City, State  +  min price badge top-right */}
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
+                      <span className="text-[#10B981]">{card.destination}</span>
+                      <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
                       {card.city || card.destination}
                       {(card.stateCode || card.country) && (
                         <span className="text-[#6B7B7B] font-normal text-[16px]">
@@ -642,72 +673,91 @@ const FlightMultiDestResults = ({
                         </span>
                       )}
                     </h3>
-                    <span className="text-[15px] font-bold text-[#6B7B7B] leading-tight flex-shrink-0 ml-2">
-                      {card.destination}
-                    </span>
+                    {/* Min price badge — top right */}
+                    {card.minFare != null && (
+                      <div
+                        className="flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
+                        style={{
+                          background: card.isMinFareGoWild ? "#10B981" : "#FFFFFF",
+                          border: card.isMinFareGoWild ? "none" : "1px solid #E8EBEB",
+                          boxShadow: card.isMinFareGoWild ? "0 2px 8px rgba(16,185,129,0.3)" : "0 1px 4px rgba(0,0,0,0.08)",
+                        }}
+                      >
+                        <span
+                          className="text-[14px] font-black leading-none"
+                          style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
+                        >
+                          ${Math.round(card.minFare)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Divider */}
                   <div className="border-t border-[#F0F3F3] my-2.5" />
 
-                  {/* Stats row */}
-                  <div className="flex flex-col gap-1.5 mb-3">
-                    {card.minFare != null && (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(16,185,129,0.12)" }}
-                        >
-                          <HugeiconsIcon icon={TicketStarIcon} size={13} color="#10B981" strokeWidth={2} />
+                  {/* Stats grid: 2-column layout */}
+                  <div className="flex flex-col gap-2 mb-3">
+                    {/* Row A: Quickest | Earliest Departure */}
+                    <div className="flex items-center gap-3">
+                      {card.minDurationMin > 0 && (
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div
+                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ background: "rgba(107,123,123,0.10)" }}
+                          >
+                            <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          </div>
+                          <span className="text-[12px] text-[#2E4A4A] truncate">
+                            Quickest: <span className="font-semibold">{formatDurationMinutes(card.minDurationMin)}</span>
+                          </span>
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          From <span className="font-bold text-[#1A2E2E]">${card.minFare.toFixed(2)} USD</span>
-                        </span>
-                      </div>
-                    )}
-                    {/* Shortest (quickest) duration */}
-                    {card.minDurationMin > 0 && (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                      )}
+                      {card.earliestDeparture && (
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div
+                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ background: "rgba(107,123,123,0.10)" }}
+                          >
+                            <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          </div>
+                          <span className="text-[12px] text-[#2E4A4A] truncate">
+                            Earliest: <span className="font-semibold">{card.earliestDeparture}</span>
+                          </span>
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          Quickest:{" "}
-                          <span className="font-semibold">{formatDurationMinutes(card.minDurationMin)}</span>
-                        </span>
-                      </div>
-                    )}
-                    {/* Departure window */}
-                    {card.departureWindow && (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-                        </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          Departs:{" "}
-                          <span className="font-semibold">{card.departureWindow}</span>
-                        </span>
-                      </div>
-                    )}
-                    {card.availableFareTypes.length > 0 && (
-                      <div className="flex items-center gap-2">
+                      )}
+                    </div>
+
+                    {/* Row B: Nonstop Count | Fare Range */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
-                          <HugeiconsIcon icon={Route02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A] truncate">
-                          {card.availableFareTypes.join(", ")}
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
                         </span>
                       </div>
-                    )}
+                      {card.minFare != null && card.maxFare != null && (
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div
+                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ background: "rgba(107,123,123,0.10)" }}
+                          >
+                            <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          </div>
+                          <span className="text-[12px] text-[#2E4A4A] truncate">
+                            Fare Range:{" "}
+                            <span className="font-semibold">
+                              ${Math.round(card.minFare)} – ${Math.round(card.maxFare)}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* View Flights button row */}
