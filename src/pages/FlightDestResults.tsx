@@ -589,9 +589,9 @@ const FlightDestResults = ({
                 )}
               </div>
 
-              {/* Metrics strip at bottom of header — no background, bottom-justified */}
+              {/* Metrics strip — flows naturally below route text */}
               {arrivalAirport && arrivalAirport !== "All" && (
-                <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between w-full gap-2">
+                <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
                   {(() => {
                     const allFlights = flights;
                     let earliestH: number | null = null;
