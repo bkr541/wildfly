@@ -649,9 +649,28 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                     }}
                   />
-                  {/* GoWild badge — top RIGHT of hero image */}
-                  {card.hasGoWild && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                  {/* Min price badge — top RIGHT of hero image */}
+                  {card.minFare != null && (
+                    <div
+                      className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
+                      style={{
+                        background: card.isMinFareGoWild ? "#10B981" : "rgba(255,255,255,0.95)",
+                        border: card.isMinFareGoWild ? "none" : "1px solid rgba(232,235,235,0.8)",
+                        boxShadow: card.isMinFareGoWild ? "0 2px 8px rgba(16,185,129,0.4)" : "0 2px 8px rgba(0,0,0,0.18)",
+                        backdropFilter: "blur(4px)",
+                      }}
+                    >
+                      <span
+                        className="text-[14px] font-black leading-none"
+                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
+                      >
+                        ${Math.round(card.minFare)}
+                      </span>
+                    </div>
+                  )}
+                  {/* GoWild badge — top LEFT of hero image (only when no min fare or GoWild is separate) */}
+                  {card.hasGoWild && !card.isMinFareGoWild && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
                       <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
                       <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
                     </div>
@@ -660,8 +679,8 @@ const FlightMultiDestResults = ({
 
                 {/* Card body */}
                 <div className="px-4 pt-3 pb-3">
-                  {/* Row 1: IATA | City, State  +  min price badge top-right */}
-                  <div className="flex items-start justify-between mb-1">
+                  {/* Row 1: IATA | City, State  +  flight count right-justified */}
+                  <div className="flex items-center justify-between mb-1">
                     <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
                       <span className="text-[#10B981]">{card.destination}</span>
                       <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
@@ -673,24 +692,9 @@ const FlightMultiDestResults = ({
                         </span>
                       )}
                     </h3>
-                    {/* Min price badge — top right */}
-                    {card.minFare != null && (
-                      <div
-                        className="flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
-                        style={{
-                          background: card.isMinFareGoWild ? "#10B981" : "#FFFFFF",
-                          border: card.isMinFareGoWild ? "none" : "1px solid #E8EBEB",
-                          boxShadow: card.isMinFareGoWild ? "0 2px 8px rgba(16,185,129,0.3)" : "0 1px 4px rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        <span
-                          className="text-[14px] font-black leading-none"
-                          style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
-                        >
-                          ${Math.round(card.minFare)}
-                        </span>
-                      </div>
-                    )}
+                    <span className="text-[12px] text-[#6B7B7B] font-medium flex-shrink-0">
+                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
+                    </span>
                   </div>
 
                   {/* Divider */}
