@@ -282,7 +282,11 @@ const FlightMultiDestResults = ({
       const depTimeMins: number[] = [];
       for (const f of flts) {
         const depStr: string =
-          (Array.isArray(f.legs) && f.legs.length > 0 ? f.legs[0]?.departure_time : null) ??
+          (Array.isArray(f.legs) && f.legs.length > 0 && f.legs[0]?.departure_time ? f.legs[0].departure_time : null) ??
+          (Array.isArray((f.rawPayload as any)?.segments) && (f.rawPayload as any).segments.length > 0
+            ? (f.rawPayload as any).segments[0]?.departure_time
+            : null) ??
+          (f.rawPayload as any)?.departure_time ??
           f.departureTime ??
           f.depart_time ??
           "";
