@@ -69,7 +69,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     }
   };
 
-  const FULLSCREEN_SCREENS = ["flight-results-v2", "flight-results-v3", "flight-results-v4"];
+  
 
   const clearFlightSearchAndCache = async () => {
     setClearingFlights(true);
