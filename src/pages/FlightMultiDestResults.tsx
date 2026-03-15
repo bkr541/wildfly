@@ -719,32 +719,28 @@ const FlightMultiDestResults = ({
                   <div className="flex flex-col gap-2 mb-3">
                     {/* Row A: Quickest | Earliest Departure */}
                     <div className="flex items-center gap-3">
-                      {card.minDurationMin > 0 && (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <div
-                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ background: "rgba(107,123,123,0.10)" }}
-                          >
-                            <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-                          </div>
-                          <span className="text-[12px] text-[#2E4A4A] truncate">
-                            Quickest: <span className="font-semibold">{formatDurationMinutes(card.minDurationMin)}</span>
-                          </span>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                      )}
-                      {card.earliestDeparture && (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <div
-                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ background: "rgba(107,123,123,0.10)" }}
-                          >
-                            <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-                          </div>
-                          <span className="text-[12px] text-[#2E4A4A] truncate">
-                            Earliest: <span className="font-semibold">{card.earliestDeparture}</span>
-                          </span>
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Quickest: <span className="font-semibold">{card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                      )}
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Earliest: <span className="font-semibold">{card.earliestDeparture ?? "—"}</span>
+                        </span>
+                      </div>
                     </div>
 
                     {/* Row B: Nonstop Count | Fare Range */}
@@ -760,22 +756,22 @@ const FlightMultiDestResults = ({
                           Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
                         </span>
                       </div>
-                      {card.minFare != null && card.maxFare != null && (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <div
-                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ background: "rgba(107,123,123,0.10)" }}
-                          >
-                            <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-                          </div>
-                          <span className="text-[12px] text-[#2E4A4A] truncate">
-                            Fare Range:{" "}
-                            <span className="font-semibold">
-                              ${Math.round(card.minFare)} – ${Math.round(card.maxFare)}
-                            </span>
-                          </span>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                      )}
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Fare Range:{" "}
+                          <span className="font-semibold">
+                            {card.minFare != null && card.maxFare != null
+                              ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
+                              : "—"}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
