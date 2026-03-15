@@ -310,58 +310,6 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
         )}
 
         {/* Manual Triggers */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setTriggersOpen((o) => !o)}
-            className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
-          >
-            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-              <HugeiconsIcon icon={File01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
-            </span>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-[#2E4A4A]">Manual Triggers</p>
-              <p className="text-xs text-[#6B7B7B]">Run backend functions manually</p>
-            </div>
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              size={13}
-              color="#C4CACA"
-              strokeWidth={1.5}
-              className={`transition-transform duration-200 ${triggersOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {triggersOpen && (
-            <div className="border-t border-[#F0F1F1] px-4 py-3 animate-fade-in">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#2E4A4A]">ATL Snapshot</p>
-                  <p className="text-xs text-[#6B7B7B]">Fetch today's ATL flights and write to gowild_snapshots</p>
-                  {snapshotResult && (
-                    <p className={`text-xs mt-1 font-medium ${snapshotResult.success ? "text-[#345C5A]" : "text-red-500"}`}>
-                      {snapshotResult.success
-                        ? `✓ ${snapshotResult.rows_inserted} destinations written (${snapshotResult.travel_date})`
-                        : `✗ ${snapshotResult.error}`}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={runSnapshot}
-                  disabled={snapshotRunning}
-                  className="shrink-0 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 min-w-[80px]"
-                >
-                  {snapshotRunning ? (
-                    <span className="flex items-center gap-1.5 justify-center">
-                      <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      Running
-                    </span>
-                  ) : "Run"}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* SQL Triggers */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
