@@ -882,6 +882,32 @@ const FlightDestResults = ({
                         const hasAlert = !!userFlights[alertKey];
                         const hasGoing = !!userFlights[goingKey];
 
+                        // Derive cheapest fare and Frontier booking URL
+                        const isGoWild = flight.fares.basic != null;
+                        const cheapest = [
+                          flight.fares.basic,
+                          flight.fares.economy,
+                          flight.fares.premium,
+                          flight.fares.business,
+                        ]
+                          .filter((v): v is number => v != null)
+                          .sort((a, b) => a - b)[0];
+                        const priceLabel = cheapest != null ? `$${cheapest.toFixed(2)}` : null;
+                        const depLeg = flight.legs[0];
+                        const arrLeg = flight.legs[flight.legs.length - 1];
+                        const depDate = (() => { try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; } })();
+                        const arrDate = (() => { try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; } })();
+                        const tType = (() => { try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; } })();
+                        const isRound = tType.toLowerCase().includes("round");
+                        const frontierUrl = isRound && arrDate
+                          ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
+                          : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
+
+                        const originCity = airportMap[depLeg?.origin ?? ""]?.city ?? depLeg?.origin ?? "";
+                        const originState = airportMap[depLeg?.origin ?? ""]?.stateCode ?? "";
+                        const destCity = airportMap[arrLeg?.destination ?? ""]?.city ?? arrLeg?.destination ?? "";
+                        const destState = airportMap[arrLeg?.destination ?? ""]?.stateCode ?? "";
+
                         return (
                           <div
                             key={`flight-${idx}`}
@@ -894,62 +920,85 @@ const FlightDestResults = ({
                           >
                             <div
                               className={cn(
-                                "flex flex-col rounded-xl border bg-white overflow-hidden transition-all duration-200 shadow-sm w-full",
-                                flight.fares.basic != null
-                                  ? "border-[#10B981]"
-                                  : isFlightOpen
-                                    ? "border-[#345C5A]/20"
-                                    : "border-[#E8EBEB]",
+                                "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
+                                isGoWild ? "border border-[#10B981]" : isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
                               )}
-                              style={{ boxShadow: "0 2px 10px 0 rgba(53,92,90,0.08)" }}
+                              style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
+                              {/* Collapsed / main card row — tap to expand */}
                               <button
                                 onClick={(e) => {
                                   const next = isFlightOpen ? null : fKey;
                                   setExpandedFlightKey(next);
                                   if (next) {
-                                    const card = (e.currentTarget as HTMLElement).closest(
-                                      "[data-flight-card]",
-                                    ) as HTMLElement | null;
-                                    if (card)
-                                      setTimeout(
-                                        () => card.scrollIntoView({ behavior: "smooth", block: "nearest" }),
-                                        150,
-                                      );
+                                    const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
+                                    if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                                   }
                                 }}
-                                className="flex items-center px-3 py-[15px] text-left w-full"
+                                className="text-left w-full px-4 pt-3.5 pb-3"
                               >
-                                <div className="flex items-center gap-2.5 w-full">
+                                {/* Row 1: Airline name + price badge */}
+                                <div className="flex items-center justify-between mb-3">
                                   <img
                                     src="/assets/logo/frontier/frontier_logo.png"
                                     alt="Frontier"
-                                    className="w-[32px] h-[32px] rounded object-contain shrink-0"
+                                    className="h-[18px] w-auto object-contain"
                                   />
-                                  <div className="flex flex-col">
-                                    <span className="text-base font-bold text-[#2E4A4A]">
-                                      {formatTime(flight.legs[0]?.departure_time)} →{" "}
-                                      {formatTime(flight.legs[flight.legs.length - 1]?.arrival_time)}
-                                    </span>
-                                    <span className="text-[13px] text-[#6B7B7B] font-medium">
-                                      {flight.total_duration}
-                                      {flight.is_plus_one_day && (
-                                        <span className="ml-1 text-[#E89830] font-semibold">+1 Day</span>
+                                  {priceLabel && (
+                                    <span
+                                      className={cn(
+                                        "text-[13px] font-bold px-2.5 py-1 rounded-full",
+                                        isGoWild
+                                          ? "bg-[#D1FAE5] text-[#065F46]"
+                                          : "bg-[#F0F4F4] text-[#2E4A4A]",
                                       )}
+                                    >
+                                      {priceLabel}
                                     </span>
+                                  )}
+                                </div>
+
+                                {/* Row 2: Dep time — plane — Arr time */}
+                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                  <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+                                    {formatTime(depLeg?.departure_time)}
+                                  </span>
+                                  <div className="flex-1 flex items-center gap-1 px-1">
+                                    <div className="flex-1 h-px bg-[#C8D5D5]" />
+                                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#2E4A4A] shrink-0" fill="currentColor">
+                                      <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                                    </svg>
+                                    <div className="flex-1 h-px bg-[#C8D5D5]" />
                                   </div>
+                                  <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+                                    {formatTime(arrLeg?.arrival_time)}
+                                    {flight.is_plus_one_day && (
+                                      <sup className="text-[10px] font-bold text-[#E89830] ml-0.5">+1</sup>
+                                    )}
+                                  </span>
+                                </div>
+
+                                {/* Row 3: Origin city — duration pill — Dest city */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
+                                    {originCity}{originState ? `, ${originState}` : ""}
+                                  </span>
+                                  <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
+                                    {flight.total_duration}
+                                  </span>
+                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
+                                    {destCity}{destState ? `, ${destState}` : ""}
+                                  </span>
                                 </div>
                               </button>
 
+                              {/* Expanded detail */}
                               {isFlightOpen && (
                                 <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
                                   <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                   <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-1">
                                     <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleUserFlight(flight, "alert");
-                                      }}
+                                      onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
                                       className={cn(
                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
                                         hasAlert
@@ -959,67 +1008,21 @@ const FlightDestResults = ({
                                     >
                                       Alert Me
                                     </button>
-                                    {(() => {
-                                      const isGoWild = flight.fares.basic != null;
-                                      const cheapest = [
-                                        flight.fares.basic,
-                                        flight.fares.economy,
-                                        flight.fares.premium,
-                                        flight.fares.business,
-                                      ]
-                                        .filter((v): v is number => v != null)
-                                        .sort((a, b) => a - b)[0];
-                                      const priceLabel = cheapest != null ? `$${cheapest}` : "Book";
-                                      const depLeg = flight.legs[0];
-                                      const arrLeg = flight.legs[flight.legs.length - 1];
-                                      const depDate = (() => {
-                                        try {
-                                          return JSON.parse(responseData).departureDate ?? "";
-                                        } catch {
-                                          return "";
-                                        }
-                                      })();
-                                      const arrDate = (() => {
-                                        try {
-                                          return JSON.parse(responseData).arrivalDate ?? depDate;
-                                        } catch {
-                                          return depDate;
-                                        }
-                                      })();
-                                      const tType = (() => {
-                                        try {
-                                          return JSON.parse(responseData).tripType ?? "one-way";
-                                        } catch {
-                                          return "one-way";
-                                        }
-                                      })();
-                                      const isRound = tType.toLowerCase().includes("round");
-                                      const frontierUrl =
-                                        isRound && arrDate
-                                          ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
-                                          : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
-                                      return (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleUserFlight(flight, "going");
-                                            window.open(frontierUrl, "_blank", "noopener,noreferrer");
-                                          }}
-                                          className={cn(
-                                            "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                            isGoWild
-                                              ? hasGoing
-                                                ? "bg-[#047857] text-white border-[#047857]"
-                                                : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
-                                              : hasGoing
-                                                ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]"
-                                                : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
-                                          )}
-                                        >
-                                          {priceLabel} ›
-                                        </button>
-                                      );
-                                    })()}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleUserFlight(flight, "going");
+                                        window.open(frontierUrl, "_blank", "noopener,noreferrer");
+                                      }}
+                                      className={cn(
+                                        "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                        isGoWild
+                                          ? hasGoing ? "bg-[#047857] text-white border-[#047857]" : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
+                                          : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
+                                      )}
+                                    >
+                                      {priceLabel ? `${priceLabel} ›` : "Book ›"}
+                                    </button>
                                   </div>
                                 </div>
                               )}
