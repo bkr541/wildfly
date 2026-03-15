@@ -764,11 +764,8 @@ const FlightMultiDestResults = ({
                     </div>
                   </div>
 
-                  {/* View Flights button row */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] text-[#6B7B7B] font-medium">
-                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
-                    </span>
+                  {/* View Flights button — right aligned */}
+                  <div className="flex items-center justify-end">
                     <button
                       type="button"
                       onClick={() => handleViewDest(card)}
