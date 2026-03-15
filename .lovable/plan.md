@@ -1,37 +1,56 @@
 
-## What's Being Removed
 
-Four things to delete/clean up:
+# Fix Auth Session Gating and Onboarding Flow
 
-**Files to delete:**
-- `src/components/account/design/FlightResultsV2Screen.tsx`
-- `src/components/account/design/FlightResultsV3Screen.tsx`
-- `src/components/account/design/FlightResultsV4Screen.tsx`
+## Problem Summary
+When a user refreshes the page, the app may flash the wrong screen (Auth instead of Home, or Onboarding when it shouldn't) because the current auth initialization doesn't properly handle all cases -- particularly users who have a valid session but no `user_info` row yet. Additionally, after splash completes, there's no loading gate while the session is still being checked.
 
-**`DeveloperToolsScreen.tsx` changes (single file):**
-1. Remove 3 imports: `FlightResultsV2Screen`, `FlightResultsV3Screen`, `FlightResultsV4Screen`
-2. Remove the 3 `if (activeDesignScreen === "flight-results-v2/v3/v4")` render guards (lines 127–135)
-3. Remove `"flight-results-v2"`, `"flight-results-v3"`, `"flight-results-v4"` from the `FULLSCREEN_SCREENS` array (line 75)
-4. Remove those 3 entries from the Design Hub items array (lines 239–253), leaving only `{ key: "flight-results", label: "Playground" }`
-5. Remove the entire **ATL Snapshot** trigger block inside the "Manual Triggers" accordion (lines 357–384) — keep the accordion wrapper/button but remove its inner content, or remove the whole accordion if it only contained ATL Snapshot
+## What's Already Working
+- Onboarding image paths are already correct (`/assets/onboarding/backgroundX.png`)
+- Background CSS properties (cover, center, no-repeat) are already in place
+- No ref is being passed to `<Onboarding />`, so no ref warning fix is needed
 
-**`ApiClientScreen.tsx` changes:**
-- Remove the ATL Snapshot entry (`id: "5"`) from the `API_ENDPOINTS` array (lines 113–119)
-- Remove its corresponding entry from `DEFAULT_BODIES` if one exists
+## Changes (single file: `src/App.tsx`)
 
-No other files reference these components. The `scheduledATLSnapshot` edge function does not exist in the repo (not in `supabase/functions/`), so no function file needs deleting.
+### 1. Replace `checkProfile` with `hydrateFromSession(session)`
 
-## Summary of touch points
+A new async helper that handles all session states:
+
+- **No session/user**: Sets `isSignedIn=false`, `needsOnboarding=false`, `showProfileSetup=false`, `checkingSession=false`
+- **User exists, no `user_info` row**: Inserts a new `user_info` row (with `auth_user_id`, `email`, `onboarding_complete: "No"`, `image_file: ""`), then sets `isSignedIn=true`, `needsOnboarding=true`
+- **User exists, profile found**: Sets `isSignedIn=true`, `needsOnboarding` based on `onboarding_complete` value
+- Always calls `setCheckingSession(false)` at the end
+
+### 2. Update the `useEffect` auth listener
+
+- Call `supabase.auth.getSession()` first, pass result to `hydrateFromSession`
+- Subscribe to `onAuthStateChange` -- for events `SIGNED_IN`, `SIGNED_OUT`, `USER_UPDATED`, `INITIAL_SESSION`, call `hydrateFromSession(session)`
+- Keep `isMounted` guard and `subscription.unsubscribe()` cleanup
+
+### 3. Add a loading gate after splash
+
+After `splashDone === true`, if `checkingSession` is still `true`, render a simple loading placeholder (e.g., a centered spinner or blank screen with the app background). This prevents flashing Auth/Onboarding/Home before the session state is resolved.
+
+## Technical Details
+
 ```text
-Files deleted (3):
-  src/components/account/design/FlightResultsV2Screen.tsx
-  src/components/account/design/FlightResultsV3Screen.tsx
-  src/components/account/design/FlightResultsV4Screen.tsx
-
-Files edited (2):
-  src/components/account/DeveloperToolsScreen.tsx
-    - Remove V2/V3/V4 imports, render guards, FULLSCREEN_SCREENS entries,
-      Design Hub menu items, and ATL Snapshot trigger block
-  src/components/account/ApiClientScreen.tsx
-    - Remove ATL Snapshot from API_ENDPOINTS array
+Mount
+  |
+  v
+getSession() -----> hydrateFromSession(session)
+  |                        |
+  v                        v
+onAuthStateChange -----> hydrateFromSession(session)
+  |
+  v
+checkingSession = false --> render correct screen
 ```
+
+### Files changed:
+- `src/App.tsx` -- refactored auth initialization logic, added loading gate
+
+### No changes needed:
+- `src/components/Onboarding.tsx` -- paths and CSS already correct
+- `src/components/AuthPage.tsx` -- sign-up/sign-in logic unchanged
+- No ref fixes needed (no ref passed to Onboarding)
+
