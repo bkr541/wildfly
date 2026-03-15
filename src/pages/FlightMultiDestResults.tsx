@@ -312,11 +312,9 @@ const FlightMultiDestResults = ({
         departureWindow = `${fmtWindowTime(Math.min(...depTimeMins))} – ${fmtWindowTime(Math.max(...depTimeMins))}`;
       }
 
-      // GoWild: normalized fares.basic is the GoWild/cheapest fare
+      // GoWild: check fares.go_wild (preserved from normalizer) or rawPayload
       const hasGoWild = flts.some((f) => {
-        const basic = f.fares?.basic;
-        if (basic != null && Number(basic) > 0) return true;
-        const gw = f.rawPayload?.fares?.go_wild?.total;
+        const gw = f.fares?.go_wild ?? f.rawPayload?.fares?.go_wild?.total;
         return gw != null && Number(gw) > 0;
       });
 
