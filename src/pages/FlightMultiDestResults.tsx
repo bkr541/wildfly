@@ -46,11 +46,15 @@ interface DestCard {
   flights: ParsedFlight[];
   flightCount: number;
   minFare: number | null;
+  maxFare: number | null;
+  isMinFareGoWild: boolean;
   hasGoWild: boolean;
   hasNonstop: boolean;
+  nonstopCount: number;
   avgDurationMin: number;
   minDurationMin: number;
   departureWindow: string | null;
+  earliestDeparture: string | null;
   availableFareTypes: string[];
 }
 
