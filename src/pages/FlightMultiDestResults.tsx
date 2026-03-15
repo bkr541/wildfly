@@ -11,6 +11,7 @@ import {
   Clock01Icon,
   Route02Icon,
   CheckmarkCircle02Icon,
+  CircleArrowRight02Icon,
   DollarCircleIcon,
   AirplaneTakeOff02Icon,
   SunriseIcon,
@@ -46,11 +47,15 @@ interface DestCard {
   flights: ParsedFlight[];
   flightCount: number;
   minFare: number | null;
+  maxFare: number | null;
+  isMinFareGoWild: boolean;
   hasGoWild: boolean;
   hasNonstop: boolean;
+  nonstopCount: number;
   avgDurationMin: number;
   minDurationMin: number;
   departureWindow: string | null;
+  earliestDeparture: string | null;
   availableFareTypes: string[];
 }
 
@@ -215,21 +220,52 @@ const FlightMultiDestResults = ({
         return Number.isFinite(n) && n > 0 ? n : null;
       };
 
-      const minFare = flts.reduce<number | null>((min, f) => {
+      // Compute min/max fare and whether the minimum is a GoWild fare.
+      // After normalizeAllDestinationsResponse (with ...f spread), each flight has:
+      //   f.fares.go_wild      = raw GoWild fare (number | null)
+      //   f.fares.discount_den = DiscountDen fare
+      //   f.fares.standard     = Standard fare
+      //   f.fares.basic        = pre-computed lowest of all three
+      // getMyData shape also preserved via f.rawPayload.fares.go_wild.total
+      let minFare: number | null = null;
+      let maxFare: number | null = null;
+      let isMinFareGoWild = false;
+
+      for (const f of flts) {
         const nFares = f.fares ?? {};
-        const candidates: number[] = [
-          cleanFare(nFares.basic),
+        const goWildFare =
+          cleanFare(nFares.go_wild) ??
+          cleanFare(f.rawPayload?.fares?.go_wild?.total);
+
+        const rpFares = (f.rawPayload as any)?.fares ?? {};
+        const nonGoWildFares: (number | null)[] = [
+          cleanFare(nFares.discount_den) ?? cleanFare(rpFares.discount_den?.total),
+          cleanFare(nFares.standard) ?? cleanFare(rpFares.standard?.total),
           cleanFare(nFares.economy),
           cleanFare(nFares.premium),
-          cleanFare(f.rawPayload?.fares?.go_wild?.total),
-          cleanFare(f.rawPayload?.fares?.discount_den?.total),
-          cleanFare(f.rawPayload?.fares?.standard?.total),
           cleanFare(f.price),
-        ].filter((v): v is number => v != null);
-        const cheapest = candidates.sort((a, b) => a - b)[0] ?? null;
-        if (cheapest == null) return min;
-        return min == null || cheapest < min ? cheapest : min;
-      }, null);
+        ];
+
+        const allFares: number[] = [
+          ...(goWildFare != null ? [goWildFare] : []),
+          ...nonGoWildFares.filter((v): v is number => v != null),
+        ];
+
+        // Fall back to pre-computed basic if no individual fares found
+        if (allFares.length === 0) {
+          const basic = cleanFare(nFares.basic);
+          if (basic != null) allFares.push(basic);
+        }
+
+        if (allFares.length === 0) continue;
+        const flightMin = Math.min(...allFares);
+        const flightMax = Math.max(...allFares);
+        if (maxFare == null || flightMax > maxFare) maxFare = flightMax;
+        if (minFare == null || flightMin < minFare) {
+          minFare = flightMin;
+          isMinFareGoWild = goWildFare != null && flightMin === goWildFare;
+        }
+      }
 
       // Duration: shortest (min) and avg
       let minDurationMin = Infinity;
@@ -246,7 +282,11 @@ const FlightMultiDestResults = ({
       const depTimeMins: number[] = [];
       for (const f of flts) {
         const depStr: string =
-          (Array.isArray(f.legs) && f.legs.length > 0 ? f.legs[0]?.departure_time : null) ??
+          (Array.isArray(f.legs) && f.legs.length > 0 && f.legs[0]?.departure_time ? f.legs[0].departure_time : null) ??
+          (Array.isArray((f.rawPayload as any)?.segments) && (f.rawPayload as any).segments.length > 0
+            ? (f.rawPayload as any).segments[0]?.departure_time
+            : null) ??
+          (f.rawPayload as any)?.departure_time ??
           f.departureTime ??
           f.depart_time ??
           "";
@@ -277,11 +317,9 @@ const FlightMultiDestResults = ({
         departureWindow = `${fmtWindowTime(Math.min(...depTimeMins))} – ${fmtWindowTime(Math.max(...depTimeMins))}`;
       }
 
-      // GoWild: normalized fares.basic is the GoWild/cheapest fare
+      // GoWild: check fares.go_wild (preserved from normalizer) or rawPayload
       const hasGoWild = flts.some((f) => {
-        const basic = f.fares?.basic;
-        if (basic != null && Number(basic) > 0) return true;
-        const gw = f.rawPayload?.fares?.go_wild?.total;
+        const gw = f.fares?.go_wild ?? f.rawPayload?.fares?.go_wild?.total;
         return gw != null && Number(gw) > 0;
       });
 
@@ -290,6 +328,13 @@ const FlightMultiDestResults = ({
         if (Array.isArray(f.legs)) return f.legs.length === 1;
         return (f.stops ?? 1) === 0;
       });
+      const nonstopCount = flts.filter((f) => {
+        if (Array.isArray(f.legs)) return f.legs.length === 1;
+        return (f.stops ?? 1) === 0;
+      }).length;
+
+      // Earliest departure (smallest minute value → formatted time)
+      const earliestDeparture = depTimeMins.length > 0 ? fmtWindowTime(Math.min(...depTimeMins)) : null;
 
       return {
         destination: dest,
@@ -301,11 +346,15 @@ const FlightMultiDestResults = ({
         flights: flts,
         flightCount: flts.length,
         minFare,
+        maxFare,
+        isMinFareGoWild,
         hasGoWild,
         hasNonstop,
+        nonstopCount,
         avgDurationMin,
         minDurationMin,
         departureWindow,
+        earliestDeparture,
         availableFareTypes: [],
       };
     });
@@ -330,8 +379,64 @@ const FlightMultiDestResults = ({
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
+    const enriched = card.flights.map((f: any) => {
+      const rp = f.rawPayload ?? {};
+      const segments: any[] = Array.isArray(rp.segments) ? rp.segments : [];
+
+      // Rebuild legs with real ISO times from rawPayload.segments
+      const enrichedLegs = segments.length > 0
+        ? segments.map((seg: any) => ({
+            origin: seg.departure_airport ?? "",
+            destination: seg.arrival_airport ?? "",
+            departure_time: seg.departure_time ?? "",
+            arrival_time: seg.arrival_time ?? "",
+          }))
+        : (f.legs ?? []).map((leg: any) => ({
+            ...leg,
+            departure_time: leg.departure_time || rp.departure_time || "",
+            arrival_time: leg.arrival_time || rp.arrival_time || "",
+          }));
+
+      // Enrich fares from rawPayload.fares
+      const rpFares = rp.fares ?? {};
+      const discountDen: number | null = rpFares.discount_den?.total ?? null;
+      const standard: number | null = rpFares.standard?.total ?? null;
+      const goWild: number | null = rpFares.go_wild?.total ?? null;
+      const nonNullFares = [discountDen, standard, goWild].filter((v): v is number => v != null);
+      const basic: number | null = nonNullFares.length > 0
+        ? Math.min(...nonNullFares)
+        : (f.price ?? null);
+
+      // Enrich duration — use rawPayload.total_trip_time if available
+      const durRaw: string = rp.total_trip_time ?? f.total_duration ?? f.duration ?? "";
+
+      // is_plus_one_day: compare first leg dep date vs last leg arr date
+      const firstDep = enrichedLegs[0]?.departure_time ?? "";
+      const lastArr = enrichedLegs[enrichedLegs.length - 1]?.arrival_time ?? "";
+      const plusOne = firstDep && lastArr
+        ? new Date(firstDep).toDateString() !== new Date(lastArr).toDateString() &&
+          new Date(lastArr) > new Date(firstDep)
+        : false;
+
+      return {
+        ...f,
+        legs: enrichedLegs,
+        fares: {
+          basic,
+          economy: discountDen,
+          premium: standard,
+          business: null,
+          go_wild: goWild,
+          discount_den: discountDen,
+          standard,
+        },
+        total_duration: durRaw,
+        is_plus_one_day: plusOne,
+      };
+    });
+
     const singlePayload = JSON.stringify({
-      response: { flights: card.flights },
+      response: { flights: enriched },
       departureDate,
       arrivalDate,
       tripType,
@@ -459,7 +564,7 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="flex flex-col px-5 pt-6 pb-[112px] overflow-hidden relative"
+          className="flex flex-col px-5 pt-6 pb-[100px] overflow-hidden relative"
           style={{
             backgroundImage: `url('/assets/locations/init_background.png')`,
             backgroundSize: "cover",
@@ -620,9 +725,28 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                     }}
                   />
-                  {/* GoWild badge — top RIGHT of hero image */}
-                  {card.hasGoWild && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                  {/* Min price badge — top RIGHT of hero image */}
+                  {card.minFare != null && (
+                    <div
+                      className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
+                      style={{
+                        background: card.isMinFareGoWild ? "#10B981" : "rgba(255,255,255,0.95)",
+                        border: card.isMinFareGoWild ? "none" : "1px solid rgba(232,235,235,0.8)",
+                        boxShadow: card.isMinFareGoWild ? "0 2px 8px rgba(16,185,129,0.4)" : "0 2px 8px rgba(0,0,0,0.18)",
+                        backdropFilter: "blur(4px)",
+                      }}
+                    >
+                      <span
+                        className="text-[14px] font-black leading-none"
+                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
+                      >
+                        ${Math.round(card.minFare)}
+                      </span>
+                    </div>
+                  )}
+                  {/* GoWild badge — top LEFT of hero image (only when no min fare or GoWild is separate) */}
+                  {card.hasGoWild && !card.isMinFareGoWild && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
                       <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
                       <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
                     </div>
@@ -631,9 +755,11 @@ const FlightMultiDestResults = ({
 
                 {/* Card body */}
                 <div className="px-4 pt-3 pb-3">
-                  {/* City, State  |  IATA code */}
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight">
+                  {/* Row 1: IATA | City, State  +  flight count right-justified */}
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
+                      <span className="text-[#10B981]">{card.destination}</span>
+                      <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
                       {card.city || card.destination}
                       {(card.stateCode || card.country) && (
                         <span className="text-[#6B7B7B] font-normal text-[16px]">
@@ -642,79 +768,76 @@ const FlightMultiDestResults = ({
                         </span>
                       )}
                     </h3>
-                    <span className="text-[15px] font-bold text-[#6B7B7B] leading-tight flex-shrink-0 ml-2">
-                      {card.destination}
+                    <span className="text-[12px] text-[#6B7B7B] font-medium flex-shrink-0">
+                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
                     </span>
                   </div>
 
                   {/* Divider */}
                   <div className="border-t border-[#F0F3F3] my-2.5" />
 
-                  {/* Stats row */}
-                  <div className="flex flex-col gap-1.5 mb-3">
-                    {card.minFare != null && (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(16,185,129,0.12)" }}
-                        >
-                          <HugeiconsIcon icon={TicketStarIcon} size={13} color="#10B981" strokeWidth={2} />
-                        </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          From <span className="font-bold text-[#1A2E2E]">${card.minFare.toFixed(2)} USD</span>
-                        </span>
-                      </div>
-                    )}
-                    {/* Shortest (quickest) duration */}
-                    {card.minDurationMin > 0 && (
-                      <div className="flex items-center gap-2">
+                  {/* Stats grid: 2-column layout */}
+                  <div className="flex flex-col gap-2 mb-3">
+                    {/* Row A: Fare Range | Earliest Departure */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
-                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          Quickest:{" "}
-                          <span className="font-semibold">{formatDurationMinutes(card.minDurationMin)}</span>
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Range:{" "}
+                          <span className="font-semibold">
+                            {card.minFare != null && card.maxFare != null
+                              ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
+                              : "—"}
+                          </span>
                         </span>
                       </div>
-                    )}
-                    {/* Departure window */}
-                    {card.departureWindow && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
                           <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A]">
-                          Departs:{" "}
-                          <span className="font-semibold">{card.departureWindow}</span>
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Earliest: <span className="font-semibold">{card.earliestDeparture ?? "—"}</span>
                         </span>
                       </div>
-                    )}
-                    {card.availableFareTypes.length > 0 && (
-                      <div className="flex items-center gap-2">
+                    </div>
+
+                    {/* Row B: Quickest | Nonstop Count */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
                           className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
-                          <HugeiconsIcon icon={Route02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
                         </div>
-                        <span className="text-[13px] text-[#2E4A4A] truncate">
-                          {card.availableFareTypes.join(", ")}
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Quickest: <span className="font-semibold">{card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}</span>
                         </span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: "rgba(107,123,123,0.10)" }}
+                        >
+                          <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                        </div>
+                        <span className="text-[12px] text-[#2E4A4A] truncate">
+                          Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* View Flights button row */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] text-[#6B7B7B] font-medium">
-                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""} Available
-                    </span>
+                  {/* View Flights button — right aligned */}
+                  <div className="flex items-center justify-end">
                     <button
                       type="button"
                       onClick={() => handleViewDest(card)}
