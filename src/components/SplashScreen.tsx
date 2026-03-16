@@ -34,7 +34,7 @@ interface SplashScreenProps {
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [showTagline, setShowTagline] = useState(false);
-  const [spotlightActive, setSpotlightActive] = useState(false);
+  
   const [dims, setDims] = useState(() => calcGrid(window.innerWidth, window.innerHeight));
 
   useEffect(() => {
