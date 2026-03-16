@@ -9,11 +9,22 @@ import {
   Location01Icon,
   Notification01Icon,
   Search01Icon,
-  UserGroupIcon,
   UserAdd01Icon,
+  UserGroupIcon,
   InformationCircleIcon,
   TicketStarIcon,
-  DollarCircleIcon
+  DollarCircleIcon,
+  AirplaneTakeOff01Icon,
+  AirplaneLanding01Icon,
+  CalendarCheckOut02Icon,
+  CalendarCheckIn02Icon,
+  CircleArrowReload01Icon,
+  SunCloud01Icon,
+  MapPinpoint01Icon,
+  Cancel01Icon,
+  SunriseIcon,
+  Clock01Icon,
+  CircleArrowRight02Icon
 } from "@hugeicons/core-free-icons";
 
 import { SplitFlapHeader } from "@/components/SplitFlapHeader";
@@ -226,6 +237,10 @@ function PreviewMultiDestCard() {
         <div className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }}>
           <span className="text-[14px] font-black leading-none text-[#1A2E2E]">$212</span>
         </div>
+        <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+          <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
+          <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
+        </div>
       </div>
       {/* Card body */}
       <div className="px-4 pt-3 pb-3">
@@ -246,7 +261,30 @@ function PreviewMultiDestCard() {
               </div>
               <span className="text-[12px] text-[#2E4A4A] truncate">Range: <span className="font-semibold">$212 – $450</span></span>
             </div>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">Earliest: <span className="font-semibold">6:00 AM</span></span>
+            </div>
           </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">Quickest: <span className="font-semibold">2h 14m</span></span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">Nonstop: <span className="font-semibold">3</span></span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end">
+          <button type="button" className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>View Flights</button>
         </div>
       </div>
     </div>
@@ -296,6 +334,109 @@ function PreviewFlightDestCard() {
           <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
             MIA, FL
           </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewFlightSearchForm() {
+  const ACTIVE_TRIP_FLEX = 1.7;
+  const tripType = "round-trip";
+  
+  const tripOptions = [
+    { value: "one-way", label: "One Way", icon: ArrowRight04Icon },
+    { value: "round-trip", label: "Round Trip", icon: CircleArrowReload01Icon },
+    { value: "day-trip", label: "Day Trip", icon: SunCloud01Icon },
+    { value: "multi-day", label: "Multi Day", icon: MapPinpoint01Icon },
+  ];
+
+  return (
+    <div className="w-full space-y-4">
+      <div className="relative flex items-stretch bg-white rounded-full p-0.5 border border-[#E8EBEB] shadow-[0_1px_2px_rgba(0,0,0,0.04)] h-[44px]">
+        <div
+          className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+          style={{ background: "#10B981", width: `calc((100% - 4px) * ${ACTIVE_TRIP_FLEX} / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})`, left: `calc(2px + (100% - 4px) * 1 / ${tripOptions.length - 1 + ACTIVE_TRIP_FLEX})` }}
+        />
+        {tripOptions.map((opt) => {
+          const isActive = tripType === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
+              className={cn(
+                "py-2.5 px-3 text-sm font-semibold rounded-full relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                isActive ? "text-white" : "text-[#9CA3AF]"
+              )}
+            >
+              <HugeiconsIcon icon={opt.icon} size={18} color="currentColor" strokeWidth={2} className="shrink-0" />
+              {isActive && <span className="whitespace-nowrap">{opt.label}</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        className="rounded-2xl overflow-visible"
+        style={{
+          background: "rgba(255,255,255,0.72)",
+          backdropFilter: "blur(18px)",
+          border: "1px solid rgba(255,255,255,0.55)",
+          boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13)",
+        }}
+      >
+        <div className="relative px-5 pt-5 pb-3">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure</label>
+          <div className="app-input-container min-h-[48px] cursor-pointer">
+            <button type="button" tabIndex={-1} className="app-input-icon-btn">
+              <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
+            </button>
+            <span className="app-input truncate flex-1 flex items-center text-[#1F2937]">ORD | Chicago, IL</span>
+            <button type="button" className="app-input-reset app-input-reset--visible relative right-2">
+              <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+
+        <div className="relative px-5 pt-3 pb-3">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Arrival</label>
+          <div className="app-input-container min-h-[48px] cursor-pointer">
+            <button type="button" tabIndex={-1} className="app-input-icon-btn">
+              <HugeiconsIcon icon={AirplaneLanding01Icon} size={20} color="currentColor" strokeWidth={2} />
+            </button>
+            <span className="app-input truncate flex-1 flex items-center text-[#1F2937]">MIA | Miami, FL</span>
+          </div>
+        </div>
+
+        <div className="px-5 pt-3 pb-0">
+          <div className="grid gap-3 grid-cols-2">
+            <div>
+              <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure Date</label>
+              <button type="button" className="app-input-container w-full text-left outline-none min-h-[48px]">
+                <span className="app-input-icon-btn">
+                  <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
+                </span>
+                <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base text-[#1F2937]">Mar 18, 2026</span>
+              </button>
+            </div>
+            <div>
+              <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Return Date</label>
+              <button type="button" className="app-input-container w-full text-left outline-none min-h-[48px]">
+                <span className="app-input-icon-btn">
+                  <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
+                </span>
+                <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base text-[#6B7280]">Select date</span>
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-2 pt-5 pb-5">
+            <label className="text-sm font-bold text-[#059669]">Search all destinations</label>
+            <button className="relative inline-flex items-center h-5 w-9 shrink-0 rounded-full transition-colors duration-200 bg-[#E3E6E6]">
+              <span className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -415,51 +556,12 @@ export default function DesignSystemPage() {
 
       <SectionShell
         id="buttons"
-        title="Buttons, chips, and action hierarchy"
-        description="Line up your action styles so the eye knows what matters in one heartbeat."
+        title="Buttons & Actions"
+        description="Exact production button styles used across Wildfly components."
       >
         <div className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="rounded-[24px] border-[#E8EEEE] shadow-none">
-              <CardHeader>
-                <CardTitle className="text-[#173433]">Button variants</CardTitle>
-                <CardDescription>Primary, secondary, outline, ghost, and link all in one pen.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
-                <Button>Primary action</Button>
-                <Button variant="secondary">Secondary</Button>
-                <Button variant="outline">Outline</Button>
-                <Button variant="ghost">Ghost</Button>
-                <Button variant="link">Text action</Button>
-                <Button size="icon" aria-label="Search">
-                  <HugeiconsIcon icon={Search01Icon} size={18} />
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[24px] border-[#E8EEEE] shadow-none">
-              <CardHeader>
-                <CardTitle className="text-[#173433]">Badge and chip language</CardTitle>
-                <CardDescription>Use this to standardize pill height, casing, and semantic color mapping.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
-                <Badge className="rounded-full bg-[#10B981] px-3 py-1 text-white hover:bg-[#10B981]">Go Wild</Badge>
-                <Badge variant="secondary" className="rounded-full px-3 py-1">Featured</Badge>
-                <Badge variant="outline" className="rounded-full px-3 py-1">4h 52m</Badge>
-                <Badge variant="destructive" className="rounded-full px-3 py-1">Alert</Badge>
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#EDF7F5] px-3 py-2 text-sm font-semibold text-[#25635C]">
-                  <HugeiconsIcon icon={Calendar03Icon} size={16} />
-                  Wed Mar 4, 2026
-                </div>
-              </CardContent>
-              <CardFooter>
-                <p className="text-sm text-[#6A8381]">
-                  Pick one chip radius and one internal padding scale, then apply it everywhere: cards, tabs, headers, and search pills.
-                </p>
-              </CardFooter>
-            </Card>
-
-            <Card className="rounded-[24px] border-[#E8EEEE] shadow-none lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-[#173433]">Production Auth Button</CardTitle>
                 <CardDescription>Primary CTA from AuthUser.tsx</CardDescription>
@@ -480,123 +582,34 @@ export default function DesignSystemPage() {
                 </button>
               </CardContent>
             </Card>
+
+            <Card className="rounded-[24px] border-[#E8EEEE] shadow-none">
+              <CardHeader>
+                <CardTitle className="text-[#173433]">Flight Search Button</CardTitle>
+                <CardDescription>Search trigger from Flights.tsx</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <button
+                  type="button"
+                  className="w-full h-14 rounded-full text-white text-base font-black uppercase tracking-[0.45em] flex items-center justify-center gap-2.5 shadow-[0_8px_20px_rgba(5,150,105,0.25)] hover:shadow-[0_12px_24px_rgba(5,150,105,0.35)] active:scale-[0.98] transition-all"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10B981 100%)" }}
+                >
+                  <HugeiconsIcon icon={ArrowRight04Icon} size={22} color="white" strokeWidth={2} />
+                  Let's Fly
+                </button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </SectionShell>
 
       <SectionShell
         id="forms"
-        title="Forms, input patterns, and selection controls"
-        description="This is the highest-payoff section for consistency because forms are where users notice tiny misalignments."
+        title="Flight Search Forms"
+        description="The exact flight search input controls from Flights.tsx."
       >
-        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <AppInput
-                label="Departure airport"
-                icon={Airplane01Icon}
-                value={airport}
-                clearable
-                onClear={() => setAirport("")}
-                onChange={(event) => setAirport(event.target.value)}
-                placeholder="ATL | Atlanta"
-              />
-
-              <AppInput
-                label="Search friends"
-                icon={Search01Icon}
-                value="Kody"
-                clearable
-                placeholder="Search by username"
-                onClear={() => undefined}
-                readOnly
-              />
-
-              <Input defaultValue="Secondary input" className="h-12 rounded-2xl border-[#DCE7E6]" />
-
-              <Textarea
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                className="min-h-[112px] rounded-2xl border-[#DCE7E6]"
-              />
-            </div>
-
-            <div className="grid gap-4 rounded-[24px] bg-[#F8FBFB] p-4 md:grid-cols-2">
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-[#173433]">Select / dropdown</p>
-                <Select defaultValue="atl">
-                  <SelectTrigger className="h-12 rounded-2xl border-[#DCE7E6] bg-white">
-                    <SelectValue placeholder="Choose airport" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="atl">ATL | Atlanta</SelectItem>
-                    <SelectItem value="ord">ORD | Chicago</SelectItem>
-                    <SelectItem value="den">DEN | Denver</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-[#173433]">Trip type radio group</p>
-                <RadioGroup value={searchMode} onValueChange={setSearchMode} className="grid grid-cols-2 gap-3">
-                  {[
-                    ["one-way", "One Way"],
-                    ["round-trip", "Round Trip"],
-                    ["day-trip", "Day Trip"],
-                    ["multi-day", "Multi Day"],
-                  ].map(([value, label]) => (
-                    <label
-                      key={value}
-                      className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-colors",
-                        searchMode === value
-                          ? "border-[#10B981] bg-[#ECFDF5] text-[#065F46]"
-                          : "border-[#DCE7E6] bg-white text-[#2E4A4A]",
-                      )}
-                    >
-                      <RadioGroupItem value={value} id={value} />
-                      <span className="text-sm font-semibold">{label}</span>
-                    </label>
-                  ))}
-                </RadioGroup>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <div className="rounded-[24px] bg-[#F8FBFB] p-4">
-              <p className="text-sm font-semibold text-[#173433]">Boolean controls</p>
-              <div className="mt-4 space-y-4">
-                <label className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
-                  <span>
-                    <p className="text-sm font-semibold text-[#173433]">Remember me</p>
-                    <p className="text-xs text-[#7B9392]">Use the same copy pattern everywhere.</p>
-                  </span>
-                  <Switch checked={enabled} onCheckedChange={setEnabled} />
-                </label>
-
-                <label className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
-                  <span>
-                    <p className="text-sm font-semibold text-[#173433]">Include nearby airports</p>
-                    <p className="text-xs text-[#7B9392]">Checkboxes and switches should feel related, not distant cousins.</p>
-                  </span>
-                  <Checkbox checked={checked} onCheckedChange={(value) => setChecked(Boolean(value))} />
-                </label>
-              </div>
-            </div>
-
-            <div className="rounded-[24px] bg-[#F8FBFB] p-4">
-              <p className="text-sm font-semibold text-[#173433]">Density / spacing control</p>
-              <div className="mt-5 rounded-2xl bg-white px-4 py-5">
-                <Slider value={density} min={8} max={24} step={1} onValueChange={setDensity} />
-                <div className="mt-4 flex items-center justify-between text-xs uppercase tracking-[0.14em] text-[#809795]">
-                  <span>Compact</span>
-                  <span>{density[0]}px</span>
-                  <span>Relaxed</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-xl mx-auto">
+          <PreviewFlightSearchForm />
         </div>
       </SectionShell>
 
@@ -607,75 +620,24 @@ export default function DesignSystemPage() {
       >
         <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <Tabs defaultValue="search" className="w-full">
-              <TabsList className="grid h-auto w-full grid-cols-3 rounded-[22px] bg-[#F2F6F5] p-1.5">
-                <TabsTrigger value="search" className="rounded-[18px] py-3 text-sm font-semibold">
-                  Search
-                </TabsTrigger>
-                <TabsTrigger value="results" className="rounded-[18px] py-3 text-sm font-semibold">
-                  Results
-                </TabsTrigger>
-                <TabsTrigger value="saved" className="rounded-[18px] py-3 text-sm font-semibold">
-                  Saved
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="mt-6 rounded-[24px] bg-[#F8FBFB] p-4">
-                <p className="text-sm font-semibold text-[#173433] mb-3">Production FlightDestResults Tabs</p>
-                <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200 rounded-lg">
-                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
-                    <HugeiconsIcon icon={InformationCircleIcon} size={15} strokeWidth={1.5} />
-                    Info
-                  </button>
-                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-[#10B981] font-bold">
-                    <HugeiconsIcon icon={Airplane01Icon} size={15} strokeWidth={2.5} color="#10B981" />
-                    Flights
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
-                  </button>
-                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
-                    <HugeiconsIcon icon={Calendar03Icon} size={15} strokeWidth={1.5} />
-                    Events
-                  </button>
-                </div>
+            <div className="rounded-[24px] bg-[#F8FBFB] p-4 h-full">
+              <p className="text-sm font-semibold text-[#173433] mb-3">Production FlightDestResults Tabs</p>
+              <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200 rounded-lg">
+                <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
+                  <HugeiconsIcon icon={InformationCircleIcon} size={15} strokeWidth={1.5} />
+                  Info
+                </button>
+                <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-[#10B981] font-bold">
+                  <HugeiconsIcon icon={Airplane01Icon} size={15} strokeWidth={2.5} color="#10B981" />
+                  Flights
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+                </button>
+                <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
+                  <HugeiconsIcon icon={Calendar03Icon} size={15} strokeWidth={1.5} />
+                  Events
+                </button>
               </div>
-
-              <TabsContent value="search" className="mt-4 rounded-[24px] bg-[#F8FBFB] p-4">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="rounded-2xl bg-white px-4 py-4">
-                    <HugeiconsIcon icon={Airplane01Icon} size={20} className="text-[#059669]" />
-                    <p className="mt-3 text-sm font-semibold text-[#173433]">Origin</p>
-                    <p className="text-xs text-[#7C9492]">ATL | Atlanta</p>
-                  </div>
-                  <div className="rounded-2xl bg-white px-4 py-4">
-                    <HugeiconsIcon icon={ArrowRight04Icon} size={20} className="text-[#059669]" />
-                    <p className="mt-3 text-sm font-semibold text-[#173433]">Trip direction</p>
-                    <p className="text-xs text-[#7C9492]">One way</p>
-                  </div>
-                  <div className="rounded-2xl bg-white px-4 py-4">
-                    <HugeiconsIcon icon={Calendar03Icon} size={20} className="text-[#059669]" />
-                    <p className="mt-3 text-sm font-semibold text-[#173433]">Travel date</p>
-                    <p className="text-xs text-[#7C9492]">{date ? format(date, "EEE, MMM d") : "Choose a day"}</p>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="results" className="mt-4 rounded-[24px] bg-[#F8FBFB] p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
-                    <span className="text-sm font-semibold text-[#173433]">Fastest option</span>
-                    <Badge variant="outline" className="rounded-full">2h 14m</Badge>
-                  </div>
-                  <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
-                    <span className="text-sm font-semibold text-[#173433]">Cheapest option</span>
-                    <Badge variant="outline" className="rounded-full">$212</Badge>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="saved" className="mt-4 rounded-[24px] bg-[#F8FBFB] p-4">
-                <p className="text-sm text-[#5F7876]">Perfect place to standardize empty states, metadata tone, and row spacing.</p>
-              </TabsContent>
-            </Tabs>
+            </div>
           </div>
 
           <div className="rounded-[24px] bg-[#F8FBFB] p-4">
@@ -788,97 +750,18 @@ export default function DesignSystemPage() {
           </div>
         </div>
       </SectionShell>
-
       <SectionShell
         id="feedback"
-        title="Tables, loading states, and feedback patterns"
+        title="Loading states and feedback patterns"
         description="Tiny support components quietly decide whether the app feels polished or patchwork."
       >
         <div className="space-y-5">
-          <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
             <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#173433]">Audit matrix</p>
-                  <p className="text-sm text-[#6A8381]">Use this as a living checklist as you standardize the app.</p>
-                </div>
-                <Badge variant="outline" className="rounded-full">6 targets</Badge>
-              </div>
-              <div className="mt-4 overflow-hidden rounded-2xl border border-[#EEF2F1]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Element</TableHead>
-                      <TableHead>Standardize</TableHead>
-                      <TableHead>Note</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {auditRows.map((row) => (
-                      <TableRow key={row.element}>
-                        <TableCell className="font-semibold text-[#173433]">{row.element}</TableCell>
-                        <TableCell>{row.standard}</TableCell>
-                        <TableCell>{row.note}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-[#173433]">Progress and status</p>
-                    <p className="text-sm text-[#6A8381]">Useful for onboarding, uploads, and async search states.</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setProgress((value) => (value >= 92 ? 24 : value + 8))}>
-                    Advance
-                  </Button>
-                </div>
-                <div className="mt-5 space-y-4">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between text-sm font-medium text-[#2E4A4A]">
-                      <span>Design system rollout</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <Progress value={progress} />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="rounded-full bg-[#ECFDF5] px-3 py-1 text-[#047857] hover:bg-[#ECFDF5]">Healthy</Badge>
-                    <Badge className="rounded-full bg-[#FFF7ED] px-3 py-1 text-[#C2410C] hover:bg-[#FFF7ED]">Needs review</Badge>
-                    <Badge className="rounded-full bg-[#EEF2FF] px-3 py-1 text-[#4338CA] hover:bg-[#EEF2FF]">In progress</Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-4">
-                <p className="text-sm font-semibold text-[#173433]">Skeleton / loading reference</p>
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center gap-3 rounded-2xl border border-[#EEF2F1] p-3">
-                    <Skeleton className="h-14 w-14 rounded-2xl" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-[#EEF2F1] p-3">
-                    <Skeleton className="h-14 w-14 rounded-2xl" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-2/5" />
-                      <Skeleton className="h-4 w-3/5" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-4">
-                <p className="text-sm font-semibold text-[#173433] mb-4">Production Split-flap Effect</p>
-                <SplitFlapHeader word="SEARCHING" />
-                <div className="mt-4">
-                  <SplitFlapHeader word="UPDATING" variant="gray" />
-                </div>
+              <p className="text-sm font-semibold text-[#173433] mb-4">Production Split-flap Effect</p>
+              <SplitFlapHeader word="SEARCHING" />
+              <div className="mt-4">
+                <SplitFlapHeader word="UPDATING" variant="gray" />
               </div>
             </div>
           </div>
