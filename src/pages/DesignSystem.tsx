@@ -3,14 +3,55 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
   Airplane01Icon,
+  AirplaneTakeOff01Icon,
+  AirplaneTakeOff02Icon,
+  AirplaneLanding01Icon,
+  AirportIcon,
   Location01Icon,
+  Location04Icon,
+  MapsLocation02Icon,
+  MapPinpoint01Icon,
   Calendar03Icon,
   CalendarCheckOut02Icon,
   CalendarCheckIn02Icon,
+  Clock01Icon,
+  Timer02Icon,
+  SunriseIcon,
+  SunCloud01Icon,
   UserGroupIcon,
+  UserAdd01Icon,
+  LoginSquare01Icon,
+  Logout01Icon,
   Search01Icon,
+  GlobalSearchIcon,
   Call02Icon,
   ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowRight04Icon,
+  ArrowUp01Icon,
+  CircleArrowReload01Icon,
+  CircleArrowRight02Icon,
+  TicketStarIcon,
+  DollarCircleIcon,
+  CreditCardIcon,
+  Coins01Icon,
+  FilterIcon,
+  SortByDown02Icon,
+  Cancel01Icon,
+  AddCircleIcon,
+  Delete01Icon,
+  FavouriteIcon,
+  HeartAddIcon,
+  BookmarkAdd01Icon,
+  Mail01Icon,
+  PencilEdit01Icon,
+  SecurityIcon,
+  RepeatIcon,
+  FlashIcon,
+  ViewIcon,
+  ViewOffSlashIcon,
+  CheckmarkCircle01Icon,
   Alert01Icon,
   AlertCircleIcon,
   Loading03Icon,
@@ -72,8 +113,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
@@ -177,36 +216,6 @@ function CheckboxDemo() {
       <StateRow label="Checked"><Checkbox checked={c2} onCheckedChange={(v) => setC2(!!v)} /></StateRow>
       <StateRow label="Disabled (unchecked)"><Checkbox disabled /></StateRow>
       <StateRow label="Disabled (checked)"><Checkbox checked disabled /></StateRow>
-    </DemoBox>
-  );
-}
-
-function SwitchDemo() {
-  const [on, setOn] = useState(false);
-  return (
-    <DemoBox>
-      <StateRow label="Off"><Switch checked={on} onCheckedChange={setOn} /></StateRow>
-      <StateRow label="On"><Switch checked={!on} onCheckedChange={() => setOn(!on)} /></StateRow>
-      <StateRow label="Disabled (off)"><Switch disabled /></StateRow>
-      <StateRow label="Disabled (on)"><Switch checked disabled /></StateRow>
-    </DemoBox>
-  );
-}
-
-function ToggleDemo() {
-  const [pressed, setPressed] = useState(false);
-  return (
-    <DemoBox>
-      <StateRow label="Default — Off"><Toggle pressed={false} onPressedChange={() => {}}>Bold</Toggle></StateRow>
-      <StateRow label="Default — On (Active)"><Toggle pressed={true} onPressedChange={() => {}}>Bold</Toggle></StateRow>
-      <StateRow label="Outline — Off"><Toggle variant="outline" pressed={false} onPressedChange={() => {}}>Italic</Toggle></StateRow>
-      <StateRow label="Outline — On (Active)"><Toggle variant="outline" pressed={true} onPressedChange={() => {}}>Italic</Toggle></StateRow>
-      <StateRow label="Sizes">
-        <Toggle size="sm" pressed={pressed} onPressedChange={setPressed}>SM</Toggle>
-        <Toggle size="default" pressed={pressed} onPressedChange={setPressed}>Default</Toggle>
-        <Toggle size="lg" pressed={pressed} onPressedChange={setPressed}>LG</Toggle>
-      </StateRow>
-      <StateRow label="Disabled"><Toggle disabled>Bold</Toggle></StateRow>
     </DemoBox>
   );
 }
@@ -413,6 +422,235 @@ function DatePickerDemo() {
 
 // ────────────────────────────────────────────────────────────────────────────
 
+const DEMO_TRIP_FLEX = 1.7;
+const demoTripOptions = [
+  { value: "one-way", label: "One Way", icon: ArrowRight04Icon },
+  { value: "round-trip", label: "Round Trip", icon: CircleArrowReload01Icon },
+  { value: "day-trip", label: "Day Trip", icon: SunCloud01Icon },
+  { value: "multi-day", label: "Multi Day", icon: MapPinpoint01Icon },
+] as const;
+type DemoTripType = typeof demoTripOptions[number]["value"];
+
+function TripTypeSwitchDemo() {
+  const [tripType, setTripType] = useState<DemoTripType>("one-way");
+  return (
+    <DemoBox>
+      <StateRow label="Trip Type Switch (One Way / Round Trip / Day Trip / Multi Day)">
+        <div
+          className="rounded-full p-[2px] flex relative w-full"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13)",
+          }}
+        >
+          <div
+            className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+            style={{
+              background: "#10B981",
+              width: `calc((100% - 4px) * ${DEMO_TRIP_FLEX} / ${demoTripOptions.length - 1 + DEMO_TRIP_FLEX})`,
+              left: `calc(2px + (100% - 4px) * ${demoTripOptions.findIndex((o) => o.value === tripType)} / ${demoTripOptions.length - 1 + DEMO_TRIP_FLEX})`,
+            }}
+          />
+          {demoTripOptions.map((opt) => {
+            const isActive = tripType === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTripType(opt.value)}
+                style={{ flex: isActive ? DEMO_TRIP_FLEX : 1 }}
+                className={cn(
+                  "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                  isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+                )}
+              >
+                <HugeiconsIcon icon={opt.icon} size={18} color="currentColor" strokeWidth={2} className="shrink-0" />
+                {isActive && <span className="whitespace-nowrap">{opt.label}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </StateRow>
+    </DemoBox>
+  );
+}
+
+function AuthToggleDemo() {
+  const [isSignUp, setIsSignUp] = useState(false);
+  return (
+    <DemoBox>
+      <StateRow label={isSignUp ? "Sign Up mode" : "Sign In mode"}>
+        <p className="text-sm text-[#6B7280]">
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-[#10B981] font-bold hover:underline"
+          >
+            {isSignUp ? "Sign In" : "Sign Up"}
+          </button>
+        </p>
+      </StateRow>
+    </DemoBox>
+  );
+}
+
+function FlightCardDemo() {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <DemoBox>
+      <StateRow label="Flight Result Card (FlightDestResults)">
+        <div
+          className={cn(
+            "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
+            expanded ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
+          )}
+          style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+        >
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="text-left w-full px-4 pt-3.5 pb-3"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-[#2E4A4A]">Frontier Airlines</span>
+              <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-[#F0F4F4] text-[#2E4A4A]">$49</span>
+            </div>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">6:15 AM</span>
+              <div className="flex-1 flex items-center gap-1 px-1">
+                <div className="flex-1 h-px bg-[#C8D5D5]" />
+                <HugeiconsIcon icon={Airplane01Icon} size={20} color="#2E4A4A" strokeWidth={2} />
+                <div className="flex-1 h-px bg-[#C8D5D5]" />
+              </div>
+              <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">9:45 AM</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[13px] text-[#6B7B7B] font-medium">Denver, CO</span>
+              <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">3h 30m</span>
+              <span className="text-[13px] text-[#6B7B7B] font-medium text-right">Miami, FL</span>
+            </div>
+          </button>
+          {expanded && (
+            <div className="bg-white px-2 py-3 border-t border-[#E8EBEB]/50">
+              <div className="flex items-center justify-end gap-2 px-3 pt-1 pb-1">
+                <button className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border bg-white text-[#4B5563] border-[#D1D5DB]">
+                  Alert Me
+                </button>
+                <button className="flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold bg-[#059669] text-white border border-[#059669]">
+                  $49 ›
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <p className="text-[10px] text-[#93A8A7] mt-1">Tap card to expand/collapse action row</p>
+      </StateRow>
+      <StateRow label="GoWild Flight (green border + badge)">
+        <div
+          className="flex flex-col rounded-2xl bg-white overflow-hidden w-full border border-[#10B981]"
+          style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+        >
+          <div className="text-left w-full px-4 pt-3.5 pb-3">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-[#2E4A4A]">Frontier Airlines</span>
+              <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-[#D1FAE5] text-[#065F46]">GO WILD</span>
+            </div>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">7:00 AM</span>
+              <div className="flex-1 flex items-center gap-1 px-1">
+                <div className="flex-1 h-px bg-[#C8D5D5]" />
+                <HugeiconsIcon icon={Airplane01Icon} size={20} color="#10B981" strokeWidth={2} />
+                <div className="flex-1 h-px bg-[#C8D5D5]" />
+              </div>
+              <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">10:15 AM</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[13px] text-[#6B7B7B] font-medium">Denver, CO</span>
+              <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">3h 15m</span>
+              <span className="text-[13px] text-[#6B7B7B] font-medium text-right">Orlando, FL</span>
+            </div>
+          </div>
+        </div>
+      </StateRow>
+    </DemoBox>
+  );
+}
+
+function DestCardDemo() {
+  return (
+    <DemoBox>
+      <StateRow label="Destination Card (FlightMultiDestResults)">
+        <div
+          className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB] w-full"
+          style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+        >
+          <div className="relative h-[130px] overflow-hidden" style={{ background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)" }}>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)" }} />
+            <div
+              className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
+              style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)" }}
+            >
+              <span className="text-[14px] font-black leading-none text-[#1A2E2E]">$89</span>
+            </div>
+          </div>
+          <div className="px-4 pt-3 pb-3">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
+                <span className="text-[#10B981]">MIA</span>
+                <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
+                Miami
+                <span className="text-[#6B7B7B] font-normal text-[16px]">, FL</span>
+              </h3>
+              <span className="text-[12px] text-[#6B7B7B] font-medium flex-shrink-0">8 Flights</span>
+            </div>
+            <div className="border-t border-[#F0F3F3] my-2.5" />
+            <div className="flex flex-col gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                    <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] text-[#2E4A4A] truncate">Range: <span className="font-semibold">$49 – $129</span></span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                    <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] text-[#2E4A4A] truncate">Earliest: <span className="font-semibold">Mar 20</span></span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                    <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] text-[#2E4A4A] truncate">Quickest: <span className="font-semibold">3h 10m</span></span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                    <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] text-[#2E4A4A] truncate">Nonstop: <span className="font-semibold">5</span></span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end">
+              <button className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                View Flights
+              </button>
+            </div>
+          </div>
+        </div>
+      </StateRow>
+    </DemoBox>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
 const tokenSections: { label: string; icon: any; content: ReactNode }[] = [
   {
     label: "Color",
@@ -462,15 +700,118 @@ const tokenSections: { label: string; icon: any; content: ReactNode }[] = [
     label: "Iconography",
     icon: Grid02Icon,
     content: (
-      <div className="rounded-[24px] bg-[#F8FBFB] p-4 mt-1 mb-2">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-[#7E9694] mb-3">Icons in the current app voice</p>
-        <div className="flex flex-wrap gap-2">
-          <IconChip icon={Home01Icon} label="Home" />
-          <IconChip icon={Airplane01Icon} label="Flights" />
-          <IconChip icon={Location01Icon} label="Destinations" />
-          <IconChip icon={Calendar03Icon} label="Dates" />
-          <IconChip icon={UserGroupIcon} label="Friends" />
-          <IconChip icon={Search01Icon} label="Search" />
+      <div className="rounded-[24px] bg-[#F8FBFB] p-4 mt-1 mb-2 space-y-5">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-[#7E9694]">Icons in the current app voice</p>
+
+        {/* Navigation */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Navigation</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={Home01Icon} label="Home" />
+            <IconChip icon={ArrowLeft01Icon} label="Back" />
+            <IconChip icon={ArrowRight01Icon} label="Forward" />
+            <IconChip icon={ArrowDown01Icon} label="Expand" />
+            <IconChip icon={ArrowUp01Icon} label="Collapse" />
+            <IconChip icon={Cancel01Icon} label="Close" />
+            <IconChip icon={AddCircleIcon} label="Add" />
+          </div>
+        </div>
+
+        {/* Flights & Travel */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Flights & Travel</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={Airplane01Icon} label="Flight" />
+            <IconChip icon={AirplaneTakeOff01Icon} label="Takeoff" />
+            <IconChip icon={AirplaneTakeOff02Icon} label="Takeoff Alt" />
+            <IconChip icon={AirplaneLanding01Icon} label="Landing" />
+            <IconChip icon={AirportIcon} label="Airport" />
+            <IconChip icon={TicketStarIcon} label="GoWild" />
+            <IconChip icon={CircleArrowReload01Icon} label="Round Trip" />
+            <IconChip icon={CircleArrowRight02Icon} label="Nonstop" />
+            <IconChip icon={ArrowRight04Icon} label="One Way" />
+          </div>
+        </div>
+
+        {/* Location */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Location</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={Location01Icon} label="Location" />
+            <IconChip icon={Location04Icon} label="Location Alt" />
+            <IconChip icon={MapsLocation02Icon} label="Maps" />
+            <IconChip icon={MapPinpoint01Icon} label="Pin" />
+          </div>
+        </div>
+
+        {/* Date & Time */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Date & Time</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={Calendar03Icon} label="Calendar" />
+            <IconChip icon={CalendarCheckOut02Icon} label="Departure" />
+            <IconChip icon={CalendarCheckIn02Icon} label="Return" />
+            <IconChip icon={Clock01Icon} label="Clock" />
+            <IconChip icon={Timer02Icon} label="Timer" />
+            <IconChip icon={SunriseIcon} label="Sunrise" />
+            <IconChip icon={SunCloud01Icon} label="Day Trip" />
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Search & Filters</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={Search01Icon} label="Search" />
+            <IconChip icon={GlobalSearchIcon} label="Global Search" />
+            <IconChip icon={FilterIcon} label="Filter" />
+            <IconChip icon={SortByDown02Icon} label="Sort" />
+          </div>
+        </div>
+
+        {/* Finance */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Finance</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={DollarCircleIcon} label="Price" />
+            <IconChip icon={CreditCardIcon} label="Card" />
+            <IconChip icon={Coins01Icon} label="Coins" />
+            <IconChip icon={FlashIcon} label="Deal" />
+          </div>
+        </div>
+
+        {/* User & Account */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">User & Account</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={UserIcon} label="User" />
+            <IconChip icon={UserGroupIcon} label="Friends" />
+            <IconChip icon={UserAdd01Icon} label="Add User" />
+            <IconChip icon={LoginSquare01Icon} label="Sign In" />
+            <IconChip icon={Logout01Icon} label="Sign Out" />
+            <IconChip icon={Mail01Icon} label="Email" />
+            <IconChip icon={LockPasswordIcon} label="Password" />
+            <IconChip icon={SecurityIcon} label="Security" />
+            <IconChip icon={PencilEdit01Icon} label="Edit" />
+            <IconChip icon={ViewIcon} label="Show" />
+            <IconChip icon={ViewOffSlashIcon} label="Hide" />
+            <IconChip icon={Call02Icon} label="Phone" />
+          </div>
+        </div>
+
+        {/* Saves & Alerts */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-2">Saves & Alerts</p>
+          <div className="flex flex-wrap gap-2">
+            <IconChip icon={FavouriteIcon} label="Favourite" />
+            <IconChip icon={HeartAddIcon} label="Save" />
+            <IconChip icon={BookmarkAdd01Icon} label="Bookmark" />
+            <IconChip icon={Notification01Icon} label="Notification" />
+            <IconChip icon={CheckmarkCircle01Icon} label="Success" />
+            <IconChip icon={Alert01Icon} label="Alert" />
+            <IconChip icon={InformationCircleIcon} label="Info" />
+            <IconChip icon={RepeatIcon} label="Repeat" />
+          </div>
         </div>
       </div>
     ),
@@ -628,21 +969,25 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
     label: "Card",
     icon: Cards01Icon,
     content: (
-      <DemoBox>
-        <StateRow label="Full anatomy">
-          <Card className="w-full max-w-xs">
-            <CardHeader>
-              <CardTitle>Card Title</CardTitle>
-              <CardDescription>Card description goes here.</CardDescription>
-            </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Card content area.</p></CardContent>
-            <CardFooter><Button size="sm">Action</Button></CardFooter>
-          </Card>
-        </StateRow>
-        <StateRow label="Content only">
-          <Card className="w-full max-w-xs"><CardContent className="pt-6"><p className="text-sm">Minimal card with content only.</p></CardContent></Card>
-        </StateRow>
-      </DemoBox>
+      <div className="space-y-3">
+        <DemoBox>
+          <StateRow label="Full anatomy (shadcn Card)">
+            <Card className="w-full max-w-xs">
+              <CardHeader>
+                <CardTitle>Card Title</CardTitle>
+                <CardDescription>Card description goes here.</CardDescription>
+              </CardHeader>
+              <CardContent><p className="text-sm text-muted-foreground">Card content area.</p></CardContent>
+              <CardFooter><Button size="sm">Action</Button></CardFooter>
+            </Card>
+          </StateRow>
+          <StateRow label="Content only (shadcn Card)">
+            <Card className="w-full max-w-xs"><CardContent className="pt-6"><p className="text-sm">Minimal card with content only.</p></CardContent></Card>
+          </StateRow>
+        </DemoBox>
+        <FlightCardDemo />
+        <DestCardDemo />
+      </div>
     ),
   },
   {
@@ -663,6 +1008,35 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
   {
     label: "Chip",
     icon: Tag01Icon,
+    content: (
+      <DemoBox>
+        <StateRow label="Recent Airport (Select Airport sheet)">
+          <div className="flex flex-nowrap gap-2.5 overflow-x-auto pb-1">
+            {[
+              { iata: "DEN", city: "Denver" },
+              { iata: "MIA", city: "Miami" },
+              { iata: "LAX", city: "Los Angeles" },
+              { iata: "ORD", city: "Chicago" },
+            ].map((a) => (
+              <button
+                key={a.iata}
+                type="button"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shrink-0 whitespace-nowrap"
+                style={{
+                  background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                  color: "#065F46",
+                  border: "1px solid #6EE7B7",
+                }}
+              >
+                <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={12} color="#059669" strokeWidth={2.5} />
+                <span className="font-bold">{a.iata}</span>
+                <span className="opacity-60 font-medium">{a.city}</span>
+              </button>
+            ))}
+          </div>
+        </StateRow>
+      </DemoBox>
+    ),
   },
   {
     label: "Collapsible",
@@ -965,7 +1339,7 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
   {
     label: "Switch",
     icon: ToggleOnIcon,
-    content: <SwitchDemo />,
+    content: <TripTypeSwitchDemo />,
   },
   {
     label: "Table",
@@ -1036,7 +1410,7 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
   {
     label: "Toggle",
     icon: ToggleOnIcon,
-    content: <ToggleDemo />,
+    content: <AuthToggleDemo />,
   },
   {
     label: "Toggle Group",
