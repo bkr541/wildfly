@@ -8,24 +8,24 @@ interface OnboardingProps {
 
 const slides = [
   {
-    background: "/assets/onboarding/background1.png",
+    background: "/assets/authuser/onboard_1.png",
     title: "Less Headache, More Confidence",
     subtitle:
       "We understand that sometimes booking a flight can be kind of wild, and not in a good way. Wildfly was made to take the worry out of booking and help you enjoy the experience of flying wild.",
   },
   {
-    background: "/assets/onboarding/background2.png",
+    background: "/assets/authuser/onboard_2.png",
     title: "More Searches, More You",
     subtitle:
       "Wildfly has two unique Agents powering it - Stats and Curation. Our Stats Agent pulls from current and historical flight trends to always keep you updated, while our Curation Agent learns when and where you like to explore, then provides you the perfect way to get there.",
   },
   {
-    background: "/assets/onboarding/background3.png",
+    background: "/assets/authuser/onboard_3.png",
     title: "Friends That Plan Together, Fly Together",
     subtitle: "Find other wild flyers, compare destinations, and sync trips without the endless group chat.",
   },
   {
-    background: "/assets/onboarding/background4.png",
+    background: "/assets/authuser/onboard_4.png",
     title: "Plan Smarter, Fly Wilder",
     subtitle:
       "At the end of the day, Wildfly is here to help you have the information you need to get to the destination you're going.",
