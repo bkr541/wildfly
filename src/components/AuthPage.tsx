@@ -211,6 +211,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError(profileError.message);
         return;
       }
+      await supabase.from("user_homepage").insert([
+        { user_id: authData.user.id, component_name: "Upcoming Flights", order: 1, status: "active" },
+        { user_id: authData.user.id, component_name: "Recent Searches", order: 2, status: "active" },
+      ]);
       if (!authData.session) {
         setSubmitError("Check your email to confirm your account.");
         return;
@@ -534,7 +538,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full p-2 text-sm border rounded bg-gray-50 focus:outline-[#10B981]"
+                className="w-full p-2 text-sm border rounded bg-gray-50 text-[#2E4A4A] focus:outline-[#10B981]"
                 autoFocus
               />
               <button
