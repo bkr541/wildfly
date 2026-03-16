@@ -1,12 +1,15 @@
-import { useState, type ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
   Airplane01Icon,
   Location01Icon,
   Calendar03Icon,
+  CalendarCheckOut02Icon,
+  CalendarCheckIn02Icon,
   UserGroupIcon,
   Search01Icon,
+  Call02Icon,
   ArrowDown01Icon,
   Alert01Icon,
   AlertCircleIcon,
@@ -324,15 +327,86 @@ function RadioGroupDemo() {
 
 function AppInputDemo() {
   const [val, setVal] = useState("");
+  const [phoneVal, setPhoneVal] = useState("");
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    let formatted = digits;
+    if (digits.length > 6) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    else if (digits.length > 3) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    else if (digits.length > 0) formatted = `(${digits}`;
+    setPhoneVal(formatted);
+  };
+
   return (
     <DemoBox>
       <StateRow label="Default"><AppInput placeholder="Default input" value={val} onChange={(e) => setVal(e.target.value)} /></StateRow>
       <StateRow label="With Icon"><AppInput icon={Search01Icon} placeholder="Search flights" value={val} onChange={(e) => setVal(e.target.value)} /></StateRow>
       <StateRow label="With Label"><AppInput label="Origin" icon={Location01Icon} placeholder="e.g. New York" value={val} onChange={(e) => setVal(e.target.value)} /></StateRow>
+      <StateRow label="Phone Number"><AppInput label="Phone Number" icon={Call02Icon} placeholder="(555) 000-0000" type="tel" inputMode="numeric" value={phoneVal} onChange={handlePhoneChange} /></StateRow>
       <StateRow label="Error"><AppInput placeholder="Enter email" error="Invalid email address" value={val} onChange={(e) => setVal(e.target.value)} /></StateRow>
       <StateRow label="Password"><AppInput isPassword placeholder="Enter password" value={val} onChange={(e) => setVal(e.target.value)} /></StateRow>
       <StateRow label="Clearable"><AppInput clearable placeholder="Clearable input" value={val} onChange={(e) => setVal(e.target.value)} onClear={() => setVal("")} /></StateRow>
       <StateRow label="Disabled"><AppInput placeholder="Disabled" disabled /></StateRow>
+    </DemoBox>
+  );
+}
+
+function DatePickerDemo() {
+  return (
+    <DemoBox>
+      <StateRow label="Departure Date — Empty">
+        <div className="w-full">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure Date</label>
+          <button type="button" className="app-input-container w-full text-left outline-none" style={{ minHeight: 48 }}>
+            <span className="app-input-icon-btn">
+              <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
+            </span>
+            <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base" style={{ color: "#6B7280" }}>
+              Select date
+            </span>
+          </button>
+        </div>
+      </StateRow>
+      <StateRow label="Departure Date — Selected">
+        <div className="w-full">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure Date</label>
+          <button type="button" className="app-input-container w-full text-left outline-none" style={{ minHeight: 48 }}>
+            <span className="app-input-icon-btn">
+              <HugeiconsIcon icon={CalendarCheckOut02Icon} size={20} color="currentColor" strokeWidth={2} />
+            </span>
+            <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base" style={{ color: "#1F2937" }}>
+              Mar 20, 2026
+            </span>
+          </button>
+        </div>
+      </StateRow>
+      <StateRow label="Return Date — Empty">
+        <div className="w-full">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Return Date</label>
+          <button type="button" className="app-input-container w-full text-left outline-none" style={{ minHeight: 48 }}>
+            <span className="app-input-icon-btn">
+              <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
+            </span>
+            <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base" style={{ color: "#6B7280" }}>
+              Select date
+            </span>
+          </button>
+        </div>
+      </StateRow>
+      <StateRow label="Return Date — Selected">
+        <div className="w-full">
+          <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Return Date</label>
+          <button type="button" className="app-input-container w-full text-left outline-none" style={{ minHeight: 48 }}>
+            <span className="app-input-icon-btn">
+              <HugeiconsIcon icon={CalendarCheckIn02Icon} size={20} color="currentColor" strokeWidth={2} />
+            </span>
+            <span className="flex-1 truncate px-[0.8em] py-[0.7em] text-base" style={{ color: "#1F2937" }}>
+              Mar 27, 2026
+            </span>
+          </button>
+        </div>
+      </StateRow>
     </DemoBox>
   );
 }
@@ -512,6 +586,17 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
     icon: Cursor01Icon,
     content: (
       <DemoBox>
+        <StateRow label="App Primary (used throughout app — Log In, Search Flights, etc.)">
+          <button className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 px-6">
+            <span className="uppercase tracking-[0.35em]">Log In</span>
+            <HugeiconsIcon icon={Airplane01Icon} size={18} color="white" strokeWidth={2} />
+          </button>
+        </StateRow>
+        <StateRow label="App Primary — Disabled">
+          <button disabled className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 px-6 opacity-50 cursor-not-allowed">
+            <span className="uppercase tracking-[0.35em]">Log In</span>
+          </button>
+        </StateRow>
         <StateRow label="Variants">
           <Button>Default</Button>
           <Button variant="secondary">Secondary</Button>
@@ -597,6 +682,7 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
   {
     label: "Date Picker",
     icon: Calendar03Icon,
+    content: <DatePickerDemo />,
   },
   {
     label: "Dialog",
@@ -1035,8 +1121,7 @@ export default function DesignSystemPage() {
       <div
         className={cn(surfaceClass, "overflow-hidden")}
         style={{
-          background:
-            "radial-gradient(circle at top left, rgba(16,185,129,0.18), transparent 38%), linear-gradient(180deg, #FFFFFF 0%, #F8FBFB 100%)",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F8FBFB 100%)",
         }}
       >
         <div className="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
