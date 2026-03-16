@@ -279,14 +279,9 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       >
         <div
           style={{
-            background: "rgba(232,234,237,0.72)",
-            padding: "5px 16px",
-            borderRadius: "8px",
-            backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "baseline",
-            gap: "6px",
-            textShadow: "0 1px 12px rgba(255,255,255,0.9), 0 0px 4px rgba(255,255,255,0.7)",
+            gap: "8px",
           }}
         >
           <span
@@ -296,6 +291,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
               color: "#1a2a2a",
               fontWeight: 700,
               textTransform: "uppercase",
+              textShadow: "0 1px 8px rgba(255,255,255,0.95)",
             }}
           >
             Plan Smarter. Travel
@@ -303,13 +299,15 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           <span
             style={{
               fontFamily: "'Dancing Script', cursive",
-              fontSize: "clamp(18px, 5vw, 24px)",
+              fontSize: "clamp(30px, 8vw, 42px)",
               color: "#10B981",
-              fontWeight: 700,
-              letterSpacing: "0.02em",
+              fontWeight: 900,
+              letterSpacing: "0.01em",
+              lineHeight: 1,
               display: "inline-block",
+              textShadow: "0 2px 12px rgba(16,185,129,0.25)",
               clipPath: showWilder ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
-              transition: showWilder ? "clip-path 0.9s cubic-bezier(0.4,0,0.2,1)" : "none",
+              transition: showWilder ? "clip-path 1s cubic-bezier(0.4,0,0.2,1)" : "none",
             }}
           >
             Wilder
