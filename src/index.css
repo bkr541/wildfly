@@ -54,6 +54,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -77,6 +78,7 @@
   border-bottom: 1px solid rgba(156, 163, 175, 0.35);
   transition: border-radius 0.5s ease;
 }
+
 .app-input-container button {
   border: none;
   background: none;
@@ -85,9 +87,11 @@
   align-items: center;
   justify-content: center;
 }
+
 .app-input-container * {
   background-color: transparent !important;
 }
+
 .app-input-container::before {
   content: "";
   position: absolute;
@@ -101,19 +105,24 @@
   border-radius: 1px;
   transition: transform var(--timing) ease;
 }
+
 .app-input-container:focus-within {
   border-radius: var(--border-radius);
 }
+
 .app-input-container:focus-within::before {
   transform: scale(1);
 }
+
 .app-input-container.app-input-error {
   --border-color: #f87171;
   border-bottom: 2px solid #f87171;
 }
-.app-input-container.app-input-error > button:not(.app-input-toggle) {
+
+.app-input-container.app-input-error>button:not(.app-input-toggle) {
   color: #f87171 !important;
 }
+
 .app-input {
   font-size: 1rem;
   background-color: transparent;
@@ -124,13 +133,16 @@
   border: none;
   color: #1F2937;
 }
+
 .app-input:focus {
   outline: none;
 }
+
 .app-input-icon-btn {
   flex-shrink: 0;
   color: #6b7280;
 }
+
 .app-input-reset {
   border: none;
   background: none;
@@ -139,38 +151,41 @@
   cursor: pointer;
   flex-shrink: 0;
 }
+
 .app-input-reset--visible {
   opacity: 1;
   visibility: visible;
 }
+
 .app-input-reset:hover {
   color: #f87171;
 }
+
 .app-input-toggle {
   border: none;
   background: none;
   cursor: pointer;
   flex-shrink: 0;
 }
+
 .app-input-toggle:hover {
   color: #10B981;
 }
 
 @layer utilities {
+
   /* When an input inside a form-group is focused, color the label to match the focus ring */
-  .form-group:focus-within > label,
-  .form-group:focus-within > .form-label {
+  .form-group:focus-within>label,
+  .form-group:focus-within>.form-label {
     color: hsl(var(--ring));
     font-weight: 700;
   }
 
   .gradient-splash {
-    background: linear-gradient(
-      135deg,
-      hsl(184 80% 16%) 0%,
-      hsl(180 60% 12%) 50%,
-      hsl(184 80% 16%) 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(184 80% 16%) 0%,
+        hsl(180 60% 12%) 50%,
+        hsl(184 80% 16%) 100%);
   }
 }
 
@@ -179,6 +194,7 @@
     transform: scale(0);
     opacity: 0.6;
   }
+
   100% {
     transform: scale(4);
     opacity: 0;
@@ -186,8 +202,15 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 .animate-ripple {
@@ -196,6 +219,22 @@
 
 .animate-ripple-delay-1 {
   animation: ripple 2s ease-out 0.4s forwards;
+}
+
+.animate-ripple-delay-2 {
+  animation: ripple 2s ease-out 0.8s forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float 3s ease-in-out 1s infinite;
+}
+
+.animate-float-delay-2 {
+  animation: float 3s ease-in-out 2s infinite;
 }
 
 .animate-ripple-delay-2 {
