@@ -185,15 +185,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       className={`fixed inset-0 z-50 overflow-hidden ${show ? "opacity-100" : "opacity-0"}`}
       style={{ background: "#e8eaed", transition: "opacity 0.7s ease" }}
     >
-      {/* Spotlight radial overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{
-          background: `radial-gradient(ellipse 340px 120px at 50% 50%, transparent 0%, rgba(0,0,0,0.38) 100%)`,
-          opacity: spotlightActive ? 1 : 0,
-          transition: "opacity 0.9s ease",
-        }}
-      />
 
       <div
         style={{
