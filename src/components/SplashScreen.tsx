@@ -34,7 +34,8 @@ interface SplashScreenProps {
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [showTagline, setShowTagline] = useState(false);
-  
+  const [showWilder, setShowWilder] = useState(false);
+
   const [dims, setDims] = useState(() => calcGrid(window.innerWidth, window.innerHeight));
 
   useEffect(() => {
@@ -80,8 +81,9 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     // 0ms        – background tiles flicker
     // 1400ms     – all 7 WILDFLY tiles start flipping together
     // 2200ms     – reveal letters one by one (staggered 180ms each, last ~3460ms)
-    // 3700ms     – spotlight dims background tiles
-    // 3900ms     – tagline appears
+    // 3700ms     – dim background tiles
+    // 3900ms     – tagline "Plan Smarter. Travel" appears
+    // 4300ms     – cursive "Wilder" writes in
     // 4100ms     – stop background flicker
     // 4800ms     – non-WILDFLY tiles fade out entirely
     // 7400ms     – screen fade out
@@ -97,12 +99,10 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
     // Phase 1: All WILDFLY tiles start flipping simultaneously at 1400ms
     const startFlipping = setTimeout(() => {
-      // Mark all WILDFLY tiles as flipping so background flicker stops on them
       setTiles(prev => prev.map((tile, idx) =>
         WILDFLY_INDICES.includes(idx) ? { ...tile, flipping: true } : tile
       ));
 
-      // Each WILDFLY tile flips rapidly with random chars
       WILDFLY_INDICES.forEach((tileIdx) => {
         const flapInterval = setInterval(() => {
           setTiles(prev => prev.map((tile, idx) =>
@@ -118,7 +118,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     WILDFLY.split("").forEach((letter, i) => {
       const tileIdx = WILDFLY_INDICES[i];
       const t = setTimeout(() => {
-        // Do a few more rapid flips before landing on the real letter
         let step = 0;
         const landInterval = setInterval(() => {
           step++;
@@ -146,8 +145,13 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
     }, 3700);
     timeoutsRef.current.push(spotlightTimer);
 
+    // Show static tagline
     const showTaglineTimer = setTimeout(() => setShowTagline(true), 3900);
     timeoutsRef.current.push(showTaglineTimer);
+
+    // Animate in "Wilder" cursive word 400ms after static text
+    const showWilderTimer = setTimeout(() => setShowWilder(true), 4300);
+    timeoutsRef.current.push(showWilderTimer);
 
     const stopFlicker = setTimeout(() => clearInterval(flickerInterval), 4100);
     timeoutsRef.current.push(stopFlicker);
@@ -185,7 +189,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       className={`fixed inset-0 z-50 overflow-hidden ${show ? "opacity-100" : "opacity-0"}`}
       style={{ background: "#e8eaed", transition: "opacity 0.7s ease" }}
     >
-
       <div
         style={{
           position: "absolute",
@@ -271,25 +274,47 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         style={{
           top: offsetY + (CENTER_ROW + 1) * cellSize + 10,
           opacity: showTagline ? 1 : 0,
-          transition: "opacity 1s ease",
+          transition: "opacity 0.8s ease",
         }}
       >
-        <p
+        <div
           style={{
-            fontSize: "clamp(15px, 4.5vw, 20px)",
-            letterSpacing: "0.22em",
-            color: "#1a2a2a",
-            fontWeight: 700,
-            textTransform: "uppercase",
-            textShadow: "0 1px 12px rgba(255,255,255,0.9), 0 0px 4px rgba(255,255,255,0.7)",
             background: "rgba(232,234,237,0.72)",
-            padding: "6px 18px",
+            padding: "5px 16px",
             borderRadius: "8px",
             backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "6px",
+            textShadow: "0 1px 12px rgba(255,255,255,0.9), 0 0px 4px rgba(255,255,255,0.7)",
           }}
         >
-          Plan Smarter. Fly Wilder.
-        </p>
+          <span
+            style={{
+              fontSize: "clamp(11px, 3.2vw, 14px)",
+              letterSpacing: "0.2em",
+              color: "#1a2a2a",
+              fontWeight: 700,
+              textTransform: "uppercase",
+            }}
+          >
+            Plan Smarter. Travel
+          </span>
+          <span
+            style={{
+              fontFamily: "'Dancing Script', cursive",
+              fontSize: "clamp(18px, 5vw, 24px)",
+              color: "#10B981",
+              fontWeight: 700,
+              letterSpacing: "0.02em",
+              display: "inline-block",
+              clipPath: showWilder ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
+              transition: showWilder ? "clip-path 0.9s cubic-bezier(0.4,0,0.2,1)" : "none",
+            }}
+          >
+            Wilder
+          </span>
+        </div>
       </div>
     </div>
   );
