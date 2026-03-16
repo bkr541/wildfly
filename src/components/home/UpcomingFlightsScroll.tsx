@@ -87,9 +87,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.28, ease: EASE }}
-            style={{ overflow: "hidden" }}
+            style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "4px 4px 8px" }}>
+            <div style={{ padding: "8px 6px 10px" }}>
             {loading ? (
               <div
                 className="rounded-2xl px-4 py-5"
@@ -113,7 +113,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               </div>
             ) : flights.length === 0 ? (
               <div
-                className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4 overflow-hidden"
+                className="rounded-2xl px-[14px] py-[14px] flex items-center gap-4"
                 style={{
                   background: "rgba(255,255,255,0.72)",
                   backdropFilter: "blur(18px)",
