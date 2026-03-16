@@ -20,6 +20,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import IOSInstallBanner from "./components/IOSInstallBanner";
+import DesignSystemPage from "./pages/DesignSystem";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "friends">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "design-system" | "friends">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
@@ -246,7 +247,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "friends"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends"].includes(currentPage);
 
   return (
     <div className="flex justify-center h-[100dvh] overflow-hidden bg-white">
@@ -289,6 +290,7 @@ const MainApp = () => {
               {currentPage === "itinerary" && <ItineraryPage />}
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "friends" && <FriendsPage />}
+              {currentPage === "design-system" && <DesignSystemPage />}
             </MainLayout>
           </ProfileProvider>
         )}

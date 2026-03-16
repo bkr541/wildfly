@@ -29,6 +29,7 @@ const menuItems = [
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
+  { icon: CreditCardIcon, label: "Design System", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
 ];
 
@@ -41,6 +42,7 @@ const pageMap: Record<string, string> = {
   Friends: "friends",
   Hubs: "hubs",
   Subscription: "subscription",
+  "Design System": "design-system",
 };
 
 const DRAWER_WIDTH = 80; // percent of screen
@@ -276,6 +278,7 @@ const MainLayout = ({
                     itinerary: "ITINERARY",
                     routes: "ROUTES",
                     account: "ACCOUNT",
+                    "design-system": "DESIGN SYSTEM",
                   };
                   const prefix = prefixMap[currentPage];
                   const label = labelMap[currentPage] ?? currentPage.toUpperCase();
