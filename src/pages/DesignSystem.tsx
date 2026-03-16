@@ -115,14 +115,14 @@ const navSections = [
 ] as const;
 
 const colorTokens = [
-  { name: "Background", varName: "--background", swatchClass: "bg-background" },
-  { name: "Primary", varName: "--primary", swatchClass: "bg-primary" },
-  { name: "Secondary", varName: "--secondary", swatchClass: "bg-secondary" },
-  { name: "Card", varName: "--card", swatchClass: "bg-card" },
-  { name: "Accent", varName: "--accent", swatchClass: "bg-accent" },
-  { name: "Muted", varName: "--muted", swatchClass: "bg-muted" },
-  { name: "Ring", varName: "--ring", swatchClass: "bg-[hsl(var(--ring))]" },
-  { name: "Border", varName: "--border", swatchClass: "bg-[hsl(var(--border))]" },
+  { name: "App Background", varName: "#F1F5F5", swatchClass: "bg-[#F1F5F5] border border-[#E5E9E9]" },
+  { name: "Card Surface", varName: "#FFFFFF", swatchClass: "bg-white border border-[#E8EBEB]" },
+  { name: "Primary Green", varName: "#10B981", swatchClass: "bg-[#10B981]" },
+  { name: "Primary Dark", varName: "#059669", swatchClass: "bg-[#059669]" },
+  { name: "Text Primary", varName: "#1A2E2E", swatchClass: "bg-[#1A2E2E]" },
+  { name: "Text Secondary", varName: "#6B7B7B", swatchClass: "bg-[#6B7B7B]" },
+  { name: "Border Light", varName: "#E8EBEB", swatchClass: "bg-[#E8EBEB]" },
+  { name: "Highlight Green", varName: "#D1FAE5", swatchClass: "bg-[#D1FAE5]" },
 ];
 
 function SectionShell({
