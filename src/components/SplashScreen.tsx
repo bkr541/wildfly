@@ -138,9 +138,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       timeoutsRef.current.push(t);
     });
 
-    // Spotlight: dim all non-WILDFLY tiles
+    // Dim all non-WILDFLY tiles at 3700ms
     const spotlightTimer = setTimeout(() => {
-      setSpotlightActive(true);
       setTiles(prev => prev.map(tile =>
         tile.revealed ? tile : { ...tile, dimmed: true }
       ));
