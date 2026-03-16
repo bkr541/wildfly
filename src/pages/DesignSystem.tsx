@@ -105,10 +105,12 @@ const auditRows = [
 
 const navSections = [
   ["tokens", "Tokens"],
+  ["components", "Components"],
   ["buttons", "Buttons"],
   ["forms", "Forms"],
   ["tabs", "Tabs"],
   ["cards", "Cards"],
+  ["chips", "Chips & Badges"],
   ["feedback", "Feedback"],
 ] as const;
 
@@ -149,7 +151,7 @@ function SectionShell({
   );
 }
 
-function TokenSwatch({
+function ColorTokenSwatch({
   name,
   varName,
   swatchClass,
@@ -159,11 +161,11 @@ function TokenSwatch({
   swatchClass: string;
 }) {
   return (
-    <div className="rounded-3xl border border-[#E7ECEC] bg-[#F8FBFB] p-3">
-      <div className={cn("h-20 rounded-2xl border border-black/5", swatchClass)} />
-      <div className="mt-3">
-        <p className="text-sm font-semibold text-[#173433]">{name}</p>
-        <p className="text-xs tracking-[0.12em] text-[#7B9392] uppercase">{varName}</p>
+    <div className="rounded-3xl border border-[#EEF2F1] bg-white p-4" style={{ boxShadow: "0 4px 20px rgba(53,92,90,0.06)" }}>
+      <div className={cn("h-32 rounded-2xl w-full", swatchClass)} />
+      <div className="mt-4 px-1">
+        <p className="text-base font-bold text-[#173433]">{name}</p>
+        <p className="text-[13px] tracking-[0.1em] text-[#8C9F9E] font-medium uppercase mt-0.5">{varName}</p>
       </div>
     </div>
   );
@@ -222,6 +224,88 @@ function PreviewDestinationCard() {
         <Button className="h-12 w-full rounded-2xl bg-[#10B981] text-white hover:bg-[#059669]">
           View Available Flights
         </Button>
+      </div>
+    </div>
+  );
+}
+
+function PreviewDatePicker() {
+  const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const calendarCells = Array.from({ length: 35 }, (_, i) => i - 2); // Start some days before 1st to simulate offset
+
+  return (
+    <div className="rounded-3xl border border-[#EEF2F1] bg-white p-6 shadow-[0_4px_20px_rgba(53,92,90,0.06)]">
+      <div className="flex items-center justify-between mb-4">
+        <button className="h-9 w-9 flex items-center justify-center rounded-full bg-white border border-[#E8EEEE] text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span className="text-xl font-bold text-[#2E4A4A]">November 2026</span>
+        <button className="h-9 w-9 flex items-center justify-center rounded-full bg-white border border-[#E8EEEE] text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 mb-2">
+        {days.map((d, i) => (
+          <div key={d} className="flex items-center justify-center py-1">
+            <span className={`text-[12px] font-medium ${i === 0 || i === 6 ? "text-red-400" : "text-[#9CA3AF]"}`}>{d}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-y-1">
+        {calendarCells.map((dayNum, idx) => {
+          if (dayNum <= 0 || dayNum > 30) return <div key={idx} />;
+          
+          const isSelected = dayNum === 16;
+          const isRange = dayNum > 16 && dayNum < 20;
+          const isRangeEnd = dayNum === 20;
+          
+          let buttonStyle: React.CSSProperties = {};
+          let textColor = "text-[#2E4A4A]";
+          
+          // Weekend red 
+          if ((idx % 7 === 0 || idx % 7 === 6) && !isSelected && !isRange && !isRangeEnd) {
+            textColor = "text-red-500";
+          }
+          
+          if (isSelected || isRangeEnd) {
+            buttonStyle = {
+              background: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
+              border: "none",
+              boxShadow: "0 2px 8px rgba(16,185,129,0.35)",
+            };
+            textColor = "text-white";
+          } else if (isRange) {
+            textColor = "text-[#059669]";
+          }
+
+          return (
+            <div key={idx} className="relative flex items-center justify-center py-1">
+              {(isRange || isRangeEnd) && dayNum !== 16 && idx % 7 !== 0 && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+              )}
+              {isRange && idx % 7 !== 6 && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+              )}
+              {(isSelected) && dayNum === 16 && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
+              )}
+              
+              <button
+                type="button"
+                className={cn(
+                  "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                  !isSelected && !isRangeEnd && !isRange && "hover:bg-[#F0FDF4]",
+                  textColor
+                )}
+                style={buttonStyle}
+              >
+                {dayNum}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -510,13 +594,18 @@ export default function DesignSystemPage() {
         description="A quick read on color, hierarchy, and the visual voice already living in Wildfly."
       >
         <div className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {colorTokens.map((token) => (
-              <TokenSwatch key={token.varName} {...token} />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {colorTokens.slice(0, 4).map((t) => (
+              <ColorTokenSwatch key={t.varName} {...t} />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {colorTokens.slice(4).map((t) => (
+              <ColorTokenSwatch key={t.varName} {...t} />
             ))}
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid gap-6 md:grid-cols-2 mt-8">
             <div className="rounded-[24px] bg-[#F8FBFB] p-4">
               <p className="text-[11px] uppercase tracking-[0.18em] text-[#7E9694]">Type scale</p>
               <div className="mt-4 space-y-3 text-[#173433]">
@@ -600,6 +689,16 @@ export default function DesignSystemPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </SectionShell>
+
+      <SectionShell
+        id="components"
+        title="Components (Date Picker)"
+        description="Custom inline calendar giving a fixed visual ruler for spacing, typography, and selected-state color."
+      >
+        <div className="max-w-md">
+          <PreviewDatePicker />
         </div>
       </SectionShell>
 
@@ -750,6 +849,38 @@ export default function DesignSystemPage() {
           </div>
         </div>
       </SectionShell>
+
+      <SectionShell
+        id="chips"
+        title="Chips & Badges"
+        description="Small visual indicators used for categories, status, and filtering."
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-6 shadow-sm">
+            <h3 className="text-[#173433] font-bold mb-4 text-sm">Action Filters</h3>
+            <div className="flex flex-wrap gap-2">
+              <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">Nonstop</span>
+              <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">GoWild</span>
+              <span className="text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-1 rounded-full">Filter Active</span>
+            </div>
+            
+            <h3 className="text-[#173433] font-bold mt-6 mb-4 text-sm">Status & Pricing</h3>
+            <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
+                <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
+                <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
+              </div>
+              <Badge className="rounded-full bg-[#0F766E] px-3 py-1 text-[11px] font-semibold text-white hover:bg-[#0F766E]">
+                8 flights
+              </Badge>
+              <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-[#F0F4F4] text-[#2E4A4A]">
+                $212
+              </span>
+            </div>
+          </div>
+        </div>
+      </SectionShell>
+
       <SectionShell
         id="feedback"
         title="Loading states and feedback patterns"
