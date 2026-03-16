@@ -224,8 +224,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
                   : tile.dimmed
                     ? "background 0.8s ease, border 0.8s ease"
                     : undefined,
-              boxShadow: tile.revealed && spotlightActive
-                ? "0 0 18px 4px rgba(16,185,129,0.45), 0 2px 8px rgba(0,0,0,0.18)"
+              boxShadow: tile.revealed
+                ? "0 2px 8px rgba(0,0,0,0.18)"
                 : undefined,
             }}
           >
