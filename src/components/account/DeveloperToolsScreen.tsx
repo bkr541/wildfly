@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, PaintBrushIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
-import FlightResultsDesignScreen from "@/components/account/design/FlightResultsDesignScreen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +18,7 @@ import {
 interface DeveloperToolsScreenProps {
   onBack: () => void;
   onTitleChange?: (title: string | null) => void;
+  onNavigate?: (page: string) => void;
 }
 
 const LOG_LEVELS = ["silent", "error", "warn", "info", "debug"] as const;
@@ -34,14 +34,12 @@ const KNOWN_NAMESPACES = [
   "Wallet",
 ];
 
-const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenProps) => {
+const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [showApiClient, setShowApiClient] = useState(false);
   
-  const [designHubOpen, setDesignHubOpen] = useState(false);
-  const [activeDesignScreen, setActiveDesignScreen] = useState<string | null>(null);
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
   const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
@@ -72,12 +70,6 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     }
   };
 
-  const backToDesignHub = () => {
-    setActiveDesignScreen(null);
-    setDesignHubOpen(true);
-    onTitleChange?.("Developer Tools");
-  };
-
   // Set title on mount and restore when sub-screens close
   useEffect(() => {
     onTitleChange?.("Developer Tools");
@@ -87,11 +79,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
     return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
   }
 
-  if (activeDesignScreen === "flight-results") {
-    return <FlightResultsDesignScreen onBack={backToDesignHub} />;
-  }
-
-  if (loading || !settings) {
+if (loading || !settings) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-[#6B7B7B]">Loading...</p>
@@ -168,46 +156,21 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange }: DeveloperToolsScreenPro
           </div>
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
         </button>
-        {/* Design Hub */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setDesignHubOpen((o) => !o)}
-            className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
-          >
-            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-              <HugeiconsIcon icon={PaintBrushIcon} size={15} color="#345C5A" strokeWidth={1.5} />
-            </span>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-[#2E4A4A]">Design Hub</p>
-              <p className="text-xs text-[#6B7B7B]">Live component & style previews</p>
-            </div>
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              size={13}
-              color="#C4CACA"
-              strokeWidth={1.5}
-              className={`transition-transform duration-200 ${designHubOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {designHubOpen && (
-            <div className="border-t border-[#F0F1F1] animate-fade-in">
-              {[
-                { key: "flight-results", label: "Playground" },
-              ].map(({ key, label }, i, arr) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setActiveDesignScreen(key)}
-                  className={`flex items-center w-full px-5 py-2.5 gap-3 hover:bg-[#F2F3F3] transition-colors ${i < arr.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}
-                >
-                  <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{label}</span>
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Design System */}
+        <button
+          type="button"
+          onClick={() => onNavigate?.("design-system")}
+          className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+        >
+          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={CreditCardIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-[#2E4A4A]">Design System</p>
+            <p className="text-xs text-[#6B7B7B]">View component library and design tokens</p>
+          </div>
+          <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
+        </button>
 
         {/* Master toggles */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">

@@ -8,7 +8,6 @@ import {
   Airplane01Icon,
   Location01Icon,
   UserGroupIcon,
-  CreditCardIcon,
   Calendar03Icon,
   Logout01Icon,
   ArrowLeft01Icon,
@@ -29,7 +28,6 @@ const menuItems = [
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
-  { icon: CreditCardIcon, label: "Design System", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
 ];
 
@@ -42,7 +40,6 @@ const pageMap: Record<string, string> = {
   Friends: "friends",
   Hubs: "hubs",
   Subscription: "subscription",
-  "Design System": "design-system",
 };
 
 const DRAWER_WIDTH = 80; // percent of screen
