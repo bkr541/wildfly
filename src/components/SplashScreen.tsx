@@ -34,7 +34,7 @@ interface SplashScreenProps {
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [showTagline, setShowTagline] = useState(false);
-  const [spotlightActive, setSpotlightActive] = useState(false);
+  
   const [dims, setDims] = useState(() => calcGrid(window.innerWidth, window.innerHeight));
 
   useEffect(() => {
@@ -138,9 +138,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       timeoutsRef.current.push(t);
     });
 
-    // Spotlight: dim all non-WILDFLY tiles
+    // Dim all non-WILDFLY tiles at 3700ms
     const spotlightTimer = setTimeout(() => {
-      setSpotlightActive(true);
       setTiles(prev => prev.map(tile =>
         tile.revealed ? tile : { ...tile, dimmed: true }
       ));
@@ -186,15 +185,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       className={`fixed inset-0 z-50 overflow-hidden ${show ? "opacity-100" : "opacity-0"}`}
       style={{ background: "#e8eaed", transition: "opacity 0.7s ease" }}
     >
-      {/* Spotlight radial overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{
-          background: `radial-gradient(ellipse 340px 120px at 50% 50%, transparent 0%, rgba(0,0,0,0.38) 100%)`,
-          opacity: spotlightActive ? 1 : 0,
-          transition: "opacity 0.9s ease",
-        }}
-      />
 
       <div
         style={{
@@ -234,8 +224,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
                   : tile.dimmed
                     ? "background 0.8s ease, border 0.8s ease"
                     : undefined,
-              boxShadow: tile.revealed && spotlightActive
-                ? "0 0 18px 4px rgba(16,185,129,0.45), 0 2px 8px rgba(0,0,0,0.18)"
+              boxShadow: tile.revealed
+                ? "0 2px 8px rgba(0,0,0,0.18)"
                 : undefined,
             }}
           >
