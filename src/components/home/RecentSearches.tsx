@@ -125,6 +125,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
+            <div style={{ padding: "4px 4px 8px" }}>
             <div className="flex flex-wrap gap-3">
               {loading
                 ? [1, 2].map((i) => (
@@ -211,6 +212,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                     </motion.button>
                   );
                 })}
+            </div>
             </div>
           </motion.div>
         )}

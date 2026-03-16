@@ -89,6 +89,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
+            <div style={{ padding: "4px 4px 8px" }}>
             {loading ? (
               <div
                 className="rounded-2xl px-4 py-5"
@@ -194,6 +195,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                 ))}
               </div>
             )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
