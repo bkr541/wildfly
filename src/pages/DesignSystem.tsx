@@ -120,7 +120,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -242,19 +241,42 @@ function ToggleGroupDemo() {
   );
 }
 
+type DestTab = "Info" | "Flights" | "Events";
+const destTabOptions: { label: DestTab; icon: any }[] = [
+  { label: "Info", icon: InformationCircleIcon },
+  { label: "Flights", icon: AirplaneTakeOff01Icon },
+  { label: "Events", icon: Calendar03Icon },
+];
+
 function TabsDemo() {
+  const [activeTab, setActiveTab] = useState<DestTab>("Flights");
   return (
     <DemoBox>
-      <StateRow label="Default">
-        <Tabs defaultValue="tab1" className="w-full">
-          <TabsList>
-            <TabsTrigger value="tab1">Tab 1 (Active)</TabsTrigger>
-            <TabsTrigger value="tab2">Tab 2</TabsTrigger>
-            <TabsTrigger value="tab3" disabled>Disabled</TabsTrigger>
-          </TabsList>
-          <TabsContent value="tab1"><p className="text-xs text-[#6B7B7B] pt-2">Content for Tab 1.</p></TabsContent>
-          <TabsContent value="tab2"><p className="text-xs text-[#6B7B7B] pt-2">Content for Tab 2.</p></TabsContent>
-        </Tabs>
+      <StateRow label="Destination Tab Row (FlightDestResults)">
+        <div className="relative z-10 flex items-center justify-around bg-white w-full border-b border-gray-200 rounded-lg overflow-hidden">
+          {destTabOptions.map(({ label, icon }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setActiveTab(label)}
+              className={cn(
+                "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative",
+                label === activeTab ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+              )}
+            >
+              <HugeiconsIcon
+                icon={icon}
+                size={15}
+                strokeWidth={label === activeTab ? 2.5 : 1.5}
+                color={label === activeTab ? "#10B981" : undefined}
+              />
+              {label}
+              {label === activeTab && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
       </StateRow>
     </DemoBox>
   );
