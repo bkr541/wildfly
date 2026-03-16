@@ -10,7 +10,13 @@ import {
   Notification01Icon,
   Search01Icon,
   UserGroupIcon,
+  UserAdd01Icon,
+  InformationCircleIcon,
+  TicketStarIcon,
+  DollarCircleIcon
 } from "@hugeicons/core-free-icons";
+
+import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -210,6 +216,92 @@ function PreviewDestinationCard() {
   );
 }
 
+function PreviewMultiDestCard() {
+  return (
+    <div className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB]" style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}>
+      {/* City photo */}
+      <div className="relative h-[130px] overflow-hidden bg-[#C8D5D5]">
+        <div className="w-full h-full" style={{ background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)", opacity: 0.6 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)" }} />
+        <div className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }}>
+          <span className="text-[14px] font-black leading-none text-[#1A2E2E]">$212</span>
+        </div>
+      </div>
+      {/* Card body */}
+      <div className="px-4 pt-3 pb-3">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
+            <span className="text-[#10B981]">ORD</span>
+            <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
+            Chicago<span className="text-[#6B7B7B] font-normal text-[16px]">, IL</span>
+          </h3>
+          <span className="text-[12px] text-[#6B7B7B] font-medium flex-shrink-0">8 Flights</span>
+        </div>
+        <div className="border-t border-[#F0F3F3] my-2.5" />
+        <div className="flex flex-col gap-2 mb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">Range: <span className="font-semibold">$212 – $450</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewFlightDestCard() {
+  return (
+    <div
+      className="flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full border border-[#E8EBEB]"
+      style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+    >
+      <div className="text-left w-full px-4 pt-3.5 pb-3">
+        {/* Row 1: Airline name + price badge */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-[18px] flex items-center text-[10px] font-bold text-[#2E4A4A] tracking-widest uppercase">Frontier</div>
+          <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-[#D1FAE5] text-[#065F46]">
+            $212
+          </span>
+        </div>
+
+        {/* Row 2: Dep time — plane — Arr time */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+            8:00 AM
+          </span>
+          <div className="flex-1 flex items-center gap-1 px-1">
+            <div className="flex-1 h-px bg-[#C8D5D5]" />
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#2E4A4A] shrink-0" fill="currentColor">
+              <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+            </svg>
+            <div className="flex-1 h-px bg-[#C8D5D5]" />
+          </div>
+          <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+            10:14 AM
+          </span>
+        </div>
+
+        {/* Row 3: Origin city — duration pill — Dest city */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
+            ORD, IL
+          </span>
+          <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
+            2h 14m
+          </span>
+          <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
+            MIA, FL
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DesignSystemPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [airport, setAirport] = useState("ATL");
@@ -366,6 +458,28 @@ export default function DesignSystemPage() {
                 </p>
               </CardFooter>
             </Card>
+
+            <Card className="rounded-[24px] border-[#E8EEEE] shadow-none lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-[#173433]">Production Auth Button</CardTitle>
+                <CardDescription>Primary CTA from AuthUser.tsx</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <button
+                  className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
+                >
+                  <span className="text-center uppercase tracking-[0.35em]">
+                    Sign Up
+                  </span>
+                  <HugeiconsIcon
+                    icon={UserAdd01Icon}
+                    size={18}
+                    color="white"
+                    strokeWidth={2}
+                  />
+                </button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </SectionShell>
@@ -506,6 +620,25 @@ export default function DesignSystemPage() {
                 </TabsTrigger>
               </TabsList>
 
+              <div className="mt-6 rounded-[24px] bg-[#F8FBFB] p-4">
+                <p className="text-sm font-semibold text-[#173433] mb-3">Production FlightDestResults Tabs</p>
+                <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200 rounded-lg">
+                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
+                    <HugeiconsIcon icon={InformationCircleIcon} size={15} strokeWidth={1.5} />
+                    Info
+                  </button>
+                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-[#10B981] font-bold">
+                    <HugeiconsIcon icon={Airplane01Icon} size={15} strokeWidth={2.5} color="#10B981" />
+                    Flights
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+                  </button>
+                  <button className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative text-gray-400 hover:text-gray-600 font-semibold">
+                    <HugeiconsIcon icon={Calendar03Icon} size={15} strokeWidth={1.5} />
+                    Events
+                  </button>
+                </div>
+              </div>
+
               <TabsContent value="search" className="mt-4 rounded-[24px] bg-[#F8FBFB] p-4">
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="rounded-2xl bg-white px-4 py-4">
@@ -566,6 +699,13 @@ export default function DesignSystemPage() {
           <div className="space-y-5">
             <PreviewDestinationCard />
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <PreviewMultiDestCard />
+              <div className="rounded-2xl overflow-hidden bg-[#F2F6F6] p-4">
+                <PreviewFlightDestCard />
+              </div>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-2">
               <Card className="rounded-[24px] border-[#E8EEEE] shadow-none">
                 <CardHeader>
@@ -600,14 +740,14 @@ export default function DesignSystemPage() {
                     [Calendar03Icon, "Round trip search", "Wed Mar 4 · 2 travelers"],
                     [Location01Icon, "Chicago, IL", "ORD · 8 flights available"],
                     [UserGroupIcon, "Friends activity", "3 new items"],
-                  ].map(([icon, title, copy]) => (
+                  ].map(([icon, title, copy]: any) => (
                     <button
                       key={title}
                       type="button"
                       className="flex w-full items-center gap-3 rounded-2xl border border-[#EEF2F1] px-4 py-3 text-left transition-colors hover:bg-[#F7FAFA]"
                     >
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#ECFDF5] text-[#059669]">
-                        <HugeiconsIcon icon={icon as any} size={20} />
+                        <HugeiconsIcon icon={icon} size={20} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-[#173433]">{title}</p>
@@ -730,6 +870,14 @@ export default function DesignSystemPage() {
                       <Skeleton className="h-4 w-3/5" />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-[#E8EEEE] bg-white p-4">
+                <p className="text-sm font-semibold text-[#173433] mb-4">Production Split-flap Effect</p>
+                <SplitFlapHeader word="SEARCHING" />
+                <div className="mt-4">
+                  <SplitFlapHeader word="UPDATING" variant="gray" />
                 </div>
               </div>
             </div>
