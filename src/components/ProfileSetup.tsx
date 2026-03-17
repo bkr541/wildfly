@@ -537,7 +537,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               Find your travel buddies, make a crew, and explore together.
             </p>
 
-            <div className="rounded-2xl p-5" style={{ ...glassStyle, minHeight: "420px" }}>
+            <div className="rounded-2xl p-5" style={glassStyle}>
               <div className="mb-4">
                 <AppInput icon={Search01Icon} disabled placeholder="Find Friends" />
               </div>
