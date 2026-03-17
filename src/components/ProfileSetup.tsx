@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
-import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon } from "@hugeicons/core-free-icons";
+import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon, UserCircle02Icon, AddCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import {
@@ -64,17 +66,17 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [homeCity, setHomeCity] = useState<LocationOption | null>(null);
   const [homeCitySearch, setHomeCitySearch] = useState("");
   const [homeCityResults, setHomeCityResults] = useState<LocationOption[]>([]);
-  const [showHomeCityDropdown, setShowHomeCityDropdown] = useState(false);
+  const [showHomeCitySheet, setShowHomeCitySheet] = useState(false);
   const [favoriteCities, setFavoriteCities] = useState<LocationOption[]>([]);
   const [favSearch, setFavSearch] = useState("");
   const [favResults, setFavResults] = useState<LocationOption[]>([]);
-  const [showFavDropdown, setShowFavDropdown] = useState(false);
+  const [showFavSheet, setShowFavSheet] = useState(false);
   const [homeCityError, setHomeCityError] = useState("");
-  const [destTab, setDestTab] = useState<"home" | "favorites">("home");
   const [favCityError, setFavCityError] = useState("");
+  const [destTab, setDestTab] = useState<"home" | "favorites">("home");
 
-  const homeCityRef = useRef<HTMLDivElement>(null);
-  const favCityRef = useRef<HTMLDivElement>(null);
+  const homeCityInputRef = useRef<HTMLInputElement>(null);
+  const favCityInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Load user data
@@ -104,15 +106,6 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     loadUser();
   }, []);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (homeCityRef.current && !homeCityRef.current.contains(e.target as Node)) setShowHomeCityDropdown(false);
-      if (favCityRef.current && !favCityRef.current.contains(e.target as Node)) setShowFavDropdown(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const searchLocations = useCallback(async (query: string, setter: (r: LocationOption[]) => void) => {
     if (query.length < 3) {
@@ -129,11 +122,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   const handleHomeCitySearch = (val: string) => {
     setHomeCitySearch(val);
-    setHomeCityError("");
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchLocations(val, setHomeCityResults);
-      setShowHomeCityDropdown(val.length >= 3);
     }, 300);
   };
 
@@ -142,14 +133,14 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchLocations(val, setFavResults);
-      setShowFavDropdown(val.length >= 3);
     }, 300);
   };
 
   const selectHomeCity = (loc: LocationOption) => {
     setHomeCity(loc);
     setHomeCitySearch(formatLocationDisplay(loc));
-    setShowHomeCityDropdown(false);
+    setShowHomeCitySheet(false);
+    setHomeCityError("");
     // Remove from favorites if it was selected
     setFavoriteCities((prev) => prev.filter((f) => f.id !== loc.id));
   };
@@ -160,7 +151,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     if (favoriteCities.some((f) => f.id === loc.id)) return;
     setFavoriteCities((prev) => [...prev, loc]);
     setFavSearch("");
-    setShowFavDropdown(false);
+    setShowFavSheet(false);
   };
 
   const removeFavorite = (id: number) => {
@@ -303,14 +294,14 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         <div className="w-8 h-8" />
       </div>
 
-      <div className="px-6 pb-6 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-4">
 
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex flex-col gap-4 animate-fade-in">
             <div>
-              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Profile</h1>
-              <p className="text-[#6B7B7B] text-base">Let's start off by learning a little more about you.</p>
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-[6px] mb-0.5">{firstName}'s Profile</h1>
+              <p className="text-[#6B7B7B] text-base mb-[6px]">Let's start off by learning a little more about you.</p>
             </div>
 
             <div className="rounded-2xl p-5 overflow-visible" style={glassStyle}>
@@ -339,6 +330,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                     Username <span className="text-red-500">*</span>
                   </label>
                   <AppInput
+                    icon={UserCircle02Icon}
                     value={username}
                     onChange={(e) => {
                       setUsername(e.target.value);
@@ -356,7 +348,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     max="9999-12-31"
-                    className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden appearance-none"
+                    className="text-left [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden appearance-none"
                   />
                 </div>
                 <div className="form-group">
@@ -373,10 +365,6 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
-              {saving ? "Saving..." : "Continue"}
-              {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
-            </button>
           </div>
         )}
 
@@ -384,8 +372,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {step === 1 && (
           <div className="flex flex-col gap-4 animate-fade-in">
             <div>
-              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Destinations</h1>
-              <p className="text-[#6B7B7B] text-base">
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-[6px] mb-0.5">{firstName}'s Destinations</h1>
+              <p className="text-[#6B7B7B] text-base mb-[6px]">
                 Tell us where you call home and your favorite places to explore.
               </p>
             </div>
@@ -424,68 +412,39 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               <div className="p-5">
                 {/* Home City Tab */}
                 {destTab === "home" && (
-                  <div ref={homeCityRef} className="form-group relative">
+                  <div className="form-group">
                     <label className={labelStyle}>
                       Home City <span className="text-red-500">*</span>
                     </label>
                     <AppInput
-                      icon={Search01Icon}
+                      icon={Home01Icon}
                       value={homeCitySearch}
-                      onChange={(e) => handleHomeCitySearch(e.target.value)}
-                      onFocus={() => { if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true); }}
+                      onChange={() => {}}
+                      onFocus={() => setShowHomeCitySheet(true)}
+                      readOnly
                       placeholder="Search for your home city..."
                       error={homeCityError || undefined}
                       clearable={!!homeCity}
                       onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
                     />
-                    {showHomeCityDropdown && homeCityResults.length > 0 && (
-                      <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                        {homeCityResults.map((loc) => (
-                          <button
-                            key={loc.id}
-                            onClick={() => selectHomeCity(loc)}
-                            className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-                          >
-                            <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
-                            {formatLocationDisplay(loc)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 )}
 
                 {/* Favorite Cities Tab */}
                 {destTab === "favorites" && (
-                  <div ref={favCityRef} className="form-group relative">
+                  <div className="form-group">
                     <label className={labelStyle}>
                       Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                     </label>
                     <AppInput
-                      icon={Search01Icon}
-                      value={favSearch}
-                      onChange={(e) => handleFavSearch(e.target.value)}
-                      onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
+                      icon={HeartAddIcon}
+                      value=""
+                      onChange={() => {}}
+                      onFocus={() => { if (favoriteCities.length < 5) setShowFavSheet(true); }}
+                      readOnly
                       placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
                       disabled={favoriteCities.length >= 5}
                     />
-                    {showFavDropdown && favResults.length > 0 && (
-                      <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                        {favResults
-                          .filter((loc) => !homeCity || loc.id !== homeCity.id)
-                          .filter((loc) => !favoriteCities.some((f) => f.id === loc.id))
-                          .map((loc) => (
-                            <button
-                              key={loc.id}
-                              onClick={() => addFavorite(loc)}
-                              className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-                            >
-                              <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
-                              {formatLocationDisplay(loc)}
-                            </button>
-                          ))}
-                      </div>
-                    )}
 
                     {/* Chips */}
                     {favoriteCities.length > 0 && (
@@ -497,7 +456,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                           {favoriteCities.map((loc) => (
                             <span
                               key={loc.id}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shrink-0"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shrink-0"
                               style={{
                                 background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                                 color: "#065F46",
@@ -522,19 +481,215 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
-              {saving ? "Saving..." : "Continue"}
-              {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
-            </button>
           </div>
+        )}
+
+        {/* ===================== City Search Sheets (portaled) ===================== */}
+        {createPortal(
+          <AnimatePresence>
+            {showHomeCitySheet && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[9998] bg-black/40"
+                  onClick={() => setShowHomeCitySheet(false)}
+                />
+                <motion.div
+                  key="home-city-sheet"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 32, stiffness: 340 }}
+                  className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
+                >
+                  {/* Handle */}
+                  <div className="flex justify-center pt-3 pb-1">
+                    <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+                  </div>
+
+                  {/* Title row */}
+                  <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="h-8 w-8 rounded-full flex items-center justify-center"
+                        style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                      >
+                        <HugeiconsIcon icon={Home01Icon} size={15} color="white" strokeWidth={2} />
+                      </div>
+                      <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Home City</h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowHomeCitySheet(false)}
+                      className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+                    >
+                      <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+                    </button>
+                  </div>
+
+                  {/* Search input */}
+                  <div className="px-5 pt-4 pb-4">
+                    <div className="app-input-container">
+                      <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                        <HugeiconsIcon icon={Search01Icon} size={20} color="currentColor" strokeWidth={2} />
+                      </button>
+                      <input
+                        ref={homeCityInputRef}
+                        type="text"
+                        value={homeCitySearch}
+                        onChange={(e) => handleHomeCitySearch(e.target.value)}
+                        placeholder="Search city or state…"
+                        className="app-input"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        autoFocus
+                      />
+                      {homeCitySearch.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => { setHomeCitySearch(""); setHomeCityResults([]); }}
+                          className="app-input-reset app-input-reset--visible"
+                        >
+                          <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  <div className="flex-1 overflow-y-auto overscroll-contain">
+                    {homeCityResults.map((loc) => (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => selectHomeCity(loc)}
+                        className="w-full flex items-center px-5 py-3.5 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors border-b border-[#F0F1F1] last:border-0"
+                      >
+                        <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3 flex-shrink-0" />
+                        {formatLocationDisplay(loc)}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+
+        {createPortal(
+          <AnimatePresence>
+            {showFavSheet && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[9998] bg-black/40"
+                  onClick={() => setShowFavSheet(false)}
+                />
+                <motion.div
+                  key="fav-city-sheet"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 32, stiffness: 340 }}
+                  className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
+                >
+                  {/* Handle */}
+                  <div className="flex justify-center pt-3 pb-1">
+                    <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+                  </div>
+
+                  {/* Title row */}
+                  <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="h-8 w-8 rounded-full flex items-center justify-center"
+                        style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                      >
+                        <HugeiconsIcon icon={HeartAddIcon} size={15} color="white" strokeWidth={2} />
+                      </div>
+                      <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">
+                        Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFavSheet(false)}
+                      className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+                    >
+                      <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+                    </button>
+                  </div>
+
+                  {/* Search input */}
+                  <div className="px-5 pt-4 pb-4">
+                    <div className="app-input-container">
+                      <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                        <HugeiconsIcon icon={Search01Icon} size={20} color="currentColor" strokeWidth={2} />
+                      </button>
+                      <input
+                        ref={favCityInputRef}
+                        type="text"
+                        value={favSearch}
+                        onChange={(e) => handleFavSearch(e.target.value)}
+                        placeholder="Search city or state…"
+                        className="app-input"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        autoFocus
+                      />
+                      {favSearch.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => { setFavSearch(""); setFavResults([]); }}
+                          className="app-input-reset app-input-reset--visible"
+                        >
+                          <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  <div className="flex-1 overflow-y-auto overscroll-contain">
+                    {favResults
+                      .filter((loc) => !homeCity || loc.id !== homeCity.id)
+                      .filter((loc) => !favoriteCities.some((f) => f.id === loc.id))
+                      .map((loc) => (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          onClick={() => addFavorite(loc)}
+                          className="w-full flex items-center px-5 py-3.5 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors border-b border-[#F0F1F1] last:border-0"
+                        >
+                          <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3 flex-shrink-0" />
+                          {formatLocationDisplay(loc)}
+                        </button>
+                      ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
 
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
           <div className="flex flex-col gap-4 animate-fade-in">
             <div>
-              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Friends</h1>
-              <p className="text-[#6B7B7B] text-base">
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-[6px] mb-0.5">{firstName}'s Friends</h1>
+              <p className="text-[#6B7B7B] text-base mb-[6px]">
                 Find your travel buddies, make a crew, and explore together.
               </p>
             </div>
@@ -549,13 +704,31 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
-              {saving ? "Saving..." : "Start Flying"}
-              {!saving && <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={18} color="white" strokeWidth={2} />}
-            </button>
           </div>
         )}
 
+      </div>
+
+      {/* Sticky button footer */}
+      <div className="sticky bottom-0 px-6 pb-6 pt-2 bg-[#F2F3F3]">
+        {step === 0 && (
+          <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
+            {saving ? "Saving..." : "Continue"}
+            {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
+          </button>
+        )}
+        {step === 1 && (
+          <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
+            {saving ? "Saving..." : "Continue"}
+            {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
+          </button>
+        )}
+        {step === 2 && (
+          <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
+            {saving ? "Saving..." : "Start Flying"}
+            {!saving && <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={18} color="white" strokeWidth={2} />}
+          </button>
+        )}
       </div>
     </div>
   );
