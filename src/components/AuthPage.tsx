@@ -187,8 +187,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     setShowConfirmDialog(false);
     setLoading(true);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
       });
       if (authError) {
@@ -201,7 +202,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       }
       const { error: profileError } = await supabase.from("user_info").insert({
         auth_user_id: authData.user.id,
-        email: email.trim(),
+        email: normalizedEmail,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         onboarding_complete: "No",
@@ -528,8 +529,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
           <AlertDialogHeader className="space-y-1">
-            <AlertDialogTitle className="text-lg">Confirm Password</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">Re-enter your password to finish.</AlertDialogDescription>
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">Re-enter your password to finish.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2">
             <div className="relative">

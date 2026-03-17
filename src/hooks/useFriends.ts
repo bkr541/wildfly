@@ -28,6 +28,8 @@ export interface UserSearchResult {
   auth_user_id: string | null;
   username: string | null;
   display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   avatar_url: string | null;
   home_city: string | null;
   home_airport: string | null;
@@ -137,10 +139,10 @@ export function useUserSearch(query: string) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      const term = `%${query.trim()}%`;
+      const term = `*${query.trim()}*`;
       const { data, error } = await supabase
         .from("user_info")
-        .select("auth_user_id, username, display_name, avatar_url, home_city, home_airport")
+        .select("auth_user_id, username, display_name, first_name, last_name, avatar_url, home_city, home_airport")
         .eq("is_discoverable", true)
         .or(`username.ilike.${term},home_city.ilike.${term}`)
         .neq("auth_user_id", user?.id ?? "")

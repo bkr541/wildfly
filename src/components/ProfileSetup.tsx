@@ -1,15 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
+import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   faChevronLeft,
   faCamera,
-  faXmark,
-  faMagnifyingGlass,
   faUsers,
   faLocationDot,
-  faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface ProfileSetupProps {
@@ -51,6 +50,15 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [usernameError, setUsernameError] = useState("");
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    let formatted = digits;
+    if (digits.length > 6) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    else if (digits.length > 3) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    else if (digits.length > 0) formatted = `(${digits}`;
+    setMobileNumber(formatted);
+  };
+
   // Screen 2 state
   const [homeCity, setHomeCity] = useState<LocationOption | null>(null);
   const [homeCitySearch, setHomeCitySearch] = useState("");
@@ -61,10 +69,6 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [favResults, setFavResults] = useState<LocationOption[]>([]);
   const [showFavDropdown, setShowFavDropdown] = useState(false);
   const [homeCityError, setHomeCityError] = useState("");
-
-  // Focus states for visual styling
-  const [isHomeFocused, setIsHomeFocused] = useState(false);
-  const [isFavFocused, setIsFavFocused] = useState(false);
 
   const homeCityRef = useRef<HTMLDivElement>(null);
   const favCityRef = useRef<HTMLDivElement>(null);
@@ -200,7 +204,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     }
     if (!user) return;
     setSaving(true);
-    await supabase.from("user_info").update({ home_location_id: homeCity.id }).eq("id", user.id);
+    const homeCityLabel = homeCity.city && homeCity.state_code
+      ? `${homeCity.city}, ${homeCity.state_code}`
+      : homeCity.name;
+    await supabase.from("user_info").update({ home_location_id: homeCity.id, home_city: homeCityLabel }).eq("id", user.id);
     // Sync user_locations: delete all then insert current favorites
     await supabase.from("user_locations").delete().eq("user_id", user.id);
     if (favoriteCities.length > 0) {
@@ -225,13 +232,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const firstName = user?.first_name || "User";
 
   // Style constants
-  const inputBase =
-    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-2 border-transparent focus:border-[#345C5A] focus:bg-white";
-  const inputError =
-    "w-full px-4 py-4 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] outline-none transition-all border-2 border-red-500 focus:border-red-500 focus:bg-white";
-
   const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2";
-  const labelBase = "block text-[11px] font-bold tracking-[0.15em] uppercase mb-2 transition-colors";
   const buttonStyle =
     "w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50";
 
@@ -329,15 +330,23 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
               <div className="form-group">
                 <label className={labelStyle}>Date of Birth</label>
-                <AppInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                <AppInput
+                  icon={CalendarCheckOut02Icon}
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden appearance-none"
+                />
               </div>
               <div className="form-group">
                 <label className={labelStyle}>Mobile Number</label>
                 <AppInput
+                  icon={Call02Icon}
                   type="tel"
+                  inputMode="numeric"
                   value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
+                  onChange={handlePhoneChange}
+                  placeholder="(555) 000-0000"
                 />
               </div>
             </div>
@@ -360,33 +369,19 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
             {/* Home City */}
             <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className={`${labelBase} ${isHomeFocused ? "text-[#345C5A]" : "text-[#6B7B7B]"}`}>
+              <label className={labelStyle}>
                 Home City <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <FontAwesomeIcon
-                  icon={faMagnifyingGlass}
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isHomeFocused ? "text-[#345C5A]" : "text-[#849494]"}`}
-                />
-                <input
-                  value={homeCitySearch}
-                  onChange={(e) => handleHomeCitySearch(e.target.value)}
-                  onFocus={() => {
-                    setIsHomeFocused(true);
-                    if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true);
-                  }}
-                  onBlur={() => setIsHomeFocused(false)}
-                  placeholder="Search for your home city..."
-                  className={`${homeCityError ? inputError : inputBase} pl-11 ${homeCity ? "pr-11 text-[#345C5A] font-medium" : ""}`}
-                />
-                {homeCity && (
-                  <FontAwesomeIcon
-                    icon={faCircleCheck}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#345C5A]"
-                  />
-                )}
-              </div>
-              {homeCityError && <p className="text-red-500 text-xs mt-1">{homeCityError}</p>}
+              <AppInput
+                icon={Search01Icon}
+                value={homeCitySearch}
+                onChange={(e) => handleHomeCitySearch(e.target.value)}
+                onFocus={() => { if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true); }}
+                placeholder="Search for your home city..."
+                error={homeCityError || undefined}
+                clearable={!!homeCity}
+                onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
+              />
               {showHomeCityDropdown && homeCityResults.length > 0 && (
                 <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
                   {homeCityResults.map((loc) => (
@@ -406,27 +401,17 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             {/* Favorite Cities - only show when home city selected */}
             {homeCity && (
               <div ref={favCityRef} className="form-group relative mb-4">
-                <label className={`${labelBase} ${isFavFocused ? "text-[#345C5A]" : "text-[#6B7B7B]"}`}>
+                <label className={labelStyle}>
                   Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                 </label>
-                <div className="relative">
-                  <FontAwesomeIcon
-                    icon={faMagnifyingGlass}
-                    className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isFavFocused ? "text-[#345C5A]" : "text-[#849494]"}`}
-                  />
-                  <input
-                    value={favSearch}
-                    onChange={(e) => handleFavSearch(e.target.value)}
-                    onFocus={() => {
-                      setIsFavFocused(true);
-                      if (favSearch.length >= 3) setShowFavDropdown(true);
-                    }}
-                    onBlur={() => setIsFavFocused(false)}
-                    placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
-                    disabled={favoriteCities.length >= 5}
-                    className={`${inputBase} pl-11 disabled:opacity-50`}
-                  />
-                </div>
+                <AppInput
+                  icon={Search01Icon}
+                  value={favSearch}
+                  onChange={(e) => handleFavSearch(e.target.value)}
+                  onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
+                  placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
+                  disabled={favoriteCities.length >= 5}
+                />
                 {showFavDropdown && favResults.length > 0 && (
                   <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {favResults
@@ -454,14 +439,20 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                       {favoriteCities.map((loc) => (
                         <span
                           key={loc.id}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#345C5A]/10 border border-[#345C5A]/30 text-[#345C5A] text-sm font-medium"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shrink-0"
+                          style={{
+                            background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                            color: "#065F46",
+                            border: "1px solid #6EE7B7",
+                          }}
                         >
+                          <HugeiconsIcon icon={Location01Icon} size={12} color="#059669" strokeWidth={2.5} />
                           {formatLocationDisplay(loc)}
                           <button
                             onClick={() => removeFavorite(loc.id)}
-                            className="hover:text-red-500 transition-colors"
+                            className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
                           >
-                            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                            <HugeiconsIcon icon={Cancel01Icon} size={12} color="#065F46" strokeWidth={2.5} />
                           </button>
                         </span>
                       ))}
@@ -488,15 +479,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             </p>
 
             <div className="relative mb-5">
-              <FontAwesomeIcon
-                icon={faMagnifyingGlass}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849494]"
-              />
-              <input
-                disabled
-                placeholder="Find Friends"
-                className={`${inputBase} pl-11 opacity-50 cursor-not-allowed`}
-              />
+              <AppInput icon={Search01Icon} disabled placeholder="Find Friends" />
             </div>
             <div className="flex items-center gap-4 p-5 rounded-xl bg-[#E3E6E6]/50 border border-[#DDE0E0]">
               <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-[#6B7B7B] flex-shrink-0" />

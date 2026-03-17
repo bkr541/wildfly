@@ -164,7 +164,10 @@ const TravelPreferencesScreen = ({ onBack }: TravelPreferencesScreenProps) => {
     if (!userId || !authUserId) return;
     setSaving(true);
 
-    await supabase.from("user_info").update({ home_location_id: homeCity?.id ?? null }).eq("id", userId);
+    await supabase.from("user_info").update({
+      home_location_id: homeCity?.id ?? null,
+      home_city: homeCity ? fmt(homeCity) : null,
+    }).eq("id", userId);
     await supabase.from("user_locations").delete().eq("user_id", userId);
     if (favoriteCities.length > 0) {
       await supabase.from("user_locations").insert(favoriteCities.map((f) => ({ user_id: userId, location_id: f.id })));

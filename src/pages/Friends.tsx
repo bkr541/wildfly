@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Search, Users, UserPlus, Activity } from "lucide-react";
@@ -315,17 +315,25 @@ const FriendsPage = () => {
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
 
+  const glassStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.72)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    border: "1px solid rgba(255,255,255,0.55)",
+    boxShadow:
+      "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+  };
+
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-0px)]">
-
-      {/* Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as FriendsTab)}
         className="flex flex-col flex-1"
       >
-        <div className="px-5 pt-3 pb-0">
-          <div className="pb-4">
+        {/* Search input — frosted glass card */}
+        <div className="px-5 pt-4 pb-3">
+          <div className="rounded-2xl p-3" style={glassStyle}>
             <div className="app-input-container">
               <button type="button" tabIndex={-1} className="app-input-icon-btn">
                 <Search size={20} strokeWidth={2} />
@@ -353,80 +361,81 @@ const FriendsPage = () => {
               )}
             </div>
           </div>
-
-          {/* Normal tabs - active has green border and green text, NO background */}
-          <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-border rounded-none mt-3">
-            <TabsTrigger
-              value="friends"
-              className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-              )}
-            >
-              <Users size={16} />
-              My Friends
-            </TabsTrigger>
-            <TabsTrigger
-              value="requests"
-              className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative flex items-center justify-center gap-2",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-              )}
-            >
-              <UserPlus size={16} />
-              Requests
-              {incomingCount > 0 && (
-                <span className="ml-1.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
-                  {incomingCount}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="search"
-              className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-              )}
-            >
-              <Search size={16} />
-              Search
-            </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className={cn(
-                "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
-                "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-              )}
-            >
-              <Activity size={16} />
-              Activity
-            </TabsTrigger>
-          </TabsList>
         </div>
 
-        <div className="flex-1 overflow-y-auto smooth-scroll">
-          <TabsContent value="friends" className="mt-0 focus-visible:outline-none">
-            <MyFriendsTab onFindFriends={() => setActiveTab("search")} />
-          </TabsContent>
+        {/* Tab row + content — frosted glass card */}
+        <div className="px-5 pb-4 flex-1 flex flex-col min-h-0">
+          <div className="rounded-2xl flex flex-col flex-1 min-h-0 overflow-hidden" style={glassStyle}>
+            <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-[rgba(0,0,0,0.06)] rounded-none flex-shrink-0">
+              <TabsTrigger
+                value="friends"
+                className={cn(
+                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
+                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+                )}
+              >
+                <Users size={16} />
+                My Friends
+              </TabsTrigger>
+              <TabsTrigger
+                value="requests"
+                className={cn(
+                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent relative flex items-center justify-center gap-2",
+                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+                )}
+              >
+                <UserPlus size={16} />
+                Requests
+                {incomingCount > 0 && (
+                  <span className="ml-1.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
+                    {incomingCount}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="search"
+                className={cn(
+                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
+                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+                )}
+              >
+                <Search size={16} />
+                Search
+              </TabsTrigger>
+              <TabsTrigger
+                value="activity"
+                className={cn(
+                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
+                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+                )}
+              >
+                <Activity size={16} />
+                Activity
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="requests" className="mt-0 focus-visible:outline-none">
-            <RequestsTab />
-          </TabsContent>
-
-          <TabsContent value="search" className="mt-0 focus-visible:outline-none">
-            <SearchTab query={searchQuery} onQueryChange={setSearchQuery} />
-          </TabsContent>
-
-          <TabsContent value="activity" className="mt-0 focus-visible:outline-none">
-            <ActivityTab />
-          </TabsContent>
+            <div className="flex-1 overflow-y-auto smooth-scroll">
+              <TabsContent value="friends" className="mt-0 focus-visible:outline-none">
+                <MyFriendsTab onFindFriends={() => setActiveTab("search")} />
+              </TabsContent>
+              <TabsContent value="requests" className="mt-0 focus-visible:outline-none">
+                <RequestsTab />
+              </TabsContent>
+              <TabsContent value="search" className="mt-0 focus-visible:outline-none">
+                <SearchTab query={searchQuery} onQueryChange={setSearchQuery} />
+              </TabsContent>
+              <TabsContent value="activity" className="mt-0 focus-visible:outline-none">
+                <ActivityTab />
+              </TabsContent>
+            </div>
+          </div>
         </div>
-      </Tabs >
-    </div >
+      </Tabs>
+    </div>
   );
 };
 

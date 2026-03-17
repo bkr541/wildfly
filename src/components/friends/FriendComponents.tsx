@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, MapPin, Plane } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FriendProfile, FriendRequest, UserSearchResult } from "@/hooks/useFriends";
 import { format } from "date-fns";
@@ -179,7 +179,7 @@ export function UserSearchResultCard({ user, requestState, onAddFriend, isSendin
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-[#2E4A4A] truncate">
-          {user.display_name ?? user.username ?? "Unknown"}
+          {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.display_name || user.username || "Unknown"}
         </p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {user.username && (
@@ -189,12 +189,6 @@ export function UserSearchResultCard({ user, requestState, onAddFriend, isSendin
             <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
               <MapPin size={10} />
               {user.home_city}
-            </span>
-          )}
-          {user.home_airport && (
-            <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
-              <Plane size={10} />
-              {user.home_airport}
             </span>
           )}
         </div>
