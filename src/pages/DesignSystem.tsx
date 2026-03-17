@@ -107,6 +107,15 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,6 +210,71 @@ function OverlayNote({ text }: { text: string }) {
   return (
     <DemoBox>
       <p className="text-xs text-[#8C9F9E]">{text}</p>
+    </DemoBox>
+  );
+}
+
+// ─── Alert Dialog Demo ───────────────────────────────────────────────────────
+function AlertDialogDemo() {
+  const [open, setOpen] = useState(false);
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const handleConfirm = () => {
+    if (!confirmPw) { setConfirmError("Please confirm your password"); return; }
+    setConfirmError(null);
+    setOpen(false);
+    setConfirmPw("");
+  };
+
+  return (
+    <DemoBox>
+      <StateRow label="Confirm Password dialog (from AuthPage sign-up)">
+        <Button
+          size="sm"
+          className="bg-[#10B981] hover:bg-[#059669] text-white text-xs"
+          onClick={() => { setConfirmPw(""); setConfirmError(null); setOpen(true); }}
+        >
+          Open Dialog
+        </Button>
+      </StateRow>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">Re-enter your password to finish.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <div className="relative">
+              <input
+                type={showPw ? "text" : "password"}
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                placeholder="••••••••"
+                className="w-full p-2 text-sm border rounded bg-gray-50 text-[#2E4A4A] focus:outline-[#10B981]"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+              >
+                <HugeiconsIcon icon={showPw ? ViewOffSlashIcon : ViewIcon} size={14} color="currentColor" strokeWidth={1.5} />
+              </button>
+            </div>
+            {confirmError && <p className="text-red-500 text-[10px] mt-1 font-bold">{confirmError}</p>}
+          </div>
+          <AlertDialogFooter className="flex-row gap-2 mt-2">
+            <AlertDialogAction
+              onClick={handleConfirm}
+              className="w-full bg-[#10B981] hover:bg-[#059669] text-xs py-1"
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DemoBox>
   );
 }
@@ -863,7 +937,7 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
   {
     label: "Alert Dialog",
     icon: AlertCircleIcon,
-    content: <OverlayNote text="Alert Dialog renders a modal overlay. States: Closed (default) → Open (triggered). When open: Title, Description, Cancel action, Confirm action." />,
+    content: <AlertDialogDemo />,
   },
   {
     label: "Animated Input",
@@ -918,10 +992,50 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
     icon: CheckmarkBadge01Icon,
     content: (
       <DemoBox>
-        <StateRow label="Default"><Badge>Default</Badge></StateRow>
-        <StateRow label="Secondary"><Badge variant="secondary">Secondary</Badge></StateRow>
-        <StateRow label="Destructive"><Badge variant="destructive">Destructive</Badge></StateRow>
-        <StateRow label="Outline"><Badge variant="outline">Outline</Badge></StateRow>
+        {/* Status badges */}
+        <StateRow label="Status Badges">
+          {/* Nonstop */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F0FDF9", border: "1.5px solid #6EE7B7", color: "#059669" }}>
+            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} color="#059669" strokeWidth={2} />
+            Nonstop
+          </div>
+          {/* Blackout */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F5F3FF", border: "1.5px solid #C4B5FD", color: "#7C3AED" }}>
+            <HugeiconsIcon icon={Loading03Icon} size={18} color="#7C3AED" strokeWidth={2} className="animate-spin" />
+            Blackout
+          </div>
+          {/* Quickest */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F3F4F6", border: "1.5px solid #D1D5DB", color: "#6B7280" }}>
+            <HugeiconsIcon icon={Cancel01Icon} size={18} color="#9CA3AF" strokeWidth={2} />
+            Quickest
+          </div>
+          {/* Red Eye */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#FFF1F2", border: "1.5px solid #FCA5A5", color: "#DC2626" }}>
+            <HugeiconsIcon icon={Alert01Icon} size={18} color="#DC2626" strokeWidth={2} />
+            Red Eye
+          </div>
+        </StateRow>
+
+        {/* Price badges */}
+        <StateRow label="Price Badge — Light">
+          <div
+            className="inline-flex flex-col items-end rounded-full px-6 py-3"
+            style={{ background: "#FFFFFF", border: "2px solid #1E2D5A", boxShadow: "0 2px 8px rgba(30,45,90,0.10)" }}
+          >
+            <span className="text-xs font-semibold leading-none" style={{ color: "#1E2D5A" }}>From</span>
+            <span className="text-3xl font-black leading-tight tracking-tight" style={{ color: "#1E2D5A" }}>$213.50</span>
+          </div>
+        </StateRow>
+
+        <StateRow label="Price Badge — GoWild">
+          <div
+            className="inline-flex flex-col items-end rounded-full px-6 py-3"
+            style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
+          >
+            <span className="text-xs font-semibold leading-none text-white/80">From</span>
+            <span className="text-3xl font-black leading-tight tracking-tight text-white">GoWild</span>
+          </div>
+        </StateRow>
       </DemoBox>
     ),
   },
@@ -1133,18 +1247,20 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
     icon: LabelIcon,
     content: (
       <DemoBox>
-        <StateRow label="Default"><Label>Email address</Label></StateRow>
-        <StateRow label="Paired with Input">
-          <div className="flex flex-col gap-1.5 w-full max-w-xs">
-            <Label htmlFor="demo-input">Username</Label>
-            <Input id="demo-input" placeholder="Enter username" />
+        <StateRow label="Input Label">
+          <div className="flex flex-col gap-3 w-full">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-1">Default (unfocused)</p>
+              <p className="text-sm font-semibold text-[#6B7B7B] ml-1">Departure Airport</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#93A8A7] mb-1">Focused</p>
+              <p className="text-sm font-semibold text-[#10B981] ml-1">Departure Airport</p>
+            </div>
           </div>
         </StateRow>
-        <StateRow label="Disabled peer (opacity reduced via CSS)">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="demo-dis" className="peer-disabled:opacity-70">Disabled field label</Label>
-            <Input id="demo-dis" placeholder="Disabled" disabled className="max-w-xs" />
-          </div>
+        <StateRow label="Listing Label">
+          <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase">Recent Airports</p>
         </StateRow>
       </DemoBox>
     ),
