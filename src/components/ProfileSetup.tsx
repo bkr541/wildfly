@@ -308,10 +308,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Profile</h1>
-            <p className="text-[#6B7B7B] text-base mb-5">Let's start off by learning a little more about you.</p>
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Profile</h1>
+            <p className="text-[#6B7B7B] text-base mb-4">Let's start off by learning a little more about you.</p>
 
-            <div className="rounded-2xl p-5 overflow-visible" style={{ ...glassStyle, minHeight: "420px" }}>
+            <div className="rounded-2xl p-5 overflow-visible" style={glassStyle}>
               {/* Avatar */}
               <div className="flex flex-col items-center mb-6">
                 <label className="relative w-28 h-28 rounded-full bg-[#E3E6E6] flex items-center justify-center cursor-pointer overflow-hidden group">
