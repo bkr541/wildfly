@@ -729,29 +729,34 @@ const FlightMultiDestResults = ({
                   {/* Min price badge — top RIGHT of hero image */}
                   {card.minFare != null && (
                     <div
-                      className="absolute top-3 right-3 flex-shrink-0 rounded-lg px-2.5 py-1.5 flex items-center gap-1"
-                      style={{
-                        background: card.isMinFareGoWild ? "#10B981" : "rgba(255,255,255,0.95)",
-                        border: card.isMinFareGoWild ? "none" : "1px solid rgba(232,235,235,0.8)",
-                        boxShadow: card.isMinFareGoWild
-                          ? "0 2px 8px rgba(16,185,129,0.4)"
-                          : "0 2px 8px rgba(0,0,0,0.18)",
-                        backdropFilter: "blur(4px)",
-                      }}
+                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      style={
+                        card.isMinFareGoWild
+                          ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
+                          : { background: "#FFFFFF", border: "2px solid #1E2D5A", boxShadow: "0 2px 8px rgba(30,45,90,0.10)" }
+                      }
                     >
                       <span
-                        className="text-[14px] font-black leading-none"
-                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
+                        className="text-[10px] font-semibold leading-none"
+                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#1E2D5A" }}
+                      >
+                        From
+                      </span>
+                      <span
+                        className="text-[20px] font-black leading-tight tracking-tight"
+                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1E2D5A" }}
                       >
                         ${Math.round(card.minFare)}
                       </span>
                     </div>
                   )}
-                  {/* GoWild badge — top LEFT of hero image (only when no min fare or GoWild is separate) */}
-                  {card.hasGoWild && !card.isMinFareGoWild && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#10B981] rounded-full px-2.5 py-1">
-                      <HugeiconsIcon icon={TicketStarIcon} size={11} color="white" strokeWidth={2} />
-                      <span className="text-[10px] font-bold text-white leading-none">GO WILD</span>
+                  {card.hasGoWild && card.minFare == null && (
+                    <div
+                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
+                    >
+                      <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
+                      <span className="text-[20px] font-black leading-tight tracking-tight text-white">GoWild</span>
                     </div>
                   )}
                 </div>
@@ -850,7 +855,7 @@ const FlightMultiDestResults = ({
                       className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
                       style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                     >
-                      View Flights
+                      View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
                     </button>
                   </div>
                 </div>
