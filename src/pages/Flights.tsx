@@ -1351,6 +1351,12 @@ const FlightsPage = ({
                     data: { user },
                   } = await supabase.auth.getUser();
                   if (user) {
+                    const cachedFlights: any[] = (cached.payload as any)?.flights ?? [];
+                    const cachedGoWild = cachedFlights.some(
+                      (f: any) =>
+                        f.fares?.go_wild != null ||
+                        f.rawPayload?.fares?.go_wild?.total != null,
+                    );
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
                       departure_airport: originCode,
@@ -1362,7 +1368,9 @@ const FlightsPage = ({
                       json_body: cached.payload as any,
                       credits_cost: creditsCost,
                       arrival_airports_count: arrivalAirportsCount,
-                    });
+                      gowild_found: cachedGoWild,
+                      flight_results_count: cachedFlights.length,
+                    } as any);
                   }
                 } catch (logErr) {
                   flightLog.warn("Flight search log failed (non-blocking)", logErr);
@@ -1522,6 +1530,11 @@ const FlightsPage = ({
                       };
                     }
 
+                    const goWildFound = normalized.flights.some(
+                      (f: any) =>
+                        f.fares?.go_wild != null ||
+                        f.rawPayload?.fares?.go_wild?.total != null,
+                    );
                     await supabase.from("flight_searches").insert({
                       user_id: user.id,
                       departure_airport: originCode,
@@ -1534,7 +1547,9 @@ const FlightsPage = ({
                       request_body: requestBody as any,
                       credits_cost: creditsCost,
                       arrival_airports_count: arrivalAirportsCount,
-                    });
+                      gowild_found: goWildFound,
+                      flight_results_count: normalized.flights.length,
+                    } as any);
                   }
                 } catch (logErr) {
                   flightLog.warn("Flight search log failed (non-blocking)", logErr);

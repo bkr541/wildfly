@@ -162,6 +162,8 @@ export type Database = {
           credits_cost: number | null
           departure_airport: string
           departure_date: string
+          flight_results_count: number | null
+          gowild_found: boolean | null
           id: string
           json_body: Json | null
           request_body: Json | null
@@ -177,6 +179,8 @@ export type Database = {
           credits_cost?: number | null
           departure_airport: string
           departure_date: string
+          flight_results_count?: number | null
+          gowild_found?: boolean | null
           id?: string
           json_body?: Json | null
           request_body?: Json | null
@@ -192,6 +196,8 @@ export type Database = {
           credits_cost?: number | null
           departure_airport?: string
           departure_date?: string
+          flight_results_count?: number | null
+          gowild_found?: boolean | null
           id?: string
           json_body?: Json | null
           request_body?: Json | null
