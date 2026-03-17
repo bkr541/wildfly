@@ -627,16 +627,16 @@ const FlightMultiDestResults = ({
           </div>
 
           {/* Stats strip */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 grid grid-cols-4 gap-2">
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
             {[
               { label: "DESTINATIONS", value: cards.length },
               { label: "TOTAL FLIGHTS", value: rawFlights.length },
               { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
               { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
             ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
-                <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
-                <span className="text-[22px] font-bold text-[#2E4A4A] leading-tight">{value}</span>
+              <div key={label} className="flex-1 flex flex-col items-center">
+                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
+                <span className="text-[15px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
               </div>
             ))}
           </div>
@@ -729,22 +729,22 @@ const FlightMultiDestResults = ({
                   {/* Min price badge — top RIGHT of hero image */}
                   {card.minFare != null && (
                     <div
-                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={
                         card.isMinFareGoWild
                           ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
-                          : { background: "#FFFFFF", border: "2px solid #1E2D5A", boxShadow: "0 2px 8px rgba(30,45,90,0.10)" }
+                          : { background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }
                       }
                     >
                       <span
                         className="text-[10px] font-semibold leading-none"
-                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#1E2D5A" }}
+                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}
                       >
                         From
                       </span>
                       <span
-                        className="text-[20px] font-black leading-tight tracking-tight"
-                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1E2D5A" }}
+                        className="text-[16px] font-black leading-none tracking-tight"
+                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
                       >
                         ${Math.round(card.minFare)}
                       </span>
@@ -752,11 +752,11 @@ const FlightMultiDestResults = ({
                   )}
                   {card.hasGoWild && card.minFare == null && (
                     <div
-                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
                     >
                       <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
-                      <span className="text-[20px] font-black leading-tight tracking-tight text-white">GoWild</span>
+                      <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
                     </div>
                   )}
                 </div>
