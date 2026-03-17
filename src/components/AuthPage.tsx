@@ -533,27 +533,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             <AlertDialogDescription className="text-xs text-[#6B7B7B]">Re-enter your password to finish.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2">
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
+            <div className="form-group">
+              <AppInput
+                isPassword
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full p-2 text-sm border rounded bg-gray-50 text-[#2E4A4A] focus:outline-[#10B981]"
                 autoFocus
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <HugeiconsIcon
-                  icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon}
-                  size={14}
-                  color="currentColor"
-                  strokeWidth={1.5}
-                />
-              </button>
             </div>
             {confirmError && <p className="text-red-500 text-[10px] mt-1 font-bold">{confirmError}</p>}
           </div>
