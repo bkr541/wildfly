@@ -272,7 +272,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   return (
     <div className="flex flex-col min-h-screen bg-[#F2F3F3]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-10 pb-4">
+      <div className="flex items-center justify-between px-6 pt-10 pb-2">
         <div className="w-8 h-8 flex items-center justify-start">
           {step > 0 && (
             <button
