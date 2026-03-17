@@ -213,8 +213,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         return;
       }
       await supabase.from("user_homepage").insert([
-        { user_id: authData.user.id, component_name: "Upcoming Flights", order: 1, status: "active" },
-        { user_id: authData.user.id, component_name: "Recent Searches", order: 2, status: "active" },
+        { user_id: authData.user.id, component_name: "upcoming_flights", order: 1, status: "active" },
+        { user_id: authData.user.id, component_name: "recent_searches", order: 2, status: "active" },
       ]);
       if (!authData.session) {
         setSubmitError("Check your email to confirm your account.");

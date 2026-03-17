@@ -284,7 +284,7 @@ function AirportSearchSheet({
                 <div className="px-5 pt-6">
                   {recentAirports.length > 0 && (
                     <div className="mb-6">
-                      <p className="text-base font-bold uppercase tracking-widest text-[#6B7B7B] mb-3">Recent Airports</p>
+                      <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2">Recent Airports</p>
                       <div className="flex flex-nowrap gap-2.5 overflow-x-auto pb-1 -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
                         {recentAirports.map((a) => (
                           <button

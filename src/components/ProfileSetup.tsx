@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
-import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon } from "@hugeicons/core-free-icons";
+import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { cn } from "@/lib/utils";
 import {
   faChevronLeft,
   faCamera,
@@ -69,6 +70,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [favResults, setFavResults] = useState<LocationOption[]>([]);
   const [showFavDropdown, setShowFavDropdown] = useState(false);
   const [homeCityError, setHomeCityError] = useState("");
+  const [destTab, setDestTab] = useState<"home" | "favorites">("home");
+  const [favCityError, setFavCityError] = useState("");
 
   const homeCityRef = useRef<HTMLDivElement>(null);
   const favCityRef = useRef<HTMLDivElement>(null);
@@ -199,6 +202,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Screen 2: Continue
   const handleScreen2Continue = async () => {
     if (!homeCity) {
+      setDestTab("home");
       setHomeCityError("Home City is required");
       return;
     }
@@ -234,7 +238,15 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   // Style constants
   const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2";
   const buttonStyle =
-    "w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50";
+    "w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6";
+  const glassStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.72)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    border: "1px solid rgba(255,255,255,0.55)",
+    boxShadow:
+      "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+  };
 
   if (loading) {
     return (
@@ -261,7 +273,6 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     <div className="flex flex-col min-h-screen bg-[#F2F3F3]">
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-10 pb-4">
-        {/* Left Side: Back Button Space */}
         <div className="w-8 h-8 flex items-center justify-start">
           {step > 0 && (
             <button
@@ -272,88 +283,98 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
             </button>
           )}
         </div>
-
-        {/* Center: Progress Bar */}
-        <div className="flex gap-1.5 flex-1 justify-center max-w-[200px]">
+        <div
+          className="flex gap-1.5 flex-1 justify-center max-w-[200px] rounded-full px-3 py-2"
+          style={{
+            background: "rgba(255,255,255,0.80)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.60)",
+            boxShadow: "0 1px 6px 0 rgba(52,92,90,0.10)",
+          }}
+        >
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`h-1 rounded-full flex-1 transition-colors ${i <= step ? "bg-[#345C5A]" : "bg-[#DDE0E0]"}`}
+              className={`h-1 rounded-full flex-1 transition-colors ${i <= step ? "bg-[#10B981]" : "bg-[#DDE0E0]"}`}
             />
           ))}
         </div>
-
-        {/* Right Side: Empty Spacer for perfect centering */}
         <div className="w-8 h-8" />
       </div>
 
       <div className="flex-1 px-6 pb-6 flex flex-col">
+
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-fade-in">
             <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Profile</h1>
-            <p className="text-[#6B7B7B] text-base mb-8">Let's start off by learning a little more about you.</p>
+            <p className="text-[#6B7B7B] text-base mb-5">Let's start off by learning a little more about you.</p>
 
-            {/* Avatar */}
-            <div className="flex flex-col items-center mb-8">
-              <label className="relative w-32 h-32 rounded-full bg-[#E3E6E6] flex items-center justify-center cursor-pointer overflow-hidden group">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <FontAwesomeIcon
-                    icon={faCamera}
-                    className="w-10 h-10 text-[#345C5A] group-hover:opacity-80 transition-opacity"
-                  />
-                )}
-                <div className="absolute inset-0 bg-[#F2F3F3]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <FontAwesomeIcon icon={faCamera} className="w-8 h-8 text-[#345C5A]" />
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-              </label>
-            </div>
-
-            {/* Fields */}
-            <div className="space-y-5">
-              <div className="form-group">
-                <label className={labelStyle}>
-                  Username <span className="text-red-500">*</span>
+            <div className="rounded-2xl p-5 overflow-visible" style={{ ...glassStyle, minHeight: "420px" }}>
+              {/* Avatar */}
+              <div className="flex flex-col items-center mb-6">
+                <label className="relative w-28 h-28 rounded-full bg-[#E3E6E6] flex items-center justify-center cursor-pointer overflow-hidden group">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={faCamera}
+                      className="w-9 h-9 text-[#345C5A] group-hover:opacity-80 transition-opacity"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-[#F2F3F3]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <FontAwesomeIcon icon={faCamera} className="w-7 h-7 text-[#345C5A]" />
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                 </label>
-                <AppInput
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    setUsernameError("");
-                  }}
-                  placeholder="username"
-                  error={usernameError || undefined}
-                />
               </div>
-              <div className="form-group">
-                <label className={labelStyle}>Date of Birth</label>
-                <AppInput
-                  icon={CalendarCheckOut02Icon}
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden appearance-none"
-                />
-              </div>
-              <div className="form-group">
-                <label className={labelStyle}>Mobile Number</label>
-                <AppInput
-                  icon={Call02Icon}
-                  type="tel"
-                  inputMode="numeric"
-                  value={mobileNumber}
-                  onChange={handlePhoneChange}
-                  placeholder="(555) 000-0000"
-                />
+
+              {/* Fields */}
+              <div className="space-y-4">
+                <div className="form-group">
+                  <label className={labelStyle}>
+                    Username <span className="text-red-500">*</span>
+                  </label>
+                  <AppInput
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setUsernameError("");
+                    }}
+                    placeholder="username"
+                    error={usernameError || undefined}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className={labelStyle}>Date of Birth</label>
+                  <AppInput
+                    icon={CalendarCheckOut02Icon}
+                    type="date"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    max="9999-12-31"
+                    className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden appearance-none"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className={labelStyle}>Mobile Number</label>
+                  <AppInput
+                    icon={Call02Icon}
+                    type="tel"
+                    inputMode="numeric"
+                    value={mobileNumber}
+                    onChange={handlePhoneChange}
+                    placeholder="(555) 000-0000"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-auto pt-8">
+            <div className="mt-auto pt-6">
               <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Continue"}
+                {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
               </button>
             </div>
           </div>
@@ -363,108 +384,146 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {step === 1 && (
           <div className="flex-1 flex flex-col animate-fade-in">
             <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Destinations</h1>
-            <p className="text-[#6B7B7B] text-base mb-8">
+            <p className="text-[#6B7B7B] text-base mb-5">
               Tell us where you call home and your favorite places to explore.
             </p>
 
-            {/* Home City */}
-            <div ref={homeCityRef} className="form-group relative mb-6">
-              <label className={labelStyle}>
-                Home City <span className="text-red-500">*</span>
-              </label>
-              <AppInput
-                icon={Search01Icon}
-                value={homeCitySearch}
-                onChange={(e) => handleHomeCitySearch(e.target.value)}
-                onFocus={() => { if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true); }}
-                placeholder="Search for your home city..."
-                error={homeCityError || undefined}
-                clearable={!!homeCity}
-                onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
-              />
-              {showHomeCityDropdown && homeCityResults.length > 0 && (
-                <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                  {homeCityResults.map((loc) => (
-                    <button
-                      key={loc.id}
-                      onClick={() => selectHomeCity(loc)}
-                      className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-                    >
-                      <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
-                      {formatLocationDisplay(loc)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <div className="rounded-2xl overflow-visible" style={{ ...glassStyle, minHeight: "420px" }}>
+              {/* Tab Row */}
+              <div className="flex items-center justify-around border-b border-[rgba(0,0,0,0.06)]">
+                {([
+                  { key: "home", label: "Home City", icon: Home01Icon },
+                  { key: "favorites", label: "Favorite Cities", icon: HeartAddIcon },
+                ] as { key: "home" | "favorites"; label: string; icon: any }[]).map(({ key, label, icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setDestTab(key)}
+                    className={cn(
+                      "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-1/2 transition-colors relative",
+                      destTab === key ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+                    )}
+                  >
+                    <HugeiconsIcon
+                      icon={icon}
+                      size={15}
+                      strokeWidth={destTab === key ? 2.5 : 1.5}
+                      color={destTab === key ? "#10B981" : undefined}
+                    />
+                    {label}
+                    {destTab === key && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
 
-            {/* Favorite Cities - only show when home city selected */}
-            {homeCity && (
-              <div ref={favCityRef} className="form-group relative mb-4">
-                <label className={labelStyle}>
-                  Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
-                </label>
-                <AppInput
-                  icon={Search01Icon}
-                  value={favSearch}
-                  onChange={(e) => handleFavSearch(e.target.value)}
-                  onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
-                  placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
-                  disabled={favoriteCities.length >= 5}
-                />
-                {showFavDropdown && favResults.length > 0 && (
-                  <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                    {favResults
-                      .filter((loc) => loc.id !== homeCity.id && !favoriteCities.some((f) => f.id === loc.id))
-                      .map((loc) => (
-                        <button
-                          key={loc.id}
-                          onClick={() => addFavorite(loc)}
-                          className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
-                        >
-                          <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
-                          {formatLocationDisplay(loc)}
-                        </button>
-                      ))}
+              {/* Tab Content */}
+              <div className="p-5">
+                {/* Home City Tab */}
+                {destTab === "home" && (
+                  <div ref={homeCityRef} className="relative">
+                    <label className={labelStyle}>
+                      Home City <span className="text-red-500">*</span>
+                    </label>
+                    <AppInput
+                      icon={Search01Icon}
+                      value={homeCitySearch}
+                      onChange={(e) => handleHomeCitySearch(e.target.value)}
+                      onFocus={() => { if (homeCitySearch.length >= 3) setShowHomeCityDropdown(true); }}
+                      placeholder="Search for your home city..."
+                      error={homeCityError || undefined}
+                      clearable={!!homeCity}
+                      onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
+                    />
+                    {showHomeCityDropdown && homeCityResults.length > 0 && (
+                      <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                        {homeCityResults.map((loc) => (
+                          <button
+                            key={loc.id}
+                            onClick={() => selectHomeCity(loc)}
+                            className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                          >
+                            <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
+                            {formatLocationDisplay(loc)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Chips */}
-                {favoriteCities.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-xs text-[#6B7B7B] mb-3">
-                      Selected Cities: <span className="font-bold text-[#2E4A4A]">{favoriteCities.length}</span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {favoriteCities.map((loc) => (
-                        <span
-                          key={loc.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shrink-0"
-                          style={{
-                            background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
-                            color: "#065F46",
-                            border: "1px solid #6EE7B7",
-                          }}
-                        >
-                          <HugeiconsIcon icon={Location01Icon} size={12} color="#059669" strokeWidth={2.5} />
-                          {formatLocationDisplay(loc)}
-                          <button
-                            onClick={() => removeFavorite(loc.id)}
-                            className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
-                          >
-                            <HugeiconsIcon icon={Cancel01Icon} size={12} color="#065F46" strokeWidth={2.5} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                {/* Favorite Cities Tab */}
+                {destTab === "favorites" && (
+                  <div ref={favCityRef} className="relative">
+                    <label className={labelStyle}>
+                      Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
+                    </label>
+                    <AppInput
+                      icon={Search01Icon}
+                      value={favSearch}
+                      onChange={(e) => handleFavSearch(e.target.value)}
+                      onFocus={() => { if (favSearch.length >= 3) setShowFavDropdown(true); }}
+                      placeholder={favoriteCities.length >= 5 ? "Max 5 cities reached" : "Search for favorite cities..."}
+                      disabled={favoriteCities.length >= 5}
+                    />
+                    {showFavDropdown && favResults.length > 0 && (
+                      <div className="absolute z-20 w-full mt-2 bg-white border border-[#E3E6E6] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                        {favResults
+                          .filter((loc) => !homeCity || loc.id !== homeCity.id)
+                          .filter((loc) => !favoriteCities.some((f) => f.id === loc.id))
+                          .map((loc) => (
+                            <button
+                              key={loc.id}
+                              onClick={() => addFavorite(loc)}
+                              className="w-full flex items-center px-4 py-3 text-sm text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors"
+                            >
+                              <FontAwesomeIcon icon={faLocationDot} className="w-4 h-4 text-[#849494] mr-3" />
+                              {formatLocationDisplay(loc)}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+
+                    {/* Chips */}
+                    {favoriteCities.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-xs text-[#6B7B7B] mb-3">
+                          Selected Cities: <span className="font-bold text-[#2E4A4A]">{favoriteCities.length}</span>
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {favoriteCities.map((loc) => (
+                            <span
+                              key={loc.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold shrink-0"
+                              style={{
+                                background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                                color: "#065F46",
+                                border: "1px solid #6EE7B7",
+                              }}
+                            >
+                              <HugeiconsIcon icon={Location01Icon} size={12} color="#059669" strokeWidth={2.5} />
+                              {formatLocationDisplay(loc)}
+                              <button
+                                onClick={() => removeFavorite(loc.id)}
+                                className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
+                              >
+                                <HugeiconsIcon icon={Cancel01Icon} size={12} color="#065F46" strokeWidth={2.5} />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
-            <div className="mt-auto pt-8">
+            <div className="mt-auto pt-6">
               <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Continue"}
+                {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
               </button>
             </div>
           </div>
@@ -474,25 +533,29 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {step === 2 && (
           <div className="flex-1 flex flex-col animate-fade-in">
             <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Friends</h1>
-            <p className="text-[#6B7B7B] text-base mb-8">
+            <p className="text-[#6B7B7B] text-base mb-5">
               Find your travel buddies, make a crew, and explore together.
             </p>
 
-            <div className="relative mb-5">
-              <AppInput icon={Search01Icon} disabled placeholder="Find Friends" />
-            </div>
-            <div className="flex items-center gap-4 p-5 rounded-xl bg-[#E3E6E6]/50 border border-[#DDE0E0]">
-              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-[#6B7B7B] flex-shrink-0" />
-              <p className="text-[#6B7B7B] text-sm font-medium">This feature is coming soon</p>
+            <div className="rounded-2xl p-5" style={{ ...glassStyle, minHeight: "420px" }}>
+              <div className="mb-4">
+                <AppInput icon={Search01Icon} disabled placeholder="Find Friends" />
+              </div>
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#E3E6E6]/50 border border-[#DDE0E0]">
+                <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-[#6B7B7B] flex-shrink-0" />
+                <p className="text-[#6B7B7B] text-sm font-medium">This feature is coming soon</p>
+              </div>
             </div>
 
-            <div className="mt-auto pt-8">
+            <div className="mt-auto pt-6">
               <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
                 {saving ? "Saving..." : "Start Flying"}
+                {!saving && <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={18} color="white" strokeWidth={2} />}
               </button>
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
