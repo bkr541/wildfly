@@ -383,12 +383,12 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         {/* ===================== Screen 2: Destinations ===================== */}
         {step === 1 && (
           <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Destinations</h1>
-            <p className="text-[#6B7B7B] text-base mb-5">
+            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Destinations</h1>
+            <p className="text-[#6B7B7B] text-base mb-4">
               Tell us where you call home and your favorite places to explore.
             </p>
 
-            <div className="rounded-2xl overflow-visible" style={{ ...glassStyle, minHeight: "420px" }}>
+            <div className="rounded-2xl overflow-visible" style={glassStyle}>
               {/* Tab Row */}
               <div className="flex items-center justify-around border-b border-[rgba(0,0,0,0.06)]">
                 {([
