@@ -627,16 +627,16 @@ const FlightMultiDestResults = ({
           </div>
 
           {/* Stats strip */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 grid grid-cols-4 gap-2">
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
             {[
               { label: "DESTINATIONS", value: cards.length },
               { label: "TOTAL FLIGHTS", value: rawFlights.length },
               { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
               { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
             ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
-                <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
-                <span className="text-[22px] font-bold text-[#2E4A4A] leading-tight">{value}</span>
+              <div key={label} className="flex-1 flex flex-col items-center">
+                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
+                <span className="text-[15px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
               </div>
             ))}
           </div>
