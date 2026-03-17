@@ -6,7 +6,7 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AppInput } from "@/components/ui/app-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -730,15 +730,12 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
                 >
                   {/* Search + Sort */}
                   <div className="flex flex-col gap-2">
-                    <div className="relative">
-                      <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2" />
-                      <Input
-                        placeholder="Filter by name or code..."
-                        value={destSearch}
-                        onChange={e => setDestSearch(e.target.value)}
-                        className="pl-9 h-10 bg-white border-[#E3E6E6] rounded-xl text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF]"
-                      />
-                    </div>
+                    <AppInput
+                      icon={Search01Icon}
+                      placeholder="Filter by name or code..."
+                      value={destSearch}
+                      onChange={e => setDestSearch(e.target.value)}
+                    />
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-[#6B7B7B]">Sort:</span>
                       {([["az", "A–Z"], ["za", "Z–A"], ["region", "Region"]] as [SortMode, string][]).map(([val, label]) => (
