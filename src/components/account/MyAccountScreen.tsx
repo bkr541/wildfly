@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
+import { AppInput } from "@/components/ui/app-input";
 
 import { toast } from "sonner";
 
@@ -81,28 +82,28 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
         <div className="grid grid-cols-2 gap-3">
           <div className="form-group">
             <label className={labelStyle}>First Name</label>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First" className={inputStyle} />
+            <AppInput value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First" />
           </div>
           <div className="form-group">
             <label className={labelStyle}>Last Name</label>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last" className={inputStyle} />
+            <AppInput value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last" />
           </div>
         </div>
         <div className="form-group">
           <label className={labelStyle}>Username</label>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" className={inputStyle} />
+          <AppInput value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
         </div>
         <div className="form-group">
           <label className={labelStyle}>Email</label>
-          <input value={email} disabled className={`${inputStyle} opacity-60 cursor-not-allowed`} />
+          <AppInput value={email} disabled />
         </div>
         <div className="form-group">
           <label className={labelStyle}>Date of Birth</label>
-          <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className={inputStyle} />
+          <AppInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
         </div>
         <div className="form-group">
           <label className={labelStyle}>Mobile Number</label>
-          <input type="tel" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" className={inputStyle} />
+          <AppInput type="tel" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" />
         </div>
         <div className="form-group">
           <label className={labelStyle}>Bio</label>

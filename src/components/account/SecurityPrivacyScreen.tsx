@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SecurityIcon, Delete02Icon, Logout01Icon } from "@hugeicons/core-free-icons";
+import { AppInput } from "@/components/ui/app-input";
 import { toast } from "sonner";
 
 interface SecurityPrivacyScreenProps {
@@ -42,11 +43,11 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
           </div>
           <div>
             <label className={labelStyle}>New Password</label>
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className={inputStyle} />
+            <AppInput isPassword value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
           </div>
           <div>
             <label className={labelStyle}>Confirm Password</label>
-            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={inputStyle} />
+            <AppInput isPassword value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
           </div>
           <button onClick={handleChangePassword} disabled={saving} className="w-full h-11 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-xs tracking-widest uppercase shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6">
             <span>{saving ? "Updating..." : "Update Password"}</span>

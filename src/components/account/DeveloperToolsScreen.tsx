@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { AppInput } from "@/components/ui/app-input";
 import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -240,8 +241,8 @@ if (loading || !settings) {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <input type="text" value={newDebugNs} onChange={(e) => setNewDebugNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newDebugNs, "enabled_debug_components")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
+              <div className="flex gap-2 items-end">
+                <AppInput wrapperClassName="flex-1" value={newDebugNs} onChange={(e) => setNewDebugNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newDebugNs, "enabled_debug_components")} placeholder="Custom namespace..." />
                 <button type="button" onClick={() => addNamespace(newDebugNs, "enabled_debug_components")} disabled={!newDebugNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
             </div>
@@ -366,8 +367,8 @@ if (loading || !settings) {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <input type="text" value={newNs} onChange={(e) => setNewNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newNs, "enabled_component_logging")} placeholder="Custom namespace..." className="flex-1 px-3 py-2 rounded-xl border border-[#E3E6E6] text-sm text-[#2E4A4A] placeholder:text-[#C4CACA] focus:outline-none focus:border-[#345C5A] transition-colors" />
+              <div className="flex gap-2 items-end">
+                <AppInput wrapperClassName="flex-1" value={newNs} onChange={(e) => setNewNs(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNamespace(newNs, "enabled_component_logging")} placeholder="Custom namespace..." />
                 <button type="button" onClick={() => addNamespace(newNs, "enabled_component_logging")} disabled={!newNs.trim()} className="px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40">Add</button>
               </div>
             </div>

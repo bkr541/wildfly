@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AppInput } from "@/components/ui/app-input";
 import {
   faChevronLeft,
   faCamera,
@@ -316,29 +317,27 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                 <label className={labelStyle}>
                   Username <span className="text-red-500">*</span>
                 </label>
-                <input
+                <AppInput
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value);
                     setUsernameError("");
                   }}
                   placeholder="username"
-                  className={usernameError ? inputError : inputBase}
+                  error={usernameError || undefined}
                 />
-                {usernameError && <p className="text-red-500 text-xs mt-1">{usernameError}</p>}
               </div>
               <div className="form-group">
                 <label className={labelStyle}>Date of Birth</label>
-                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className={inputBase} />
+                <AppInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
               </div>
               <div className="form-group">
                 <label className={labelStyle}>Mobile Number</label>
-                <input
+                <AppInput
                   type="tel"
                   value={mobileNumber}
                   onChange={(e) => setMobileNumber(e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className={inputBase}
                 />
               </div>
             </div>
