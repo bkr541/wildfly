@@ -729,22 +729,22 @@ const FlightMultiDestResults = ({
                   {/* Min price badge — top RIGHT of hero image */}
                   {card.minFare != null && (
                     <div
-                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={
                         card.isMinFareGoWild
                           ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
-                          : { background: "#FFFFFF", border: "2px solid #1E2D5A", boxShadow: "0 2px 8px rgba(30,45,90,0.10)" }
+                          : { background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }
                       }
                     >
                       <span
                         className="text-[10px] font-semibold leading-none"
-                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#1E2D5A" }}
+                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}
                       >
                         From
                       </span>
                       <span
-                        className="text-[20px] font-black leading-tight tracking-tight"
-                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1E2D5A" }}
+                        className="text-[16px] font-black leading-none tracking-tight"
+                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
                       >
                         ${Math.round(card.minFare)}
                       </span>
@@ -752,11 +752,11 @@ const FlightMultiDestResults = ({
                   )}
                   {card.hasGoWild && card.minFare == null && (
                     <div
-                      className="absolute top-3 right-3 inline-flex flex-col items-end rounded-full px-4 py-2"
+                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
                     >
                       <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
-                      <span className="text-[20px] font-black leading-tight tracking-tight text-white">GoWild</span>
+                      <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
                     </div>
                   )}
                 </div>
