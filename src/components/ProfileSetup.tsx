@@ -303,13 +303,15 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         <div className="w-8 h-8" />
       </div>
 
-      <div className="flex-1 px-6 pb-6 flex flex-col">
+      <div className="px-6 pb-6 flex flex-col gap-4">
 
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
-          <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Profile</h1>
-            <p className="text-[#6B7B7B] text-base mb-4">Let's start off by learning a little more about you.</p>
+          <div className="flex flex-col gap-4 animate-fade-in">
+            <div>
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Profile</h1>
+              <p className="text-[#6B7B7B] text-base">Let's start off by learning a little more about you.</p>
+            </div>
 
             <div className="rounded-2xl p-5 overflow-visible" style={glassStyle}>
               {/* Avatar */}
@@ -371,22 +373,22 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <div className="mt-auto pt-6">
-              <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
-                {saving ? "Saving..." : "Continue"}
-                {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
-              </button>
-            </div>
+            <button onClick={handleScreen1Continue} disabled={saving} className={buttonStyle}>
+              {saving ? "Saving..." : "Continue"}
+              {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
+            </button>
           </div>
         )}
 
         {/* ===================== Screen 2: Destinations ===================== */}
         {step === 1 && (
-          <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Destinations</h1>
-            <p className="text-[#6B7B7B] text-base mb-4">
-              Tell us where you call home and your favorite places to explore.
-            </p>
+          <div className="flex flex-col gap-4 animate-fade-in">
+            <div>
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Destinations</h1>
+              <p className="text-[#6B7B7B] text-base">
+                Tell us where you call home and your favorite places to explore.
+              </p>
+            </div>
 
             <div className="rounded-2xl overflow-visible" style={glassStyle}>
               {/* Tab Row */}
@@ -520,22 +522,22 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <div className="mt-auto pt-6">
-              <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
-                {saving ? "Saving..." : "Continue"}
-                {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
-              </button>
-            </div>
+            <button onClick={handleScreen2Continue} disabled={saving} className={buttonStyle}>
+              {saving ? "Saving..." : "Continue"}
+              {!saving && <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="white" strokeWidth={2} />}
+            </button>
           </div>
         )}
 
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
-          <div className="flex-1 flex flex-col animate-fade-in">
-            <h1 className="text-3xl font-bold text-[#2E4A4A] mt-2 mb-1">{firstName}'s Friends</h1>
-            <p className="text-[#6B7B7B] text-base mb-5">
-              Find your travel buddies, make a crew, and explore together.
-            </p>
+          <div className="flex flex-col gap-4 animate-fade-in">
+            <div>
+              <h1 className="text-3xl font-bold text-[#2E4A4A] mt-1 mb-0.5">{firstName}'s Friends</h1>
+              <p className="text-[#6B7B7B] text-base">
+                Find your travel buddies, make a crew, and explore together.
+              </p>
+            </div>
 
             <div className="rounded-2xl p-5" style={glassStyle}>
               <div className="mb-4">
@@ -547,12 +549,10 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               </div>
             </div>
 
-            <div className="mt-auto pt-6">
-              <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
-                {saving ? "Saving..." : "Start Flying"}
-                {!saving && <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={18} color="white" strokeWidth={2} />}
-              </button>
-            </div>
+            <button onClick={handleStartFlying} disabled={saving} className={buttonStyle}>
+              {saving ? "Saving..." : "Start Flying"}
+              {!saving && <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={18} color="white" strokeWidth={2} />}
+            </button>
           </div>
         )}
 
