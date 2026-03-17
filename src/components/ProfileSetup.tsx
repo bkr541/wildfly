@@ -303,7 +303,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         <div className="w-8 h-8" />
       </div>
 
-      <div className="flex-1 px-6 pb-6 flex flex-col">
+      <div className="px-6 pb-6 flex flex-col gap-4">
 
         {/* ===================== Screen 1: Profile ===================== */}
         {step === 0 && (
