@@ -264,6 +264,14 @@ const MainLayout = ({
                       </div>
                     );
                   }
+                  if (currentPage === "hubs") {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">Frontier</span>
+                        <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Hubs</span>
+                      </div>
+                    );
+                  }
                   const prefixMap: Record<string, string> = {
                     destinations: "Explore",
                     routes: "Explore",

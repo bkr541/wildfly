@@ -21,7 +21,6 @@ import {
   Delete01Icon,
   ArrowDown01Icon,
   MapsIcon,
-  GridViewIcon,
   ListViewIcon,
   FavouriteIcon as StarFilledIcon,
   HeartAddIcon,
@@ -29,10 +28,22 @@ import {
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
 
 const LS_ORIGIN_KEY = "routes_lastOrigin";
 
-/* ── Origin Input (styled like flight search) ────────────── */
+const ACTIVE_VIEW_FLEX = 1.7;
+
+const glassStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.72)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  boxShadow:
+    "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+};
+
+/* ── Origin Input ────────────────────────────────────── */
 const OriginCombobox = ({
   value,
   onChange,
@@ -70,10 +81,12 @@ const OriginCombobox = ({
 
   return (
     <div className="relative w-full">
-      <label className="text-xs font-semibold text-[#6B7B7B] mb-1 block">Origin Airport</label>
+      {/* Label styled like Flights UI */}
+      <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Origin Airport</label>
+
       <div
         className={cn("app-input-container", isFocused && "focus-within")}
-        style={{ backgroundColor: "#fff" }}
+        style={{ backgroundColor: "transparent" }}
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
       >
         <HugeiconsIcon icon={RouteIcon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
@@ -111,6 +124,7 @@ const OriginCombobox = ({
         )}
       </div>
 
+      {/* Dropdown styled like Flights departure/arrival sheet */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -129,16 +143,22 @@ const OriginCombobox = ({
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => { onChange(h.iata); setOpen(false); setQuery(""); }}
                   className={cn(
-                    "w-full text-left px-4 py-2.5 text-sm hover:bg-[#F2F3F3] transition-colors flex items-center justify-between",
+                    "w-full text-left px-5 py-2 hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-4",
                     h.iata === value && "bg-[#345C5A]/5"
                   )}
                 >
-                  <span>
-                    <span className="font-bold text-[#345C5A]">{h.iata}</span>
-                    <span className="ml-2 text-[#6B7B7B]">{info?.city || info?.name || ""}</span>
-                    {info?.state && <span className="ml-1 text-[#9CA3AF] text-xs">{info.state}</span>}
-                  </span>
-                  <span className="text-xs text-[#9CA3AF]">{h.count} dest</span>
+                  <HugeiconsIcon icon={Airplane01Icon} size={20} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-bold text-[#345C5A] text-lg shrink-0">{h.iata}</span>
+                      <span className="text-[#6B7B7B] truncate text-base">{info?.city || info?.name || ""}</span>
+                      {info?.state && <span className="text-[#9CA3AF] text-sm shrink-0">{info.state}</span>}
+                    </div>
+                    {info?.name && info?.city && (
+                      <p className="text-sm text-[#9CA3AF] truncate">{info.name}</p>
+                    )}
+                  </div>
+                  <span className="text-xs text-[#9CA3AF] shrink-0">{h.count} dest</span>
                 </button>
               );
             })}
@@ -265,9 +285,6 @@ const RouteMap = ({
   showAllLines,
   hoveredDest,
   onHover,
-  onSearch,
-  isFavorite,
-  onToggleFav,
 }: {
   origin: string;
   destinations: string[];
@@ -276,9 +293,6 @@ const RouteMap = ({
   showAllLines: boolean;
   hoveredDest: string | null;
   onHover: (d: string | null) => void;
-  onSearch: (origin: string, dest: string) => void;
-  isFavorite: (origin: string, dest: string) => boolean;
-  onToggleFav: (origin: string, dest: string) => void;
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -350,9 +364,12 @@ const RouteMap = ({
       if (originInfo?.latitude && originInfo?.longitude) {
         const originIcon = L.divIcon({
           className: "",
-          html: `<div style="width:14px;height:14px;background:#345C5A;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
+          html: `<div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="font-size:9px;font-weight:800;color:white;background:#059669;border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${origin}</div>
+            <div style="width:14px;height:14px;background:#345C5A;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
+          </div>`,
+          iconSize: [40, 34],
+          iconAnchor: [20, 34],
         });
         const m = L.marker([originInfo.latitude, originInfo.longitude], { icon: originIcon })
           .addTo(map)
@@ -366,22 +383,29 @@ const RouteMap = ({
         if (!originInfo?.latitude || !originInfo?.longitude) continue;
 
         const isHovered = hoveredDest === dest;
+
+        // Solid primary green line
         const line = L.polyline(
           [[originInfo.latitude, originInfo.longitude], [info.latitude, info.longitude]],
           {
-            color: "#345C5A",
-            weight: isHovered ? 3 : 1.5,
-            opacity: isHovered ? 0.9 : 0.35,
-            dashArray: isHovered ? undefined : "4 6",
+            color: "#10B981",
+            weight: isHovered ? 3 : 2,
+            opacity: isHovered ? 1 : 0.55,
           }
         ).addTo(map);
         layersRef.current.push(line);
 
+        // Destination dot with IATA code label above
+        const dotSize = isHovered ? 10 : 8;
+        const labelBg = isHovered ? "#059669" : "#345C5A";
         const destIcon = L.divIcon({
           className: "",
-          html: `<div style="width:${isHovered ? 10 : 8}px;height:${isHovered ? 10 : 8}px;background:${isHovered ? "#345C5A" : "#6B7B7B"};border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:all 0.2s;"></div>`,
-          iconSize: [isHovered ? 10 : 8, isHovered ? 10 : 8],
-          iconAnchor: [isHovered ? 5 : 4, isHovered ? 5 : 4],
+          html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
+            <div style="font-size:9px;font-weight:800;color:white;background:${labelBg};border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${dest}</div>
+            <div style="width:${dotSize}px;height:${dotSize}px;background:${isHovered ? "#10B981" : "#345C5A"};border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+          </div>`,
+          iconSize: [32, 22 + dotSize],
+          iconAnchor: [16, 22 + dotSize],
         });
         const marker = L.marker([info.latitude, info.longitude], { icon: destIcon })
           .addTo(map)
@@ -411,13 +435,18 @@ const RouteMap = ({
   );
 };
 
+const viewOptions: { value: "map" | "grid"; label: string; icon: any }[] = [
+  { value: "map", label: "Map", icon: MapsIcon },
+  { value: "grid", label: "List", icon: ListViewIcon },
+];
+
 type SortMode = "az" | "za" | "region";
 type ViewMode = "map" | "grid";
 
 /* ── Routes Page ──────────────────────────────────────── */
 const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string) => void }) => {
   const { dict: airportDict, loading: airportsLoading } = useAirportDictionary();
-  const { isFavorite, toggleFavorite, clearAll, getFavoritesList, loading: favsLoading } = useRouteFavorites();
+  const { isFavorite, toggleFavorite, clearAll, getFavoritesList } = useRouteFavorites();
   const { settings: userSettings } = useUserSettings();
 
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -444,11 +473,9 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
       if (saved && stats.hubsSorted.some(h => h.iata === saved)) {
         setOrigin(saved);
       }
-      // Do NOT auto-set an origin — page starts empty
     }
   }, [stats.hubsSorted.length]);
 
-  // Auto-fill home airport when default_departure_to_home is on
   useEffect(() => {
     if (defaultHomeApplied || urlOrigin || origin) return;
     if (!userSettings.default_departure_to_home) return;
@@ -509,7 +536,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
     return dests;
   }, [stats.destinations, destSearch, sortMode, airportDict]);
 
-  const handleSearch = useCallback((orig: string, dest: string) => {
+  const handleSearch = useCallback(() => {
     if (onNavigate) onNavigate("flights");
   }, [onNavigate]);
 
@@ -517,308 +544,301 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
 
   if (airportsLoading) {
     return (
-      <div className="px-6 pt-0 pb-4 animate-fade-in">
-        <Skeleton className="h-8 w-40 mb-4 bg-[#E3E6E6]" />
-        <Skeleton className="h-10 w-full mb-3 bg-[#E3E6E6]" />
-        <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 bg-[#E3E6E6] rounded-xl" />
-          ))}
+      <div className="px-5 pt-6 pb-4 animate-fade-in">
+        <div className="rounded-2xl p-5 flex flex-col gap-4" style={glassStyle}>
+          <Skeleton className="h-4 w-28 bg-[#E3E6E6]" />
+          <Skeleton className="h-10 w-full bg-[#E3E6E6]" />
+          <div className="grid grid-cols-2 gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 bg-[#E3E6E6] rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="px-6 pt-6 pb-6 animate-fade-in flex flex-col gap-4">
+    <div className="px-5 pt-6 pb-6 animate-fade-in">
+      {/* Single glass card wrapping everything */}
+      <div className="rounded-2xl overflow-visible" style={glassStyle}>
+        <div className="px-5 pt-5 pb-5 flex flex-col gap-4">
 
-      {/* Origin Airport Input */}
-      <OriginCombobox
-        value={origin}
-        onChange={setOrigin}
-        hubsSorted={stats.hubsSorted}
-        airportDict={airportDict}
-      />
+          {/* Origin Airport */}
+          <OriginCombobox
+            value={origin}
+            onChange={setOrigin}
+            hubsSorted={stats.hubsSorted}
+            airportDict={airportDict}
+          />
 
-      {/* Everything below is hidden until origin is selected */}
-      <AnimatePresence>
-        {origin && (
-          <motion.div
-            key="routes-content"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex flex-col gap-4"
-          >
-            {/* Stats Chips */}
-            <div className="flex flex-wrap gap-2">
-              <div className="bg-white border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A] shadow-sm">
-                Destinations: <span className="text-[#345C5A]">{stats.destinations.length}</span>
-              </div>
-              <div className="bg-white border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A] shadow-sm">
-                Hub rank: <span className="text-[#345C5A]">#{stats.hubRank}</span>
-              </div>
-              <div className="bg-white border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A] shadow-sm">
-                Reciprocal: <span className="text-[#345C5A]">{stats.reciprocalPercent}%</span>
-              </div>
-              {stats.anomalies.length > 0 && (
-                <div className="bg-[#FDF6E3] border border-yellow-200 rounded-full px-3 py-1 text-xs font-semibold text-yellow-700 shadow-sm">
-                  <HugeiconsIcon icon={Alert01Icon} size={12} color="#A16207" strokeWidth={1.5} className="mr-1 inline" />
-                  Anomalies: {stats.anomalies.length}
-                </div>
-              )}
-            </div>
-
-            {/* View Header Row: Map/Grid toggle + Favorites */}
-            <div className="flex items-center justify-between">
-              {/* Map / Grid toggle */}
-              <div className="flex items-center bg-white border border-[#E3E6E6] rounded-xl p-0.5 gap-0.5">
-                <button
-                  onClick={() => setViewMode("map")}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                    viewMode === "map"
-                      ? "bg-[#345C5A] text-white shadow-sm"
-                      : "text-[#6B7B7B] hover:text-[#2E4A4A]"
-                  )}
-                >
-                  <HugeiconsIcon icon={MapsIcon} size={14} color="currentColor" strokeWidth={1.5} />
-                  Map
-                </button>
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                    viewMode === "grid"
-                      ? "bg-[#345C5A] text-white shadow-sm"
-                      : "text-[#6B7B7B] hover:text-[#2E4A4A]"
-                  )}
-                >
-                  <HugeiconsIcon icon={ListViewIcon} size={14} color="currentColor" strokeWidth={1.5} />
-                  List
-                </button>
-              </div>
-
-              {/* Favorites toggle */}
-              <button
-                onClick={() => setShowFavorites(v => !v)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all",
-                  showFavorites
-                    ? "bg-yellow-50 border-yellow-300 text-yellow-700"
-                    : "bg-white border-[#E3E6E6] text-[#6B7B7B] hover:border-[#345C5A]/30"
-                )}
+          {/* Main content — revealed after origin selected */}
+          <AnimatePresence>
+            {origin && (
+              <motion.div
+                key="routes-content"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex flex-col gap-4"
               >
-                <HugeiconsIcon icon={HeartAddIcon} size={14} color="currentColor" strokeWidth={1.5} />
-                Favorites
-              </button>
-            </div>
-
-            {/* Favorites Panel */}
-            <AnimatePresence>
-              {showFavorites && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex flex-col gap-3 pt-1">
-                    {favsList.length > 0 && (
-                      <div className="flex justify-end">
-                        {!confirmClear ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setConfirmClear(true)}
-                            className="text-xs text-[#9CA3AF] hover:text-red-500"
-                          >
-                            <HugeiconsIcon icon={Delete01Icon} size={12} color="currentColor" strokeWidth={1.5} className="mr-1" />
-                            Clear all
-                          </Button>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#6B7B7B]">Are you sure?</span>
-                            <Button variant="ghost" size="sm" onClick={() => { clearAll(); setConfirmClear(false); }} className="text-xs text-red-500 hover:text-red-700">Yes, clear</Button>
-                            <Button variant="ghost" size="sm" onClick={() => setConfirmClear(false)} className="text-xs text-[#6B7B7B]">Cancel</Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {favsList.length === 0 ? (
-                      <div className="text-center py-8 text-[#9CA3AF]">
-                        <HugeiconsIcon icon={FavouriteIcon} size={32} color="#9CA3AF" strokeWidth={1} className="mb-2 mx-auto opacity-40" />
-                        <p className="text-sm font-semibold">No favorites yet</p>
-                        <p className="text-xs mt-1">Star a route to save it here</p>
-                      </div>
-                    ) : (
-                      favsList.map(({ origin: o, dest: d }) => (
-                        <DestCard
-                          key={`${o}|${d}`}
-                          destIata={d}
-                          origin={o}
-                          info={airportDict[d]}
-                          isReciprocal={false}
-                          isFav={true}
-                          onToggleFav={() => toggleFavorite(o, d)}
-                          onSearch={() => handleSearch(o, d)}
-                          highlighted={false}
-                          onHover={() => {}}
-                        />
-                      ))
-                    )}
+                {/* Stats Chips */}
+                <div className="flex flex-wrap gap-2">
+                  <div className="bg-white/70 border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A]">
+                    Destinations: <span className="text-[#345C5A]">{stats.destinations.length}</span>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Map View */}
-            <AnimatePresence mode="wait">
-              {viewMode === "map" && (
-                <motion.div
-                  key="map-view"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25 }}
-                  className="flex flex-col gap-3"
-                >
-                  {stats.destinations.length > 60 && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowAllLines(!showAllLines)}
-                        className={cn(
-                          "text-xs px-3 py-1 rounded-full border transition-colors font-medium",
-                          showAllLines
-                            ? "bg-[#345C5A] text-white border-[#345C5A]"
-                            : "bg-white text-[#6B7B7B] border-[#E3E6E6]"
-                        )}
-                      >
-                        {showAllLines ? "Show filtered lines" : "Show all lines"}
-                      </button>
-                      <span className="text-xs text-[#9CA3AF]">
-                        {showAllLines ? stats.destinations.length : filteredDests.length} routes shown
-                      </span>
+                  <div className="bg-white/70 border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A]">
+                    Hub rank: <span className="text-[#345C5A]">#{stats.hubRank}</span>
+                  </div>
+                  <div className="bg-white/70 border border-[#E3E6E6] rounded-full px-3 py-1 text-xs font-semibold text-[#2E4A4A]">
+                    Reciprocal: <span className="text-[#345C5A]">{stats.reciprocalPercent}%</span>
+                  </div>
+                  {stats.anomalies.length > 0 && (
+                    <div className="bg-[#FDF6E3] border border-yellow-200 rounded-full px-3 py-1 text-xs font-semibold text-yellow-700">
+                      <HugeiconsIcon icon={Alert01Icon} size={12} color="#A16207" strokeWidth={1.5} className="mr-1 inline" />
+                      Anomalies: {stats.anomalies.length}
                     </div>
                   )}
-                  <RouteMap
-                    origin={origin}
-                    destinations={stats.destinations}
-                    airportDict={airportDict}
-                    filteredDests={filteredDests}
-                    showAllLines={showAllLines || stats.destinations.length <= 60}
-                    hoveredDest={hoveredDest}
-                    onHover={setHoveredDest}
-                    onSearch={handleSearch}
-                    isFavorite={isFavorite}
-                    onToggleFav={(o, d) => toggleFavorite(o, d)}
-                  />
-                </motion.div>
-              )}
+                </div>
 
-              {/* Grid / List View */}
-              {viewMode === "grid" && (
-                <motion.div
-                  key="grid-view"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25 }}
-                  className="flex flex-col gap-3"
-                >
-                  {/* Search + Sort */}
-                  <div className="flex flex-col gap-2">
-                    <AppInput
-                      icon={Search01Icon}
-                      placeholder="Filter by name or code..."
-                      value={destSearch}
-                      onChange={e => setDestSearch(e.target.value)}
+                {/* Divider */}
+                <div className="h-px bg-black/5" />
+
+                {/* Map/List toggle + Favorites */}
+                <div className="flex items-center justify-between gap-3">
+                  {/* Sliding pill toggle */}
+                  <div
+                    className="rounded-full p-[2px] flex relative flex-1 bg-[#F2F3F3]"
+                  >
+                    <div
+                      className="absolute top-0.5 bottom-0.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+                      style={{
+                        background: "#10B981",
+                        width: `calc((100% - 4px) * ${ACTIVE_VIEW_FLEX} / ${viewOptions.length - 1 + ACTIVE_VIEW_FLEX})`,
+                        left: `calc(2px + (100% - 4px) * ${viewOptions.findIndex(o => o.value === viewMode)} / ${viewOptions.length - 1 + ACTIVE_VIEW_FLEX})`,
+                      }}
                     />
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-[#6B7B7B]">Sort:</span>
-                      {([["az", "A–Z"], ["za", "Z–A"], ["region", "Region"]] as [SortMode, string][]).map(([val, label]) => (
+                    {viewOptions.map(opt => {
+                      const isActive = viewMode === opt.value;
+                      return (
                         <button
-                          key={val}
-                          onClick={() => setSortMode(val)}
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setViewMode(opt.value)}
+                          style={{ flex: isActive ? ACTIVE_VIEW_FLEX : 1 }}
                           className={cn(
-                            "text-xs px-3 py-1 rounded-full border transition-colors font-medium",
-                            sortMode === val
-                              ? "bg-[#345C5A] text-white border-[#345C5A]"
-                              : "bg-white text-[#6B7B7B] border-[#E3E6E6] hover:border-[#345C5A]/30"
+                            "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                            isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                           )}
                         >
-                          {label}
+                          <HugeiconsIcon icon={opt.icon} size={18} color="currentColor" strokeWidth={2} className="shrink-0" />
+                          {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Quick Hubs */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {stats.hubsSorted.slice(0, 8).map(h => (
-                      <button
-                        key={h.iata}
-                        onClick={() => setOrigin(h.iata)}
-                        className={cn(
-                          "text-xs px-2.5 py-1 rounded-full border transition-colors font-semibold",
-                          h.iata === origin
-                            ? "bg-[#345C5A] text-white border-[#345C5A]"
-                            : "bg-white text-[#6B7B7B] border-[#E3E6E6] hover:border-[#345C5A]/30"
-                        )}
-                      >
-                        {h.iata}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Destination Cards */}
-                  <div className="flex flex-col gap-2">
-                    {filteredDests.length === 0 ? (
-                      <div className="text-center py-8 text-[#9CA3AF] text-sm">No destinations match your search.</div>
-                    ) : (
-                      filteredDests.map(dest => {
-                        const info = airportDict[dest];
-                        const isReciprocal = stats.anomalies.indexOf(dest) === -1;
-                        return (
-                          <DestCard
-                            key={dest}
-                            destIata={dest}
-                            origin={origin}
-                            info={info}
-                            isReciprocal={isReciprocal}
-                            isFav={isFavorite(origin, dest)}
-                            onToggleFav={() => toggleFavorite(origin, dest)}
-                            onSearch={() => handleSearch(origin, dest)}
-                            highlighted={hoveredDest === dest || urlDest === dest}
-                            onHover={setHoveredDest}
-                          />
-                        );
-                      })
+                  {/* Favorites toggle */}
+                  <button
+                    onClick={() => setShowFavorites(v => !v)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-2.5 rounded-full border text-xs font-semibold transition-all",
+                      showFavorites
+                        ? "bg-yellow-50 border-yellow-300 text-yellow-700"
+                        : "bg-white/70 border-[#E3E6E6] text-[#6B7B7B] hover:border-[#345C5A]/30"
                     )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  >
+                    <HugeiconsIcon icon={HeartAddIcon} size={18} color="currentColor" strokeWidth={2} />
+                  </button>
+                </div>
 
-      {/* Empty state when no origin selected */}
-      <AnimatePresence>
-        {!origin && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-16 text-[#9CA3AF]"
-          >
-            <HugeiconsIcon icon={RouteIcon} size={48} color="#9CA3AF" strokeWidth={1} className="mb-3 mx-auto opacity-30" />
-            <p className="font-semibold text-sm">Select an origin airport to explore routes</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {/* Favorites Panel */}
+                <AnimatePresence>
+                  {showFavorites && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex flex-col gap-3 pt-1">
+                        {favsList.length > 0 && (
+                          <div className="flex justify-end">
+                            {!confirmClear ? (
+                              <Button variant="ghost" size="sm" onClick={() => setConfirmClear(true)} className="text-xs text-[#9CA3AF] hover:text-red-500">
+                                <HugeiconsIcon icon={Delete01Icon} size={12} color="currentColor" strokeWidth={1.5} className="mr-1" />
+                                Clear all
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-[#6B7B7B]">Are you sure?</span>
+                                <Button variant="ghost" size="sm" onClick={() => { clearAll(); setConfirmClear(false); }} className="text-xs text-red-500 hover:text-red-700">Yes, clear</Button>
+                                <Button variant="ghost" size="sm" onClick={() => setConfirmClear(false)} className="text-xs text-[#6B7B7B]">Cancel</Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {favsList.length === 0 ? (
+                          <div className="text-center py-8 text-[#9CA3AF]">
+                            <HugeiconsIcon icon={FavouriteIcon} size={32} color="#9CA3AF" strokeWidth={1} className="mb-2 mx-auto opacity-40" />
+                            <p className="text-sm font-semibold">No favorites yet</p>
+                            <p className="text-xs mt-1">Star a route to save it here</p>
+                          </div>
+                        ) : (
+                          favsList.map(({ origin: o, dest: d }) => (
+                            <DestCard
+                              key={`${o}|${d}`}
+                              destIata={d}
+                              origin={o}
+                              info={airportDict[d]}
+                              isReciprocal={false}
+                              isFav={true}
+                              onToggleFav={() => toggleFavorite(o, d)}
+                              onSearch={() => handleSearch()}
+                              highlighted={false}
+                              onHover={() => {}}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Map View */}
+                <AnimatePresence mode="wait">
+                  {viewMode === "map" && (
+                    <motion.div
+                      key="map-view"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex flex-col gap-3"
+                    >
+                      {stats.destinations.length > 60 && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowAllLines(!showAllLines)}
+                            className={cn(
+                              "text-xs px-3 py-1 rounded-full border transition-colors font-medium",
+                              showAllLines ? "bg-[#345C5A] text-white border-[#345C5A]" : "bg-white/70 text-[#6B7B7B] border-[#E3E6E6]"
+                            )}
+                          >
+                            {showAllLines ? "Show filtered lines" : "Show all lines"}
+                          </button>
+                          <span className="text-xs text-[#9CA3AF]">
+                            {showAllLines ? stats.destinations.length : filteredDests.length} routes shown
+                          </span>
+                        </div>
+                      )}
+                      <RouteMap
+                        origin={origin}
+                        destinations={stats.destinations}
+                        airportDict={airportDict}
+                        filteredDests={filteredDests}
+                        showAllLines={showAllLines || stats.destinations.length <= 60}
+                        hoveredDest={hoveredDest}
+                        onHover={setHoveredDest}
+                      />
+                    </motion.div>
+                  )}
+
+                  {/* List View */}
+                  {viewMode === "grid" && (
+                    <motion.div
+                      key="grid-view"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex flex-col gap-3"
+                    >
+                      <AppInput
+                        icon={Search01Icon}
+                        placeholder="Filter by name or code..."
+                        value={destSearch}
+                        onChange={e => setDestSearch(e.target.value)}
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[#6B7B7B]">Sort:</span>
+                        {([["az", "A–Z"], ["za", "Z–A"], ["region", "Region"]] as [SortMode, string][]).map(([val, label]) => (
+                          <button
+                            key={val}
+                            onClick={() => setSortMode(val)}
+                            className={cn(
+                              "text-xs px-3 py-1 rounded-full border transition-colors font-medium",
+                              sortMode === val ? "bg-[#345C5A] text-white border-[#345C5A]" : "bg-white/70 text-[#6B7B7B] border-[#E3E6E6] hover:border-[#345C5A]/30"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {stats.hubsSorted.slice(0, 8).map(h => (
+                          <button
+                            key={h.iata}
+                            onClick={() => setOrigin(h.iata)}
+                            className={cn(
+                              "text-xs px-2.5 py-1 rounded-full border transition-colors font-semibold",
+                              h.iata === origin ? "bg-[#345C5A] text-white border-[#345C5A]" : "bg-white/70 text-[#6B7B7B] border-[#E3E6E6] hover:border-[#345C5A]/30"
+                            )}
+                          >
+                            {h.iata}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {filteredDests.length === 0 ? (
+                          <div className="text-center py-8 text-[#9CA3AF] text-sm">No destinations match your search.</div>
+                        ) : (
+                          filteredDests.map(dest => {
+                            const info = airportDict[dest];
+                            const isReciprocal = stats.anomalies.indexOf(dest) === -1;
+                            return (
+                              <DestCard
+                                key={dest}
+                                destIata={dest}
+                                origin={origin}
+                                info={info}
+                                isReciprocal={isReciprocal}
+                                isFav={isFavorite(origin, dest)}
+                                onToggleFav={() => toggleFavorite(origin, dest)}
+                                onSearch={() => handleSearch()}
+                                highlighted={hoveredDest === dest || urlDest === dest}
+                                onHover={setHoveredDest}
+                              />
+                            );
+                          })
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Empty state */}
+          <AnimatePresence>
+            {!origin && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-12 text-[#9CA3AF]"
+              >
+                <HugeiconsIcon icon={RouteIcon} size={48} color="#9CA3AF" strokeWidth={1} className="mb-3 mx-auto opacity-30" />
+                <p className="font-semibold text-sm">Select an origin airport to explore routes</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </div>
     </div>
   );
 };
