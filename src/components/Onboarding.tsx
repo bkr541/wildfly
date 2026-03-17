@@ -1,6 +1,8 @@
 import { useState, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon, AirplaneTakeOff01Icon } from "@hugeicons/core-free-icons";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -32,28 +34,49 @@ const slides = [
   },
 ];
 
+const pillStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.80)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.60)",
+  boxShadow: "0 1px 6px 0 rgba(52,92,90,0.10)",
+};
+
 const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, ref) => {
   const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
   const isLast = current === slides.length - 1;
 
-  const prev = () => setCurrent((c) => Math.max(0, c - 1));
+  const prev = () => {
+    if (current === 0) return;
+    setDirection("back");
+    setCurrent((c) => c - 1);
+  };
+
   const next = () => {
     if (isLast) return;
+    setDirection("forward");
     setCurrent((c) => c + 1);
   };
 
   return (
     <div ref={ref} className="relative flex flex-col h-[100dvh] bg-white overflow-hidden">
-      {/* Top 60% - Image Background */}
-      <div
-        className="relative h-[60%] w-full transition-all duration-500 ease-in-out"
-        style={{
-          backgroundImage: `url(${slides[current].background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
+      {/* Top 60% — stacked images that crossfade */}
+      <div className="relative h-[60%] w-full overflow-hidden">
+        {slides.map((slide, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            style={{
+              backgroundImage: `url(${slide.background})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              opacity: i === current ? 1 : 0,
+            }}
+          />
+        ))}
+
         {/* Floating Top Navigation */}
         <div className="absolute top-12 left-6 right-6 flex items-center justify-between z-20">
           {/* Back Arrow */}
@@ -67,13 +90,16 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
             <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
           </button>
 
-          {/* Segmented Progress Steps */}
-          <div className="flex-1 flex gap-2 mx-4 max-w-[180px]">
+          {/* Segmented Progress Steps — glass pill matching ProfileSetup */}
+          <div
+            className="flex gap-1.5 flex-1 justify-center max-w-[200px] rounded-full px-3 py-2"
+            style={pillStyle}
+          >
             {slides.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${
-                  i <= current ? "bg-white" : "bg-white/30"
+                className={`h-1 rounded-full flex-1 transition-colors duration-300 ${
+                  i <= current ? "bg-[#10B981]" : "bg-[#DDE0E0]"
                 }`}
               />
             ))}
@@ -89,20 +115,31 @@ const Onboarding = forwardRef<HTMLDivElement, OnboardingProps>(({ onComplete }, 
         </div>
       </div>
 
-      {/* Bottom 40% - White Content Card */}
-      <div className="flex-1 bg-white rounded-t-[2rem] -mt-6 relative z-10 flex flex-col px-8 pt-10 pb-12 text-center shadow-sm">
-        <div className="flex-1 flex flex-col justify-start animate-fade-in">
+      {/* Bottom 40% — white card stays still; only inner text animates */}
+      <div className="flex-1 bg-white rounded-t-[2rem] -mt-6 relative z-10 flex flex-col px-8 pt-10 pb-12 text-center shadow-sm overflow-hidden">
+        <div
+          key={current}
+          className={`flex-1 flex flex-col justify-start ${
+            direction === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"
+          }`}
+        >
           <h1 className="text-2xl font-bold text-[#2E4A4A] mb-4">{slides[current].title}</h1>
           <p className="text-[15px] text-[#6B7B7B] leading-relaxed">{slides[current].subtitle}</p>
         </div>
 
-        {/* Main Action Button */}
+        {/* Main Action Button — gradient pill matching ProfileSetup */}
         <div className="mt-auto pt-6">
           <button
             onClick={isLast ? onComplete : next}
-            className="w-full py-4 rounded-xl bg-[#345C5A] text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
+            className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 px-6"
           >
-            {isLast ? "Profile Setup" : "Let's Start!"}
+            <span>{isLast ? "Profile Setup" : "Let's Start!"}</span>
+            <HugeiconsIcon
+              icon={isLast ? AirplaneTakeOff01Icon : ArrowRight01Icon}
+              size={18}
+              color="white"
+              strokeWidth={2}
+            />
           </button>
         </div>
       </div>

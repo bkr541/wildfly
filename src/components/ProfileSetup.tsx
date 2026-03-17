@@ -422,7 +422,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               <div className="p-5">
                 {/* Home City Tab */}
                 {destTab === "home" && (
-                  <div ref={homeCityRef} className="relative">
+                  <div ref={homeCityRef} className="form-group relative">
                     <label className={labelStyle}>
                       Home City <span className="text-red-500">*</span>
                     </label>
@@ -455,7 +455,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
                 {/* Favorite Cities Tab */}
                 {destTab === "favorites" && (
-                  <div ref={favCityRef} className="relative">
+                  <div ref={favCityRef} className="form-group relative">
                     <label className={labelStyle}>
                       Favorite Cities {favoriteCities.length > 0 && `(${favoriteCities.length}/5)`}
                     </label>

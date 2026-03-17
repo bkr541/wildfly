@@ -55,7 +55,11 @@ const AppInput = React.forwardRef<HTMLInputElement, AppInputProps>(
     return (
       <div className={cn("w-full", wrapperClassName)}>
         {label && (
-          <label className={cn("text-sm font-semibold text-[#059669] ml-1 mb-1 block", labelClassName)}>
+          <label className={cn(
+            "text-sm font-semibold ml-1 mb-1 block transition-colors duration-300",
+            isFocused ? "text-[#10B981]" : "text-[#6B7B7B]",
+            labelClassName,
+          )}>
             {label}
           </label>
         )}

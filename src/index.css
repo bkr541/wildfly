@@ -110,6 +110,15 @@
   border-radius: var(--border-radius);
 }
 
+.form-group:focus-within > label {
+  color: #10B981;
+  transition: color 0.3s ease;
+}
+
+.form-group > label {
+  transition: color 0.3s ease;
+}
+
 .app-input-container:focus-within::before {
   transform: scale(1);
 }

@@ -81,7 +81,6 @@ interface Props {
 }
 
 export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
-  if (!loading && searches.length === 0) return null;
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
@@ -122,6 +121,22 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             style={{ overflow: "visible" }}
           >
             <div style={{ padding: "8px 6px 10px" }}>
+              {!loading && searches.length === 0 ? (
+                <div
+                  className="rounded-2xl px-4 py-5 flex items-center gap-3"
+                  style={{
+                    background: "rgba(255,255,255,0.82)",
+                    backdropFilter: "blur(18px)",
+                    WebkitBackdropFilter: "blur(18px)",
+                    border: "1px solid rgba(255,255,255,0.65)",
+                    boxShadow:
+                      "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <HugeiconsIcon icon={Search01Icon} size={20} color="#9AADAD" strokeWidth={1.5} />
+                  <p className="text-sm text-[#9AADAD] font-medium">No recent searches yet</p>
+                </div>
+              ) : (
               <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
                 {loading
                   ? [1, 2].map((i) => (
@@ -212,6 +227,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       );
                     })}
               </div>
+              )}
             </div>
           </motion.div>
         )}
