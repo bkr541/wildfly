@@ -138,7 +138,13 @@ async function fetchAndLogDayTrips(): Promise<void> {
       { onConflict: "cache_key,reset_bucket" },
     );
 
-    await supabase.from("flight_searches").insert({
+    const dayTripFlights: any[] = payload?.flights ?? [];
+    const dayTripGoWild = dayTripFlights.some(
+      (f: any) =>
+        f.fares?.go_wild != null ||
+        f.rawPayload?.fares?.go_wild?.total != null,
+    );
+    await (supabase.from("flight_searches") as any).insert({
       user_id: user.id,
       departure_airport: originIATA,
       arrival_airport: null,
@@ -149,6 +155,8 @@ async function fetchAndLogDayTrips(): Promise<void> {
       json_body: payload,
       credits_cost: 0,
       arrival_airports_count: null,
+      gowild_found: dayTripGoWild,
+      flight_results_count: dayTripFlights.length,
     });
   } catch {
     // Non-blocking — silently ignore errors
