@@ -236,7 +236,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const firstName = user?.first_name || "User";
 
   // Style constants
-  const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2";
+  const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-0.5";
   const buttonStyle =
     "w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6";
   const glassStyle: React.CSSProperties = {
