@@ -171,7 +171,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     if (!error) {
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
       setAvatarUrl(urlData.publicUrl);
-      await supabase.from("user_info").update({ image_file: urlData.publicUrl }).eq("id", user.id);
+      // Write to avatar_url (canonical) and keep image_file in sync for legacy reads
+      await supabase.from("user_info").update({ avatar_url: urlData.publicUrl, image_file: urlData.publicUrl }).eq("id", user.id);
     }
   };
 
