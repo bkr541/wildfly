@@ -22,6 +22,7 @@ import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 import DesignSystemPage from "./pages/DesignSystem";
+import ResetPasswordPage from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
