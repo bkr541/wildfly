@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Bell, CheckCheck, X } from "lucide-react";

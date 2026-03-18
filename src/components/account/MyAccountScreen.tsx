@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
-
+import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 
 interface MyAccountScreenProps {
