@@ -27,6 +27,7 @@ interface UserData {
   mobile_number: string | null;
   home_location_id: number | null;
   image_file: string;
+  avatar_url: string | null;
 }
 
 interface LocationOption {
