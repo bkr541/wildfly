@@ -32,12 +32,14 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
       const { data } = await supabase
         .from("user_info")
-        .select("image_file, first_name, last_name")
+        .select("avatar_url, image_file, first_name, last_name")
         .eq("auth_user_id", user.id)
         .maybeSingle();
 
       if (data) {
-        const avatarUrl = data.image_file?.startsWith("http") ? data.image_file : null;
+        // Prefer avatar_url (canonical); fall back to legacy image_file
+        const rawAvatar = data.avatar_url || (data.image_file?.startsWith("http") ? data.image_file : null);
+        const avatarUrl = rawAvatar ?? null;
         const fi = (data.first_name?.[0] || "").toUpperCase();
         const li = (data.last_name?.[0] || "").toUpperCase();
         const initials = fi + li || "U";
