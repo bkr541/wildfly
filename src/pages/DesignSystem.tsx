@@ -104,6 +104,8 @@ import {
   Tag01Icon,
   CheckListIcon,
   Rocket01Icon,
+  UnavailableIcon,
+  TrafficLightIcon,
 } from "@hugeicons/core-free-icons";
 
 import { cn } from "@/lib/utils";
@@ -995,10 +997,25 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
       <DemoBox>
         {/* Trip Type badges */}
         <StateRow label="Trip Type">
-          {/* Nonstop */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F0FDF9", border: "1.5px solid #6EE7B7", color: "#059669" }}>
-            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} color="#059669" strokeWidth={2} />
-            Nonstop
+          {/* One Way */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={ArrowRight04Icon} size={18} color="#1D4ED8" strokeWidth={2} />
+            One Way
+          </div>
+          {/* Round Trip */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#DBEAFE", border: "1.5px solid #60A5FA", color: "#1E40AF" }}>
+            <HugeiconsIcon icon={CircleArrowReload01Icon} size={18} color="#1E40AF" strokeWidth={2} />
+            Round Trip
+          </div>
+          {/* Day Trip */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={SunCloud01Icon} size={18} color="#1D4ED8" strokeWidth={2} />
+            Day Trip
+          </div>
+          {/* Multi Day */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#DBEAFE", border: "1.5px solid #60A5FA", color: "#1E40AF" }}>
+            <HugeiconsIcon icon={MapPinpoint01Icon} size={18} color="#1E40AF" strokeWidth={2} />
+            Multi Day
           </div>
         </StateRow>
 
@@ -1010,13 +1027,13 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
             GoWild
           </div>
           {/* Blackout */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F5F3FF", border: "1.5px solid #C4B5FD", color: "#7C3AED" }}>
-            <HugeiconsIcon icon={Loading03Icon} size={18} color="#7C3AED" strokeWidth={2} className="animate-spin" />
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#111827", color: "#FFFFFF" }}>
+            <HugeiconsIcon icon={UnavailableIcon} size={18} color="#FFFFFF" strokeWidth={2} />
             Blackout
           </div>
           {/* Quickest */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F3F4F6", border: "1.5px solid #D1D5DB", color: "#6B7280" }}>
-            <HugeiconsIcon icon={Cancel01Icon} size={18} color="#9CA3AF" strokeWidth={2} />
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#FFF7ED", border: "1.5px solid #FDBA74", color: "#C2410C" }}>
+            <HugeiconsIcon icon={TrafficLightIcon} size={18} color="#C2410C" strokeWidth={2} />
             Quickest
           </div>
           {/* Red Eye */}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
 import { Bell, CheckCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -97,11 +98,6 @@ export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
 
   const unreadCount = (notifications ?? []).filter((n) => !n.is_read).length;
 
-  // Close on backdrop tap
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   // Close on escape
   useEffect(() => {
     if (!open) return;
@@ -115,36 +111,7 @@ export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
-            onClick={handleBackdropClick}
-          />
-
-          {/* Sheet */}
-          <motion.div
-            key="sheet"
-            ref={sheetRef}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 320 }}
-            className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
-            style={{ maxHeight: "82vh", maxWidth: "768px", margin: "0 auto" }}
-          >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-            </div>
-
+    <BottomSheet open={open} onClose={onClose} style={{ maxHeight: "82vh" }}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
               <div className="flex items-center gap-2.5">
@@ -216,9 +183,6 @@ export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
               {/* Bottom safe area padding */}
               <div className="h-8" />
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </BottomSheet>
   );
 }

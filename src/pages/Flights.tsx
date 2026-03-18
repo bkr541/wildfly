@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { getLogger } from "@/lib/logger";
@@ -201,31 +201,7 @@ function AirportSearchSheet({
   };
 
   const content = (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998] bg-black/40"
-            onClick={onClose}
-          />
-          <motion.div
-            key="airport-sheet"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 32, stiffness: 340 }}
-            className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
-          >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-            </div>
-
+    <BottomSheet open={open} onClose={onClose} style={{ top: "5%" }}>
             {/* Title row — matches Notifications sheet */}
             <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
               <div className="flex items-center gap-2.5">
@@ -373,13 +349,10 @@ function AirportSearchSheet({
               )}
               <div className="h-10" />
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </BottomSheet>
   );
 
-  return createPortal(content, document.body);
+  return content;
 }
 
 /* ── Multi-select Airport Searchbox ───────────────────────── */
@@ -672,33 +645,7 @@ function DatePickerSheet({
   const isReturnLabel = label === "Return Date";
 
   const content = (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="date-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998] bg-black/40"
-            onClick={onClose}
-          />
-          {/* Sheet */}
-          <motion.div
-            key="date-sheet"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 32, stiffness: 340 }}
-            className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
-          >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-            </div>
-
+    <BottomSheet open={open} onClose={onClose} style={{ top: "5%" }}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
               <div className="flex items-center gap-2.5">
@@ -756,13 +703,10 @@ function DatePickerSheet({
                 {calDate ? format(calDate, "MMM d, yyyy") : "Select Date"}
               </button>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </BottomSheet>
   );
 
-  return createPortal(content, document.body);
+  return content;
 }
 
 /* ── Flights Page ──────────────────────────────────────────── */

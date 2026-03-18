@@ -1,5 +1,5 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -365,31 +365,7 @@ const MainLayout = ({
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
       {/* Global search sheet */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <>
-            <motion.div
-              key="search-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9998] bg-black/40"
-              onClick={() => setIsSearchOpen(false)}
-            />
-            <motion.div
-              key="search-sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 32, stiffness: 340 }}
-              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
-              style={{ top: "5%" }}
-            >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-              </div>
+      <BottomSheet open={isSearchOpen} onClose={() => setIsSearchOpen(false)} style={{ top: "5%" }}>
               {/* Title row */}
               <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
                 <div className="flex items-center gap-2.5">
@@ -449,10 +425,7 @@ const MainLayout = ({
                 </div>
                 <div className="h-10" />
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      </BottomSheet>
     </div>
   );
 };

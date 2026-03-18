@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
@@ -487,31 +486,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         )}
 
         {/* ===================== City Search Sheets (portaled) ===================== */}
-        {createPortal(
-          <AnimatePresence>
-            {showHomeCitySheet && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="fixed inset-0 z-[9998] bg-black/40"
-                  onClick={() => setShowHomeCitySheet(false)}
-                />
-                <motion.div
-                  key="home-city-sheet"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", damping: 32, stiffness: 340 }}
-                  className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
-                >
-                  {/* Handle */}
-                  <div className="flex justify-center pt-3 pb-1">
-                    <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-                  </div>
-
+        <BottomSheet open={showHomeCitySheet} onClose={() => setShowHomeCitySheet(false)} style={{ top: "5%" }}>
                   {/* Title row */}
                   <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
                     <div className="flex items-center gap-2.5">
@@ -577,38 +552,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                       </button>
                     ))}
                   </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
-          document.body,
-        )}
+        </BottomSheet>
 
-        {createPortal(
-          <AnimatePresence>
-            {showFavSheet && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="fixed inset-0 z-[9998] bg-black/40"
-                  onClick={() => setShowFavSheet(false)}
-                />
-                <motion.div
-                  key="fav-city-sheet"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", damping: 32, stiffness: 340 }}
-                  className="fixed inset-x-0 bottom-0 top-[5%] z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
-                >
-                  {/* Handle */}
-                  <div className="flex justify-center pt-3 pb-1">
-                    <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-                  </div>
-
+        <BottomSheet open={showFavSheet} onClose={() => setShowFavSheet(false)} style={{ top: "5%" }}>
                   {/* Title row */}
                   <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
                     <div className="flex items-center gap-2.5">
@@ -679,12 +625,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                         </button>
                       ))}
                   </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
-          document.body,
-        )}
+        </BottomSheet>
 
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (

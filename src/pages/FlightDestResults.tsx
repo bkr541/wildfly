@@ -32,7 +32,8 @@ import {
   AirplaneTakeOff02Icon,
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { cn } from "@/lib/utils";
@@ -1163,30 +1164,7 @@ const FlightDestResults = ({
       </div>
 
       {/* ── Sort Sheet ──────────────────────────────────────── */}
-      <AnimatePresence>
-        {sortSheet && (
-          <>
-            <motion.div
-              key="sort-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
-              onClick={() => setSortSheet(false)}
-            />
-            <motion.div
-              key="sort-sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
-              style={{ maxWidth: "768px", margin: "0 auto" }}
-            >
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-              </div>
+      <BottomSheet open={sortSheet} onClose={() => setSortSheet(false)}>
               <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
                 <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
                   <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
@@ -1224,36 +1202,10 @@ const FlightDestResults = ({
                   </button>
                 ))}
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      </BottomSheet>
 
       {/* ── Filter Sheet ─────────────────────────────────────── */}
-      <AnimatePresence>
-        {filterSheet && (
-          <>
-            <motion.div
-              key="filter-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
-              onClick={() => setFilterSheet(false)}
-            />
-            <motion.div
-              key="filter-sheet"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl"
-              style={{ maxWidth: "768px", margin: "0 auto" }}
-            >
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
-              </div>
+      <BottomSheet open={filterSheet} onClose={() => setFilterSheet(false)}>
               <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
                 <div className="flex items-center gap-2.5">
                   <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
@@ -1315,10 +1267,7 @@ const FlightDestResults = ({
                   Apply Filters
                 </button>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      </BottomSheet>
     </div>
   );
 };
