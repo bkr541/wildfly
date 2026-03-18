@@ -692,6 +692,7 @@ const FlightMultiDestResults = ({
         <div className="flex-1 flex flex-col px-5 py-4 gap-4 relative z-10">
           {sortedCards.map((card) => {
             const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
+            const isGoWild = card.hasGoWild;
 
             return (
               <div
@@ -731,15 +732,21 @@ const FlightMultiDestResults = ({
                     <div
                       className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={
-                        card.isMinFareGoWild
+                        isGoWild
                           ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
-                          : { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.35)" }
+                          : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
                       }
                     >
-                      <span className="text-[10px] font-semibold leading-none text-white/80">
+                      <span
+                        className="text-[10px] font-semibold leading-none"
+                        style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}
+                      >
                         From
                       </span>
-                      <span className="text-[16px] font-black leading-none tracking-tight text-white">
+                      <span
+                        className="text-[16px] font-black leading-none tracking-tight"
+                        style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}
+                      >
                         ${Math.round(card.minFare)}
                       </span>
                     </div>
@@ -760,7 +767,7 @@ const FlightMultiDestResults = ({
                   {/* Row 1: IATA | City, State */}
                   <div className="flex items-center mb-1">
                     <h3 className="text-[22px] font-black text-[#1A2E2E] leading-tight">
-                      <span className="text-[#10B981]">{card.destination}</span>
+                      <span style={{ color: isGoWild ? "#10B981" : "#1A3060" }}>{card.destination}</span>
                       <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
                       <span className="uppercase tracking-wide">
                         {card.city || card.destination}
@@ -844,8 +851,12 @@ const FlightMultiDestResults = ({
                   <button
                     type="button"
                     onClick={() => handleViewDest(card)}
-                    className="w-full py-3 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 active:scale-95"
-                    style={{ background: "#059669" }}
+                    className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
+                    style={
+                      isGoWild
+                        ? { background: "#059669", color: "#FFFFFF" }
+                        : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
+                    }
                   >
                     View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
                   </button>
