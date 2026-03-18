@@ -31,6 +31,7 @@ import {
   DollarCircleIcon,
   AirplaneTakeOff02Icon,
   Clock01Icon,
+  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -45,6 +46,7 @@ interface ParsedFlight {
   is_plus_one_day: boolean;
   fares: { basic: number | null; economy: number | null; premium: number | null; business: number | null };
   legs: { origin: string; destination: string; departure_time: string; arrival_time: string }[];
+  flightNumber?: string;
 }
 
 interface DestinationGroup {
@@ -84,6 +86,41 @@ function parseHour(raw: string): number | null {
     return h;
   }
   return null;
+}
+
+/** Format raw duration string into "1d 7h 03m" / "6h 34m"
+ *  Handles: D.HH:MM:SS (e.g. "1.02:44:00"), D:H:MM:SS, H:MM:SS, H:MM
+ */
+function formatDuration(raw: string): string {
+  const str = String(raw ?? "").trim();
+  if (!str) return "";
+  let days = 0, hours = 0, mins = 0;
+  if (str.includes(":")) {
+    const parts = str.split(":");
+    // "D.HH:MM:SS" — first segment has a decimal separating days from hours
+    if (parts[0].includes(".")) {
+      const [dStr, hStr] = parts[0].split(".");
+      days = parseInt(dStr) || 0;
+      hours = parseInt(hStr) || 0;
+      mins = parseInt(parts[1]) || 0;
+    } else if (parts.length === 4) {
+      // D:H:MM:SS
+      [days, hours, mins] = parts.map(Number);
+    } else {
+      // H:MM:SS or H:MM — always first two are hours:mins
+      [hours, mins] = parts.map(Number);
+    }
+  } else {
+    const h = str.match(/(\d+)\s*(hr|hrs|h)\b/i);
+    const m = str.match(/(\d+)\s*(min|m)\b/i);
+    hours = parseInt(h?.[1] ?? "0") || 0;
+    mins = parseInt(m?.[1] ?? "0") || 0;
+  }
+  const result: string[] = [];
+  if (days > 0) result.push(`${days}d`);
+  if (hours > 0) result.push(`${hours}h`);
+  result.push(`${String(mins).padStart(2, "0")}m`);
+  return result.join(" ");
 }
 
 /**
@@ -939,19 +976,26 @@ const FlightDestResults = ({
                                 }}
                                 className="text-left w-full px-4 pt-3.5 pb-3"
                               >
-                                {/* Row 1: Airline name + price badge */}
+                                {/* Row 1: Airline name + flight number + price badge */}
                                 <div className="flex items-center justify-between mb-3">
-                                  <img
-                                    src="/assets/logo/frontier/frontier_logo.png"
-                                    alt="Frontier"
-                                    className="h-[18px] w-auto object-contain"
-                                  />
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src="/assets/logo/frontier/frontier_full_logo.png"
+                                      alt="Frontier"
+                                      className="h-[18px] w-auto object-contain"
+                                    />
+                                    {flight.flightNumber && (
+                                      <span className="text-[12px] font-semibold text-[#6B7B7B]">
+                                        {flight.flightNumber}
+                                      </span>
+                                    )}
+                                  </div>
                                   {priceLabel && (
                                     <span
                                       className={cn(
                                         "text-[13px] font-bold px-2.5 py-1 rounded-full",
                                         isGoWild
-                                          ? "bg-[#D1FAE5] text-[#065F46]"
+                                          ? "bg-[#059669] text-white"
                                           : "bg-[#F0F4F4] text-[#2E4A4A]",
                                       )}
                                     >
@@ -967,8 +1011,9 @@ const FlightDestResults = ({
                                   </span>
                                   <div className="flex-1 flex items-center gap-1 px-1">
                                     <div className="flex-1 h-px bg-[#C8D5D5]" />
-                                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#2E4A4A] shrink-0" fill="currentColor">
-                                      <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                                    <svg fill="#2D6A4F" className="w-10 h-10 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z"/>
+                                      <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z"/>
                                     </svg>
                                     <div className="flex-1 h-px bg-[#C8D5D5]" />
                                   </div>
@@ -986,12 +1031,22 @@ const FlightDestResults = ({
                                     {originCity}{originState ? `, ${originState}` : ""}
                                   </span>
                                   <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
-                                    {flight.total_duration}
+                                    {formatDuration(flight.total_duration)}
                                   </span>
                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
                                     {destCity}{destState ? `, ${destState}` : ""}
                                   </span>
                                 </div>
+
+                                {/* Row 4: GoWild badge (GoWild flights only) */}
+                                {isGoWild && (
+                                  <div className="flex mt-2.5">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold bg-[#059669] text-white">
+                                      <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
+                                      GoWild
+                                    </span>
+                                  </div>
+                                )}
                               </button>
 
                               {/* Expanded detail */}

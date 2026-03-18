@@ -16,6 +16,7 @@ import {
   AirplaneTakeOff02Icon,
   SunriseIcon,
   MapsLocation02Icon,
+  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -698,11 +699,11 @@ const FlightMultiDestResults = ({
             return (
               <div
                 key={card.destination}
-                className="rounded-2xl overflow-hidden bg-white border border-[#E8EBEB]"
-                style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+                className="rounded-2xl overflow-hidden bg-white"
+                style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
               >
                 {/* City photo */}
-                <div className="relative h-[200px] overflow-hidden bg-[#C8D5D5]">
+                <div className="relative h-[188px] overflow-hidden bg-[#C8D5D5]">
                   {bgImage ? (
                     <img
                       src={bgImage}
@@ -728,6 +729,13 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
                     }}
                   />
+                  {/* GoWild badge — top LEFT of hero image */}
+                  {card.hasGoWild && (
+                    <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
+                      <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
+                      <span className="text-[11px] font-bold leading-none text-white">GoWild</span>
+                    </div>
+                  )}
                   {/* Min price badge — top RIGHT of hero image */}
                   {card.minFare != null && (
                     <div
@@ -768,9 +776,9 @@ const FlightMultiDestResults = ({
                   {/* Row 1: IATA | City, State */}
                   <div className="flex items-center mb-1">
                     <h3 className="text-[22px] font-black text-[#1A2E2E] leading-tight">
-                      <span style={{ color: isGoWild ? "#10B981" : "#1A3060" }}>{card.destination}</span>
+                      <span style={{ color: isGoWild ? "#4A7C59" : "#1A3060" }}>{card.destination}</span>
                       <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
-                      <span className="uppercase tracking-wide">
+                      <span className="uppercase tracking-wide font-extralight">
                         {card.city || card.destination}
                         {((card.stateCode && card.stateCode !== "None") || card.country) && (
                           <span>
@@ -855,7 +863,7 @@ const FlightMultiDestResults = ({
                     className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
                     style={
                       isGoWild
-                        ? { background: "#059669", color: "#FFFFFF" }
+                        ? { background: "#4A7C59", color: "#FFFFFF" }
                         : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
                     }
                   >
