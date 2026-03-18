@@ -89,7 +89,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
       if (!authUser) return;
       const { data } = await supabase
         .from("user_info")
-        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file")
+        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file, avatar_url")
         .eq("auth_user_id", authUser.id)
         .maybeSingle();
       if (data) {
@@ -98,9 +98,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         setUsername(data.username || defaultUsername);
         setDob(data.dob || "");
         setMobileNumber((data as any).mobile_number || "");
-        if (data.image_file && data.image_file.startsWith("http")) {
-          setAvatarUrl(data.image_file);
-        }
+        // Prefer avatar_url (canonical); fall back to legacy image_file
+        const rawAvatar = (data as any).avatar_url || (data.image_file?.startsWith("http") ? data.image_file : null);
+        if (rawAvatar) setAvatarUrl(rawAvatar);
       }
       setLoading(false);
     };
