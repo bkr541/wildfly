@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
-
+import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 
 interface MyAccountScreenProps {
@@ -11,6 +11,7 @@ interface MyAccountScreenProps {
 }
 
 const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
+  const { patchProfile, refreshProfile } = useProfile();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -47,7 +48,7 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
   const handleSave = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setSaving(false); return; }
     const { error } = await supabase
       .from("user_info")
       .update({
@@ -63,6 +64,15 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
     if (error) {
       toast.error("Failed to save changes");
     } else {
+      // Optimistically update the header/drawer immediately, then confirm via server
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      patchProfile({
+        userName: fn || "Explorer",
+        fullName: [fn, ln].filter(Boolean).join(" ") || "Explorer",
+      });
+      // Confirm with a fresh server read in the background
+      refreshProfile();
       toast.success("Account updated");
       onBack();
     }
