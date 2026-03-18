@@ -9,7 +9,8 @@ import {
   CircleArrowReload01Icon,
   SunCloud01Icon,
   MapPinpoint01Icon,
-  CalendarCheckOut02Icon,
+  Calendar03Icon,
+  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 
@@ -22,19 +23,7 @@ interface FlightSearch {
   trip_type: string;
   all_destinations: string;
   search_timestamp: string;
-}
-
-function formatDateRange(search: FlightSearch): string {
-  try {
-    const dep = format(parseISO(search.departure_date), "MMM d");
-    if (search.return_date) {
-      const ret = format(parseISO(search.return_date), "d");
-      return `${dep} – ${ret}`;
-    }
-    return dep;
-  } catch {
-    return search.departure_date;
-  }
+  gowild_found: boolean | null;
 }
 
 const TRIP_LABELS: Record<string, string> = {
@@ -62,15 +51,23 @@ const TRIP_ICONS: Record<string, IconSvgElement> = {
 /** Extract display code from airport or city string */
 function displayCode(code: string | null): string | null {
   if (!code) return null;
-  // CITY:CHICAGO → CHI, CITY:LOS ANGELES → LOS
   const cityMatch = code.match(/^CITY:(.+)$/i);
   if (cityMatch) {
-    return cityMatch[1].trim().slice(0, 3).toUpperCase();
+    const city = cityMatch[1].trim();
+    const words = city.split(/\s+/).filter(Boolean);
+    if (words.length >= 3) {
+      return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
+    }
+    return city.slice(0, 3).toUpperCase();
   }
   return code;
 }
 
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
+
+const HEADER_GREEN = "#2D6A4F";
+const CARD_SHADOW =
+  "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)";
 
 interface Props {
   searches: FlightSearch[];
@@ -129,104 +126,131 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                     backdropFilter: "blur(18px)",
                     WebkitBackdropFilter: "blur(18px)",
                     border: "1px solid rgba(255,255,255,0.65)",
-                    boxShadow:
-                      "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                    boxShadow: CARD_SHADOW,
                   }}
                 >
                   <HugeiconsIcon icon={Search01Icon} size={20} color="#9AADAD" strokeWidth={1.5} />
                   <p className="text-sm text-[#9AADAD] font-medium">No recent searches yet</p>
                 </div>
               ) : (
-              <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
-                {loading
-                  ? [1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="rounded-2xl px-4 py-4 animate-pulse w-fit"
-                        style={{
-                          background: "rgba(255,255,255,0.82)",
-                          backdropFilter: "blur(18px)",
-                          WebkitBackdropFilter: "blur(18px)",
-                          border: "1px solid rgba(255,255,255,0.65)",
-                          boxShadow:
-                            "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
-                        }}
-                      >
-                        <div className="h-8 w-32 rounded-lg bg-[#e5e7eb] mb-3" />
-                        <div className="h-3 w-24 rounded bg-[#e5e7eb] mb-2" />
-                        <div className="h-5 w-16 rounded-full bg-[#e5e7eb]" />
-                      </div>
-                    ))
-                  : searches.map((s, i) => {
-                      const isAllDest = s.all_destinations === "Yes";
-                      const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
-                      const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
-                      const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
-                      const dateRange = formatDateRange(s);
-                      const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
-
-                      return (
-                        <motion.button
-                          key={s.id}
-                          type="button"
-                          onClick={() => onNavigate?.("flights")}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{
-                            opacity: 1,
-                            y: 0,
-                            transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
-                          }}
-                          className="text-left rounded-2xl px-4 py-3.5 active:scale-[0.97] transition-transform flex-shrink-0"
+                <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
+                  {loading
+                    ? [1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="rounded-2xl overflow-hidden flex-shrink-0 w-[220px]"
                           style={{
-                            scrollSnapAlign: "start",
-                            background: "rgba(255,255,255,0.82)",
-                            backdropFilter: "blur(18px)",
-                            WebkitBackdropFilter: "blur(18px)",
+                            background: "rgba(255,255,255,0.95)",
                             border: "1px solid rgba(255,255,255,0.65)",
-                            boxShadow:
-                              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                            boxShadow: CARD_SHADOW,
                           }}
                         >
-                          {/* Airport codes row */}
-                          <div className="flex items-center justify-center gap-0.5 mb-2">
-                            <span className="text-[24px] font-black text-[#1a2e2e] leading-none tracking-tight">
-                              {depCode}
-                            </span>
-                            <ArrowRight size={14} strokeWidth={2.5} className="text-[#059669] flex-shrink-0 mx-0.5" />
-                            {isAllDest ? (
-                              <HugeiconsIcon
-                                icon={EarthIcon}
-                                className="w-[24px] h-[24px] text-[#1a2e2e]"
-                                strokeWidth={2.5}
-                              />
-                            ) : (
-                              <span className="text-[24px] font-black text-[#1a2e2e] leading-none tracking-tight">
-                                {arrCode ?? "—"}
-                              </span>
-                            )}
+                          {/* Header skeleton */}
+                          <div className="h-9 animate-pulse" style={{ background: HEADER_GREEN, opacity: 0.35 }} />
+                          {/* Body skeleton */}
+                          <div className="px-4 pt-5 pb-4">
+                            <div className="h-8 w-32 rounded-lg bg-[#e5e7eb] mb-3 mx-auto" />
+                            <div className="flex gap-2">
+                              <div className="h-7 w-20 rounded-full bg-[#e5e7eb]" />
+                              <div className="h-7 w-16 rounded-full bg-[#e5e7eb]" />
+                            </div>
                           </div>
+                        </div>
+                      ))
+                    : searches.map((s, i) => {
+                        const isAllDest = s.all_destinations === "Yes";
+                        const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
+                        const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
+                        const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
+                        const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
 
-                          {/* Date + trip type — both green chips */}
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span
-                              className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                              style={{ background: "rgba(234,179,8,0.15)", color: "#854d0e" }}
+                        let formattedDate = s.departure_date;
+                        try {
+                          formattedDate = format(parseISO(s.departure_date), "MMMM d, yyyy");
+                        } catch {
+                          // keep raw string
+                        }
+
+                        return (
+                          <motion.button
+                            key={s.id}
+                            type="button"
+                            onClick={() => onNavigate?.("flights")}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{
+                              opacity: 1,
+                              y: 0,
+                              transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
+                            }}
+                            className="text-left rounded-2xl overflow-hidden active:scale-[0.97] transition-transform flex-shrink-0 w-[220px]"
+                            style={{
+                              scrollSnapAlign: "start",
+                              background: "rgba(255,255,255,0.95)",
+                              border: "1px solid rgba(255,255,255,0.65)",
+                              boxShadow: CARD_SHADOW,
+                            }}
+                          >
+                            {/* Green date header */}
+                            <div
+                              className="relative flex items-center justify-center gap-1.5 px-4 py-2.5"
+                              style={{ background: HEADER_GREEN }}
                             >
-                              <HugeiconsIcon icon={CalendarCheckOut02Icon} className="w-3 h-3" strokeWidth={2} />
-                              {dateRange}
-                            </span>
-                            <span
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
-                              style={{ background: "rgba(16,185,129,0.13)", color: "#059669" }}
-                            >
-                              <HugeiconsIcon icon={tripIcon} className="w-3 h-3" strokeWidth={2} />
-                              {tripLabel}
-                            </span>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-              </div>
+                              <HugeiconsIcon icon={Calendar03Icon} size={14} color="white" strokeWidth={2} />
+                              <span className="text-white font-bold text-[13px] leading-none">{formattedDate}</span>
+                              {/* Triangle notch */}
+                              <div
+                                className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[calc(100%-1px)]"
+                                style={{
+                                  width: 0,
+                                  height: 0,
+                                  borderLeft: "9px solid transparent",
+                                  borderRight: "9px solid transparent",
+                                  borderTop: `9px solid ${HEADER_GREEN}`,
+                                }}
+                              />
+                            </div>
+
+                            {/* Card body */}
+                            <div className="px-4 pt-5 pb-4">
+                              {/* Route row */}
+                              <div className="flex items-center justify-center gap-2 mb-3">
+                                <span className="text-[30px] font-black text-[#1A2E2E] leading-none tracking-tight">
+                                  {depCode}
+                                </span>
+                                <ArrowRight size={18} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
+                                {isAllDest ? (
+                                  <HugeiconsIcon icon={EarthIcon} size={36} color="#1A2E2E" strokeWidth={2} />
+                                ) : (
+                                  <span className="text-[30px] font-black text-[#1A2E2E] leading-none tracking-tight">
+                                    {arrCode ?? "—"}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Badges row */}
+                              <div className="flex items-center justify-center gap-1.5 flex-nowrap">
+                                {s.gowild_found && (
+                                  <span
+                                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold whitespace-nowrap"
+                                    style={{ background: "#059669", color: "#FFFFFF" }}
+                                  >
+                                    <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
+                                    GoWild
+                                  </span>
+                                )}
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full px-2.5 text-[11px] font-bold whitespace-nowrap"
+                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", paddingTop: "2.5px", paddingBottom: "2.5px" }}
+                                >
+                                  <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2} />
+                                  {tripLabel}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                </div>
               )}
             </div>
           </motion.div>

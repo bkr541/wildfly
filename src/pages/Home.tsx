@@ -25,6 +25,7 @@ interface FlightSearch {
   trip_type: string;
   all_destinations: string;
   search_timestamp: string;
+  gowild_found: boolean | null;
 }
 
 /** SHA-256 hex hash via Web Crypto (mirrors Flights.tsx) */
@@ -257,7 +258,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           .limit(20),
         supabase
           .from("flight_searches")
-          .select("id, departure_airport, arrival_airport, departure_date, return_date, trip_type, all_destinations, search_timestamp")
+          .select("id, departure_airport, arrival_airport, departure_date, return_date, trip_type, all_destinations, search_timestamp, gowild_found")
           .eq("user_id", user.id)
           .order("search_timestamp", { ascending: false })
           .limit(2),

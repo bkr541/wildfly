@@ -558,36 +558,36 @@ const FlightDestResults = ({
                     <span className="text-[36px] font-black">All Destinations</span>
                   )}
                 </p>
-                {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
-                  <div
-                    className="mt-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-                    style={{
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                      transform: "translateY(-1px)",
-                    }}
-                  >
-                    <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                    <span className="text-[#065F46] text-xs font-semibold leading-none">
-                      {airportMap[arrivalAirport].name}
-                    </span>
+                {(arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name) || departureDate ? (
+                  <div className="flex items-center gap-2 flex-wrap mt-2">
+                    {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
+                      <div
+                        className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                        style={{
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                        <span className="text-[#065F46] text-xs font-semibold leading-none">
+                          {airportMap[arrivalAirport].name}
+                        </span>
+                      </div>
+                    )}
+                    {departureDate && (
+                      <div
+                        className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                        style={{
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                        <span className="text-[#065F46] text-xs font-semibold leading-none">
+                          {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {departureDate && (
-                  <div className="flex mt-2">
-                    <div 
-                      className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg"
-                      style={{ 
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                        transform: "translateY(-1px)"
-                      }}
-                    >
-                      <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                      <span className="text-[#065F46] text-xs font-semibold leading-none">
-                        {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                ) : null}
               </div>
 
               {/* Metrics strip — flows naturally below route text */}
@@ -852,6 +852,7 @@ const FlightDestResults = ({
               return (
                 <div key={group.destination} className="pt-1 pb-2">
                   {/* Timeline */}
+                  <div>
                   <div className="relative flex flex-col items-center">
                     <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-[#C8D5D5]" />
                     <div className="flex flex-col items-center w-full gap-0">
@@ -866,7 +867,7 @@ const FlightDestResults = ({
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
                               <div className="z-10 bg-[#F2F3F3] px-2 rounded">
-                                <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                                <span className="text-[13px] font-semibold text-[#6B7B7B] leading-tight">
                                   {h12}
                                   {ampm}
                                 </span>
@@ -922,7 +923,7 @@ const FlightDestResults = ({
                             <div
                               className={cn(
                                 "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
-                                isGoWild ? "border border-[#10B981]" : isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
+                                isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
                               )}
                               style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
@@ -1032,24 +1033,23 @@ const FlightDestResults = ({
                         );
                       })}
 
-                      {/* Trailing time label */}
-                      {(() => {
-                        const { h12, ampm } = fmtHourLabel(trailingHour);
-                        return (
-                          <div className="relative flex items-center justify-center w-full py-2">
-                            <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                            <div className="flex items-center gap-1.5 z-10">
-                              <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
-                                {h12}
-                                {ampm}
-                              </span>
-                              <div className="w-2.5 h-2.5" />
-                            </div>
-                          </div>
-                        );
-                      })()}
                     </div>
                   </div>
+                  {/* Trailing time label — outside the line container so the line ends above it */}
+                  {(() => {
+                    const { h12, ampm } = fmtHourLabel(trailingHour);
+                    return (
+                      <div className="flex items-center justify-center w-full py-2">
+                        <div className="bg-[#F2F3F3] px-2 rounded">
+                          <span className="text-[13px] font-semibold text-[#6B7B7B] leading-tight">
+                            {h12}
+                            {ampm}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
                 </div>
               );
             })}

@@ -1003,8 +1003,8 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
             One Way
           </div>
           {/* Round Trip */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#DBEAFE", border: "1.5px solid #60A5FA", color: "#1E40AF" }}>
-            <HugeiconsIcon icon={CircleArrowReload01Icon} size={18} color="#1E40AF" strokeWidth={2} />
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={CircleArrowReload01Icon} size={18} color="#1D4ED8" strokeWidth={2} />
             Round Trip
           </div>
           {/* Day Trip */}
@@ -1013,8 +1013,8 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
             Day Trip
           </div>
           {/* Multi Day */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#DBEAFE", border: "1.5px solid #60A5FA", color: "#1E40AF" }}>
-            <HugeiconsIcon icon={MapPinpoint01Icon} size={18} color="#1E40AF" strokeWidth={2} />
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={MapPinpoint01Icon} size={18} color="#1D4ED8" strokeWidth={2} />
             Multi Day
           </div>
         </StateRow>
