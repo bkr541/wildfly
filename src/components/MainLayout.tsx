@@ -1,4 +1,5 @@
 import { useState, type ReactNode, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -13,6 +14,8 @@ import {
   ArrowLeft01Icon,
   RouteIcon,
   Notification01Icon,
+  AddCircleIcon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -79,7 +82,12 @@ const MainLayout = ({
 
   useEffect(() => {
     if (isSearchOpen) {
-      searchInputRef.current?.focus();
+      setSearchQuery("");
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 50);
+      });
     }
   }, [isSearchOpen]);
 
@@ -319,7 +327,7 @@ const MainLayout = ({
             {/* Search bar row — Home only */}
             {currentPage === "home" && (
               <div
-                className="flex items-center rounded-full gap-2"
+                className="flex items-center rounded-full gap-2 cursor-pointer"
                 style={{
                   background: "rgba(255,255,255,0.72)",
                   backdropFilter: "blur(18px)",
@@ -328,11 +336,14 @@ const MainLayout = ({
                   boxShadow: "0 4px 20px 0 rgba(5,150,105,0.10), 0 1.5px 5px 0 rgba(5,150,105,0.07)",
                   padding: "5px 5px 5px 16px",
                 }}
+                onClick={() => setIsSearchOpen(true)}
               >
                 <input
+                  ref={searchInputRef}
                   type="text"
+                  readOnly
                   placeholder="Search flights, destinations..."
-                  className="flex-1 bg-transparent text-[#2E4A4A] text-base font-medium placeholder:text-[#9CA3AF] outline-none"
+                  className="flex-1 bg-transparent text-[#2E4A4A] text-base font-medium placeholder:text-[#9CA3AF] outline-none cursor-pointer"
                   style={{ fontSize: "16px" }}
                 />
                 <button
@@ -352,6 +363,96 @@ const MainLayout = ({
 
       {/* Global notifications sheet (triggered from Home bell icon) */}
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+
+      {/* Global search sheet */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <>
+            <motion.div
+              key="search-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9998] bg-black/40"
+              onClick={() => setIsSearchOpen(false)}
+            />
+            <motion.div
+              key="search-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 340 }}
+              className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col bg-white rounded-t-3xl shadow-2xl"
+              style={{ top: "5%" }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-[#D1D5DB]" />
+              </div>
+              {/* Title row */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                  >
+                    <HugeiconsIcon icon={Search01Icon} size={15} color="white" strokeWidth={2} />
+                  </div>
+                  <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Search</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(false)}
+                  className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+                >
+                  <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+                </button>
+              </div>
+              {/* Search input */}
+              <div className="px-5 pb-4 pt-3">
+                <div className="app-input-container">
+                  <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                    <HugeiconsIcon icon={Search01Icon} size={20} color="currentColor" strokeWidth={2} />
+                  </button>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search flights, destinations..."
+                    className="app-input"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                  />
+                  {searchQuery.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="app-input-reset app-input-reset--visible"
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                  <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
+                    <HugeiconsIcon icon={Search01Icon} size={28} color="#059669" strokeWidth={2} />
+                  </div>
+                  <p className="text-[#2E4A4A] font-bold text-base mb-1">Global Search</p>
+                  <p className="text-[#9CA3AF] text-sm">Coming soon</p>
+                </div>
+                <div className="h-10" />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

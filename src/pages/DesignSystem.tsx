@@ -103,6 +103,7 @@ import {
   Grid02Icon,
   Tag01Icon,
   CheckListIcon,
+  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 
 import { cn } from "@/lib/utils";
@@ -992,12 +993,21 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
     icon: CheckmarkBadge01Icon,
     content: (
       <DemoBox>
-        {/* Status badges */}
-        <StateRow label="Status Badges">
+        {/* Trip Type badges */}
+        <StateRow label="Trip Type">
           {/* Nonstop */}
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F0FDF9", border: "1.5px solid #6EE7B7", color: "#059669" }}>
             <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} color="#059669" strokeWidth={2} />
             Nonstop
+          </div>
+        </StateRow>
+
+        {/* Status badges */}
+        <StateRow label="Status Badges">
+          {/* GoWild */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#059669", color: "#FFFFFF" }}>
+            <HugeiconsIcon icon={Rocket01Icon} size={18} color="#FFFFFF" strokeWidth={2} />
+            GoWild
           </div>
           {/* Blackout */}
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#F5F3FF", border: "1.5px solid #C4B5FD", color: "#7C3AED" }}>
