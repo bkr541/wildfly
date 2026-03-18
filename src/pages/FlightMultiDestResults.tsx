@@ -700,7 +700,7 @@ const FlightMultiDestResults = ({
                 style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
               >
                 {/* City photo */}
-                <div className="relative h-[130px] overflow-hidden bg-[#C8D5D5]">
+                <div className="relative h-[200px] overflow-hidden bg-[#C8D5D5]">
                   {bgImage ? (
                     <img
                       src={bgImage}
@@ -733,19 +733,13 @@ const FlightMultiDestResults = ({
                       style={
                         card.isMinFareGoWild
                           ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
-                          : { background: "rgba(255,255,255,0.95)", border: "1px solid rgba(232,235,235,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }
+                          : { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.35)" }
                       }
                     >
-                      <span
-                        className="text-[10px] font-semibold leading-none"
-                        style={{ color: card.isMinFareGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}
-                      >
+                      <span className="text-[10px] font-semibold leading-none text-white/80">
                         From
                       </span>
-                      <span
-                        className="text-[16px] font-black leading-none tracking-tight"
-                        style={{ color: card.isMinFareGoWild ? "#FFFFFF" : "#1A2E2E" }}
-                      >
+                      <span className="text-[16px] font-black leading-none tracking-tight text-white">
                         ${Math.round(card.minFare)}
                       </span>
                     </div>
@@ -762,35 +756,34 @@ const FlightMultiDestResults = ({
                 </div>
 
                 {/* Card body */}
-                <div className="px-4 pt-3 pb-3">
-                  {/* Row 1: IATA | City, State  +  flight count right-justified */}
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-[18px] font-black text-[#1A2E2E] leading-tight flex-1 mr-2">
+                <div className="px-4 pt-3 pb-4">
+                  {/* Row 1: IATA | City, State */}
+                  <div className="flex items-center mb-1">
+                    <h3 className="text-[22px] font-black text-[#1A2E2E] leading-tight">
                       <span className="text-[#10B981]">{card.destination}</span>
-                      <span className="text-[#6B7B7B] font-normal text-[15px]"> | </span>
-                      {card.city || card.destination}
-                      {((card.stateCode && card.stateCode !== "None") || card.country) && (
-                        <span className="text-[#6B7B7B] font-normal text-[16px]">
-                          {", "}
-                          {(card.stateCode && card.stateCode !== "None") ? card.stateCode : card.country}
-                        </span>
-                      )}
+                      <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
+                      <span className="uppercase tracking-wide">
+                        {card.city || card.destination}
+                        {((card.stateCode && card.stateCode !== "None") || card.country) && (
+                          <span>
+                            {", "}
+                            {(card.stateCode && card.stateCode !== "None") ? card.stateCode : card.country}
+                          </span>
+                        )}
+                      </span>
                     </h3>
-                    <span className="text-[12px] text-[#6B7B7B] font-medium flex-shrink-0">
-                      {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
-                    </span>
                   </div>
 
                   {/* Divider */}
                   <div className="border-t border-[#F0F3F3] my-2.5" />
 
                   {/* Stats grid: 2-column layout */}
-                  <div className="flex flex-col gap-2 mb-3">
+                  <div className="flex flex-col gap-2 mb-4">
                     {/* Row A: Fare Range | Earliest Departure */}
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
                           <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
@@ -806,7 +799,7 @@ const FlightMultiDestResults = ({
                       </div>
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
                           <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
@@ -821,7 +814,7 @@ const FlightMultiDestResults = ({
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
                           <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
@@ -835,7 +828,7 @@ const FlightMultiDestResults = ({
                       </div>
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: "rgba(107,123,123,0.10)" }}
                         >
                           <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
@@ -847,17 +840,15 @@ const FlightMultiDestResults = ({
                     </div>
                   </div>
 
-                  {/* View Flights button — right aligned */}
-                  <div className="flex items-center justify-end">
-                    <button
-                      type="button"
-                      onClick={() => handleViewDest(card)}
-                      className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-95"
-                      style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-                    >
-                      View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
-                    </button>
-                  </div>
+                  {/* View Flights button — full width */}
+                  <button
+                    type="button"
+                    onClick={() => handleViewDest(card)}
+                    className="w-full py-3 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 active:scale-95"
+                    style={{ background: "#059669" }}
+                  >
+                    View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
+                  </button>
                 </div>
               </div>
             );
