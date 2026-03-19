@@ -310,8 +310,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
     >
       {/* Top section with logo */}
       <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3">
-        <img src="/assets/logo/modern_atl_logo.png" alt="Logo" className="h-36 sm:h-44 md:h-52 w-auto object-contain" />
-        <img src="/assets/logo/tagline_img.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "52px" }} />
+        <img src="/assets/logo/modern_atl_logo.png" alt="Logo" className="w-auto object-contain" style={{ height: "clamp(130px, 33vw, 190px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }} />
+        <img src="/assets/logo/tagline_img.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "46px", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }} />
       </div>
 
       {/* White card form */}
