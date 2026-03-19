@@ -23,6 +23,8 @@ import HubsPage from "./pages/Hubs";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 import DesignSystemPage from "./pages/DesignSystem";
 import ResetPasswordPage from "./pages/ResetPassword";
+import BillingSuccess from "./pages/BillingSuccess";
+import BillingCancel from "./pages/BillingCancel";
 
 const queryClient = new QueryClient();
 
@@ -350,6 +352,8 @@ const App = () => (
       <Routes>
         <Route path="/admin/import" element={<AdminImport />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/billing/success" element={<BillingSuccess />} />
+        <Route path="/billing/cancel" element={<BillingCancel />} />
         <Route path="*" element={<MainApp />} />
       </Routes>
     </BrowserRouter>

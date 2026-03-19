@@ -58,6 +58,39 @@ export type Database = {
           },
         ]
       }
+      credit_packs: {
+        Row: {
+          created_at: string
+          credits_amount: number
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          price_usd: number
+          stripe_price_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_amount: number
+          display_order?: number
+          id: string
+          is_active?: boolean
+          name: string
+          price_usd?: number
+          stripe_price_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_amount?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_usd?: number
+          stripe_price_id?: string | null
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -441,25 +474,34 @@ export type Database = {
       }
       plans: {
         Row: {
+          billing_period: string
           created_at: string
           features: Json
           id: string
+          is_active: boolean
           monthly_allowance_credits: number | null
           name: string
+          stripe_price_id: string | null
         }
         Insert: {
+          billing_period?: string
           created_at?: string
           features?: Json
           id: string
+          is_active?: boolean
           monthly_allowance_credits?: number | null
           name: string
+          stripe_price_id?: string | null
         }
         Update: {
+          billing_period?: string
           created_at?: string
           features?: Json
           id?: string
+          is_active?: boolean
           monthly_allowance_credits?: number | null
           name?: string
+          stripe_price_id?: string | null
         }
         Relationships: []
       }

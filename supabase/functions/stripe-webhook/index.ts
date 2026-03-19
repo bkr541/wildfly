@@ -6,10 +6,13 @@ const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Credit pack metadata mapping
+// Credit pack metadata mapping — must stay in sync with credit_packs DB table
 const CREDIT_PACKS: Record<string, number> = {
-  credit_pack_10: 10,
-  credit_pack_20: 20,
+  credit_pack_10:  10,
+  credit_pack_20:  20,
+  credit_pack_25:  25,
+  credit_pack_50:  50,
+  credit_pack_100: 100,
 };
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {

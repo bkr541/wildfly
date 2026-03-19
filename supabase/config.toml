@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.airlabsSchedules]
 verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.create-customer-portal-session]
+verify_jwt = false
