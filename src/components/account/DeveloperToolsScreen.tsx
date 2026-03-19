@@ -82,6 +82,15 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
     return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
   }
 
+  if (showAnnouncements) {
+    return (
+      <AnnouncementsScreen
+        onBack={() => { setShowAnnouncements(false); onTitleChange?.("Developer Tools"); }}
+        onTitleChange={onTitleChange}
+      />
+    );
+  }
+
 if (loading || !settings) {
     return (
       <div className="flex items-center justify-center py-20">
