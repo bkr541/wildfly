@@ -352,6 +352,8 @@ const App = () => (
       <Routes>
         <Route path="/admin/import" element={<AdminImport />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/billing/success" element={<BillingSuccess />} />
+        <Route path="/billing/cancel" element={<BillingCancel />} />
         <Route path="*" element={<MainApp />} />
       </Routes>
     </BrowserRouter>
