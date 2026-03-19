@@ -183,6 +183,21 @@ if (loading || !settings) {
           </div>
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
         </button>
+        {/* Announcements */}
+        <button
+          type="button"
+          onClick={() => setShowAnnouncements(true)}
+          className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+        >
+          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-[#2E4A4A]">Announcements</p>
+            <p className="text-xs text-[#6B7B7B]">Create and manage in-app announcements</p>
+          </div>
+          <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
+        </button>
 
         {/* Master toggles */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
