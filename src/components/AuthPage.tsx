@@ -316,7 +316,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         {/* Fixed height for toggle stability, capped for mobile so it doesn't crush the logo */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[560px] max-h-[78svh] flex flex-col overflow-hidden">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[548px] max-h-[78svh] flex flex-col overflow-hidden">
           {/* Header label */}
           <div className="w-full mb-6">
             <div className="flex items-center gap-1.5 w-full">
@@ -460,7 +460,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               </div>
 
               {!isSignUp && (
-                <div className="flex items-center justify-between text-sm text-[#6B7280]">
+                <div className="flex items-center justify-between text-sm text-[#6B7280] pt-6">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <div className="relative inline-flex items-center">
                       <input
