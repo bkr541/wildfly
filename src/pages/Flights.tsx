@@ -257,7 +257,19 @@ function AirportSearchSheet({
             {/* Results */}
             <div className="flex-1 overflow-y-auto overscroll-contain">
               {!shouldShow ? (
-                <div className="px-5 pt-6">
+                <div className="px-5 pt-2">
+                  {/* Close To Me */}
+                  <div className="mb-5">
+                    <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2">Close To Me</p>
+                    <button
+                      type="button"
+                      className="flex items-center justify-center gap-1.5 w-full text-sm font-semibold text-[#059669] hover:opacity-75 transition-opacity"
+                    >
+                      <HugeiconsIcon icon={Location01Icon} size={14} color="#059669" strokeWidth={2.5} />
+                      Use current location to search
+                    </button>
+                  </div>
+
                   {recentAirports.length > 0 && (
                     <div className="mb-6">
                       <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2">Recent Airports</p>
@@ -267,14 +279,14 @@ function AirportSearchSheet({
                             key={a.id}
                             type="button"
                             onClick={() => addAirport(a)}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold transition-colors shrink-0 whitespace-nowrap"
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-semibold transition-colors shrink-0 whitespace-nowrap"
                             style={{
                               background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                               color: "#065F46",
                               border: "1px solid #6EE7B7",
                             }}
                           >
-                            <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={12} color="#059669" strokeWidth={2.5} />
+                            <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={14} color="#059669" strokeWidth={2.5} />
                             <span className="font-bold">{a.iata_code}</span>
                             {a.locations?.city && (
                               <span className="opacity-60 font-medium">{a.locations.city}</span>
@@ -298,7 +310,7 @@ function AirportSearchSheet({
                   <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
                 </div>
               ) : (
-                <div className="py-3">
+                <div className="py-3 px-4">
                   {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
                     const isSingle = cityGroup.startsWith("__single__");
                     const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
@@ -315,31 +327,39 @@ function AirportSearchSheet({
                             <span className="ml-auto text-xs font-semibold text-[#059669]">Add all</span>
                           </button>
                         )}
-                        {cityAirports.map((a) => {
+                        {cityAirports.map((a, aIdx) => {
                           const isSelected = selectedIds.has(a.id);
                           return (
-                            <button
-                              key={a.id}
-                              type="button"
-                              onClick={() => addAirport(a)}
-                              className={cn(
-                                "w-full text-left pr-5 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-4 overflow-hidden",
-                                isSingle ? "pl-5" : "pl-12",
-                                isSelected && "bg-[#345C5A]/5",
-                              )}
-                            >
-                              <HugeiconsIcon icon={AirportIcon} size={20} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-baseline gap-1">
-                                  <span className="font-bold text-[#345C5A] text-lg shrink-0">{a.iata_code}</span>
-                                  <span className="text-[#6B7B7B] truncate text-base">{a.locations?.city ?? a.name}</span>
+                            <div key={a.id}>
+                              {aIdx > 0 && <div className="border-t border-[#F0F1F1] mx-1" />}
+                              <button
+                                type="button"
+                                onClick={() => addAirport(a)}
+                                className={cn(
+                                  "w-full text-left pr-4 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
+                                  isSingle ? "pl-4" : "pl-14",
+                                  isSelected && "bg-[#345C5A]/5",
+                                )}
+                              >
+                                <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                                    <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                                    <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                                  </div>
+                                  {(a.locations?.city) && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2F3F3] text-[#6B7B7B] text-xs font-medium mt-0.5">
+                                      <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
+                                      <span className="truncate">{a.locations.city}{a.locations.state_code ? `, ${a.locations.state_code}` : ""}</span>
+                                    </span>
+                                  )}
                                 </div>
-                                <p className="text-sm text-[#9CA3AF] truncate">{a.name}</p>
-                              </div>
-                              {isSelected && (
-                                <span className="text-[#059669] text-sm font-bold shrink-0">✓</span>
-                              )}
-                            </button>
+                                {isSelected && (
+                                  <span className="text-[#059669] text-sm font-bold shrink-0">✓</span>
+                                )}
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
