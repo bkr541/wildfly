@@ -58,6 +58,86 @@ export type Database = {
           },
         ]
       }
+      announcement_views: {
+        Row: {
+          announcement_id: string
+          dismissed_at: string | null
+          id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          dismissed_at?: string | null
+          id?: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          dismissed_at?: string | null
+          id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_views_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          audience: string
+          body: string
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          priority: number
+          publish_at: string | null
+          title: string
+        }
+        Insert: {
+          audience?: string
+          body: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          priority?: number
+          publish_at?: string | null
+          title: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          priority?: number
+          publish_at?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       credit_packs: {
         Row: {
           created_at: string
