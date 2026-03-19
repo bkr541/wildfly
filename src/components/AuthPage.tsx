@@ -306,7 +306,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('/assets/authuser/init_alt_background.png')" }}
+      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
       <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3">
