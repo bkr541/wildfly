@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppInput } from "@/components/ui/app-input";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon, Megaphone02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
+import { AnnouncementsScreen } from "@/components/account/AnnouncementsScreen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [showApiClient, setShowApiClient] = useState(false);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
   
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
@@ -78,6 +80,15 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
 
   if (showApiClient) {
     return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
+  }
+
+  if (showAnnouncements) {
+    return (
+      <AnnouncementsScreen
+        onBack={() => { setShowAnnouncements(false); onTitleChange?.("Developer Tools"); }}
+        onTitleChange={onTitleChange}
+      />
+    );
   }
 
 if (loading || !settings) {
@@ -169,6 +180,21 @@ if (loading || !settings) {
           <div className="flex-1">
             <p className="text-sm font-bold text-[#2E4A4A]">Design System</p>
             <p className="text-xs text-[#6B7B7B]">View component library and design tokens</p>
+          </div>
+          <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
+        </button>
+        {/* Announcements */}
+        <button
+          type="button"
+          onClick={() => setShowAnnouncements(true)}
+          className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
+        >
+          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-[#2E4A4A]">Announcements</p>
+            <p className="text-xs text-[#6B7B7B]">Create and manage in-app announcements</p>
           </div>
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
         </button>
