@@ -306,11 +306,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
+      style={{ backgroundImage: "url('/assets/authuser/init_alt_background.png')" }}
     >
       {/* Top section with logo */}
       <div className="w-full flex-1 flex items-center justify-center z-10">
-        <img src="/assets/logo/logo_alt.png" alt="Logo" className="h-36 sm:h-44 md:h-52 w-auto object-contain" />
+        <img src="/assets/logo/modern_alt_logo.png" alt="Logo" className="h-36 sm:h-44 md:h-52 w-auto object-contain" />
       </div>
 
       {/* White card form */}
