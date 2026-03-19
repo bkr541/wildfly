@@ -58,6 +58,48 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          bucket: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          source_id: string | null
+          source_type: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          bucket: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source_id?: string | null
+          source_type: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          bucket?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source_id?: string | null
+          source_type?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       developer_allowlist: {
         Row: {
           user_id: string
@@ -810,14 +852,24 @@ export type Database = {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
       }
-      consume_search_credits: {
-        Args: {
-          p_all_destinations: boolean
-          p_arrival_airports_count: number
-          p_trip_type: string
-        }
-        Returns: Json
-      }
+      consume_search_credits:
+        | {
+            Args: {
+              p_all_destinations: boolean
+              p_arrival_airports_count: number
+              p_trip_type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_all_destinations: boolean
+              p_arrival_airports_count: number
+              p_source_id?: string
+              p_trip_type: string
+            }
+            Returns: Json
+          }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
