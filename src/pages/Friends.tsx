@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Search, Users, UserPlus, Activity } from "lucide-react";
+import { Search, Users, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useFriends,
@@ -306,7 +306,7 @@ function ActivityTab() {
 
 // ── Main Page ───────────────────────────────────────────────────────────────
 
-type FriendsTab = "friends" | "requests" | "search" | "activity";
+type FriendsTab = "friends" | "requests" | "search";
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
@@ -405,17 +405,6 @@ const FriendsPage = () => {
                 <Search size={16} />
                 Search
               </TabsTrigger>
-              <TabsTrigger
-                value="activity"
-                className={cn(
-                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
-                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-                )}
-              >
-                <Activity size={16} />
-                Activity
-              </TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-y-auto smooth-scroll">
@@ -427,9 +416,6 @@ const FriendsPage = () => {
               </TabsContent>
               <TabsContent value="search" className="mt-0 focus-visible:outline-none">
                 <SearchTab query={searchQuery} onQueryChange={setSearchQuery} />
-              </TabsContent>
-              <TabsContent value="activity" className="mt-0 focus-visible:outline-none">
-                <ActivityTab />
               </TabsContent>
             </div>
           </div>
