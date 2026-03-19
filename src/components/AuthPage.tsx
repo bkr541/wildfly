@@ -309,7 +309,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3">
+      <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3 pt-3">
         <img src="/assets/logo/logo_hd.png" alt="Logo" className="w-auto object-contain" style={{ height: "clamp(130px, 33vw, 190px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }} />
         <img src="/assets/logo/tag_noshadow.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "46px", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }} />
       </div>
