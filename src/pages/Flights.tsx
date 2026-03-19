@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { toast } from "sonner";
 import { getLogger } from "@/lib/logger";
 import { Calendar } from "@/components/ui/calendar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -1268,17 +1269,20 @@ const FlightsPage = ({
             });
             try {
               // ── Credit check ──
+              // Pass p_source_id to disambiguate the overloaded function (avoids 300 Multiple Matches)
               const { data: creditResult, error: creditErr } = await supabase.rpc(
                 "consume_search_credits" as any,
                 {
                   p_trip_type: tripTypeMapping,
                   p_arrival_airports_count: arrivalAirportsCount,
                   p_all_destinations: searchAll,
+                  p_source_id: cacheKey,
                 } as any,
               );
 
               if (creditErr) {
                 flightLog.error("Credit check failed", creditErr);
+                toast.error(`Search failed: ${creditErr.message ?? "Could not verify credits. Please try again."}`);
                 setLoading(false);
                 return;
               }
@@ -1535,8 +1539,9 @@ const FlightsPage = ({
                 );
                 onNavigate("flight-results", payload);
               }
-            } catch (err) {
+            } catch (err: any) {
               edgeLog.error("Failed to invoke edge function", err);
+              toast.error(err?.message ?? "Something went wrong while searching. Please try again.");
             } finally {
               flightLog.info("Search complete", { duration: `${(performance.now() - searchStart).toFixed(0)}ms` });
               setLoading(false);
