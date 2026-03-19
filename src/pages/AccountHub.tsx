@@ -111,7 +111,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
 
   const menuItems: MenuItem[] = [
     ...baseMenuItems,
-    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", key: "developer" }] : []),
+    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", desc: "Logs, debug toggles, and admin tools", key: "developer" }] : []),
   ];
 
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
