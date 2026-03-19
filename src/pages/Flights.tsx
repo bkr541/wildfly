@@ -1539,8 +1539,9 @@ const FlightsPage = ({
                 );
                 onNavigate("flight-results", payload);
               }
-            } catch (err) {
+            } catch (err: any) {
               edgeLog.error("Failed to invoke edge function", err);
+              toast.error(err?.message ?? "Something went wrong while searching. Please try again.");
             } finally {
               flightLog.info("Search complete", { duration: `${(performance.now() - searchStart).toFixed(0)}ms` });
               setLoading(false);
