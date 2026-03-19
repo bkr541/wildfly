@@ -336,7 +336,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                       background: isBlank
                         ? "#e8eaed"
                         : isGreen
-                          ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)"
+                          ? "linear-gradient(135deg,#10B981 0%,#059669 50%,#065F46 100%)"
                           : "#e8eaed",
                       borderColor: isBlank ? "#d1d5db" : isGreen ? "#059669" : "#d1d5db",
                       opacity: isBlank ? 0.45 : 1,
