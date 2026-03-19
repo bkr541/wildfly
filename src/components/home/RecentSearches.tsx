@@ -182,7 +182,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               y: 0,
                               transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                             }}
-                            className="text-left rounded-2xl overflow-hidden active:scale-[0.97] transition-transform flex-shrink-0 w-[220px]"
+                            className="text-left rounded-2xl overflow-hidden active:scale-[0.97] transition-transform flex-shrink-0 w-[185px]"
                             style={{
                               scrollSnapAlign: "start",
                               background: "rgba(255,255,255,0.95)",
@@ -192,7 +192,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           >
                             {/* Green date header */}
                             <div
-                              className="relative flex items-center justify-center gap-1.5 px-4 py-2.5"
+                              className="relative flex items-center justify-center gap-1.5 px-4 py-2"
                               style={{ background: HEADER_GREEN }}
                             >
                               <HugeiconsIcon icon={Calendar03Icon} size={14} color="white" strokeWidth={2} />
@@ -211,17 +211,17 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                             </div>
 
                             {/* Card body */}
-                            <div className="px-4 pt-5 pb-4">
+                            <div className="px-4 pt-3 pb-3">
                               {/* Route row */}
-                              <div className="flex items-center justify-center gap-2 mb-3">
-                                <span className="text-[30px] font-black text-[#1A2E2E] leading-none tracking-tight">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
                                   {depCode}
                                 </span>
                                 <ArrowRight size={18} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
                                 {isAllDest ? (
-                                  <HugeiconsIcon icon={EarthIcon} size={36} color="#1A2E2E" strokeWidth={2} />
+                                  <HugeiconsIcon icon={EarthIcon} size={30} color="#1A2E2E" strokeWidth={2} />
                                 ) : (
-                                  <span className="text-[30px] font-black text-[#1A2E2E] leading-none tracking-tight">
+                                  <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
                                     {arrCode ?? "—"}
                                   </span>
                                 )}

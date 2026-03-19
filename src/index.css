@@ -147,6 +147,10 @@
   outline: none;
 }
 
+.app-input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 .app-input-icon-btn {
   flex-shrink: 0;
   color: #6b7280;

@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
+import {
+  FloppyDiskIcon,
+  UserIcon,
+  Mail01Icon,
+  SmartPhone01Icon,
+  Calendar03Icon,
+  PencilEdit01Icon,
+  UserIdVerificationIcon,
+} from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
@@ -78,7 +86,6 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
     }
   };
 
-  const labelStyle = "block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-1.5";
   const inputStyle = "w-full px-3.5 py-3 rounded-xl bg-[#E8EAE9] text-[#2E4A4A] placeholder:text-[#849494] outline-none transition-all border-2 border-transparent focus:border-[#345C5A] focus:bg-white text-sm";
 
   if (loading) {
@@ -88,36 +95,78 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
   return (
     <div className="flex flex-col h-full animate-fade-in">
       {/* Form */}
-      <div className="flex-1 px-5 pb-4 space-y-3.5 overflow-y-auto">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="form-group">
-            <label className={labelStyle}>First Name</label>
-            <AppInput value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First" />
+      <div className="flex-1 px-5 pb-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 space-y-4">
+          {/* Row 1: First + Last Name */}
+          <div className="grid grid-cols-2 gap-3">
+            <AppInput
+              icon={UserIcon}
+              label="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First"
+            />
+            <AppInput
+              icon={UserIcon}
+              label="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last"
+            />
           </div>
-          <div className="form-group">
-            <label className={labelStyle}>Last Name</label>
-            <AppInput value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last" />
+
+          {/* Row 2: Username + Email */}
+          <div className="grid grid-cols-2 gap-3">
+            <AppInput
+              icon={UserIdVerificationIcon}
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username"
+            />
+            <AppInput
+              icon={Mail01Icon}
+              label="Email"
+              value={email}
+              disabled
+            />
           </div>
-        </div>
-        <div className="form-group">
-          <label className={labelStyle}>Username</label>
-          <AppInput value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
-        </div>
-        <div className="form-group">
-          <label className={labelStyle}>Email</label>
-          <AppInput value={email} disabled />
-        </div>
-        <div className="form-group">
-          <label className={labelStyle}>Date of Birth</label>
-          <AppInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label className={labelStyle}>Mobile Number</label>
-          <AppInput type="tel" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="+1 (555) 000-0000" />
-        </div>
-        <div className="form-group">
-          <label className={labelStyle}>Bio</label>
-          <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself..." rows={3} className={`${inputStyle} resize-none`} />
+
+          {/* Row 3: DOB + Mobile */}
+          <div className="grid grid-cols-2 gap-3">
+            <AppInput
+              icon={Calendar03Icon}
+              label="Date of Birth"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
+            <AppInput
+              icon={SmartPhone01Icon}
+              label="Mobile"
+              type="tel"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              placeholder="+1 (555) 000-0000"
+            />
+          </div>
+
+          {/* Bio */}
+          <div>
+            <label className="text-sm font-semibold ml-1 block text-[#6B7B7B]">Bio</label>
+            <div className="app-input-container" style={{ alignItems: "flex-start", paddingTop: "4px", paddingBottom: "4px" }}>
+              <button type="button" tabIndex={-1} className="app-input-icon-btn" style={{ marginTop: "6px" }}>
+                <HugeiconsIcon icon={PencilEdit01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={3}
+                className="app-input resize-none"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

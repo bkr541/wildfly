@@ -57,8 +57,8 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
 
         {/* Sign Out */}
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#E3E6E6] hover:bg-[#F2F3F3] transition-colors">
-          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={Logout01Icon} size={14} color="#345C5A" strokeWidth={1.5} />
+          <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={Logout01Icon} size={14} color="#059669" strokeWidth={1.5} />
           </span>
           <span className="text-sm font-semibold text-[#2E4A4A]">Sign Out</span>
         </button>
