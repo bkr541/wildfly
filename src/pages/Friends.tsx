@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Search, Users, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { UserSearch02Icon, AddCircleIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { BottomSheet } from "@/components/BottomSheet";
 import {
   useFriends,
   useFriendRequests,
@@ -311,6 +314,16 @@ type FriendsTab = "friends" | "requests" | "search";
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState<FriendsTab>("friends");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
+  const sheetInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchSheetOpen) {
+      requestAnimationFrame(() => {
+        setTimeout(() => { sheetInputRef.current?.focus(); }, 50);
+      });
+    }
+  }, [searchSheetOpen]);
 
   const { data: requestsData } = useFriendRequests();
   const incomingCount = requestsData?.incoming?.length ?? 0;
@@ -331,53 +344,85 @@ const FriendsPage = () => {
         onValueChange={(v) => setActiveTab(v as FriendsTab)}
         className="flex flex-col flex-1"
       >
-        {/* Search input — frosted glass card */}
+        {/* Search trigger — opens sheet */}
         <div className="px-5 pt-4 pb-3">
-          <div className="rounded-2xl p-3" style={glassStyle}>
-            <div className="app-input-container">
+          <div className="rounded-2xl p-3 cursor-pointer" style={glassStyle} onClick={() => setSearchSheetOpen(true)}>
+            <div className="app-input-container pointer-events-none">
               <button type="button" tabIndex={-1} className="app-input-icon-btn">
                 <Search size={20} strokeWidth={2} />
               </button>
               <input
+                readOnly
                 type="text"
-                value={activeTab === "search" ? searchQuery : ""}
-                onChange={(e) => {
-                  if (activeTab !== "search") setActiveTab("search");
-                  setSearchQuery(e.target.value);
-                }}
                 placeholder="Search by username or city"
-                className="app-input"
+                className="app-input cursor-pointer"
               />
-              {activeTab === "search" && searchQuery && (
+            </div>
+          </div>
+        </div>
+
+        {/* Friend Search Sheet */}
+        <BottomSheet open={searchSheetOpen} onClose={() => { setSearchSheetOpen(false); setSearchQuery(""); }} style={{ top: "5%" }}>
+          {/* Title row */}
+          <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={UserSearch02Icon} size={15} color="white" strokeWidth={2} />
+              </div>
+              <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Find Friends</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setSearchSheetOpen(false); setSearchQuery(""); }}
+              className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+            >
+              <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+            </button>
+          </div>
+
+          {/* Search input */}
+          <div className="px-5 pb-4 pt-3">
+            <div className="app-input-container">
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={UserSearch02Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <input
+                ref={sheetInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by username or city…"
+                className="app-input"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+              {searchQuery.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
                   className="app-input-reset app-input-reset--visible"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
                 </button>
               )}
             </div>
           </div>
-        </div>
+
+          {/* Results */}
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            <SearchTab query={searchQuery} onQueryChange={setSearchQuery} />
+          </div>
+        </BottomSheet>
 
         {/* Tab row + content — frosted glass card */}
         <div className="px-5 pb-4 flex-1 flex flex-col min-h-0">
           <div className="rounded-2xl flex flex-col flex-1 min-h-0 overflow-hidden" style={glassStyle}>
             <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-[rgba(0,0,0,0.06)] rounded-none flex-shrink-0">
-              <TabsTrigger
-                value="friends"
-                className={cn(
-                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
-                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
-                )}
-              >
-                <Users size={16} />
-                My Friends
-              </TabsTrigger>
               <TabsTrigger
                 value="requests"
                 className={cn(
@@ -393,6 +438,17 @@ const FriendsPage = () => {
                     {incomingCount}
                   </span>
                 )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="friends"
+                className={cn(
+                  "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center gap-2",
+                  "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                  "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+                )}
+              >
+                <Users size={16} />
+                My Friends
               </TabsTrigger>
               <TabsTrigger
                 value="search"

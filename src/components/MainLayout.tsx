@@ -285,6 +285,7 @@ const MainLayout = ({
                     routes: "Explore",
                     itinerary: "My",
                     friends: "Find",
+                    account: "My",
                   };
                   const labelMap: Record<string, string> = {
                     destinations: "DESTINATIONS",
