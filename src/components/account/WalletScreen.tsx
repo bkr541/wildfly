@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Coins01Icon,
@@ -7,14 +6,22 @@ import {
   Infinity01Icon,
   Loading03Icon,
   PlusSignIcon,
+  ArrowUp01Icon,
+  ArrowDown01Icon,
+  TimeQuarterPassIcon,
+  RefreshIcon,
+  ShoppingCart01Icon,
 } from "@hugeicons/core-free-icons";
 import { format } from "date-fns";
 import { useBilling } from "@/hooks/useBilling";
+import { useTransactionHistory, CreditTransaction } from "@/hooks/useTransactionHistory";
 import { cn } from "@/lib/utils";
 
 interface WalletScreenProps {
   onBack: () => void;
 }
+
+// ─── Gauge ────────────────────────────────────────────────────────────────────
 
 const GAUGE_SEGS = 15;
 const GAUGE_START = 217;
@@ -65,6 +72,82 @@ function GaugeMeter({ ratio, size = 220 }: { ratio: number; size?: number }) {
   );
 }
 
+// ─── Transaction row helpers ──────────────────────────────────────────────────
+
+function txLabel(tx: CreditTransaction): string {
+  switch (tx.transaction_type) {
+    case "search_debit":
+      return "Flight Search";
+    case "purchase_credit":
+      return "Credits Purchased";
+    case "monthly_grant":
+      return "Monthly Credits";
+    case "adjustment":
+      return "Adjustment";
+    case "refund":
+      return "Refund";
+    default:
+      // Humanise snake_case fallback
+      return tx.transaction_type
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+}
+
+function txSubLabel(tx: CreditTransaction): string {
+  const bucketLabel = tx.bucket === "purchased" ? "Purchased" : "Monthly";
+  return bucketLabel;
+}
+
+function TxIcon({ tx }: { tx: CreditTransaction }) {
+  const isDebit = tx.amount < 0;
+  const isGrant = tx.transaction_type === "monthly_grant";
+  const isPurchase = tx.transaction_type === "purchase_credit";
+
+  if (isGrant) {
+    return (
+      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(74,222,128,0.15)" }}>
+        <HugeiconsIcon icon={RefreshIcon} size={15} color="#16A34A" strokeWidth={2} />
+      </div>
+    );
+  }
+  if (isPurchase) {
+    return (
+      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(251,191,36,0.15)" }}>
+        <HugeiconsIcon icon={ShoppingCart01Icon} size={15} color="#D97706" strokeWidth={2} />
+      </div>
+    );
+  }
+  if (isDebit) {
+    return (
+      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(239,68,68,0.10)" }}>
+        <HugeiconsIcon icon={ArrowUp01Icon} size={15} color="#DC2626" strokeWidth={2.5} />
+      </div>
+    );
+  }
+  return (
+    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(74,222,128,0.15)" }}>
+      <HugeiconsIcon icon={ArrowDown01Icon} size={15} color="#16A34A" strokeWidth={2.5} />
+    </div>
+  );
+}
+
+function TxAmountBadge({ amount }: { amount: number }) {
+  const isDebit = amount < 0;
+  return (
+    <span
+      className={cn(
+        "text-xs font-bold tabular-nums",
+        isDebit ? "text-red-500" : "text-green-600"
+      )}
+    >
+      {isDebit ? "" : "+"}{amount}
+    </span>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 const WalletScreen = ({ onBack }: WalletScreenProps) => {
   const {
     loading,
@@ -74,13 +157,19 @@ const WalletScreen = ({ onBack }: WalletScreenProps) => {
     creditPacks,
     handleBuyCredits,
     checkoutLoading,
-    refetch,
   } = useBilling();
+
+  const {
+    transactions,
+    loading: txLoading,
+    error: txError,
+    hasMore,
+    loadMore,
+  } = useTransactionHistory();
 
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
 
   const onBuyCredits = async (packId: string) => {
-    // Store current purchased_balance snapshot for success page polling
     sessionStorage.setItem("billing_prev_credits", String(wallet.purchasedBalance));
     setLoadingPackId(packId);
     await handleBuyCredits(packId);
@@ -275,6 +364,90 @@ const WalletScreen = ({ onBack }: WalletScreenProps) => {
             Purchased credits never expire and are used after your monthly allowance.
           </p>
         </div>
+
+        {/* Transaction History */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <HugeiconsIcon icon={TimeQuarterPassIcon} size={14} color="#345C5A" strokeWidth={1.5} />
+            <p className="text-sm font-semibold text-[#2E4A4A]">Transaction History</p>
+          </div>
+
+          {txLoading && transactions.length === 0 ? (
+            <div className="flex items-center justify-center py-6">
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                size={20}
+                color="#9CA3AF"
+                strokeWidth={2}
+                className="animate-spin"
+              />
+            </div>
+          ) : txError ? (
+            <p className="text-xs text-red-400 text-center py-4">{txError}</p>
+          ) : transactions.length === 0 ? (
+            <div className="flex flex-col items-center py-6 gap-2">
+              <HugeiconsIcon icon={TimeQuarterPassIcon} size={28} color="#D1D5DB" strokeWidth={1.5} />
+              <p className="text-xs text-[#9CA3AF] text-center">
+                No transactions yet. Your search history will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-0.5">
+              {transactions.map((tx, idx) => (
+                <div
+                  key={tx.id}
+                  className={cn(
+                    "flex items-center gap-3 py-2.5",
+                    idx < transactions.length - 1 && "border-b border-[#F3F4F6]"
+                  )}
+                >
+                  <TxIcon tx={tx} />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-[#2E4A4A] leading-tight truncate">
+                      {txLabel(tx)}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span
+                        className={cn(
+                          "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                          tx.bucket === "purchased"
+                            ? "bg-amber-50 text-amber-600"
+                            : "bg-green-50 text-green-700"
+                        )}
+                      >
+                        {txSubLabel(tx)}
+                      </span>
+                      <span className="text-[10px] text-[#9CA3AF]">
+                        {format(new Date(tx.created_at), "MMM d, h:mm a")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <TxAmountBadge amount={tx.amount} />
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5 tabular-nums">
+                      → {tx.balance_after}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Load more */}
+              {hasMore && (
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  disabled={txLoading}
+                  className="w-full mt-2 py-2 text-xs font-semibold text-[#345C5A] rounded-xl border border-[#E3E6E6] hover:bg-[#F9FAFB] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {txLoading ? "Loading…" : "Load more"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );
