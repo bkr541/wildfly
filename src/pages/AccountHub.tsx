@@ -158,7 +158,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
               key={item.key}
               type="button"
               onClick={() => openScreen(item.key)}
-              className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${
+              className={`flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors ${
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
             >
