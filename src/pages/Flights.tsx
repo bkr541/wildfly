@@ -1236,26 +1236,6 @@ const FlightsPage = ({
           </div>
         </div>
 
-        {/* Insufficient credits upsell */}
-        {creditError && (
-          <div className="rounded-2xl border border-[#E89830]/30 bg-[#FFF7ED] p-4 flex flex-col gap-2 animate-fade-in">
-            <p className="text-sm font-bold text-[#2E4A4A]">Not enough credits</p>
-            <p className="text-xs text-[#6B7B7B]">
-              This search costs{" "}
-              <span className="font-semibold text-[#E89830]">
-                {creditError.cost} credit{creditError.cost !== 1 ? "s" : ""}
-              </span>
-              . You have {creditError.remaining_monthly} monthly + {creditError.purchased_balance} purchased remaining.
-            </p>
-            <button
-              type="button"
-              onClick={() => setCreditError(null)}
-              className="self-end text-xs font-semibold text-[#345C5A] hover:underline"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
 
         {/* Search Button */}
         <button
