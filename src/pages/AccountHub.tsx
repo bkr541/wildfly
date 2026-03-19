@@ -165,7 +165,10 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
               <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center mr-3 shrink-0">
                 <HugeiconsIcon icon={item.icon} size={14} color="#059669" strokeWidth={1.5} />
               </span>
-              <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{item.label}</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-[#2E4A4A]">{item.label}</p>
+                <p className="text-xs text-[#6B7B7B]">{item.desc}</p>
+              </div>
               <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
             </button>
           ))}
