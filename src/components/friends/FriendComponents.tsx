@@ -188,6 +188,7 @@ export function UserSearchResultCard({ user, requestState, onAddFriend, isSendin
           {user.home_city && (
             <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
               <MapPin size={10} />
+              <span className="text-[#C4C9CA] font-medium">Home:</span>
               {user.home_city}
             </span>
           )}
