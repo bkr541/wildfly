@@ -36,17 +36,18 @@ interface AccountHubProps {
 interface MenuItem {
   icon: any;
   label: string;
+  desc: string;
   key: string;
 }
 
 const baseMenuItems: MenuItem[] = [
-  { icon: UserIcon, label: "My Account", key: "my-account" },
-  { icon: Airplane01Icon, label: "Travel Preferences", key: "travel-prefs" },
-  { icon: Notification01Icon, label: "Notifications", key: "notifications" },
-  { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
-  { icon: CreditCardIcon, label: "Subscription & Wallet", key: "subscription" },
-  { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
-  { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
+  { icon: UserIcon, label: "My Account", desc: "Edit your name, username, and profile photo", key: "my-account" },
+  { icon: Airplane01Icon, label: "Travel Preferences", desc: "Set your home airport and trip defaults", key: "travel-prefs" },
+  { icon: Notification01Icon, label: "Notifications", desc: "Manage alerts and push preferences", key: "notifications" },
+  { icon: PaintBrushIcon, label: "Appearance", desc: "Theme, homepage layout, and display options", key: "appearance" },
+  { icon: CreditCardIcon, label: "Subscription & Wallet", desc: "Manage your plan and search credits", key: "subscription" },
+  { icon: HelpCircleIcon, label: "Help & Support", desc: "FAQs, contact, and feedback", key: "help" },
+  { icon: Shield01Icon, label: "Security & Privacy", desc: "Password, privacy controls, and data", key: "security" },
 ];
 
 const screenTitles: Record<string, string> = {
@@ -110,7 +111,7 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
 
   const menuItems: MenuItem[] = [
     ...baseMenuItems,
-    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", key: "developer" }] : []),
+    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", desc: "Logs, debug toggles, and admin tools", key: "developer" }] : []),
   ];
 
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
@@ -157,14 +158,17 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
               key={item.key}
               type="button"
               onClick={() => openScreen(item.key)}
-              className={`flex items-center w-full px-4 py-2.5 text-left hover:bg-[#F2F3F3] transition-colors ${
+              className={`flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors ${
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
             >
               <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center mr-3 shrink-0">
                 <HugeiconsIcon icon={item.icon} size={14} color="#059669" strokeWidth={1.5} />
               </span>
-              <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{item.label}</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-[#2E4A4A]">{item.label}</p>
+                <p className="text-xs text-[#6B7B7B]">{item.desc}</p>
+              </div>
               <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#C4CACA" strokeWidth={1.5} />
             </button>
           ))}
