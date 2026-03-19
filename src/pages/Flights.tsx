@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
-import { toast } from "sonner";
 import { getLogger } from "@/lib/logger";
 import { Calendar } from "@/components/ui/calendar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -870,6 +869,7 @@ const FlightsPage = ({
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [creditError, setCreditError] = useState<{
     cost: number;
     remaining_monthly: number;
@@ -976,6 +976,53 @@ const FlightsPage = ({
   return (
     <>
       {loading && <SearchingOverlay />}
+
+      {/* Error popup dialog */}
+      {(searchError || creditError) && (
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center sm:items-center px-4 pb-6 sm:pb-0">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => { setSearchError(null); setCreditError(null); }}
+          />
+          {/* Sheet */}
+          <div className="relative w-full max-w-sm rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+            {/* Red header bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-red-400 to-red-500 rounded-t-3xl" />
+
+            <div className="px-6 pt-5 pb-2">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-bold text-[#1F2937] mb-1">
+                    {creditError ? "Not Enough Credits" : "Search Failed"}
+                  </p>
+                  <p className="text-sm text-[#6B7280] leading-relaxed">
+                    {creditError
+                      ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
+                      : searchError}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 pt-4">
+              <button
+                type="button"
+                onClick={() => { setSearchError(null); setCreditError(null); }}
+                className="w-full h-12 rounded-full text-white text-sm font-black uppercase tracking-[0.35em] flex items-center justify-center transition-all active:scale-[0.98]"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
 
       <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-6 animate-fade-in">
@@ -1188,26 +1235,6 @@ const FlightsPage = ({
           </div>
         </div>
 
-        {/* Insufficient credits upsell */}
-        {creditError && (
-          <div className="rounded-2xl border border-[#E89830]/30 bg-[#FFF7ED] p-4 flex flex-col gap-2 animate-fade-in">
-            <p className="text-sm font-bold text-[#2E4A4A]">Not enough credits</p>
-            <p className="text-xs text-[#6B7B7B]">
-              This search costs{" "}
-              <span className="font-semibold text-[#E89830]">
-                {creditError.cost} credit{creditError.cost !== 1 ? "s" : ""}
-              </span>
-              . You have {creditError.remaining_monthly} monthly + {creditError.purchased_balance} purchased remaining.
-            </p>
-            <button
-              type="button"
-              onClick={() => setCreditError(null)}
-              className="self-end text-xs font-semibold text-[#345C5A] hover:underline"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
 
         {/* Search Button */}
         <button
@@ -1282,7 +1309,7 @@ const FlightsPage = ({
 
               if (creditErr) {
                 flightLog.error("Credit check failed", creditErr);
-                toast.error(`Search failed: ${creditErr.message ?? "Could not verify credits. Please try again."}`);
+                setSearchError(creditErr.message ?? "Could not verify credits. Please try again.");
                 setLoading(false);
                 return;
               }
@@ -1541,7 +1568,7 @@ const FlightsPage = ({
               }
             } catch (err: any) {
               edgeLog.error("Failed to invoke edge function", err);
-              toast.error(err?.message ?? "Something went wrong while searching. Please try again.");
+              setSearchError(err?.message ?? "Something went wrong while searching. Please try again.");
             } finally {
               flightLog.info("Search complete", { duration: `${(performance.now() - searchStart).toFixed(0)}ms` });
               setLoading(false);
