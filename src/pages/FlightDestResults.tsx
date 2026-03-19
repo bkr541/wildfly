@@ -277,6 +277,7 @@ const FlightDestResults = ({
   const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
   const [sortSheet, setSortSheet] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: typeof flights[0] } | null>(null);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
 
@@ -322,6 +323,34 @@ const FlightDestResults = ({
     };
     load();
   }, []);
+
+  const addUserFlight = useCallback(
+    async (flight: ParsedFlight, type: "alert" | "going") => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const key = flightKey(flight, type);
+      if (userFlights[key]) return; // already saved, nothing to do
+      const dep = flight.legs[0];
+      const arr = flight.legs[flight.legs.length - 1];
+      const { data: inserted } = (await supabase
+        .from("user_flights" as any)
+        .insert({
+          user_id: user.id,
+          type,
+          flight_json: flight,
+          departure_airport: dep?.origin ?? "",
+          arrival_airport: arr?.destination ?? "",
+          departure_time: buildFullDateTime(dep?.departure_time ?? "", responseData),
+          arrival_time: buildFullDateTime(arr?.arrival_time ?? "", responseData, true),
+        } as any)
+        .select("id")
+        .single()) as any;
+      if (inserted) {
+        setUserFlights((prev) => ({ ...prev, [key]: { id: inserted.id, type } }));
+      }
+    },
+    [userFlights, flightKey, responseData],
+  );
 
   const toggleUserFlight = useCallback(
     async (flight: ParsedFlight, type: "alert" | "going") => {
@@ -1068,8 +1097,7 @@ const FlightDestResults = ({
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleUserFlight(flight, "going");
-                                        window.open(frontierUrl, "_blank", "noopener,noreferrer");
+                                        setBookingConfirm({ url: frontierUrl, flight });
                                       }}
                                       className={cn(
                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
@@ -1323,6 +1351,42 @@ const FlightDestResults = ({
                 </button>
               </div>
       </BottomSheet>
+
+      {/* Booking confirmation popup */}
+      {bookingConfirm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center px-5" onClick={() => setBookingConfirm(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl px-6 pt-6 pb-5 flex flex-col gap-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-[17px] font-bold text-[#1A2E2E]">Redirecting to Frontier</h2>
+            <p className="text-[13px] text-[#4B5563] leading-relaxed">
+              Continuing will take you to flyfrontier.com to finish your booking, as well as add this flight to your itinerary. Do you want to continue?
+            </p>
+            <div className="flex gap-3 mt-1">
+              <button
+                onClick={() => setBookingConfirm(null)}
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold text-[#2E4A4A] border border-[#D1D5DB] transition-all hover:bg-[#F4F8F8]"
+                style={{ background: "rgba(0,0,0,0.07)" }}
+              >
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  addUserFlight(bookingConfirm.flight, "going");
+                  window.open(bookingConfirm.url, "_blank", "noopener,noreferrer");
+                  setBookingConfirm(null);
+                }}
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
