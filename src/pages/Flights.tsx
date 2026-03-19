@@ -1269,17 +1269,20 @@ const FlightsPage = ({
             });
             try {
               // ── Credit check ──
+              // Pass p_source_id to disambiguate the overloaded function (avoids 300 Multiple Matches)
               const { data: creditResult, error: creditErr } = await supabase.rpc(
                 "consume_search_credits" as any,
                 {
                   p_trip_type: tripTypeMapping,
                   p_arrival_airports_count: arrivalAirportsCount,
                   p_all_destinations: searchAll,
+                  p_source_id: cacheKey,
                 } as any,
               );
 
               if (creditErr) {
                 flightLog.error("Credit check failed", creditErr);
+                toast.error(`Search failed: ${creditErr.message ?? "Could not verify credits. Please try again."}`);
                 setLoading(false);
                 return;
               }
