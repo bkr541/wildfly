@@ -10,8 +10,8 @@ import {
   EyeIcon,
   UserIcon,
   Clock01Icon,
-  ChevronDown01Icon,
 } from "@hugeicons/core-free-icons";
+import { ChevronDown } from "lucide-react";
 import { AppInput } from "@/components/ui/app-input";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
