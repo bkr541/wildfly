@@ -29,17 +29,18 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
             <div className="absolute top-0 right-0 bg-[#345C5A] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">Free</div>
             <div className="mb-2 pt-3"><span className="text-2xl font-bold text-[#2E4A4A]">$0</span><span className="text-[#6B7B7B] text-xs ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span></div>
             <ul className="space-y-1.5 text-xs text-[#6B7B7B]">
-              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#345C5A" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>10 Matches</span></li>
-              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#345C5A" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Unlimited swipes</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#345C5A" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>20 searches / month</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#345C5A" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Standard routes: 1 credit</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#345C5A" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>All Destinations: 5 credits</span></li>
             </ul>
           </div>
           <div className="bg-white rounded-2xl p-3 border-2 border-[#FBBF24] flex flex-col items-start w-1/2 relative shadow-sm">
             <div className="absolute top-0 right-0 bg-[#FBBF24] text-white text-[10px] uppercase font-bold py-0.5 px-2.5 rounded-bl-xl rounded-tr-xl">Gold</div>
             <div className="mb-2 pt-3"><span className="text-2xl font-bold text-[#2E4A4A]">{billingCycle === "yearly" ? "$400" : "$40"}</span><span className="text-[#6B7B7B] text-xs ml-1">{billingCycle === "yearly" ? "/yr" : "/mo"}</span></div>
             <ul className="space-y-1.5 text-xs text-[#6B7B7B]">
-              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>10 Matches</span></li>
-              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Unlimited swipes</span></li>
-              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Video Chat</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Unlimited searches</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>All Destinations included</span></li>
+              <li className="flex items-start"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#FBBF24" strokeWidth={1.5} className="mr-1.5 mt-0.5 shrink-0" /><span>Priority support</span></li>
             </ul>
           </div>
         </div>
