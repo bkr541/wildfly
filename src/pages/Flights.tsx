@@ -1310,7 +1310,7 @@ const FlightsPage = ({
 
               if (creditErr) {
                 flightLog.error("Credit check failed", creditErr);
-                toast.error(`Search failed: ${creditErr.message ?? "Could not verify credits. Please try again."}`);
+                setSearchError(creditErr.message ?? "Could not verify credits. Please try again.");
                 setLoading(false);
                 return;
               }
