@@ -309,8 +309,9 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       style={{ backgroundImage: "url('/assets/authuser/init_alt_background.png')" }}
     >
       {/* Top section with logo */}
-      <div className="w-full flex-1 flex items-center justify-center z-10">
+      <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3">
         <img src="/assets/logo/modern_atl_logo.png" alt="Logo" className="h-36 sm:h-44 md:h-52 w-auto object-contain" />
+        <img src="/assets/logo/tagline_img.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "52px" }} />
       </div>
 
       {/* White card form */}
