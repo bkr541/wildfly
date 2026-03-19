@@ -35,7 +35,7 @@ function formatTime(dateStr: string): string {
   }
 }
 
-const FRONTIER_LOGO = "/assets/logo/frontier/frontier_logo.png";
+const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
 interface Props {
