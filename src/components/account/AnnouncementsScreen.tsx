@@ -272,7 +272,7 @@ export function AnnouncementsScreen({ onBack, onTitleChange }: AnnouncementsScre
                     ))}
                   </select>
                   <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
-                    <HugeiconsIcon icon={ChevronDown01Icon} size={12} color="#6B7B7B" strokeWidth={2} />
+                    <ChevronDown size={12} strokeWidth={2} className="text-[#6B7B7B]" />
                   </span>
                 </div>
               </div>
