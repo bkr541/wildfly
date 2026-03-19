@@ -870,6 +870,7 @@ const FlightsPage = ({
 
   const [searchAll, setSearchAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [creditError, setCreditError] = useState<{
     cost: number;
     remaining_monthly: number;
