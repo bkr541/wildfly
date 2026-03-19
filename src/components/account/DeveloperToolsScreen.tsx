@@ -41,6 +41,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [showApiClient, setShowApiClient] = useState(false);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
   
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
