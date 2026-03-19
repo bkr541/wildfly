@@ -23,6 +23,8 @@ import HubsPage from "./pages/Hubs";
 import IOSInstallBanner from "./components/IOSInstallBanner";
 import DesignSystemPage from "./pages/DesignSystem";
 import ResetPasswordPage from "./pages/ResetPassword";
+import BillingSuccess from "./pages/BillingSuccess";
+import BillingCancel from "./pages/BillingCancel";
 
 const queryClient = new QueryClient();
 
