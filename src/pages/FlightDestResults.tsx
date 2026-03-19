@@ -295,6 +295,8 @@ const FlightDestResults = ({
   }, []);
 
   // Build a unique key for a flight to match against user_flights
+  const isGoWildFlight = (flight: ParsedFlight) => flight.fares.basic != null && flight.fares.basic < 60;
+
   const flightKey = useCallback((flight: ParsedFlight, type: string) => {
     const dep = flight.legs[0];
     const arr = flight.legs[flight.legs.length - 1];
@@ -488,7 +490,7 @@ const FlightDestResults = ({
         stateCode: airportMap[dest]?.stateCode ?? "",
         airportName: airportMap[dest]?.name ?? "",
         flights: flts,
-        hasGoWild: flts.some((f) => f.fares.basic != null),
+        hasGoWild: flts.some((f) => isGoWildFlight(f)),
         hasNonstop: flts.some((f) => f.legs.length === 1),
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
@@ -516,7 +518,7 @@ const FlightDestResults = ({
       let flts = [...g.flights];
       // Apply filters
       if (filterNonstopOnly) flts = flts.filter((f) => f.legs.length === 1);
-      if (filterGoWildOnly) flts = flts.filter((f) => f.fares.basic != null);
+      if (filterGoWildOnly) flts = flts.filter((f) => isGoWildFlight(f));
       // Apply sort
       flts.sort((a, b) => {
         if (sortBy === "fare") return minFare(a) - minFare(b);
@@ -675,7 +677,7 @@ const FlightDestResults = ({
                         }
                       }
                       if (f.legs.length === 1) nonstopCnt++;
-                      if (f.fares.basic != null) goWildCnt++;
+                      if (isGoWildFlight(f)) goWildCnt++;
                     }
                     const fmt = (h: number) => {
                       const d = new Date();
@@ -751,7 +753,7 @@ const FlightDestResults = ({
                 { label: "Total Flights", value: flights.length },
                 { label: "Destinations", value: groups.length },
                 { label: "Nonstop Options", value: flights.filter((f) => f.legs.length === 1).length },
-                { label: "GoWild Fares", value: flights.filter((f) => f.fares.basic != null).length },
+                { label: "GoWild Fares", value: flights.filter((f) => isGoWildFlight(f)).length },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
                   <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
@@ -880,7 +882,7 @@ const FlightDestResults = ({
           <div className="flex flex-col gap-2.5">
             {sortedGroups.map((group) => {
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
-              const goWildCount = group.flights.filter((f) => f.fares.basic != null).length;
+              const goWildCount = group.flights.filter((f) => isGoWildFlight(f)).length;
 
               {
                 /* Timeline — always visible, no parent card */
@@ -951,7 +953,7 @@ const FlightDestResults = ({
                         const hasGoing = !!userFlights[goingKey];
 
                         // Derive cheapest fare and Frontier booking URL
-                        const isGoWild = flight.fares.basic != null;
+                        const isGoWild = isGoWildFlight(flight);
                         const cheapest = [
                           flight.fares.basic,
                           flight.fares.economy,
