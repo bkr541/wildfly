@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import MainLayout from "./components/MainLayout";
-import SplashScreen from "./components/SplashScreen";
+import AltSplashScreen from "./components/AltSplashScreen";
 import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
 import ProfileSetup from "./components/ProfileSetup";
@@ -267,7 +267,7 @@ const MainApp = () => {
   return (
     <div className="flex justify-center h-[100dvh] overflow-hidden bg-white">
       <div className="w-full max-w-[768px] relative h-full overflow-hidden flex flex-col">
-        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+        {!splashDone && <AltSplashScreen onComplete={handleSplashComplete} />}
 
         {splashDone && checkingSession && (
           <div className="flex items-center justify-center min-h-screen bg-background" />
