@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppInput } from "@/components/ui/app-input";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, SourceCodeSquareIcon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon, Megaphone02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ApiClientScreen from "@/components/account/ApiClientScreen";
+import { AnnouncementsScreen } from "@/components/account/AnnouncementsScreen";
 import {
   AlertDialog,
   AlertDialogAction,
