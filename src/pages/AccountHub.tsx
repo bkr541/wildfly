@@ -36,17 +36,18 @@ interface AccountHubProps {
 interface MenuItem {
   icon: any;
   label: string;
+  desc: string;
   key: string;
 }
 
 const baseMenuItems: MenuItem[] = [
-  { icon: UserIcon, label: "My Account", key: "my-account" },
-  { icon: Airplane01Icon, label: "Travel Preferences", key: "travel-prefs" },
-  { icon: Notification01Icon, label: "Notifications", key: "notifications" },
-  { icon: PaintBrushIcon, label: "Appearance", key: "appearance" },
-  { icon: CreditCardIcon, label: "Subscription & Wallet", key: "subscription" },
-  { icon: HelpCircleIcon, label: "Help & Support", key: "help" },
-  { icon: Shield01Icon, label: "Security & Privacy", key: "security" },
+  { icon: UserIcon, label: "My Account", desc: "Edit your name, username, and profile photo", key: "my-account" },
+  { icon: Airplane01Icon, label: "Travel Preferences", desc: "Set your home airport and trip defaults", key: "travel-prefs" },
+  { icon: Notification01Icon, label: "Notifications", desc: "Manage alerts and push preferences", key: "notifications" },
+  { icon: PaintBrushIcon, label: "Appearance", desc: "Theme, homepage layout, and display options", key: "appearance" },
+  { icon: CreditCardIcon, label: "Subscription & Wallet", desc: "Manage your plan and search credits", key: "subscription" },
+  { icon: HelpCircleIcon, label: "Help & Support", desc: "FAQs, contact, and feedback", key: "help" },
+  { icon: Shield01Icon, label: "Security & Privacy", desc: "Password, privacy controls, and data", key: "security" },
 ];
 
 const screenTitles: Record<string, string> = {
