@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Search, Users, UserPlus } from "lucide-react";
+import { Search, Users, UserPlus, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserSearch02Icon, AddCircleIcon, Cancel01Icon } from "@hugeicons/core-free-icons";

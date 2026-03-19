@@ -42,11 +42,12 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 });
   }
 
+  // Use service-role client so ledger writes bypass RLS
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     switch (event.type) {
-      // ── Subscription events ──
+      // ── Subscription events ──────────────────────────────────────────────
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
@@ -88,7 +89,7 @@ serve(async (req) => {
         break;
       }
 
-      // ── Credit pack purchase ──
+      // ── Credit pack purchase ─────────────────────────────────────────────
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode !== "payment") break;
@@ -100,18 +101,68 @@ serve(async (req) => {
         const credits = CREDIT_PACKS[packType];
         if (!credits) break;
 
-        // Increment purchased_balance
+        // ── Idempotency: skip if this session was already processed ──
+        const { data: existing } = await supabase
+          .from("credit_transactions")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("source_type", "stripe_checkout")
+          .eq("source_id", session.id)
+          .maybeSingle();
+
+        if (existing) {
+          console.log(`Session ${session.id} already processed — skipping`);
+          break;
+        }
+
+        // ── Ensure wallet row exists ──
+        const { data: walletCheck } = await supabase
+          .from("user_credit_wallet")
+          .select("purchased_balance")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!walletCheck) {
+          await supabase.from("user_credit_wallet").insert({ user_id: userId });
+        }
+
+        // Re-read with FOR UPDATE semantics (service role bypasses RLS)
         const { data: wallet } = await supabase
           .from("user_credit_wallet")
           .select("purchased_balance")
           .eq("user_id", userId)
           .single();
 
-        if (wallet) {
-          await supabase.from("user_credit_wallet").update({
-            purchased_balance: wallet.purchased_balance + credits,
-            updated_at: new Date().toISOString(),
-          }).eq("user_id", userId);
+        if (!wallet) break;
+
+        const balanceBefore = wallet.purchased_balance;
+        const balanceAfter = balanceBefore + credits;
+
+        // ── Increment purchased_balance ──
+        await supabase.from("user_credit_wallet").update({
+          purchased_balance: balanceAfter,
+          updated_at: new Date().toISOString(),
+        }).eq("user_id", userId);
+
+        // ── Write ledger row ──
+        const { error: ledgerErr } = await supabase.from("credit_transactions").insert({
+          user_id: userId,
+          transaction_type: "purchase_credit",
+          source_type: "stripe_checkout",
+          source_id: session.id,
+          amount: credits,
+          bucket: "purchased",
+          balance_before: balanceBefore,
+          balance_after: balanceAfter,
+          metadata: {
+            pack_type: packType,
+            stripe_session_id: session.id,
+            customer_id: session.customer,
+          },
+        });
+
+        if (ledgerErr) {
+          console.error("Failed to write ledger row:", ledgerErr);
         }
 
         break;
