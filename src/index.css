@@ -56,7 +56,9 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: #F1F5F5;
+    overscroll-behavior: none;
   }
 }
 
