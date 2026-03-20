@@ -565,18 +565,18 @@ function DatePickerSheet({
     const weekendCols = new Set([0, 6]);
 
     return (
-      <div key={`${year}-${monthIdx}`} className="px-4 pb-2">
+      <div key={`${year}-${monthIdx}`} className="px-4 pb-1">
         {/* Month label */}
-        <div className="flex items-center justify-between pt-5 pb-3">
-          <span className="text-[22px] font-bold text-[#2E4A4A]">
+        <div className="flex items-center justify-between pt-3 pb-2">
+          <span className="text-[18px] font-bold text-[#2E4A4A]">
             {MONTHS[monthIdx]} {year}
           </span>
         </div>
 
         {/* Day-of-week headers: Sun first, weekends red */}
-        <div className="grid grid-cols-7 mb-1">
+        <div className="grid grid-cols-7 mb-0.5">
           {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d, i) => (
-            <div key={d} className="flex items-center justify-center py-1">
+            <div key={d} className="flex items-center justify-center py-0.5">
               <span className={`text-[11px] font-semibold ${weekendCols.has(i) ? "text-red-400" : "text-[#9CA3AF]"}`}>{d}</span>
             </div>
           ))}
@@ -584,7 +584,7 @@ function DatePickerSheet({
 
         {/* Calendar days */}
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 mb-0.5">
+          <div key={wi} className="grid grid-cols-7">
             {week.map((day, di) => {
               if (!day) return <div key={di} />;
 
@@ -625,14 +625,14 @@ function DatePickerSheet({
               } else if (isBlackout) {
                 buttonStyle = {
                   background: "#374151",
-                  ...(isToday ? { border: "2px solid #10B981" } : {}),
+                  ...(isToday ? { border: "2px solid #3B82F6" } : {}),
                 };
               } else if (isToday) {
-                buttonStyle = { border: "2px solid #10B981" };
+                buttonStyle = { border: "2px solid #3B82F6" };
               }
 
               return (
-                <div key={di} className="relative flex items-center justify-center py-1">
+                <div key={di} className="relative flex items-center justify-center py-0.5">
                   {rangeLeft && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9" style={{ background: "#D1FAE5" }} />
                   )}
@@ -701,6 +701,22 @@ function DatePickerSheet({
                 >
                   <HugeiconsIcon icon={CancelCircleIcon} size={22} color="currentColor" strokeWidth={1.8} />
                 </button>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-4 px-5 py-2.5 border-b border-[#F0F1F1]">
+              <div className="flex items-center gap-1.5">
+                <span className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[11px] font-semibold" style={{ background: "#374151" }}>8</span>
+                <span className="text-xs text-[#6B7280] font-medium">Blackout</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[11px] font-semibold" style={{ background: "linear-gradient(135deg, #059669 0%, #10B981 100%)" }}>8</span>
+                <span className="text-xs text-[#6B7280] font-medium">Selected</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-6 w-6 rounded-full flex items-center justify-center text-[#2E4A4A] text-[11px] font-semibold" style={{ border: "2px solid #3B82F6" }}>8</span>
+                <span className="text-xs text-[#6B7280] font-medium">Today</span>
               </div>
             </div>
 
