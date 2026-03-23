@@ -1088,20 +1088,10 @@ const FlightDestResults = ({
                               )}
                               style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
-                              {/* Collapsed / main card row — tap to expand */}
-                              <button
-                                onClick={(e) => {
-                                  const next = isFlightOpen ? null : fKey;
-                                  setExpandedFlightKey(next);
-                                  if (next) {
-                                    const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
-                                    if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
-                                  }
-                                }}
-                                className="text-left w-full px-4 pt-3.5 pb-3"
-                              >
+                              {/* Collapsed / main card content — NOT a button, click only via Show Details */}
+                              <div className="text-left w-full px-4 pt-3.5 pb-2">
                                 {/* Row 1: Airline name + flight number + price badge */}
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center justify-between mb-1.5">
                                   <div className="flex items-center gap-2">
                                     <img
                                       src="/assets/logo/frontier/frontier_full_logo.png"
@@ -1117,7 +1107,7 @@ const FlightDestResults = ({
                                   {priceLabel && (
                                     <span
                                       className={cn(
-                                        "text-[13px] font-bold px-2.5 py-1 rounded-full",
+                                        "text-[13px] font-bold px-2.5 py-0.5 rounded-full",
                                         isGoWild
                                           ? "bg-[#059669] text-white"
                                           : "bg-[#F0F4F4] text-[#2E4A4A]",
@@ -1164,13 +1154,32 @@ const FlightDestResults = ({
 
                                 {/* Row 4: GoWild badge (GoWild flights only) */}
                                 {isGoWild && (
-                                  <div className="flex mt-2.5">
+                                  <div className="flex mt-2">
                                     <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold bg-[#059669] text-white">
                                       <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
                                       GoWild
                                     </span>
                                   </div>
                                 )}
+                              </div>
+
+                              {/* Show / Hide Details row */}
+                              <button
+                                onClick={(e) => {
+                                  const next = isFlightOpen ? null : fKey;
+                                  setExpandedFlightKey(next);
+                                  if (next) {
+                                    const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
+                                    if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+                                  }
+                                }}
+                                className="w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold text-[#10B981] hover:text-[#059669] transition-colors"
+                              >
+                                {isFlightOpen ? "Hide Details" : "Show Details"}
+                                <FontAwesomeIcon
+                                  icon={faChevronDown}
+                                  className={cn("w-3 h-3 transition-transform duration-200", isFlightOpen && "rotate-180")}
+                                />
                               </button>
 
                               {/* Expanded detail */}
