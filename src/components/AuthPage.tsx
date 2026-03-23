@@ -79,6 +79,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const validateSignUp = (): boolean => {
     const newErrors: FieldErrors = {};
