@@ -756,6 +756,7 @@ export type Database = {
           mobile_number: string | null
           onboarding_complete: string
           remember_me: boolean
+          signup_type: string
           username: string | null
         }
         Insert: {
@@ -776,6 +777,7 @@ export type Database = {
           mobile_number?: string | null
           onboarding_complete: string
           remember_me?: boolean
+          signup_type?: string
           username?: string | null
         }
         Update: {
@@ -796,6 +798,7 @@ export type Database = {
           mobile_number?: string | null
           onboarding_complete?: string
           remember_me?: boolean
+          signup_type?: string
           username?: string | null
         }
         Relationships: [
