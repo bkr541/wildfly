@@ -280,9 +280,26 @@ const FlightDestResults = ({
   const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: typeof flights[0] } | null>(null);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  // Sticky compact header
+  const [compactHeader, setCompactHeader] = useState(false);
+  const [parallaxY, setParallaxY] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handler = () => {
+      const heroH = heroRef.current?.offsetHeight ?? 200;
+      setCompactHeader(el.scrollTop > heroH * 0.6);
+      setParallaxY(el.scrollTop * 0.4);
+    };
+    el.addEventListener("scroll", handler, { passive: true });
+    return () => el.removeEventListener("scroll", handler);
   }, []);
 
   // user_flights tracking
