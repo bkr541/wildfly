@@ -935,7 +935,7 @@ const FlightsPage = ({
     })();
   }, [userSettings.default_departure_to_home, defaultHomeApplied, departures.length]);
 
-  // Auto-fill and trigger search from quickSearchData (passed from Home's Quick Search cards)
+  // Auto-fill and trigger search from quickSearchData (passed from Home's Quick Search cards or Recent Searches)
   const quickSearchApplied = useRef(false);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -946,15 +946,62 @@ const FlightsPage = ({
 
     try {
       const parsed = JSON.parse(quickSearchData);
+
+      // ── Recent Search pre-fill (no auto-trigger) ──────────────────
+      if (parsed?.recentSearch) {
+        const originCode: string = parsed.origin ?? "";
+        const destCode: string | null = parsed.destination ?? null;
+        const depDateStr: string = parsed.departureDate ?? "";
+        const retDateStr: string | null = parsed.returnDate ?? null;
+        const allDest: boolean = !!parsed.allDestinations;
+        const tt: TripType = (parsed.tripType as TripType) ?? "one-way";
+
+        // Resolve departure airport(s)
+        let matchedDeps: Airport[] = [];
+        if (originCode.startsWith("CITY:")) {
+          const cityName = originCode.slice(5).toLowerCase();
+          matchedDeps = airports.filter((a) => a.locations?.city?.toLowerCase() === cityName);
+        } else if (/^[A-Z]{3}$/.test(originCode)) {
+          const found = airports.find((a) => a.iata_code === originCode);
+          if (found) matchedDeps = [found];
+        }
+
+        // Resolve arrival airport(s)
+        let matchedArrs: Airport[] = [];
+        if (!allDest && destCode) {
+          if (destCode.startsWith("CITY:")) {
+            const cityName = destCode.slice(5).toLowerCase();
+            matchedArrs = airports.filter((a) => a.locations?.city?.toLowerCase() === cityName);
+          } else if (/^[A-Z]{3}$/.test(destCode)) {
+            const found = airports.find((a) => a.iata_code === destCode);
+            if (found) matchedArrs = [found];
+          }
+        }
+
+        quickSearchApplied.current = true;
+        setTripType(tt);
+        if (matchedDeps.length > 0) setDepartures(matchedDeps);
+        if (matchedArrs.length > 0) setArrivals(matchedArrs);
+        setSearchAll(allDest);
+        if (depDateStr) {
+          const d = new Date(depDateStr + "T12:00:00");
+          if (!isNaN(d.getTime())) setDepartureDate(d);
+        }
+        if (retDateStr) {
+          const r = new Date(retDateStr + "T12:00:00");
+          if (!isNaN(r.getTime())) setArrivalDate(r);
+        }
+        return;
+      }
+
+      // ── Quick Search auto-fill + trigger ─────────────────────────
       if (!parsed?.quickSearch || !parsed.origin || !parsed.date) return;
 
-      const originCode: string = parsed.origin; // could be 'CITY:Chicago' or 'ORD'
+      const originCode: string = parsed.origin;
       const depDate = new Date(parsed.date + "T12:00:00");
 
-      // Find matching airport(s)
       let matchedAirports: Airport[] = [];
       if (originCode.startsWith("CITY:")) {
-        // Multi-airport city: match by city name
         const cityName = originCode.slice(5).toLowerCase();
         matchedAirports = airports.filter(
           (a) => a.locations?.city?.toLowerCase() === cityName,
@@ -963,7 +1010,6 @@ const FlightsPage = ({
         const found = airports.find((a) => a.iata_code === originCode);
         if (found) matchedAirports = [found];
       } else {
-        // Fallback: match by city name
         const cityLower = originCode.toLowerCase();
         matchedAirports = airports.filter(
           (a) => a.locations?.city?.toLowerCase() === cityLower,
@@ -974,13 +1020,11 @@ const FlightsPage = ({
 
       quickSearchApplied.current = true;
       setTripType("one-way");
-      // For multi-airport cities, set ALL matched airports as departures
       setDepartures(matchedAirports);
       setDepartureDate(depDate);
       setSearchAll(false);
       setArrivals([]);
 
-      // Defer search trigger until state settles
       setTimeout(() => {
         searchBtnRef.current?.click();
       }, 120);
