@@ -265,8 +265,16 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
       ]);
 
       await loadHomepageConfig(user.id);
+      // Deduplicate searches by (departure + arrival + trip_type + departure_date)
+      const seen = new Set<string>();
+      const uniqueSearches = (searchesResult.data ?? []).filter((s) => {
+        const key = `${s.departure_airport}|${s.arrival_airport ?? ""}|${s.trip_type}|${s.departure_date}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 7);
       setFlights(flightsResult.data || []);
-      setSearches(searchesResult.data || []);
+      setSearches(uniqueSearches);
       setLoading(false);
       setSearchesLoading(false);
     };
