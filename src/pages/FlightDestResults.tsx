@@ -32,6 +32,9 @@ import {
   AirplaneTakeOff02Icon,
   Clock01Icon,
   Rocket01Icon,
+  UnavailableIcon,
+  Alert01Icon,
+  TrafficLightIcon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -978,6 +981,37 @@ const FlightDestResults = ({
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
               const goWildCount = group.flights.filter((f) => isGoWildFlight(f)).length;
 
+              // Compute cheapest and quickest indices for this group
+              const parseDurForBadge = (s: string): number => {
+                const raw = String(s ?? "").trim();
+                if (!raw) return Infinity;
+                if (raw.includes(":")) {
+                  const parts = raw.split(":");
+                  if (parts[0].includes(".")) {
+                    const [d, h] = parts[0].split(".");
+                    return (parseInt(d) || 0) * 24 * 60 + (parseInt(h) || 0) * 60 + (parseInt(parts[1]) || 0);
+                  }
+                  return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+                }
+                const h = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
+                const m = raw.match(/(\d+)\s*(min|m)\b/i);
+                return (parseInt(h?.[1] ?? "0") || 0) * 60 + (parseInt(m?.[1] ?? "0") || 0);
+              };
+              const minFareForBadge = (f: ParsedFlight): number => {
+                const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
+                return vals.length ? Math.min(...vals) : Infinity;
+              };
+              let cheapestIdx = -1;
+              let cheapestVal = Infinity;
+              let quickestIdx = -1;
+              let quickestVal = Infinity;
+              group.flights.forEach((f, i) => {
+                const fare = minFareForBadge(f);
+                if (fare < cheapestVal) { cheapestVal = fare; cheapestIdx = i; }
+                const dur = parseDurForBadge(f.total_duration);
+                if (dur < quickestVal) { quickestVal = dur; quickestIdx = i; }
+              });
+
               {
                 /* Timeline — always visible, no parent card */
               }
@@ -1071,6 +1105,14 @@ const FlightDestResults = ({
                         const destCity = airportMap[arrLeg?.destination ?? ""]?.city ?? arrLeg?.destination ?? "";
                         const destState = airportMap[arrLeg?.destination ?? ""]?.stateCode ?? "";
 
+                        // Badge computations
+                        const isCheapest = cheapestIdx === idx;
+                        const isQuickest = quickestIdx === idx;
+                        const isBlackout = depDate ? isBlackoutDate(depDate) : false;
+                        const depHour = parseHour(depLeg?.departure_time ?? "") ?? -1;
+                        const isRedEye = depHour >= 23 || depHour <= 4;
+                        const hasBadges = isGoWild || isBlackout || flight.is_plus_one_day || isRedEye || isCheapest || isQuickest;
+
                         return (
                           <div
                             key={`flight-${idx}`}
@@ -1152,13 +1194,45 @@ const FlightDestResults = ({
                                   </span>
                                 </div>
 
-                                {/* Row 4: GoWild badge (GoWild flights only) */}
-                                {isGoWild && (
-                                  <div className="flex mt-2">
-                                    <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold bg-[#059669] text-white">
-                                      <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
-                                      GoWild
-                                    </span>
+                                {/* Row 4: Status badges */}
+                                {hasBadges && (
+                                  <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {isCheapest && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                        Cheapest
+                                      </span>
+                                    )}
+                                    {isQuickest && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
+                                        <HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2} />
+                                        Quickest
+                                      </span>
+                                    )}
+                                    {isGoWild && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#4A7C59", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                        GoWild
+                                      </span>
+                                    )}
+                                    {isBlackout && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#111827", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                        Blackout
+                                      </span>
+                                    )}
+                                    {flight.is_plus_one_day && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#C2410C", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                        +1 Day
+                                      </span>
+                                    )}
+                                    {isRedEye && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Alert01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                        Red Eye
+                                      </span>
+                                    )}
                                   </div>
                                 )}
                               </div>
