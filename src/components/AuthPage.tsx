@@ -208,7 +208,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         last_name: lastName.trim(),
         onboarding_complete: "No",
         image_file: "",
-      });
+        signup_type: "Email",
+      } as Parameters<typeof supabase.from<"user_info">>[0] extends never ? never : never);
       if (profileError) {
         setSubmitError(profileError.message);
         return;
@@ -226,6 +227,24 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setOauthLoading(provider);
+    setOauthError(null);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result?.error) {
+        setOauthError(`${provider === "google" ? "Google" : "Apple"} sign-in failed: ${(result.error as Error).message ?? "Unknown error"}`);
+      }
+      // On success, App.tsx onAuthStateChange will handle navigation
+    } catch (e: unknown) {
+      setOauthError(`${provider === "google" ? "Google" : "Apple"} sign-in failed. Please try again.`);
+    } finally {
+      setOauthLoading(null);
     }
   };
 
