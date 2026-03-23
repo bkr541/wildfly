@@ -338,7 +338,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10">
         {/* Fixed height for toggle stability, capped for mobile so it doesn't crush the logo */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[660px] max-h-[88svh] flex flex-col overflow-hidden">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[660px] max-h-[92svh] flex flex-col overflow-y-auto">
           {/* Header label */}
           <div className="w-full mb-6">
             <div className="flex items-center gap-1.5 w-full">
@@ -482,7 +482,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               </div>
 
               {!isSignUp && (
-                <div className="flex items-center justify-between text-sm text-[#6B7280] pt-6">
+                <div className="flex items-center justify-between text-sm text-[#6B7280] pt-[18px]">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <div className="relative inline-flex items-center">
                       <input
@@ -570,8 +570,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     <span className="text-xs text-white">Loading…</span>
                   ) : (
                     <>
-                      <svg width="16" height="18" viewBox="0 0 814 1000" xmlns="http://www.w3.org/2000/svg" fill="white">
-                        <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 383.8 8.1 314.8 8.1 250.4c0-109 71.4-166.5 140.4-166.5 47.9 0 87.5 32.2 116.5 32.2 27.2 0 70.9-34.9 125.4-34.9 20.2 0 100.5 1.9 153.3 76.7zm-117-120.9c15.5-22.2 24-50.5 24-78.8 0-3.9-.3-7.8-1-11.7-22.9 1-51.3 15.2-67.9 36.1-13.4 16.4-24.9 44.8-24.9 73.8 0 4.2.6 8.4 1.3 12.2 1.6.3 3.5.6 5.5.6 21.3 0 47.2-13.4 63-32.2z"/>
+                      <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                       </svg>
                       <span className="text-xs font-semibold text-white">Apple</span>
                     </>
@@ -581,7 +581,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
               {oauthError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{oauthError}</p>}
 
-              <p className="text-center text-sm text-[#6B7280] mt-3 mb-1">
+              <p className="text-center text-sm text-[#6B7280] mt-[16px] mb-1">
                 {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
                   type="button"
