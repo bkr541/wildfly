@@ -63,10 +63,11 @@ function formatTime(raw: string): string {
   try {
     const d = new Date(raw);
     if (!isNaN(d.getTime())) {
+      // e.g. "7:00 PM" — ensure space before AM/PM
       return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
     }
-    // Already a formatted time string like "3:01 PM"
-    return raw;
+    // Already a formatted time string like "3:01PM" — normalize to "3:01 PM"
+    return raw.replace(/(\d)(AM|PM)/i, "$1 $2").replace(/\s{2,}/, " ");
   } catch {
     return raw;
   }
