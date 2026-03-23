@@ -261,7 +261,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           .select("id, departure_airport, arrival_airport, departure_date, return_date, trip_type, all_destinations, search_timestamp, gowild_found")
           .eq("user_id", user.id)
           .order("search_timestamp", { ascending: false })
-          .limit(2),
+          .limit(30),
       ]);
 
       await loadHomepageConfig(user.id);
