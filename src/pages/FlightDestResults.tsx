@@ -1480,6 +1480,7 @@ const FlightDestResults = ({
           </div>
         </div>
       )}
+      </div>{/* end scrollRef */}
     </div>
   );
 };
