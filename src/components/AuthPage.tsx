@@ -201,7 +201,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError("Sign up failed. Please try again.");
         return;
       }
-      const { error: profileError } = await (supabase.from("user_info") as ReturnType<typeof supabase.from>).insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: profileError } = await (supabase.from("user_info") as any).insert({
         auth_user_id: authData.user.id,
         email: normalizedEmail,
         first_name: firstName.trim(),
