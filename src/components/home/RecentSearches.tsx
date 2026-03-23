@@ -175,7 +175,18 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           <motion.button
                             key={s.id}
                             type="button"
-                            onClick={() => onNavigate?.("flights")}
+                            onClick={() => {
+                              const payload = JSON.stringify({
+                                recentSearch: true,
+                                origin: s.departure_airport,
+                                destination: s.arrival_airport,
+                                tripType: s.trip_type,
+                                departureDate: s.departure_date,
+                                returnDate: s.return_date,
+                                allDestinations: s.all_destinations === "Yes",
+                              });
+                              onNavigate?.("flights", payload);
+                            }}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{
                               opacity: 1,
