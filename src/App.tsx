@@ -78,11 +78,15 @@ const MainApp = () => {
         }
 
         if (!profile) {
-          await supabase.from("user_info").insert({
+          const provider = user.app_metadata?.provider;
+          const signupType = provider === "google" ? "Google" : provider === "apple" ? "Apple" : "Email";
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase.from("user_info") as any).insert({
             auth_user_id: user.id,
             email: user.email ?? "",
             onboarding_complete: "No",
             image_file: "",
+            signup_type: signupType,
           });
 
           if (!isMounted) return;
