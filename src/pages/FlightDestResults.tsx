@@ -660,11 +660,13 @@ const FlightDestResults = ({
             : `/assets/locations/init_background.png`;
           return (
             <header
+              ref={heroRef}
               className="relative z-10 flex flex-col px-5 pt-6 pb-4 overflow-hidden shrink-0"
               style={{
                 backgroundImage: `url('${headerBg}')`,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: `center ${parallaxY}px`,
+                willChange: "background-position",
               }}
             >
               {/* Green gradient overlay — REFINED FOR POP */}
