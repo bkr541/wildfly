@@ -978,6 +978,37 @@ const FlightDestResults = ({
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
               const goWildCount = group.flights.filter((f) => isGoWildFlight(f)).length;
 
+              // Compute cheapest and quickest indices for this group
+              const parseDurForBadge = (s: string): number => {
+                const raw = String(s ?? "").trim();
+                if (!raw) return Infinity;
+                if (raw.includes(":")) {
+                  const parts = raw.split(":");
+                  if (parts[0].includes(".")) {
+                    const [d, h] = parts[0].split(".");
+                    return (parseInt(d) || 0) * 24 * 60 + (parseInt(h) || 0) * 60 + (parseInt(parts[1]) || 0);
+                  }
+                  return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+                }
+                const h = raw.match(/(\d+)\s*(hr|hrs|h)\b/i);
+                const m = raw.match(/(\d+)\s*(min|m)\b/i);
+                return (parseInt(h?.[1] ?? "0") || 0) * 60 + (parseInt(m?.[1] ?? "0") || 0);
+              };
+              const minFareForBadge = (f: ParsedFlight): number => {
+                const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
+                return vals.length ? Math.min(...vals) : Infinity;
+              };
+              let cheapestIdx = -1;
+              let cheapestVal = Infinity;
+              let quickestIdx = -1;
+              let quickestVal = Infinity;
+              group.flights.forEach((f, i) => {
+                const fare = minFareForBadge(f);
+                if (fare < cheapestVal) { cheapestVal = fare; cheapestIdx = i; }
+                const dur = parseDurForBadge(f.total_duration);
+                if (dur < quickestVal) { quickestVal = dur; quickestIdx = i; }
+              });
+
               {
                 /* Timeline — always visible, no parent card */
               }
