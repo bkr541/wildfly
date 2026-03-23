@@ -578,6 +578,80 @@ const FlightDestResults = ({
 
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5] overflow-hidden">
+      {/* ── Compact sticky header (appears when hero scrolls away) ── */}
+      {!hideHeader && (
+        <motion.div
+          className="sticky top-0 z-30 px-4 bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
+          initial={false}
+          animate={{
+            height: compactHeader ? 80 : 0,
+            opacity: compactHeader ? 1 : 0,
+            pointerEvents: compactHeader ? "auto" : "none",
+          }}
+          transition={{ duration: 0.22, ease: "easeInOut" }}
+        >
+          {/* Top row: Back + Route + Controls */}
+          <div className="flex items-center justify-between h-10 mt-1">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity flex-shrink-0"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} className="w-4 h-4" />
+            </button>
+
+            <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
+              <span className="text-[17px] font-black text-white tracking-tight">{departureAirport}</span>
+              <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="white" strokeWidth={2} />
+              <span className="text-[17px] font-black text-white tracking-tight truncate">
+                {arrivalAirport && arrivalAirport !== "All"
+                  ? `${arrivalAirport}${airportMap[arrivalAirport]?.city ? ` | ${airportMap[arrivalAirport].city}` : ""}`
+                  : "All Destinations"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setSortSheet(true)}
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                  sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color="white" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterSheet(true)}
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                  filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="flex items-center justify-center gap-4 mt-2 pb-1">
+            {[
+              { label: "FLIGHTS", value: flights.length },
+              { label: "NONSTOP", value: flights.filter((f) => f.legs.length === 1).length },
+              { label: "GOWILD", value: flights.filter((f) => isGoWildFlight(f)).length },
+              { label: "STOPS", value: flights.filter((f) => f.legs.length > 1).length },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-center gap-1">
+                <span className="text-[11px] font-bold text-white/80">{label}</span>
+                <span className="text-[12px] font-black text-white">{value}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+      {/* ── Scrollable content ── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
       {!hideHeader &&
         (() => {
           const locationId = arrivalAirport && arrivalAirport !== "All" ? airportMap[arrivalAirport]?.locationId : null;
