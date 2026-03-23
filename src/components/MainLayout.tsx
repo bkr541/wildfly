@@ -359,7 +359,7 @@ const MainLayout = ({
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main ref={mainRef} className="flex-1 overflow-y-auto">{children}</main>
       </div>
 
       {/* Global notifications sheet (triggered from Home bell icon) */}
