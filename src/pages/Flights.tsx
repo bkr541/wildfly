@@ -1121,20 +1121,20 @@ const FlightsPage = ({
                     setArrivalDate(undefined);
                   }
                 }}
-                style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1 }}
+                style={{ flex: isActive ? ACTIVE_TRIP_FLEX : 1, minWidth: 0 }}
                 className={cn(
-                  "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+                  "py-2.5 px-2 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-1.5",
                   isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
                 )}
               >
                 <HugeiconsIcon
                   icon={opt.icon}
-                  size={18}
+                  size={16}
                   color="currentColor"
                   strokeWidth={2}
                   className="shrink-0 transition-transform duration-300"
                 />
-                {isActive && <span className="animate-fade-in whitespace-nowrap">{opt.label}</span>}
+                {isActive && <span className="animate-fade-in whitespace-nowrap truncate">{opt.label}</span>}
               </button>
             );
           })}
