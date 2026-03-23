@@ -72,7 +72,7 @@ const CARD_SHADOW =
 interface Props {
   searches: FlightSearch[];
   loading: boolean;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, data?: string) => void;
   isCollapsed?: boolean;
   onToggle?: () => void;
 }
