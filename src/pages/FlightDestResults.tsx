@@ -1029,9 +1029,8 @@ const FlightDestResults = ({
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
                               <div className="z-10 bg-[#F2F3F3] px-2 rounded">
-                                <span className="text-[13px] font-semibold text-[#6B7B7B] leading-tight">
-                                  {h12}
-                                  {ampm}
+                                <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
+                                  {h12} {ampm}
                                 </span>
                               </div>
                             </div>
