@@ -251,7 +251,7 @@ const MainApp = () => {
     if (page === "flights" && data) {
       try {
         const parsed = JSON.parse(data);
-        if (parsed?.quickSearch) setQuickSearchData(data);
+        if (parsed?.quickSearch || parsed?.recentSearch) setQuickSearchData(data);
         else setQuickSearchData(null);
       } catch {
         setQuickSearchData(null);
