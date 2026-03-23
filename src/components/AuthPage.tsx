@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ViewIcon,
-  ViewOffSlashIcon,
   Mail01Icon,
   UserIcon,
   LockPasswordIcon,
@@ -11,6 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import {
   AlertDialog,
