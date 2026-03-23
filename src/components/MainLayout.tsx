@@ -71,7 +71,13 @@ const MainLayout = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
+
+  // Reset scroll position whenever the active page changes
+  useEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0;
+  }, [currentPage]);
   const unreadCount = useUnreadNotificationCount();
 
   const handleMenuClick = (label: string) => {
@@ -359,7 +365,7 @@ const MainLayout = ({
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main ref={mainRef} className="flex-1 overflow-y-auto">{children}</main>
       </div>
 
       {/* Global notifications sheet (triggered from Home bell icon) */}
