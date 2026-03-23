@@ -939,6 +939,19 @@ const FlightsPage = ({
   const quickSearchApplied = useRef(false);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
 
+  // Scroll the main layout container to top when arriving from a recent search pre-fill
+  useEffect(() => {
+    if (!quickSearchData) return;
+    try {
+      const parsed = JSON.parse(quickSearchData);
+      if (parsed?.recentSearch) {
+        // The scroll container is the <main> in MainLayout — walk up from document body
+        const main = document.querySelector("main.flex-1");
+        if (main) main.scrollTop = 0;
+      }
+    } catch { /* ignore */ }
+  }, [quickSearchData]);
+
   useEffect(() => {
     if (quickSearchApplied.current) return;
     if (!quickSearchData) return;
