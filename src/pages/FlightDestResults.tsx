@@ -890,7 +890,7 @@ const FlightDestResults = ({
       )}
       {/* Tab: Flights */}
       {activeTab === "Flights" && (
-        <div className="flex-1 overflow-y-auto flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
+        <div className="flex flex-col px-5 pt-3 pb-6 gap-3.5 relative z-10">
           {/* Count row + sort/filter */}
           {(() => {
             const isFiltered = filterNonstopOnly || filterGoWildOnly;
