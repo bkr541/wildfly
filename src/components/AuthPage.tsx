@@ -201,7 +201,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError("Sign up failed. Please try again.");
         return;
       }
-      const { error: profileError } = await supabase.from("user_info").insert({
+      const { error: profileError } = await (supabase.from("user_info") as ReturnType<typeof supabase.from>).insert({
         auth_user_id: authData.user.id,
         email: normalizedEmail,
         first_name: firstName.trim(),
@@ -209,7 +209,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         onboarding_complete: "No",
         image_file: "",
         signup_type: "Email",
-      } as Parameters<typeof supabase.from<"user_info">>[0] extends never ? never : never);
+      });
       if (profileError) {
         setSubmitError(profileError.message);
         return;
