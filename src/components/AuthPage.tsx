@@ -666,8 +666,20 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               {forgotError && <p className="text-red-500 text-[10px] mt-1 font-bold">{forgotError}</p>}
             </div>
           )}
-          <AlertDialogFooter className="mt-2">
-            <AlertDialogAction onClick={handleForgotPassword} className="bg-[#10B981] w-full text-xs py-1">
+          <AlertDialogFooter className="mt-2 flex-row gap-2">
+            {!forgotSuccess && (
+              <button
+                type="button"
+                onClick={() => { setShowForgotPassword(false); setForgotEmail(""); setForgotError(null); }}
+                className="flex-1 h-9 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#374151] hover:bg-gray-50 active:scale-[0.98] transition-all"
+              >
+                Back
+              </button>
+            )}
+            <AlertDialogAction
+              onClick={forgotSuccess ? () => { setShowForgotPassword(false); setForgotSuccess(false); setForgotEmail(""); } : handleForgotPassword}
+              className="flex-1 bg-[#10B981] hover:bg-[#059669] text-xs py-1"
+            >
               {forgotSuccess ? "Done" : forgotLoading ? "Sending..." : "Send Link"}
             </AlertDialogAction>
           </AlertDialogFooter>
