@@ -150,8 +150,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
           onClick={() => onNavigate?.("design-system")}
           className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
         >
-          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={CreditCardIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+          <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={CreditCardIcon} size={15} color="#059669" strokeWidth={1.5} />
           </span>
           <div className="flex-1">
             <p className="text-sm font-bold text-[#2E4A4A]">Design System</p>
@@ -165,8 +165,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
           onClick={() => setShowAnnouncements(true)}
           className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
         >
-          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+          <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#059669" strokeWidth={1.5} />
           </span>
           <div className="flex-1">
             <p className="text-sm font-bold text-[#2E4A4A]">Announcements</p>
@@ -182,8 +182,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             onClick={() => toggle("debug_enabled")}
             className="flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors"
           >
-            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0 mr-3">
-              <HugeiconsIcon icon={Bug01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+            <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0 mr-3">
+              <HugeiconsIcon icon={Bug01Icon} size={15} color="#059669" strokeWidth={1.5} />
             </span>
             <div className="flex-1">
               <p className="text-sm font-semibold text-[#2E4A4A]">Debug Mode</p>
@@ -260,8 +260,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             onClick={() => setSqlTriggersOpen((o) => !o)}
             className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
           >
-            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-              <HugeiconsIcon icon={SqlIcon} size={15} color="#345C5A" strokeWidth={1.5} />
+            <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={SqlIcon} size={15} color="#059669" strokeWidth={1.5} />
             </span>
             <div className="flex-1">
               <p className="text-sm font-bold text-[#2E4A4A]">SQL Triggers</p>
@@ -307,8 +307,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             onClick={() => toggle("logging_enabled")}
             className="flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors"
           >
-            <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0 mr-3">
-              <HugeiconsIcon icon={File01Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+            <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0 mr-3">
+              <HugeiconsIcon icon={File01Icon} size={15} color="#059669" strokeWidth={1.5} />
             </span>
             <div className="flex-1">
               <p className="text-sm font-semibold text-[#2E4A4A]">Enable Logging</p>
