@@ -57,6 +57,7 @@ interface MainLayoutProps {
   subScreenTitle?: string | null;
   onSubScreenBack?: () => void;
   currentPage?: string;
+  onHomeLayoutSaved?: () => void;
 }
 
 const MainLayout = ({
@@ -67,6 +68,7 @@ const MainLayout = ({
   subScreenTitle,
   onSubScreenBack,
   currentPage,
+  onHomeLayoutSaved,
 }: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
