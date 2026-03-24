@@ -1228,7 +1228,7 @@ const FlightDestResults = ({
                                       </span>
                                     )}
                                     {flight.is_plus_one_day && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#C2410C", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#E89830", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         +1 Day
                                       </span>
