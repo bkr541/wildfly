@@ -575,89 +575,74 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="relative overflow-hidden"
-          style={{ height: 220 }}
+          className="flex flex-col px-5 pt-6 pb-20 overflow-hidden relative"
+          style={{
+            backgroundImage: `url('/assets/locations/init_background.png')`,
+            backgroundSize: "cover",
+            backgroundPosition: `center ${parallaxY}px`,
+            willChange: "background-position",
+          }}
         >
-          {/* Background image with parallax */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url('/assets/locations/init_background.png')`,
-              backgroundSize: "cover",
-              backgroundPosition: `center ${parallaxY * 0.4}px`,
-              willChange: "background-position",
-            }}
-          />
-
-          {/* White fade overlay — fades from transparent at top to full white at bottom */}
+          {/* Green gradient overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0.55) 65%, rgba(255,255,255,1) 100%)",
+              background:
+                "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
             }}
           />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
+          />
 
-          {/* Back button — top left */}
-          <div className="absolute top-0 left-0 pt-3 pl-3 z-10">
+          {/* Back button */}
+          <div className="relative flex items-center w-full">
             <button
               type="button"
               onClick={onBack}
-              className="h-10 w-10 flex items-center justify-start text-white drop-shadow-md hover:opacity-70 transition-opacity"
+              className="h-10 w-10 flex items-center justify-start text-white hover:opacity-70 transition-opacity"
             >
               <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
             </button>
           </div>
 
-          {/* IATA | City, State — bottom right, blending into white fade */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-3 flex items-end justify-between z-10">
-            {/* Date pill — bottom left */}
-            <div>
+          {/* Title */}
+          <div className="relative mt-0">
+            <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
+              <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
+              <span className="text-white text-[36px] font-black">{destinationLabel}</span>
               {formattedDate && (
                 <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm self-start"
-                  style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start mt-1"
+                  style={{
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                    transform: "translateY(-1px)",
+                    textShadow: "none",
+                  }}
                 >
                   <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
                   <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
                 </div>
               )}
             </div>
+          </div>
 
-            {/* IATA | City, State — bottom right */}
-            <div className="flex flex-col items-end leading-tight">
-              <div className="flex items-baseline gap-2">
-                <span
-                  className="font-black text-[#059669]"
-                  style={{ fontSize: 28, lineHeight: 1, textShadow: "0 1px 4px rgba(255,255,255,0.6)" }}
-                >
-                  {departureAirport}
-                </span>
-                <span className="text-[#2E4A4A]/60 font-semibold" style={{ fontSize: 16 }}>|</span>
-                <span
-                  className="font-bold text-[#2E4A4A]"
-                  style={{ fontSize: 16, lineHeight: 1 }}
-                >
-                  {originCity}{airportMap[departureAirport]?.stateCode ? `, ${airportMap[departureAirport].stateCode}` : ""}
-                </span>
+          {/* Stats strip */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
+            {[
+              { label: "DESTINATIONS", value: cards.length },
+              { label: "TOTAL FLIGHTS", value: rawFlights.length },
+              { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
+              { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex-1 flex flex-col items-center">
+                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
+                <span className="text-[15px] font-bold text-white leading-tight mt-0.5 text-center">{value}</span>
               </div>
-            </div>
+            ))}
           </div>
         </header>
-
-        {/* ── Stats strip (below hero, above sort bar) ──────────── */}
-        <div className="bg-[#F1F5F5] px-5 pt-3 pb-3 flex items-center justify-between gap-2 border-b border-[#E0E6E6]">
-          {[
-            { label: "DESTINATIONS", value: cards.length },
-            { label: "TOTAL FLIGHTS", value: rawFlights.length },
-            { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
-            { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex-1 flex flex-col items-center">
-              <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide leading-tight text-center">{label}</span>
-              <span className="text-[15px] font-bold text-[#2E4A4A] leading-tight mt-0.5 text-center">{value}</span>
-            </div>
-          ))}
-        </div>
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
         <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
