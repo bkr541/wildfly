@@ -336,7 +336,7 @@ const MainLayout = ({
                       onClick={() => setHomeLayoutOpen(true)}
                       className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                     >
-                      <HugeiconsIcon icon={Layout04Icon} size={22} color="currentColor" strokeWidth={2} />
+                      <AdjustPositionIcon />
                     </button>
                   )}
                   <button
