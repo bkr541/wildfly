@@ -612,7 +612,7 @@ const FlightMultiDestResults = ({
           {/* Title */}
           <div className="relative mt-0">
             <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
-              <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
+              <span className="text-white text-[22px] font-semibold" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
             </div>
           </div>
