@@ -117,7 +117,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "8px 6px 10px" }}>
+            <div style={{ padding: "2px 6px 10px" }}>
               {!loading && searches.length === 0 ? (
                 <div
                   className="rounded-2xl px-4 py-5 flex items-center gap-3"
