@@ -17,6 +17,7 @@ import {
   SunriseIcon,
   MapsLocation02Icon,
   Rocket01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -731,7 +732,7 @@ const FlightMultiDestResults = ({
                   />
                   {/* IATA | City, State — bottom, blends into the fade */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-baseline gap-0">
-                    <span className="text-[34px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+                    <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
                     <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
                     <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
                       {card.city || card.destination}
@@ -848,19 +849,22 @@ const FlightMultiDestResults = ({
                     </div>
                   </div>
 
-                  {/* View Flights button — full width */}
-                  <button
-                    type="button"
-                    onClick={() => handleViewDest(card)}
-                    className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
-                    style={
-                      isGoWild
-                        ? { background: "#059669", color: "#FFFFFF" }
-                        : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
-                    }
-                  >
-                    View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
-                  </button>
+                  {/* View Flights button — right-aligned, auto width */}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleViewDest(card)}
+                      className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
+                      style={
+                        isGoWild
+                          ? { background: "#059669", color: "#FFFFFF" }
+                          : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
+                      }
+                    >
+                      View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color={isGoWild ? "#FFFFFF" : "#1A2E2E"} strokeWidth={2.5} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
