@@ -330,17 +330,17 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center z-10 gap-3 pt-3">
-        <img src="/assets/logo/logo_hd.png" alt="Logo" className="w-auto object-contain" style={{ height: "clamp(130px, 33vw, 190px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }} />
-        <img src="/assets/logo/tag_noshadow.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "46px", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }} />
+      <div className="w-full flex flex-col items-center justify-center z-10 gap-2 py-4">
+        <img src="/assets/logo/logo_hd.png" alt="Logo" className="w-auto object-contain" style={{ height: "clamp(90px, 22vw, 140px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }} />
+        <img src="/assets/logo/tag_noshadow.png" alt="Tagline" className="w-auto object-contain" style={{ maxHeight: "36px", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }} />
       </div>
 
       {/* White card form */}
-      <div className="flex-1 flex flex-col items-center justify-end z-10">
-        {/* Fixed height for toggle stability, capped for mobile so it doesn't crush the logo */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-8 pb-6 shadow-2xl h-[660px] max-h-[92svh] flex flex-col overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
+        {/* Scrollable card — grows to fill remaining space, never crushes logo */}
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 shadow-2xl flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100svh - 160px)" }}>
           {/* Header label */}
-          <div className="w-full mb-6">
+          <div className="w-full mb-4">
             <div className="flex items-center gap-1.5 w-full">
               {displayChars.map((char, i) => {
                 const isGreen = i >= greenStart;
@@ -401,8 +401,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Fixed height container keeps button position stable between toggles */}
-            <div className="space-y-4 h-[270px] overflow-y-auto pr-1 shrink-0">
+            {/* Fields — no fixed height, let content flow naturally */}
+            <div className="space-y-3 shrink-0">
               {/* First/Last Name for Sign Up (same line, no placeholder clipping) */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4 min-w-0">
@@ -506,7 +506,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4">
               <button
                 type="submit"
                 disabled={loading}
