@@ -691,7 +691,7 @@ const FlightMultiDestResults = ({
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
-        <div className="flex-1 flex flex-col px-5 py-4 gap-4 relative z-10">
+        <div className="flex-1 flex flex-col px-5 py-4 gap-3 relative z-10">
           {sortedCards.map((card) => {
             const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
             const isGoWild = card.hasGoWild;
