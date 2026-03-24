@@ -1225,30 +1225,29 @@ const FlightDestResults = ({
                                 )}
                               </div>
 
-                              {/* Show / Hide Details row */}
-                              <button
-                                onClick={(e) => {
-                                  const next = isFlightOpen ? null : fKey;
-                                  setExpandedFlightKey(next);
-                                  if (next) {
+                              {/* Show Details button — only visible when collapsed */}
+                              {!isFlightOpen && (
+                                <button
+                                  onClick={(e) => {
+                                    const next = fKey;
+                                    setExpandedFlightKey(next);
                                     const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
                                     if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
-                                  }
-                                }}
-                                className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
-                              >
-                                {isFlightOpen ? "Hide Details" : "Show Details"}
-                                <FontAwesomeIcon
-                                  icon={faChevronDown}
-                                  className={cn("w-3 h-3 transition-transform duration-200", isFlightOpen && "rotate-180")}
-                                />
-                              </button>
+                                  }}
+                                  className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                >
+                                  Show Details
+                                  <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
+                                </button>
+                              )}
 
-                              {/* Expanded detail */}
+                              {/* Expanded detail — FlightLegTimeline + actions + Hide Details at the bottom */}
                               {isFlightOpen && (
-                                <div className="bg-white animate-fade-in px-2 py-3 border-t border-[#E8EBEB]/50">
-                                  <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                  <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-1">
+                                <div className="bg-white animate-fade-in border-t border-[#E8EBEB]/50">
+                                  <div className="px-2 pt-3">
+                                    <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                  </div>
+                                  <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-2">
                                     <button
                                       onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
                                       className={cn(
@@ -1275,6 +1274,14 @@ const FlightDestResults = ({
                                       {priceLabel ? priceLabel : "Book"}
                                     </button>
                                   </div>
+                                  {/* Hide Details button at the bottom of expanded content */}
+                                  <button
+                                    onClick={() => setExpandedFlightKey(null)}
+                                    className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                  >
+                                    Hide Details
+                                    <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+                                  </button>
                                 </div>
                               )}
                             </div>
