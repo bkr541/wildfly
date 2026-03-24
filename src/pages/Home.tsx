@@ -211,6 +211,14 @@ const COMPONENT_MAP: Record<
       onToggle={props.onToggle}
     />
   ),
+  day_trips: (props) => (
+    <DayTrips
+      key="day_trips"
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+      onNavigate={props.onNavigate}
+    />
+  ),
 };
 
 interface HomePageProps {
