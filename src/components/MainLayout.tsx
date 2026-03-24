@@ -16,11 +16,13 @@ import {
   Notification01Icon,
   AddCircleIcon,
   Cancel01Icon,
+  Layout04Icon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
+import { HomeLayoutSheet } from "@/components/home/HomeLayoutSheet";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
@@ -70,6 +72,7 @@ const MainLayout = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [homeLayoutOpen, setHomeLayoutOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
@@ -312,16 +315,27 @@ const MainLayout = ({
                 })()}
 
               {(currentPage === "home" || currentPage === "friends") && (
-                <button
-                  type="button"
-                  onClick={() => setNotificationsOpen(true)}
-                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto relative"
-                >
-                  <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                <div className="flex items-center gap-0.5 ml-auto">
+                  {currentPage === "home" && (
+                    <button
+                      type="button"
+                      onClick={() => setHomeLayoutOpen(true)}
+                      className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                    >
+                      <HugeiconsIcon icon={Layout04Icon} size={22} color="currentColor" strokeWidth={2} />
+                    </button>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setNotificationsOpen(true)}
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 relative"
+                  >
+                    <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -365,7 +379,9 @@ const MainLayout = ({
       {/* Global notifications sheet (triggered from Home bell icon) */}
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
-      {/* Global search sheet */}
+      {/* Home layout quick-editor sheet */}
+      <HomeLayoutSheet open={homeLayoutOpen} onClose={() => setHomeLayoutOpen(false)} />
+
       <BottomSheet open={isSearchOpen} onClose={() => setIsSearchOpen(false)} style={{ top: "5%" }}>
               {/* Title row */}
               <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
