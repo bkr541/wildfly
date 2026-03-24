@@ -89,7 +89,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "8px 6px 10px" }}>
+            <div style={{ padding: "2px 6px 10px" }}>
             {loading ? (
               <div
                 className="rounded-2xl px-4 py-5"
