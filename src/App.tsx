@@ -303,6 +303,7 @@ const MainApp = () => {
               subScreenTitle={subScreenTitle}
               onSubScreenBack={() => accountBackRef.current?.()}
               currentPage={currentPage}
+              onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
             >
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} />}
               {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
