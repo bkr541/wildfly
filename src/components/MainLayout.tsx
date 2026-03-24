@@ -18,18 +18,6 @@ import {
   Cancel01Icon,
   Layout04Icon,
 } from "@hugeicons/core-free-icons";
-
-// AdjustPositionIcon is HugeIcons Pro — inlined SVG to match stroke-rounded style
-const AdjustPositionIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3L12 21" />
-    <path d="M3 12L21 12" />
-    <path d="M9 6L12 3L15 6" />
-    <path d="M9 18L12 21L15 18" />
-    <path d="M6 9L3 12L6 15" />
-    <path d="M18 9L21 12L18 15" />
-  </svg>
-);
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
@@ -336,7 +324,7 @@ const MainLayout = ({
                       onClick={() => setHomeLayoutOpen(true)}
                       className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                     >
-                      <AdjustPositionIcon />
+                      <HugeiconsIcon icon={Layout04Icon} size={22} color="currentColor" strokeWidth={2} />
                     </button>
                   )}
                   <button
