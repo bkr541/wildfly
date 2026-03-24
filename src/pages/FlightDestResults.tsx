@@ -1296,11 +1296,11 @@ const FlightDestResults = ({
                     const { h12, ampm } = fmtHourLabel(trailingHour);
                     return (
                       <div className="flex items-center justify-center w-full py-2">
-                       <div className="bg-[#E8EBEB] px-3 py-0.5 rounded-full">
-                          <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
-                             {h12} {ampm}
-                          </span>
-                        </div>
+                       <div className="bg-[#E8EBEB] px-3 py-0.5 rounded-full border border-[#C8D5D5]">
+                           <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
+                              {h12} {ampm}
+                           </span>
+                         </div>
                       </div>
                     );
                   })()}
