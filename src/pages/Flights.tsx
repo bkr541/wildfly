@@ -1025,9 +1025,6 @@ const FlightsPage = ({
       setSearchAll(false);
       setArrivals([]);
 
-      setTimeout(() => {
-        searchBtnRef.current?.click();
-      }, 120);
     } catch {
       // ignore
     }
