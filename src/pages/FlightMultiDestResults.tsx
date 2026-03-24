@@ -731,10 +731,10 @@ const FlightMultiDestResults = ({
                   />
                   {/* IATA | City, State — bottom right, blends into the fade */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
-                    <h3 className="text-[28px] font-black leading-tight drop-shadow-none">
-                      <span style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
-                      <span className="text-[#9AADAD] font-normal text-[24px]"> | </span>
-                      <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight">
+                    <h3 className="flex items-center leading-none drop-shadow-none">
+                      <span className="text-[28px] font-black" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+                      <span className="text-[#9AADAD] font-normal text-[22px] mx-1"> | </span>
+                      <span className="text-[22px] text-[#1A2E2E] uppercase tracking-wide font-extralight">
                         {card.city || card.destination}
                         {(card.stateCode && card.stateCode !== "None") && (
                           <span>{", "}{card.stateCode}</span>
