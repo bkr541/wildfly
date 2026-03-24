@@ -379,8 +379,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
 
         {/* Clear Complete Dialog */}
         <AlertDialog open={clearCompleteOpen} onOpenChange={setClearCompleteOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
+          <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 text-center">
+            <AlertDialogHeader className="space-y-1">
               <div className="mx-auto h-12 w-12 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-2">
                 <HugeiconsIcon icon={Tick02Icon} size={24} color="#345C5A" strokeWidth={1.5} />
               </div>
