@@ -382,7 +382,13 @@ const MainLayout = ({
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
       {/* Home layout quick-editor sheet */}
-      <HomeLayoutSheet open={homeLayoutOpen} onClose={() => setHomeLayoutOpen(false)} />
+      <HomeLayoutSheet
+        open={homeLayoutOpen}
+        onClose={(configChanged) => {
+          setHomeLayoutOpen(false);
+          if (configChanged) onHomeLayoutSaved?.();
+        }}
+      />
 
       <BottomSheet open={isSearchOpen} onClose={() => setIsSearchOpen(false)} style={{ top: "5%" }}>
               {/* Title row */}
