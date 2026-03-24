@@ -260,8 +260,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             onClick={() => setSqlTriggersOpen((o) => !o)}
             className="flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
           >
-            <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
-              <HugeiconsIcon icon={SqlIcon} size={15} color="#059669" strokeWidth={1.5} />
+            <span className="h-8 w-8 rounded-lg bg-[#345C5A] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={SqlIcon} size={15} color="#D1FAE5" strokeWidth={1.5} />
             </span>
             <div className="flex-1">
               <p className="text-sm font-bold text-[#2E4A4A]">SQL Triggers</p>
