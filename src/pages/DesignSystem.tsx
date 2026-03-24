@@ -1022,32 +1022,32 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
         {/* Status badges */}
         <StateRow label="Status Badges">
           {/* GoWild */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#4A7C59", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#4A7C59", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={Rocket01Icon} size={18} color="#FFFFFF" strokeWidth={2} />
             GoWild
           </div>
           {/* Blackout */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#111827", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#111827", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={UnavailableIcon} size={18} color="#FFFFFF" strokeWidth={2} />
             Blackout
           </div>
           {/* Cheapest */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={DollarCircleIcon} size={18} color="#FFFFFF" strokeWidth={2} />
             Cheapest
           </div>
           {/* Quickest */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
             <HugeiconsIcon icon={TrafficLightIcon} size={18} color="#1A1A1A" strokeWidth={2} />
             Quickest
           </div>
           {/* +1 Day */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#E89830", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#E89830", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={Clock01Icon} size={18} color="#FFFFFF" strokeWidth={2} />
             +1 Day
           </div>
           {/* Red Eye */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium" style={{ background: "#DC2626", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={Alert01Icon} size={18} color="#FFFFFF" strokeWidth={2} />
             Red Eye
           </div>
