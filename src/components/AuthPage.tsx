@@ -506,7 +506,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4">
               <button
                 type="submit"
                 disabled={loading}
