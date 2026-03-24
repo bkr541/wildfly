@@ -338,7 +338,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
         {/* Scrollable card — grows to fill remaining space, never crushes logo */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 shadow-2xl flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100svh - 160px)" }}>
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 shadow-2xl flex flex-col overflow-y-auto" style={{ height: "calc(100svh - 160px)" }}>
           {/* Header label */}
           <div className="w-full mb-4">
             <div className="flex items-center gap-1.5 w-full">
