@@ -16,7 +16,7 @@ import {
   Notification01Icon,
   AddCircleIcon,
   Cancel01Icon,
-  Layout04Icon,
+  AdjustPositionIcon,
 } from "@hugeicons/core-free-icons";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
