@@ -609,7 +609,7 @@ const FlightDestResults = ({
               <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="white" strokeWidth={2} />
               <span className="text-[17px] font-black text-white tracking-tight truncate">
                 {arrivalAirport && arrivalAirport !== "All"
-                  ? `${arrivalAirport}${airportMap[arrivalAirport]?.city ? ` | ${airportMap[arrivalAirport].city}` : ""}`
+                  ? arrivalAirport
                   : "All Destinations"}
               </span>
             </div>
@@ -1129,7 +1129,7 @@ const FlightDestResults = ({
                             <div
                               className={cn(
                                 "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
-                                isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
+                                isGoWild ? "border border-[#059669]" : isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
                               )}
                               style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
@@ -1176,11 +1176,8 @@ const FlightDestResults = ({
                                     </svg>
                                     <div className="flex-1 h-px bg-[#C8D5D5]" />
                                   </div>
-                                  <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+                                   <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
                                     {formatTime(arrLeg?.arrival_time)}
-                                    {flight.is_plus_one_day && (
-                                      <sup className="text-[10px] font-bold text-[#E89830] ml-0.5">+1</sup>
-                                    )}
                                   </span>
                                 </div>
 
@@ -1213,7 +1210,7 @@ const FlightDestResults = ({
                                       </span>
                                     )}
                                     {isGoWild && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#4A7C59", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#059669", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         GoWild
                                       </span>
