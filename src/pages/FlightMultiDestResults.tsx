@@ -815,9 +815,9 @@ const FlightMultiDestResults = ({
                 <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
               </div>
             )}
-            {(filterNonstopOnly || filterGoWildOnly) && (
+            {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
-                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild", filterDestType !== "all" && (filterDestType === "domestic" ? "Domestic" : "Intl")].filter(Boolean).join(" · ")}
               </span>
             )}
           </div>
