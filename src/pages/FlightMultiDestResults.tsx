@@ -975,7 +975,7 @@ const FlightMultiDestResults = ({
                 )}
               </div>
               {/* Filter options */}
-              <div className="flex flex-col py-2 pb-8">
+              <div className="flex flex-col py-2 pb-4">
                 {[
                   {
                     label: "Nonstop Only",
@@ -992,11 +992,9 @@ const FlightMultiDestResults = ({
                     icon: TicketStarIcon,
                   },
                 ].map(({ label, desc, active, toggle, icon }) => (
-                  <button
+                  <div
                     key={label}
-                    type="button"
-                    onClick={toggle}
-                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                    className="flex items-center gap-3 px-5 py-3.5"
                   >
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
@@ -1014,16 +1012,74 @@ const FlightMultiDestResults = ({
                       </p>
                       <p className="text-xs text-[#9CA3AF]">{desc}</p>
                     </div>
-                    <div
+                    {/* Toggle switch */}
+                    <button
+                      type="button"
+                      onClick={toggle}
                       className={cn(
-                        "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all",
-                        active ? "border-[#10B981] bg-[#10B981]" : "border-[#D1D5DB] bg-transparent",
+                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors",
+                        active ? "bg-[#10B981]" : "bg-[#D1D5DB]",
                       )}
                     >
-                      {active && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={11} color="white" strokeWidth={3} />}
-                    </div>
-                  </button>
+                      <span
+                        className={cn(
+                          "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                          active ? "translate-x-5" : "translate-x-0",
+                        )}
+                      />
+                    </button>
+                  </div>
                 ))}
+
+                {/* Destination Type — segmented control */}
+                <div className="px-5 py-3.5 flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: filterDestType !== "all"
+                          ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                          : "rgba(107,123,123,0.10)",
+                      }}
+                    >
+                      <HugeiconsIcon icon={Route02Icon} size={17} color={filterDestType !== "all" ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={cn("text-sm font-semibold", filterDestType !== "all" ? "text-[#059669]" : "text-[#2E4A4A]")}>
+                        Destination Type
+                      </p>
+                      <p className="text-xs text-[#9CA3AF]">Filter by domestic or international</p>
+                    </div>
+                  </div>
+                  {/* 3-option pill toggle */}
+                  <div
+                    className="relative flex items-center rounded-full p-0.5 ml-12"
+                    style={{ background: "rgba(107,123,123,0.10)" }}
+                  >
+                    {/* Sliding pill indicator */}
+                    <div
+                      className="absolute top-[2px] bottom-[2px] rounded-full shadow-sm transition-all duration-300 ease-in-out"
+                      style={{
+                        background: "#10B981",
+                        width: "calc((100% - 4px) / 3)",
+                        left: `calc(2px + (100% - 4px) / 3 * ${["domestic", "all", "international"].indexOf(filterDestType)})`,
+                      }}
+                    />
+                    {(["domestic", "all", "international"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFilterDestType(opt)}
+                        className={cn(
+                          "relative z-10 flex-1 py-2 text-[12px] font-semibold rounded-full transition-colors duration-200 capitalize",
+                          filterDestType === opt ? "text-white" : "text-[#9CA3AF]",
+                        )}
+                      >
+                        {opt === "all" ? "All" : opt === "domestic" ? "Domestic" : "Intl"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               {/* Apply button */}
               <div className="px-5 pb-8">
