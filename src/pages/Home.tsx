@@ -141,32 +141,6 @@ async function fetchAndLogDayTrips(): Promise<void> {
       { onConflict: "cache_key,reset_bucket" },
     );
 
-    const dayTripFlights: any[] = payload?.flights ?? [];
-    const dayTripGoWild = dayTripFlights.some(
-      (f: any) =>
-        f.fares?.go_wild != null ||
-        f.rawPayload?.fares?.go_wild?.total != null,
-    );
-    const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
-      user_id: user.id,
-      departure_airport: originIATA,
-      arrival_airport: null,
-      departure_date: today,
-      return_date: null,
-      trip_type: "day-trip",
-      all_destinations: "Yes",
-      json_body: payload,
-      credits_cost: 0,
-      arrival_airports_count: null,
-      gowild_found: dayTripGoWild,
-      flight_results_count: dayTripFlights.length,
-    }).select("id").single();
-    // Write flight_snapshots non-blockingly
-    if (fsRow?.id) {
-      writeFlightSnapshots(fsRow.id, dayTripFlights, originIATA).catch(() => {
-        // silently ignore
-      });
-    }
   } catch {
     // Non-blocking — silently ignore errors
   }
