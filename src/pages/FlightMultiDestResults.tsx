@@ -634,8 +634,14 @@ const FlightMultiDestResults = ({
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
         <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
-          {/* Left: active filter indicator */}
-          <div className="flex-1">
+          {/* Left: date + active filter indicator */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {formattedDate && (
+              <div className="inline-flex items-center gap-1.5 flex-shrink-0">
+                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#10B981" strokeWidth={1.5} />
+                <span className="text-[12px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
+              </div>
+            )}
             {(filterNonstopOnly || filterGoWildOnly) && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
