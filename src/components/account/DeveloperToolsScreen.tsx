@@ -165,8 +165,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
           onClick={() => setShowAnnouncements(true)}
           className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
         >
-          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#345C5A" strokeWidth={1.5} />
+          <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={Megaphone02Icon} size={15} color="#059669" strokeWidth={1.5} />
           </span>
           <div className="flex-1">
             <p className="text-sm font-bold text-[#2E4A4A]">Announcements</p>
