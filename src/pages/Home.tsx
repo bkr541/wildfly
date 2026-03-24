@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
+import { DayTrips } from "@/components/home/DayTrips";
 import { format } from "date-fns";
 
 interface UserFlight {
