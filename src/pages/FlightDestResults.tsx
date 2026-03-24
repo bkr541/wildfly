@@ -904,8 +904,8 @@ const FlightDestResults = ({
             return (
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  {/* Left: count */}
-                  <span className="text-[13px] font-semibold text-[#2E4A4A]">
+                   {/* Left: count */}
+                  <span className="text-[18px] font-semibold text-[#2E4A4A]">
                     {isFiltered ? (
                       <>
                         <span className="text-[#10B981] font-black">{filteredCount}</span>
