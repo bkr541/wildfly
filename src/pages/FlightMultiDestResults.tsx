@@ -639,8 +639,8 @@ const FlightMultiDestResults = ({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {formattedDate && (
               <div className="inline-flex items-center gap-1.5 flex-shrink-0">
-                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#10B981" strokeWidth={1.5} />
-                <span className="text-[12px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
+                <HugeiconsIcon icon={Calendar03Icon} size={19} color="#10B981" strokeWidth={1.5} />
+                <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
               </div>
             )}
             {(filterNonstopOnly || filterGoWildOnly) && (
