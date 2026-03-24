@@ -563,8 +563,8 @@ const FlightMultiDestResults = ({
             { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-1">
-              <span className="text-[15px] font-bold text-white/80">{label}</span>
-              <span className="text-[16px] font-black text-white">{value}</span>
+              <span className="text-[11px] font-bold text-white/80">{label}</span>
+              <span className="text-[12px] font-black text-white">{value}</span>
             </div>
           ))}
         </div>
@@ -691,7 +691,7 @@ const FlightMultiDestResults = ({
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
-        <div className="flex-1 flex flex-col px-5 py-4 gap-3 relative z-10">
+        <div className="flex-1 flex flex-col px-5 py-4 gap-4 relative z-10">
           {sortedCards.map((card) => {
             const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
             const isGoWild = card.hasGoWild;
@@ -731,10 +731,10 @@ const FlightMultiDestResults = ({
                   />
                   {/* IATA | City, State — bottom right, blends into the fade */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
-                    <h3 className="flex items-center leading-none drop-shadow-none">
-                      <span className="text-[28px] font-black" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
-                      <span className="text-[#9AADAD] font-normal text-[22px] mx-1"> | </span>
-                      <span className="text-[22px] text-[#1A2E2E] uppercase tracking-wide font-extralight">
+                    <h3 className="text-[28px] font-black leading-tight drop-shadow-none">
+                      <span style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+                      <span className="text-[#9AADAD] font-normal text-[24px]"> | </span>
+                      <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight">
                         {card.city || card.destination}
                         {(card.stateCode && card.stateCode !== "None") && (
                           <span>{", "}{card.stateCode}</span>
