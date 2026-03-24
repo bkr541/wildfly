@@ -1129,7 +1129,7 @@ const FlightDestResults = ({
                             <div
                               className={cn(
                                 "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
-                                isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
+                                isGoWild ? "border border-[#059669]" : isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
                               )}
                               style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
