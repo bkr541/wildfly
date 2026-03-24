@@ -1554,7 +1554,8 @@ const FlightsPage = ({
                   cacheLog.warn("Cache write failed (non-blocking)", cacheErr);
                 }
 
-                // Log to flight_searches
+
+                // Log to flight_searches + write snapshots
                 try {
                   const {
                     data: { user },
@@ -1597,7 +1598,7 @@ const FlightsPage = ({
                         f.fares?.go_wild != null ||
                         f.rawPayload?.fares?.go_wild?.total != null,
                     );
-                    await supabase.from("flight_searches").insert({
+                    const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
                       user_id: user.id,
                       departure_airport: originCode,
                       arrival_airport: arrivalAirportValue,
@@ -1611,7 +1612,13 @@ const FlightsPage = ({
                       arrival_airports_count: arrivalAirportsCount,
                       gowild_found: goWildFound,
                       flight_results_count: normalized.flights.length,
-                    } as any);
+                    } as any).select("id").single();
+                    // Write flight_snapshots non-blockingly
+                    if (fsRow?.id) {
+                      writeFlightSnapshots(fsRow.id, normalized.flights, originCode).catch(
+                        (e) => flightLog.warn("snapshot write failed (live-api)", e),
+                      );
+                    }
                   }
                 } catch (logErr) {
                   flightLog.warn("Flight search log failed (non-blocking)", logErr);
