@@ -783,7 +783,7 @@ const FlightMultiDestResults = ({
                 </div>
 
                 {/* Card body */}
-                 <div className="px-4 pt-3 pb-4">
+                 <div className="px-4 pt-1.5 pb-4">
 
                   {/* Stats grid: 2-column layout */}
                   <div className="flex flex-col gap-2 mb-4">
