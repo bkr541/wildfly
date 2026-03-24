@@ -1272,7 +1272,7 @@ const FlightDestResults = ({
                                           : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
                                       )}
                                     >
-                                      {priceLabel ? `${priceLabel} ›` : "Book ›"}
+                                      {priceLabel ? priceLabel : "Book"}
                                     </button>
                                   </div>
                                 </div>
