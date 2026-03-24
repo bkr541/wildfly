@@ -961,12 +961,13 @@ const FlightMultiDestResults = ({
                   </div>
                   <h2 className="text-base font-bold text-[#2E4A4A]">Filter Results</h2>
                 </div>
-                {(filterNonstopOnly || filterGoWildOnly) && (
+                {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
                   <button
                     type="button"
                     onClick={() => {
                       setFilterNonstopOnly(false);
                       setFilterGoWildOnly(false);
+                      setFilterDestType("all");
                     }}
                     className="text-xs font-semibold text-[#10B981]"
                   >
