@@ -1102,8 +1102,12 @@ const FlightDestResults = ({
 
                         const originCity = airportMap[depLeg?.origin ?? ""]?.city ?? depLeg?.origin ?? "";
                         const originState = airportMap[depLeg?.origin ?? ""]?.stateCode ?? "";
-                        const destCity = airportMap[arrLeg?.destination ?? ""]?.city ?? arrLeg?.destination ?? "";
-                        const destState = airportMap[arrLeg?.destination ?? ""]?.stateCode ?? "";
+                        const destAirportInfo = airportMap[arrLeg?.destination ?? ""];
+                        const destStateCode = destAirportInfo?.stateCode ?? "";
+                        // Hide city name for international destinations (no US state code)
+                        const destIsInternational = destStateCode === "" && destAirportInfo?.city !== undefined;
+                        const destCity = destIsInternational ? "" : (destAirportInfo?.city ?? arrLeg?.destination ?? "");
+                        const destState = destStateCode;
 
                         // Badge computations
                         const isCheapest = cheapestIdx === idx;
