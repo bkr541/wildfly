@@ -613,19 +613,6 @@ const FlightMultiDestResults = ({
             <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
               <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
-              {formattedDate && (
-                <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg self-start mt-1"
-                  style={{
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                    transform: "translateY(-1px)",
-                    textShadow: "none",
-                  }}
-                >
-                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                  <span className="text-[#065F46] text-xs font-semibold leading-none">{formattedDate}</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -647,8 +634,14 @@ const FlightMultiDestResults = ({
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
         <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
-          {/* Left: active filter indicator */}
-          <div className="flex-1">
+          {/* Left: date + active filter indicator */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {formattedDate && (
+              <div className="inline-flex items-center gap-1.5 flex-shrink-0">
+                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#10B981" strokeWidth={1.5} />
+                <span className="text-[12px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
+              </div>
+            )}
             {(filterNonstopOnly || filterGoWildOnly) && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
