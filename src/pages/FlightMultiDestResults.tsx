@@ -788,26 +788,9 @@ const FlightMultiDestResults = ({
                 </div>
 
                 {/* Card body */}
-                <div className="px-4 pt-3 pb-4">
-                  {/* Row 1: IATA | City, State */}
-                  <div className="flex items-center mb-1">
-                    <h3 className="text-[22px] font-black text-[#1A2E2E] leading-tight">
-                      <span style={{ color: isGoWild ? "#4A7C59" : "#1A3060" }}>{card.destination}</span>
-                      <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
-                      <span className="uppercase tracking-wide font-extralight">
-                        {card.city || card.destination}
-                        {((card.stateCode && card.stateCode !== "None") || card.country) && (
-                          <span>
-                            {", "}
-                            {(card.stateCode && card.stateCode !== "None") ? card.stateCode : card.country}
-                          </span>
-                        )}
-                      </span>
-                    </h3>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="border-t border-[#F0F3F3] my-2.5" />
+                 <div className="px-4 pt-3 pb-4">
+                   {/* Divider */}
+                   <div className="border-t border-[#F0F3F3] mb-2.5" />
 
                   {/* Stats grid: 2-column layout */}
                   <div className="flex flex-col gap-2 mb-4">
