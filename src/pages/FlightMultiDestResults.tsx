@@ -167,9 +167,11 @@ function DestCardItem({
         </div>
         {/* GoWild badge — top LEFT of hero image */}
         {card.hasGoWild && (
-          <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 bg-[#059669]"
+            style={{ border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+          >
             <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
-            <span className="text-[11px] font-bold leading-none text-white">GoWild</span>
+            <span className="text-[10px] font-bold leading-none text-white">GoWild</span>
           </div>
         )}
         {/* Min price badge — top RIGHT of hero image */}
