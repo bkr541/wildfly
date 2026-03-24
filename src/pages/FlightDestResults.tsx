@@ -1247,7 +1247,7 @@ const FlightDestResults = ({
                                     if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                                   }
                                 }}
-                                className="w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold text-[#10B981] hover:text-[#059669] transition-colors"
+                                className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
                               >
                                 {isFlightOpen ? "Hide Details" : "Show Details"}
                                 <FontAwesomeIcon
