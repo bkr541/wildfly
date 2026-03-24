@@ -363,6 +363,152 @@ export type Database = {
         }
         Relationships: []
       }
+      flight_snapshots: {
+        Row: {
+          airline: string | null
+          arrival_at: string
+          carrier_code: string | null
+          created_at: string
+          currency: string | null
+          departure_at: string
+          discount_den_available_seats: number | null
+          discount_den_fare_status: number | null
+          discount_den_loyalty_points: number | null
+          discount_den_total: number | null
+          display_cabin: string | null
+          display_price: number | null
+          final_destination_iata: string
+          flight_number: string
+          flight_search_id: string
+          flight_type: string | null
+          go_wild_available_seats: number | null
+          go_wild_fare_status: number | null
+          go_wild_loyalty_points: number | null
+          go_wild_total: number | null
+          has_go_wild: boolean
+          id: string
+          itinerary_flight_number: string | null
+          leg_destination_iata: string
+          leg_index: number
+          leg_origin_iata: string
+          leg_route: string | null
+          miles_available_seats: number | null
+          miles_fare_status: number | null
+          miles_loyalty_points: number | null
+          miles_total: number | null
+          notes: string | null
+          origin_iata: string
+          snapshot_at: string
+          source_itinerary_id: string
+          standard_available_seats: number | null
+          standard_fare_status: number | null
+          standard_loyalty_points: number | null
+          standard_total: number | null
+          stops: number | null
+          total_duration_display: string | null
+          total_trip_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          airline?: string | null
+          arrival_at: string
+          carrier_code?: string | null
+          created_at?: string
+          currency?: string | null
+          departure_at: string
+          discount_den_available_seats?: number | null
+          discount_den_fare_status?: number | null
+          discount_den_loyalty_points?: number | null
+          discount_den_total?: number | null
+          display_cabin?: string | null
+          display_price?: number | null
+          final_destination_iata: string
+          flight_number: string
+          flight_search_id: string
+          flight_type?: string | null
+          go_wild_available_seats?: number | null
+          go_wild_fare_status?: number | null
+          go_wild_loyalty_points?: number | null
+          go_wild_total?: number | null
+          has_go_wild?: boolean
+          id?: string
+          itinerary_flight_number?: string | null
+          leg_destination_iata: string
+          leg_index: number
+          leg_origin_iata: string
+          leg_route?: string | null
+          miles_available_seats?: number | null
+          miles_fare_status?: number | null
+          miles_loyalty_points?: number | null
+          miles_total?: number | null
+          notes?: string | null
+          origin_iata: string
+          snapshot_at?: string
+          source_itinerary_id: string
+          standard_available_seats?: number | null
+          standard_fare_status?: number | null
+          standard_loyalty_points?: number | null
+          standard_total?: number | null
+          stops?: number | null
+          total_duration_display?: string | null
+          total_trip_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          airline?: string | null
+          arrival_at?: string
+          carrier_code?: string | null
+          created_at?: string
+          currency?: string | null
+          departure_at?: string
+          discount_den_available_seats?: number | null
+          discount_den_fare_status?: number | null
+          discount_den_loyalty_points?: number | null
+          discount_den_total?: number | null
+          display_cabin?: string | null
+          display_price?: number | null
+          final_destination_iata?: string
+          flight_number?: string
+          flight_search_id?: string
+          flight_type?: string | null
+          go_wild_available_seats?: number | null
+          go_wild_fare_status?: number | null
+          go_wild_loyalty_points?: number | null
+          go_wild_total?: number | null
+          has_go_wild?: boolean
+          id?: string
+          itinerary_flight_number?: string | null
+          leg_destination_iata?: string
+          leg_index?: number
+          leg_origin_iata?: string
+          leg_route?: string | null
+          miles_available_seats?: number | null
+          miles_fare_status?: number | null
+          miles_loyalty_points?: number | null
+          miles_total?: number | null
+          notes?: string | null
+          origin_iata?: string
+          snapshot_at?: string
+          source_itinerary_id?: string
+          standard_available_seats?: number | null
+          standard_fare_status?: number | null
+          standard_loyalty_points?: number | null
+          standard_total?: number | null
+          stops?: number | null
+          total_duration_display?: string | null
+          total_trip_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_snapshots_flight_search_id_fkey"
+            columns: ["flight_search_id"]
+            isOneToOne: false
+            referencedRelation: "flight_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friend_requests: {
         Row: {
           created_at: string
