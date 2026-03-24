@@ -333,12 +333,6 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           className="w-auto object-contain"
           style={{ height: "clamp(90px, 22vw, 140px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }}
         />
-        <img
-          src="/assets/logo/tag_noshadow.png"
-          alt="Tagline"
-          className="w-auto object-contain"
-          style={{ maxHeight: "36px", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }}
-        />
       </div>
 
       {/* White card form */}
