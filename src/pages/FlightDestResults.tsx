@@ -609,7 +609,7 @@ const FlightDestResults = ({
               <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="white" strokeWidth={2} />
               <span className="text-[17px] font-black text-white tracking-tight truncate">
                 {arrivalAirport && arrivalAirport !== "All"
-                  ? `${arrivalAirport}${airportMap[arrivalAirport]?.city ? ` | ${airportMap[arrivalAirport].city}` : ""}`
+                  ? arrivalAirport
                   : "All Destinations"}
               </span>
             </div>
