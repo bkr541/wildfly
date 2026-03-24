@@ -1061,7 +1061,7 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <div className="z-10 bg-[#E8EBEB] px-2 rounded">
+                              <div className="z-10 bg-[#E8EBEB] px-3 py-0.5 rounded-full">
                                 <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
                                   {h12} {ampm}
                                 </span>
@@ -1198,37 +1198,37 @@ const FlightDestResults = ({
                                 {hasBadges && (
                                   <div className="flex flex-wrap gap-1.5 mt-2">
                                     {isCheapest && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         Cheapest
                                       </span>
                                     )}
                                     {isQuickest && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
                                         <HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2} />
                                         Quickest
                                       </span>
                                     )}
                                     {isGoWild && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#059669", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#059669", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         GoWild
                                       </span>
                                     )}
                                     {isBlackout && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#111827", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#111827", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         Blackout
                                       </span>
                                     )}
                                     {flight.is_plus_one_day && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#E89830", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#E89830", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         +1 Day
                                       </span>
                                     )}
                                     {isRedEye && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#DC2626", color: "#FFFFFF" }}>
                                         <HugeiconsIcon icon={Alert01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
                                         Red Eye
                                       </span>
@@ -1247,7 +1247,7 @@ const FlightDestResults = ({
                                     if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                                   }
                                 }}
-                                className="w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold text-[#10B981] hover:text-[#059669] transition-colors"
+                                className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
                               >
                                 {isFlightOpen ? "Hide Details" : "Show Details"}
                                 <FontAwesomeIcon
@@ -1301,7 +1301,7 @@ const FlightDestResults = ({
                     const { h12, ampm } = fmtHourLabel(trailingHour);
                     return (
                       <div className="flex items-center justify-center w-full py-2">
-                       <div className="bg-[#E8EBEB] px-2 rounded">
+                       <div className="bg-[#E8EBEB] px-3 py-0.5 rounded-full">
                           <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
                              {h12} {ampm}
                           </span>
