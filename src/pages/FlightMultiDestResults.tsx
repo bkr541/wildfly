@@ -19,7 +19,7 @@ import {
   Rocket01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -97,6 +97,173 @@ function formatDurationMinutes(mins: number): string {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+// ── DestCard sub-component (owns its own parallax scroll ref) ──
+function DestCardItem({
+  card,
+  index,
+  onViewDest,
+}: {
+  card: DestCard;
+  index: number;
+  onViewDest: (card: DestCard) => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: cardRef, offset: ["start end", "end start"] });
+  const imgY = useTransform(scrollYProgress, [0, 1], ["-12%", "12%"]);
+
+  const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
+  const isGoWild = card.hasGoWild;
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className="rounded-2xl overflow-hidden bg-white"
+      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
+    >
+      {/* City photo */}
+      <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
+        {bgImage ? (
+          <motion.img
+            src={bgImage}
+            alt={card.city}
+            className="w-full object-cover absolute inset-0"
+            style={{ y: imgY, height: "124%", top: "-12%" }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <div
+            className="w-full h-full"
+            style={{
+              background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)",
+              opacity: 0.6,
+            }}
+          />
+        )}
+        {/* Gradient scrim — dark at top fading to white at bottom */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
+          }}
+        />
+        {/* IATA | City, State — bottom, blends into the fade */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-baseline gap-0">
+          <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+          <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
+          <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
+            {card.city || card.destination}
+            {(card.stateCode && card.stateCode !== "None") && (
+              <span>{", "}{card.stateCode}</span>
+            )}
+          </span>
+        </div>
+        {/* GoWild badge — top LEFT of hero image */}
+        {card.hasGoWild && (
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
+            <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
+            <span className="text-[11px] font-bold leading-none text-white">GoWild</span>
+          </div>
+        )}
+        {/* Min price badge — top RIGHT of hero image */}
+        {card.minFare != null && (
+          <div
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
+            style={
+              isGoWild
+                ? { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
+                : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
+            }
+          >
+            <span className="text-[10px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
+            <span className="text-[16px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
+          </div>
+        )}
+        {card.hasGoWild && card.minFare == null && (
+          <div
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
+            style={{ background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+          >
+            <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
+            <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
+          </div>
+        )}
+      </div>
+
+      {/* Card body */}
+      <div className="px-4 pt-1.5 pb-4">
+        {/* Stats grid: 2-column layout */}
+        <div className="flex flex-col gap-2 mb-4">
+          {/* Row A: Fare Range | Earliest Departure */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">
+                Range:{" "}
+                <span className="font-semibold">
+                  {card.minFare != null && card.maxFare != null
+                    ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
+                    : "—"}
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">
+                Earliest: <span className="font-semibold">{card.earliestDeparture ?? "—"}</span>
+              </span>
+            </div>
+          </div>
+          {/* Row B: Quickest | Nonstop Count */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">
+                Quickest:{" "}
+                <span className="font-semibold">
+                  {card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              </div>
+              <span className="text-[12px] text-[#2E4A4A] truncate">
+                Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* View Flights button — full width */}
+        <button
+          type="button"
+          onClick={() => onViewDest(card)}
+          className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
+          style={
+            isGoWild
+              ? { background: "#059669", color: "#FFFFFF" }
+              : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
+          }
+        >
+          View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
+        </button>
+      </div>
+    </motion.div>
+  );
 }
 
 // ── Component ────────────────────────────────────────────────
@@ -465,6 +632,7 @@ const FlightMultiDestResults = ({
       weekday: "short",
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
   }, [departureDate]);
 
@@ -611,7 +779,7 @@ const FlightMultiDestResults = ({
           {/* Title */}
           <div className="relative mt-0">
             <div className="flex flex-col gap-0 leading-tight" style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}>
-              <span className="text-white/70 text-[22px] font-light">{originCity} to</span>
+              <span className="text-white text-[22px] font-semibold" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
             </div>
           </div>
@@ -638,8 +806,8 @@ const FlightMultiDestResults = ({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {formattedDate && (
               <div className="inline-flex items-center gap-1.5 flex-shrink-0">
-                <HugeiconsIcon icon={Calendar03Icon} size={13} color="#10B981" strokeWidth={1.5} />
-                <span className="text-[12px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
+                <HugeiconsIcon icon={Calendar03Icon} size={19} color="#10B981" strokeWidth={1.5} />
+                <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
               </div>
             )}
             {(filterNonstopOnly || filterGoWildOnly) && (
@@ -686,183 +854,14 @@ const FlightMultiDestResults = ({
 
         {/* ── Destination cards list ───────────────────────────── */}
         <div className="flex-1 flex flex-col px-5 py-4 gap-6 relative z-10">
-          {sortedCards.map((card, index) => {
-            const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
-            const isGoWild = card.hasGoWild;
-
-            return (
-              <motion.div
-                key={card.destination}
-                className="rounded-2xl overflow-hidden bg-white"
-                style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
-              >
-                {/* City photo */}
-                <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
-                  {bgImage ? (
-                    <img
-                      src={bgImage}
-                      alt={card.city}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full"
-                      style={{
-                        background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)",
-                        opacity: 0.6,
-                      }}
-                    />
-                  )}
-                  {/* Gradient scrim — dark at top fading to white at bottom */}
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
-                    }}
-                  />
-                  {/* IATA | City, State — bottom, blends into the fade */}
-                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-baseline gap-0">
-                    <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
-                    <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
-                    <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
-                      {card.city || card.destination}
-                      {(card.stateCode && card.stateCode !== "None") && (
-                        <span>{", "}{card.stateCode}</span>
-                      )}
-                    </span>
-                  </div>
-                  {/* GoWild badge — top LEFT of hero image */}
-                  {card.hasGoWild && (
-                    <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
-                      <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
-                      <span className="text-[11px] font-bold leading-none text-white">GoWild</span>
-                    </div>
-                  )}
-                  {/* Min price badge — top RIGHT of hero image */}
-                  {card.minFare != null && (
-                    <div
-                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-                      style={
-                        isGoWild
-                          ? { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
-                          : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
-                      }
-                    >
-                      <span
-                        className="text-[10px] font-semibold leading-none"
-                        style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}
-                      >
-                        From
-                      </span>
-                      <span
-                        className="text-[16px] font-black leading-none tracking-tight"
-                        style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}
-                      >
-                        ${Math.round(card.minFare)}
-                      </span>
-                    </div>
-                  )}
-                  {card.hasGoWild && card.minFare == null && (
-                    <div
-                      className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-                      style={{ background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
-                    >
-                      <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
-                      <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card body */}
-                 <div className="px-4 pt-1.5 pb-4">
-
-                  {/* Stats grid: 2-column layout */}
-                  <div className="flex flex-col gap-2 mb-4">
-                    {/* Row A: Fare Range | Earliest Departure */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-                        </div>
-                        <span className="text-[12px] text-[#2E4A4A] truncate">
-                          Range:{" "}
-                          <span className="font-semibold">
-                            {card.minFare != null && card.maxFare != null
-                              ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
-                              : "—"}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-                        </div>
-                        <span className="text-[12px] text-[#2E4A4A] truncate">
-                          Earliest: <span className="font-semibold">{card.earliestDeparture ?? "—"}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Row B: Quickest | Nonstop Count */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-                        </div>
-                        <span className="text-[12px] text-[#2E4A4A] truncate">
-                          Quickest:{" "}
-                          <span className="font-semibold">
-                            {card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(107,123,123,0.10)" }}
-                        >
-                          <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-                        </div>
-                        <span className="text-[12px] text-[#2E4A4A] truncate">
-                          Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* View Flights button — full width */}
-                  <button
-                    type="button"
-                    onClick={() => handleViewDest(card)}
-                    className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
-                    style={
-                      isGoWild
-                        ? { background: "#059669", color: "#FFFFFF" }
-                        : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
-                    }
-                  >
-                    View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+          {sortedCards.map((card, index) => (
+            <DestCardItem
+              key={card.destination}
+              card={card}
+              index={index}
+              onViewDest={handleViewDest}
+            />
+          ))}
 
           {sortedCards.length === 0 && (
             <div className="flex-1 flex items-center justify-center py-20">
