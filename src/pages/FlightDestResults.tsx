@@ -1149,18 +1149,6 @@ const FlightDestResults = ({
                                       </span>
                                     )}
                                   </div>
-                                  {priceLabel && (
-                                    <span
-                                      className={cn(
-                                        "text-[13px] font-bold px-2.5 py-0.5 rounded-full",
-                                        isGoWild
-                                          ? "bg-[#059669] text-white"
-                                          : "bg-[#F0F4F4] text-[#2E4A4A]",
-                                      )}
-                                    >
-                                      {priceLabel}
-                                    </span>
-                                  )}
                                 </div>
 
                                 {/* Row 2: Dep time — plane — Arr time */}
