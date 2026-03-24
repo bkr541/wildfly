@@ -698,10 +698,14 @@ const FlightMultiDestResults = ({
             const isGoWild = card.hasGoWild;
 
             return (
-              <div
+              <motion.div
                 key={card.destination}
                 className="rounded-2xl overflow-hidden bg-white"
                 style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               >
                 {/* City photo */}
                 <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
