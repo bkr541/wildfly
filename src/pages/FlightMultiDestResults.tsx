@@ -298,6 +298,7 @@ const FlightMultiDestResults = ({
   const [mapSheet, setMapSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [filterDestType, setFilterDestType] = useState<"all" | "domestic" | "international">("all");
   const [compactHeader, setCompactHeader] = useState(false);
   const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
