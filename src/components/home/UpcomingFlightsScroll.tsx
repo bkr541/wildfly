@@ -53,7 +53,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between mb-2.5 px-1 group"
+        className="w-full flex items-center justify-between mb-1 px-1 group"
       >
         <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
           <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
