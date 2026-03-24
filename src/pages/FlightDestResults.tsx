@@ -1169,18 +1169,18 @@ const FlightDestResults = ({
                                   </span>
                                 </div>
 
-                                {/* Row 3: Origin city — duration chip — Dest city */}
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
-                                    {originCity}{originState ? `, ${originState}` : ""}
-                                  </span>
-                                  <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
-                                    {formatDuration(flight.total_duration)}
-                                  </span>
-                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
-                                    {destCity}{destState ? `, ${destState}` : ""}
-                                  </span>
-                                </div>
+                                 {/* Row 3: Origin city — duration chip — Dest city */}
+                                 <div className="flex items-center justify-between gap-2">
+                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
+                                     {originCity}
+                                   </span>
+                                   <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
+                                     {formatDuration(flight.total_duration)}
+                                   </span>
+                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
+                                     {destCity}
+                                   </span>
+                                 </div>
 
                                 {/* Row 4: Status badges */}
                                 {hasBadges && (
