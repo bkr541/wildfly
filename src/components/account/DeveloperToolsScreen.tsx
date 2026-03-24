@@ -384,7 +384,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
               <div className="mx-auto h-12 w-12 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-2">
                 <HugeiconsIcon icon={Tick02Icon} size={24} color="#345C5A" strokeWidth={1.5} />
               </div>
-              <AlertDialogTitle className="text-center">Clear Complete</AlertDialogTitle>
+              <AlertDialogTitle className="text-center text-[#2E4A4A]">Clear Complete</AlertDialogTitle>
               <AlertDialogDescription className="text-center">
                 Your flight search history and cache have been successfully cleared.
               </AlertDialogDescription>
