@@ -1165,17 +1165,22 @@ const FlightDestResults = ({
                                 </div>
 
                                 {/* Row 2: Dep time — plane — Arr time */}
-                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <div className="flex items-center justify-between gap-2 mb-0">
                                   <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
                                     {formatTime(depLeg?.departure_time)}
                                   </span>
-                                  <div className="flex-1 flex items-center gap-1 px-1">
-                                    <div className="flex-1 h-px bg-[#C8D5D5]" />
-                                    <svg fill="#2D6A4F" className="w-10 h-10 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z"/>
-                                      <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z"/>
-                                    </svg>
-                                    <div className="flex-1 h-px bg-[#C8D5D5]" />
+                                  <div className="flex-1 flex flex-col items-center gap-0 px-1">
+                                    <div className="w-full flex items-center gap-1">
+                                      <div className="flex-1 h-px bg-[#C8D5D5]" />
+                                      <svg fill="#2D6A4F" className="w-10 h-10 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z"/>
+                                        <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z"/>
+                                      </svg>
+                                      <div className="flex-1 h-px bg-[#C8D5D5]" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full mt-0.5">
+                                      {formatDuration(flight.total_duration)}
+                                    </span>
                                   </div>
                                   <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
                                     {formatTime(arrLeg?.arrival_time)}
@@ -1185,13 +1190,10 @@ const FlightDestResults = ({
                                   </span>
                                 </div>
 
-                                {/* Row 3: Origin city — duration pill — Dest city */}
-                                <div className="flex items-center justify-between gap-2">
+                                {/* Row 3: Origin city — Dest city */}
+                                <div className="flex items-center justify-between gap-2 mt-1.5">
                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
                                     {originCity}{originState ? `, ${originState}` : ""}
-                                  </span>
-                                  <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
-                                    {formatDuration(flight.total_duration)}
                                   </span>
                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
                                     {destCity}{destState ? `, ${destState}` : ""}
