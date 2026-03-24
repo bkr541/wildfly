@@ -857,7 +857,7 @@ const FlightMultiDestResults = ({
                     className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
                     style={
                       isGoWild
-                        ? { background: "#4A7C59", color: "#FFFFFF" }
+                        ? { background: "#059669", color: "#FFFFFF" }
                         : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
                     }
                   >
