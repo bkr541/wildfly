@@ -1248,40 +1248,40 @@ const FlightDestResults = ({
                                     <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                   </div>
                                   <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-2">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
-                                      className={cn(
-                                        "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                        hasAlert
-                                          ? "bg-[#E89830] text-white border-[#E89830]"
-                                          : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
-                                      )}
-                                    >
-                                      Alert Me
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setBookingConfirm({ url: frontierUrl, flight });
-                                      }}
-                                      className={cn(
-                                        "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                        isGoWild
-                                          ? hasGoing ? "bg-[#047857] text-white border-[#047857]" : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
-                                          : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
-                                      )}
-                                    >
-                                      {priceLabel ? priceLabel : "Book"}
-                                    </button>
-                                  </div>
-                                  {/* Hide Details button at the bottom of expanded content */}
-                                  <button
-                                    onClick={() => setExpandedFlightKey(null)}
-                                    className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
-                                  >
-                                    Hide Details
-                                    <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
-                                  </button>
+                                     <button
+                                       onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
+                                       className={cn(
+                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                         hasAlert
+                                           ? "bg-[#E89830] text-white border-[#E89830]"
+                                           : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
+                                       )}
+                                     >
+                                       Alert Me
+                                     </button>
+                                     <button
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         setBookingConfirm({ url: frontierUrl, flight });
+                                       }}
+                                       className={cn(
+                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold border transition-all duration-200",
+                                         isGoWild
+                                           ? hasGoing ? "bg-[#047857] text-white border-[#047857]" : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
+                                           : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
+                                       )}
+                                     >
+                                       {priceLabel ? priceLabel : "Book"}
+                                     </button>
+                                   </div>
+                                   {/* Hide Details button at the bottom of expanded content — no separator */}
+                                   <button
+                                     onClick={() => setExpandedFlightKey(null)}
+                                     className={cn("w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                   >
+                                     Hide Details
+                                     <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+                                   </button>
                                 </div>
                               )}
                             </div>
