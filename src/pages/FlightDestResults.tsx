@@ -1185,39 +1185,39 @@ const FlightDestResults = ({
                                 {/* Row 4: Status badges */}
                                 {hasBadges && (
                                   <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {isGoWild && (
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#059669", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Rocket01Icon} size={13} color="#FFFFFF" strokeWidth={2} />
+                                        GoWild
+                                      </span>
+                                    )}
                                     {isCheapest && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#FFFFFF" strokeWidth={2} />
                                         Cheapest
                                       </span>
                                     )}
                                     {isQuickest && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
-                                        <HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2} />
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
+                                        <HugeiconsIcon icon={TrafficLightIcon} size={13} color="#1A1A1A" strokeWidth={2} />
                                         Quickest
                                       </span>
                                     )}
-                                    {isGoWild && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#059669", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
-                                        GoWild
-                                      </span>
-                                    )}
                                     {isBlackout && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#111827", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#111827", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={UnavailableIcon} size={13} color="#FFFFFF" strokeWidth={2} />
                                         Blackout
                                       </span>
                                     )}
                                     {flight.is_plus_one_day && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#E89830", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#E89830", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Clock01Icon} size={13} color="#FFFFFF" strokeWidth={2} />
                                         +1 Day
                                       </span>
                                     )}
                                     {isRedEye && (
-                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#DC2626", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Alert01Icon} size={11} color="#FFFFFF" strokeWidth={2} />
+                                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium" style={{ background: "#DC2626", color: "#FFFFFF" }}>
+                                        <HugeiconsIcon icon={Alert01Icon} size={13} color="#FFFFFF" strokeWidth={2} />
                                         Red Eye
                                       </span>
                                     )}
