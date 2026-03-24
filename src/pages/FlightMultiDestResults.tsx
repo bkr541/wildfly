@@ -465,6 +465,7 @@ const FlightMultiDestResults = ({
       weekday: "short",
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
   }, [departureDate]);
 
