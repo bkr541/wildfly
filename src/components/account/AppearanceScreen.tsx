@@ -199,48 +199,22 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
         <div>
           {/* Section header */}
           <div className="flex items-center gap-1.5 mb-0.5 px-1">
-            <HugeiconsIcon icon={PaintBrushIcon} size={13} color="#6B7B7B" strokeWidth={2} />
-            <p className="text-xs font-semibold text-[#6B7B7B] uppercase tracking-wider">
+            <HugeiconsIcon icon={PaintBrushIcon} size={13} color="#059669" strokeWidth={2} />
+            <p className="text-xs font-semibold text-[#059669] uppercase tracking-wider">
               Theme
             </p>
           </div>
-          <p className="text-xs text-[#9AADAD] px-1 mb-2.5">
+          <p className="text-xs text-[#6B7B7B] px-1 mb-2.5">
             Change the application's theme and style.
           </p>
-          <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-            {themes.map((t, idx) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setSelected(t.key)}
-                className={`flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors ${idx < themes.length - 1 ? "border-b border-[#F0F1F1]" : ""}`}
-              >
-                <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center mr-3 shrink-0">
-                  <HugeiconsIcon icon={t.icon} size={14} color="#059669" strokeWidth={1.5} />
-                </span>
-                <span className="flex-1 text-sm font-semibold text-[#2E4A4A]">{t.label}</span>
-                <span
-                  className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${selected === t.key ? "border-[#345C5A]" : "border-[#D1D5D5]"}`}
-                >
-                  {selected === t.key && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#345C5A]" />
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Homepage Section */}
-        <div>
-          {/* Section header */}
+...
           <div className="flex items-center gap-1.5 mb-0.5 px-1">
-            <HugeiconsIcon icon={Home01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
-            <p className="text-xs font-semibold text-[#6B7B7B] uppercase tracking-wider">
+            <HugeiconsIcon icon={Home01Icon} size={13} color="#059669" strokeWidth={2} />
+            <p className="text-xs font-semibold text-[#059669] uppercase tracking-wider">
               Homepage
             </p>
           </div>
-          <p className="text-xs text-[#9AADAD] px-1 mb-2.5">
+          <p className="text-xs text-[#6B7B7B] px-1 mb-2.5">
             Add, edit, and customize your home page with the tools you want to use quickly.
           </p>
 
@@ -268,11 +242,9 @@ const AppearanceScreen = ({ onBack }: AppearanceScreenProps) => {
                     <select
                       value={row.component_name}
                       onChange={(e) => updateComponent(idx, e.target.value)}
-                      className={`flex-1 text-sm font-medium bg-[#F7F8F8] border rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 appearance-none cursor-pointer transition-colors ${
-                        hasError
-                          ? "border-red-400 text-red-400 focus:ring-red-300/30"
-                          : "border-[#E3E6E6] text-[#2E4A4A] focus:ring-[#059669]/30"
-                      } ${!row.component_name ? "text-[#9AADAD]" : ""}`}
+                      className={`flex-1 text-sm font-medium bg-[#F7F8F8] border border-[#E3E6E6] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#059669]/30 appearance-none cursor-pointer transition-colors ${
+                        !row.component_name ? "text-[#9AADAD]" : "text-[#2E4A4A]"
+                      }`}
                     >
                       <option value="" disabled>
                         Select a component…
