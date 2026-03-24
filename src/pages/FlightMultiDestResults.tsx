@@ -147,18 +147,18 @@ function DestCardItem({
             }}
           />
         )}
-        {/* Gradient scrim — dark at top fading to white at bottom */}
+        {/* Gradient scrim — dark at top fading to translucent white at bottom */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.45) 78%, rgba(255,255,255,0.80) 100%)",
           }}
         />
         {/* IATA | City, State — bottom, blends into the fade */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
           <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
           <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
-          <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
+          <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[16px] leading-none">
             {card.city || card.destination}
             {(card.stateCode && card.stateCode !== "None") && (
               <span>{", "}{card.stateCode}</span>
@@ -180,7 +180,7 @@ function DestCardItem({
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
             style={
               isGoWild
-                ? { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
+                ? { background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
                 : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
             }
           >
@@ -191,7 +191,7 @@ function DestCardItem({
         {card.hasGoWild && card.minFare == null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-            style={{ background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+            style={{ background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
             <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
             <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
