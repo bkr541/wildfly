@@ -27,6 +27,7 @@ const COMPONENT_OPTIONS = [
   { value: "upcoming_flights", label: "Upcoming Flights" },
   { value: "recent_searches", label: "Recent Searches" },
   { value: "quick_searches", label: "Quick Searches" },
+  { value: "day_trips", label: "Day Trips" },
 ];
 
 interface HomepageRow {
