@@ -19,7 +19,7 @@ import {
   Rocket01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
