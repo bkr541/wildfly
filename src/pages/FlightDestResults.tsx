@@ -1176,11 +1176,8 @@ const FlightDestResults = ({
                                     </svg>
                                     <div className="flex-1 h-px bg-[#C8D5D5]" />
                                   </div>
-                                  <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
+                                   <span className="text-[22px] font-bold text-[#1a2e2e] leading-none tabular-nums">
                                     {formatTime(arrLeg?.arrival_time)}
-                                    {flight.is_plus_one_day && (
-                                      <sup className="text-[10px] font-bold text-[#E89830] ml-0.5">+1</sup>
-                                    )}
                                   </span>
                                 </div>
 
