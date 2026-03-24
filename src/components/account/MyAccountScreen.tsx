@@ -97,59 +97,48 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
       {/* Form */}
       <div className="flex-1 px-5 pb-4 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 space-y-4">
-          {/* Row 1: First + Last Name */}
-          <div className="grid grid-cols-2 gap-3">
-            <AppInput
-              icon={UserIcon}
-              label="First Name"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First"
-            />
-            <AppInput
-              icon={UserIcon}
-              label="Last Name"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last"
-            />
-          </div>
-
-          {/* Row 2: Username + Email */}
-          <div className="grid grid-cols-2 gap-3">
-            <AppInput
-              icon={UserIdVerificationIcon}
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username"
-            />
-            <AppInput
-              icon={Mail01Icon}
-              label="Email"
-              value={email}
-              disabled
-            />
-          </div>
-
-          {/* Row 3: DOB + Mobile */}
-          <div className="grid grid-cols-2 gap-3">
-            <AppInput
-              icon={Calendar03Icon}
-              label="Date of Birth"
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-            />
-            <AppInput
-              icon={SmartPhone01Icon}
-              label="Mobile"
-              type="tel"
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
-              placeholder="+1 (555) 000-0000"
-            />
-          </div>
+          <AppInput
+            icon={UserIcon}
+            label="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First"
+          />
+          <AppInput
+            icon={UserIcon}
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last"
+          />
+          <AppInput
+            icon={UserIdVerificationIcon}
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="username"
+          />
+          <AppInput
+            icon={Mail01Icon}
+            label="Email"
+            value={email}
+            disabled
+          />
+          <AppInput
+            icon={Calendar03Icon}
+            label="Date of Birth"
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+          />
+          <AppInput
+            icon={SmartPhone01Icon}
+            label="Mobile"
+            type="tel"
+            value={mobileNumber}
+            onChange={(e) => setMobileNumber(e.target.value)}
+            placeholder="+1 (555) 000-0000"
+          />
 
           {/* Bio */}
           <div>
