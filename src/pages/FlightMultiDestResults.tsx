@@ -17,6 +17,7 @@ import {
   SunriseIcon,
   MapsLocation02Icon,
   Rocket01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
