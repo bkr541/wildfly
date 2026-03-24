@@ -127,7 +127,7 @@ function DestCardItem({
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
     >
       {/* City photo */}
-      <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
+      <div className="relative h-[170px] overflow-hidden bg-[#C8D5D5]">
         {bgImage ? (
           <motion.img
             src={bgImage}
@@ -155,7 +155,7 @@ function DestCardItem({
           }}
         />
         {/* IATA | City, State — bottom, blends into the fade */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-baseline gap-0">
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
           <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
           <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
           <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
@@ -167,9 +167,11 @@ function DestCardItem({
         </div>
         {/* GoWild badge — top LEFT of hero image */}
         {card.hasGoWild && (
-          <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 bg-[#059669]"
+            style={{ border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+          >
             <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
-            <span className="text-[11px] font-bold leading-none text-white">GoWild</span>
+            <span className="text-[10px] font-bold leading-none text-white">GoWild</span>
           </div>
         )}
         {/* Min price badge — top RIGHT of hero image */}
@@ -298,6 +300,7 @@ const FlightMultiDestResults = ({
   const [mapSheet, setMapSheet] = useState(false);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [filterDestType, setFilterDestType] = useState<"all" | "domestic" | "international">("all");
   const [compactHeader, setCompactHeader] = useState(false);
   const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -543,6 +546,8 @@ const FlightMultiDestResults = ({
     let filtered = [...cards];
     if (filterNonstopOnly) filtered = filtered.filter((c) => c.hasNonstop);
     if (filterGoWildOnly) filtered = filtered.filter((c) => c.hasGoWild);
+    if (filterDestType === "domestic") filtered = filtered.filter((c) => !c.country || c.country === "United States" || c.country === "US");
+    if (filterDestType === "international") filtered = filtered.filter((c) => c.country && c.country !== "United States" && c.country !== "US");
     return filtered.sort((a, b) => {
       if (sortBy === "fare") {
         if (a.minFare == null && b.minFare == null) return 0;
@@ -554,7 +559,7 @@ const FlightMultiDestResults = ({
       if (sortBy === "duration") return a.avgDurationMin - b.avgDurationMin;
       return a.city.localeCompare(b.city);
     });
-  }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly]);
+  }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType]);
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
@@ -715,7 +720,7 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
               )}
             >
               <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
@@ -810,9 +815,9 @@ const FlightMultiDestResults = ({
                 <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
               </div>
             )}
-            {(filterNonstopOnly || filterGoWildOnly) && (
+            {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
               <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
-                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild"].filter(Boolean).join(" · ")}
+                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild", filterDestType !== "all" && (filterDestType === "domestic" ? "Domestic" : "Intl")].filter(Boolean).join(" · ")}
               </span>
             )}
           </div>
@@ -844,7 +849,7 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                filterNonstopOnly || filterGoWildOnly ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
               )}
             >
               <HugeiconsIcon icon={FilterIcon} size={16} color="#10B981" strokeWidth={2} />
@@ -956,12 +961,13 @@ const FlightMultiDestResults = ({
                   </div>
                   <h2 className="text-base font-bold text-[#2E4A4A]">Filter Results</h2>
                 </div>
-                {(filterNonstopOnly || filterGoWildOnly) && (
+                {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
                   <button
                     type="button"
                     onClick={() => {
                       setFilterNonstopOnly(false);
                       setFilterGoWildOnly(false);
+                      setFilterDestType("all");
                     }}
                     className="text-xs font-semibold text-[#10B981]"
                   >
@@ -970,7 +976,7 @@ const FlightMultiDestResults = ({
                 )}
               </div>
               {/* Filter options */}
-              <div className="flex flex-col py-2 pb-8">
+              <div className="flex flex-col py-2 pb-4">
                 {[
                   {
                     label: "Nonstop Only",
@@ -987,11 +993,9 @@ const FlightMultiDestResults = ({
                     icon: TicketStarIcon,
                   },
                 ].map(({ label, desc, active, toggle, icon }) => (
-                  <button
+                  <div
                     key={label}
-                    type="button"
-                    onClick={toggle}
-                    className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                    className="flex items-center gap-3 px-5 py-3.5"
                   >
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
@@ -1009,16 +1013,74 @@ const FlightMultiDestResults = ({
                       </p>
                       <p className="text-xs text-[#9CA3AF]">{desc}</p>
                     </div>
-                    <div
+                    {/* Toggle switch */}
+                    <button
+                      type="button"
+                      onClick={toggle}
                       className={cn(
-                        "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all",
-                        active ? "border-[#10B981] bg-[#10B981]" : "border-[#D1D5DB] bg-transparent",
+                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors",
+                        active ? "bg-[#10B981]" : "bg-[#D1D5DB]",
                       )}
                     >
-                      {active && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={11} color="white" strokeWidth={3} />}
-                    </div>
-                  </button>
+                      <span
+                        className={cn(
+                          "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                          active ? "translate-x-5" : "translate-x-0",
+                        )}
+                      />
+                    </button>
+                  </div>
                 ))}
+
+                {/* Destination Type — segmented control */}
+                <div className="px-5 py-3.5 flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: filterDestType !== "all"
+                          ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                          : "rgba(107,123,123,0.10)",
+                      }}
+                    >
+                      <HugeiconsIcon icon={Route02Icon} size={17} color={filterDestType !== "all" ? "white" : "#6B7B7B"} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={cn("text-sm font-semibold", filterDestType !== "all" ? "text-[#059669]" : "text-[#2E4A4A]")}>
+                        Destination Type
+                      </p>
+                      <p className="text-xs text-[#9CA3AF]">Filter by domestic or international</p>
+                    </div>
+                  </div>
+                  {/* 3-option pill toggle */}
+                  <div
+                    className="relative flex items-center rounded-full p-0.5 ml-12"
+                    style={{ background: "rgba(107,123,123,0.10)" }}
+                  >
+                    {/* Sliding pill indicator */}
+                    <div
+                      className="absolute top-[2px] bottom-[2px] rounded-full shadow-sm transition-all duration-300 ease-in-out"
+                      style={{
+                        background: "#10B981",
+                        width: "calc((100% - 4px) / 3)",
+                        left: `calc(2px + (100% - 4px) / 3 * ${["domestic", "all", "international"].indexOf(filterDestType)})`,
+                      }}
+                    />
+                    {(["domestic", "all", "international"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFilterDestType(opt)}
+                        className={cn(
+                          "relative z-10 flex-1 py-2 text-[12px] font-semibold rounded-full transition-colors duration-200 capitalize",
+                          filterDestType === opt ? "text-white" : "text-[#9CA3AF]",
+                        )}
+                      >
+                        {opt === "all" ? "All" : opt === "domestic" ? "Domestic" : "Intl"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               {/* Apply button */}
               <div className="px-5 pb-8">
