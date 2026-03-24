@@ -27,7 +27,6 @@ function formatTime(iso: string): string {
 function parseToMs(raw: string): number {
   const d = new Date(raw);
   if (!isNaN(d.getTime())) return d.getTime();
-  // Try "H:MM AM/PM"
   const m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (m) {
     let h = parseInt(m[1], 10);
@@ -46,7 +45,6 @@ function calcDuration(startRaw: string, endRaw: string): string {
   const start = parseToMs(startRaw);
   let end = parseToMs(endRaw);
   if (isNaN(start) || isNaN(end)) return "";
-  // Handle overnight / +1 day
   if (end < start) end += 24 * 60 * 60 * 1000;
   const diffMin = Math.round((end - start) / 60000);
   if (diffMin < 0) return "";
@@ -57,9 +55,14 @@ function calcDuration(startRaw: string, endRaw: string): string {
   return `${h} hr ${m} min`;
 }
 
+// Fixed-width icon column: 24px. All rows share this width so the text
+// column always starts at the same horizontal position.
+const ICON_COL = "w-6 flex-shrink-0 flex items-center justify-center";
+const TEXT_GAP = "gap-4"; // gap between icon col and text col
+
 const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
   return (
-    <div className="pl-5 pr-1 py-2 flex flex-col">
+    <div className="pl-4 pr-2 py-2 flex flex-col">
       {legs.map((leg, i) => {
         const depTime = formatTime(leg.departure_time);
         const arrTime = formatTime(leg.arrival_time);
@@ -72,8 +75,8 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
         return (
           <div key={i} className="flex flex-col">
             {/* Departure stop */}
-            <div className="flex items-center gap-3">
-              <div className="flex flex-col items-center">
+            <div className={`flex items-center ${TEXT_GAP}`}>
+              <div className={ICON_COL}>
                 {i === 0 ? (
                   <FontAwesomeIcon icon={faPlaneDeparture} className="w-5 h-5 text-[#6B7B7B]" />
                 ) : (
@@ -88,11 +91,13 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
               </div>
             </div>
 
-             {/* Flight leg line + duration in air */}
-            <div className="flex items-center gap-3 ml-[5px]">
-              <div className="w-0.5 border-l-2 border-dashed border-[#C8CDCD] min-h-[28px] self-stretch" />
+            {/* Flight leg vertical line + duration */}
+            <div className={`flex items-stretch ${TEXT_GAP}`}>
+              <div className={`${ICON_COL} self-stretch`}>
+                <div className="w-0.5 border-l-2 border-dashed border-[#C8CDCD] min-h-[28px] self-stretch" />
+              </div>
               {legDuration && (
-                <div className="flex items-center gap-1.5 py-1">
+                <div className="flex items-center py-1">
                   <span className="text-xs text-[#6B7B7B] font-medium">{legDuration}</span>
                 </div>
               )}
@@ -100,8 +105,9 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
 
             {/* Arrival / layover */}
             {!nextLeg ? (
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col items-center">
+              /* Final arrival */
+              <div className={`flex items-center ${TEXT_GAP}`}>
+                <div className={ICON_COL}>
                   <FontAwesomeIcon icon={faPlaneArrival} className="w-5 h-5 text-[#345C5A]" />
                 </div>
                 <div className="flex flex-col">
@@ -113,34 +119,44 @@ const FlightLegTimeline = ({ legs, airportMap }: FlightLegTimelineProps) => {
               </div>
             ) : (
               <>
-              {/* Connecting airport arrival */}
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center">
+                {/* Connecting airport arrival */}
+                <div className={`flex items-center ${TEXT_GAP}`}>
+                  <div className={ICON_COL}>
                     <div className="w-2.5 h-2.5 rounded-full bg-[#6B7B7B]" />
                   </div>
-                   <div className="flex flex-col">
-                     <span className="text-sm font-semibold text-[#2E4A4A]">
-                       {leg.destination} <span className="font-normal">{arrTime}</span>
-                     </span>
-                     {airportMap[leg.destination]?.city && <span className="text-xs text-[#6B7B7B]">{airportMap[leg.destination].city}</span>}
-                   </div>
-                 </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-[#2E4A4A]">
+                      {leg.destination} <span className="font-normal">{arrTime}</span>
+                    </span>
+                    {airportMap[leg.destination]?.city && (
+                      <span className="text-xs text-[#6B7B7B]">{airportMap[leg.destination].city}</span>
+                    )}
+                  </div>
+                </div>
 
-                {/* Layover node */}
-                <div className="flex items-stretch gap-3 ml-[5px]">
-                  <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px]" />
+                {/* Dotted line to layover */}
+                <div className={`flex items-stretch ${TEXT_GAP}`}>
+                  <div className={`${ICON_COL} self-stretch`}>
+                    <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px] self-stretch" />
+                  </div>
                   <span className="py-0.5" />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center">
+
+                {/* Layover node */}
+                <div className={`flex items-center ${TEXT_GAP}`}>
+                  <div className={ICON_COL}>
                     <div className="w-3 h-3 rounded-full border-2 border-[#E89830] bg-[#FFF7ED]" />
                   </div>
                   <span className="text-xs text-[#E89830] font-semibold">
                     Layover · {layoverDuration}
                   </span>
                 </div>
-                <div className="flex items-stretch gap-3 ml-[5px]">
-                  <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px]" />
+
+                {/* Dotted line from layover */}
+                <div className={`flex items-stretch ${TEXT_GAP}`}>
+                  <div className={`${ICON_COL} self-stretch`}>
+                    <div className="w-0.5 border-l-2 border-dotted border-[#C8CDCD] min-h-[10px] self-stretch" />
+                  </div>
                   <span className="py-0.5" />
                 </div>
               </>
