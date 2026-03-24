@@ -1248,7 +1248,7 @@ const FlightDestResults = ({
 
                               {/* Expanded detail — FlightLegTimeline + actions + Hide Details at the bottom */}
                               {isFlightOpen && (
-                                <div className="bg-white animate-fade-in border-t border-[#E8EBEB]/50">
+                                <div className="bg-white animate-fade-in">
                                   <div className="px-2 pt-3">
                                     <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                   </div>
