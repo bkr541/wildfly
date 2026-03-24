@@ -1233,7 +1233,7 @@ const FlightDestResults = ({
                                     const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
                                     if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                                   }}
-                                  className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                  className={cn("w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
                                 >
                                   Show Details
                                   <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
