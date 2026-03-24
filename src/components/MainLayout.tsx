@@ -379,7 +379,9 @@ const MainLayout = ({
       {/* Global notifications sheet (triggered from Home bell icon) */}
       <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
-      {/* Global search sheet */}
+      {/* Home layout quick-editor sheet */}
+      <HomeLayoutSheet open={homeLayoutOpen} onClose={() => setHomeLayoutOpen(false)} />
+
       <BottomSheet open={isSearchOpen} onClose={() => setIsSearchOpen(false)} style={{ top: "5%" }}>
               {/* Title row */}
               <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
