@@ -544,6 +544,8 @@ const FlightMultiDestResults = ({
     let filtered = [...cards];
     if (filterNonstopOnly) filtered = filtered.filter((c) => c.hasNonstop);
     if (filterGoWildOnly) filtered = filtered.filter((c) => c.hasGoWild);
+    if (filterDestType === "domestic") filtered = filtered.filter((c) => !c.country || c.country === "United States" || c.country === "US");
+    if (filterDestType === "international") filtered = filtered.filter((c) => c.country && c.country !== "United States" && c.country !== "US");
     return filtered.sort((a, b) => {
       if (sortBy === "fare") {
         if (a.minFare == null && b.minFare == null) return 0;
@@ -555,7 +557,7 @@ const FlightMultiDestResults = ({
       if (sortBy === "duration") return a.avgDurationMin - b.avgDurationMin;
       return a.city.localeCompare(b.city);
     });
-  }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly]);
+  }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType]);
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
