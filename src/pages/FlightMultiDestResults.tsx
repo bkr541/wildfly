@@ -703,7 +703,7 @@ const FlightMultiDestResults = ({
                 style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
               >
                 {/* City photo */}
-                <div className="relative h-[188px] overflow-hidden bg-[#C8D5D5]">
+                <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
                   {bgImage ? (
                     <img
                       src={bgImage}
@@ -729,18 +729,16 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
                     }}
                   />
-                  {/* IATA | City, State — bottom right, blends into the fade */}
-                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
-                    <h3 className="text-[28px] font-black leading-tight drop-shadow-none">
-                      <span style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
-                      <span className="text-[#9AADAD] font-normal text-[24px]"> | </span>
-                      <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight">
-                        {card.city || card.destination}
-                        {(card.stateCode && card.stateCode !== "None") && (
-                          <span>{", "}{card.stateCode}</span>
-                        )}
-                      </span>
-                    </h3>
+                  {/* IATA | City, State — bottom, blends into the fade */}
+                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-baseline gap-0">
+                    <span className="text-[34px] font-black leading-none" style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+                    <span className="text-[#9AADAD] font-normal text-[24px] leading-none mx-1"> | </span>
+                    <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight text-[22px] leading-none">
+                      {card.city || card.destination}
+                      {(card.stateCode && card.stateCode !== "None") && (
+                        <span>{", "}{card.stateCode}</span>
+                      )}
+                    </span>
                   </div>
                   {/* GoWild badge — top LEFT of hero image */}
                   {card.hasGoWild && (
@@ -785,7 +783,7 @@ const FlightMultiDestResults = ({
                 </div>
 
                 {/* Card body */}
-                 <div className="px-4 pt-3 pb-4">
+                 <div className="px-4 pt-1.5 pb-4">
 
                   {/* Stats grid: 2-column layout */}
                   <div className="flex flex-col gap-2 mb-4">
