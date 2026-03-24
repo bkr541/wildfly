@@ -711,11 +711,10 @@ const FlightDestResults = ({
                   {arrivalAirport && arrivalAirport !== "All" ? (
                     <>
                       <span className="text-[30px] font-black">{arrivalAirport}</span>
-                      {airportMap[arrivalAirport]?.city ? (
+                      {airportMap[arrivalAirport]?.city && airportMap[arrivalAirport]?.stateCode ? (
                         <span className="text-[30px] font-light">
                           {" "}
-                          | {airportMap[arrivalAirport].city}
-                          {airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
+                          | {airportMap[arrivalAirport].city}, {airportMap[arrivalAirport].stateCode}
                         </span>
                       ) : null}
                     </>
