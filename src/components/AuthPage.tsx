@@ -401,8 +401,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
             className="flex flex-col flex-1 animate-fade-in min-h-0"
             noValidate
           >
-            {/* Fixed height container keeps button position stable between toggles */}
-            <div className="space-y-4 h-[270px] overflow-y-auto pr-1 shrink-0">
+            {/* Fields — no fixed height, let content flow naturally */}
+            <div className="space-y-3 shrink-0">
               {/* First/Last Name for Sign Up (same line, no placeholder clipping) */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4 min-w-0">
