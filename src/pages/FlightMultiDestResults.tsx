@@ -692,8 +692,8 @@ const FlightMultiDestResults = ({
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
-        <div className="flex-1 flex flex-col px-5 py-4 gap-4 relative z-10">
-          {sortedCards.map((card) => {
+        <div className="flex-1 flex flex-col px-5 py-4 gap-6 relative z-10">
+          {sortedCards.map((card, index) => {
             const bgImage = card.locationId ? `/assets/locations/${card.locationId}_background.png` : null;
             const isGoWild = card.hasGoWild;
 
@@ -705,7 +705,7 @@ const FlightMultiDestResults = ({
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
               >
                 {/* City photo */}
                 <div className="relative h-[182px] overflow-hidden bg-[#C8D5D5]">
