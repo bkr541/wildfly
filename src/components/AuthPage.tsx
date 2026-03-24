@@ -340,7 +340,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         {/* Scrollable card — grows to fill remaining space, never crushes logo */}
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 shadow-2xl flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100svh - 160px)" }}>
           {/* Header label */}
-          <div className="w-full mb-6">
+          <div className="w-full mb-4">
             <div className="flex items-center gap-1.5 w-full">
               {displayChars.map((char, i) => {
                 const isGreen = i >= greenStart;
