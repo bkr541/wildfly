@@ -72,6 +72,7 @@ const MainLayout = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [homeLayoutOpen, setHomeLayoutOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
