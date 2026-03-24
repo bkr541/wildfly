@@ -40,13 +40,11 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
-  const [showApiClient, setShowApiClient] = useState(false);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
   const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
-
 
   const clearFlightSearchAndCache = async () => {
     setClearingFlights(true);
@@ -54,14 +52,12 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Not authenticated"); return; }
 
-      // Clear user's flight_searches (allowed via RLS)
       const { error: searchErr } = await supabase
         .from("flight_searches")
         .delete()
         .eq("user_id", user.id);
       if (searchErr) throw searchErr;
 
-      // Clear flight_search_cache via edge function (requires service role to bypass RLS)
       const { error: cacheErr } = await supabase.functions.invoke("clear-flight-cache");
       if (cacheErr) throw cacheErr;
 
@@ -73,14 +69,9 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
     }
   };
 
-  // Set title on mount and restore when sub-screens close
   useEffect(() => {
     onTitleChange?.("Developer Tools");
   }, []);
-
-  if (showApiClient) {
-    return <ApiClientScreen onBack={() => { setShowApiClient(false); onTitleChange?.("Developer Tools"); }} />;
-  }
 
   if (showAnnouncements) {
     return (
@@ -91,7 +82,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
     );
   }
 
-if (loading || !settings) {
+  if (loading || !settings) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-[#6B7B7B]">Loading...</p>
@@ -153,21 +144,6 @@ if (loading || !settings) {
   return (
     <div className="flex flex-col h-full animate-fade-in">
       <div className="flex-1 px-5 pb-4 space-y-4 overflow-y-auto">
-        {/* API Client */}
-        <button
-          type="button"
-          onClick={() => setShowApiClient(true)}
-          className="flex items-center w-full bg-white rounded-2xl shadow-sm border border-[#E3E6E6] px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left"
-        >
-          <span className="h-8 w-8 rounded-lg bg-[#F2F3F3] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={SourceCodeSquareIcon} size={15} color="#345C5A" strokeWidth={1.5} />
-          </span>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-[#2E4A4A]">API Client</p>
-            <p className="text-xs text-[#6B7B7B]">Test edge functions with pre-populated params</p>
-          </div>
-          <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#C4CACA" strokeWidth={1.5} />
-        </button>
         {/* Design System */}
         <button
           type="button"
