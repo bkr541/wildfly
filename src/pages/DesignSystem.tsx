@@ -1042,7 +1042,7 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
             Quickest
           </div>
           {/* +1 Day */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#C2410C", color: "#FFFFFF" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold" style={{ background: "#E89830", color: "#FFFFFF" }}>
             <HugeiconsIcon icon={Clock01Icon} size={18} color="#FFFFFF" strokeWidth={2} />
             +1 Day
           </div>
