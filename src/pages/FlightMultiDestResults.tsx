@@ -849,19 +849,22 @@ const FlightMultiDestResults = ({
                     </div>
                   </div>
 
-                  {/* View Flights button — full width */}
-                  <button
-                    type="button"
-                    onClick={() => handleViewDest(card)}
-                    className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
-                    style={
-                      isGoWild
-                        ? { background: "#059669", color: "#FFFFFF" }
-                        : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
-                    }
-                  >
-                    View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
-                  </button>
+                  {/* View Flights button — right-aligned, auto width */}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleViewDest(card)}
+                      className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
+                      style={
+                        isGoWild
+                          ? { background: "#059669", color: "#FFFFFF" }
+                          : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
+                      }
+                    >
+                      View {card.flightCount} Flight{card.flightCount !== 1 ? "s" : ""}
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} color={isGoWild ? "#FFFFFF" : "#1A2E2E"} strokeWidth={2.5} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
