@@ -720,7 +720,7 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
               )}
             >
               <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
