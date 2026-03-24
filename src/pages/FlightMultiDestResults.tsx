@@ -722,13 +722,29 @@ const FlightMultiDestResults = ({
                       }}
                     />
                   )}
-                  {/* Gradient scrim */}
+                  {/* Gradient scrim — dark at top fading to white at bottom */}
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                      background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)",
+                      background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
                     }}
                   />
+                  {/* IATA | City, State — bottom left, blends into the fade */}
+                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
+                    <h3 className="text-[22px] font-black leading-tight drop-shadow-none">
+                      <span style={{ color: isGoWild ? "#4A7C59" : "#1A3060" }}>{card.destination}</span>
+                      <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
+                      <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight">
+                        {card.city || card.destination}
+                        {((card.stateCode && card.stateCode !== "None") || card.country) && (
+                          <span>
+                            {", "}
+                            {(card.stateCode && card.stateCode !== "None") ? card.stateCode : card.country}
+                          </span>
+                        )}
+                      </span>
+                    </h3>
+                  </div>
                   {/* GoWild badge — top LEFT of hero image */}
                   {card.hasGoWild && (
                     <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-[#059669]">
