@@ -1061,11 +1061,11 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <div className="z-10 bg-[#E8EBEB] px-3 py-0.5 rounded-full">
-                                <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
-                                  {h12} {ampm}
-                                </span>
-                              </div>
+                              <div className="z-10 bg-[#E8EBEB] px-3 py-0.5 rounded-full border border-[#C8D5D5]">
+                                 <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
+                                   {h12} {ampm}
+                                 </span>
+                               </div>
                             </div>
                           );
                         }
@@ -1169,18 +1169,18 @@ const FlightDestResults = ({
                                   </span>
                                 </div>
 
-                                {/* Row 3: Origin city — duration chip — Dest city */}
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
-                                    {originCity}{originState ? `, ${originState}` : ""}
-                                  </span>
-                                  <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
-                                    {formatDuration(flight.total_duration)}
-                                  </span>
-                                  <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
-                                    {destCity}{destState ? `, ${destState}` : ""}
-                                  </span>
-                                </div>
+                                 {/* Row 3: Origin city — duration chip — Dest city */}
+                                 <div className="flex items-center justify-between gap-2">
+                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">
+                                     {originCity}
+                                   </span>
+                                   <span className="shrink-0 text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full">
+                                     {formatDuration(flight.total_duration)}
+                                   </span>
+                                   <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">
+                                     {destCity}
+                                   </span>
+                                 </div>
 
                                 {/* Row 4: Status badges */}
                                 {hasBadges && (
@@ -1248,40 +1248,40 @@ const FlightDestResults = ({
                                     <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
                                   </div>
                                   <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-2">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
-                                      className={cn(
-                                        "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                        hasAlert
-                                          ? "bg-[#E89830] text-white border-[#E89830]"
-                                          : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
-                                      )}
-                                    >
-                                      Alert Me
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setBookingConfirm({ url: frontierUrl, flight });
-                                      }}
-                                      className={cn(
-                                        "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
-                                        isGoWild
-                                          ? hasGoing ? "bg-[#047857] text-white border-[#047857]" : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
-                                          : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
-                                      )}
-                                    >
-                                      {priceLabel ? priceLabel : "Book"}
-                                    </button>
-                                  </div>
-                                  {/* Hide Details button at the bottom of expanded content */}
-                                  <button
-                                    onClick={() => setExpandedFlightKey(null)}
-                                    className={cn("w-full flex items-center justify-center gap-1 py-2 border-t border-[#F0F4F4] text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
-                                  >
-                                    Hide Details
-                                    <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
-                                  </button>
+                                     <button
+                                       onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
+                                       className={cn(
+                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                                         hasAlert
+                                           ? "bg-[#E89830] text-white border-[#E89830]"
+                                           : "bg-white text-[#4B5563] border-[#D1D5DB] hover:border-[#E89830] hover:text-[#E89830]",
+                                       )}
+                                     >
+                                       Alert Me
+                                     </button>
+                                     <button
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         setBookingConfirm({ url: frontierUrl, flight });
+                                       }}
+                                       className={cn(
+                                         "flex items-center justify-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold border transition-all duration-200",
+                                         isGoWild
+                                           ? hasGoing ? "bg-[#047857] text-white border-[#047857]" : "bg-[#059669] text-white border-[#059669] hover:bg-[#047857]"
+                                           : hasGoing ? "bg-[#E8EBEB] text-[#2E4A4A] border-[#D1D5DB]" : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8]",
+                                       )}
+                                     >
+                                       {priceLabel ? priceLabel : "Book"}
+                                     </button>
+                                   </div>
+                                   {/* Hide Details button at the bottom of expanded content — no separator */}
+                                   <button
+                                     onClick={() => setExpandedFlightKey(null)}
+                                     className={cn("w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                   >
+                                     Hide Details
+                                     <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+                                   </button>
                                 </div>
                               )}
                             </div>
@@ -1296,11 +1296,11 @@ const FlightDestResults = ({
                     const { h12, ampm } = fmtHourLabel(trailingHour);
                     return (
                       <div className="flex items-center justify-center w-full py-2">
-                       <div className="bg-[#E8EBEB] px-3 py-0.5 rounded-full">
-                          <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
-                             {h12} {ampm}
-                          </span>
-                        </div>
+                       <div className="bg-[#E8EBEB] px-3 py-0.5 rounded-full border border-[#C8D5D5]">
+                           <span className="text-[15px] font-semibold text-[#6B7B7B] leading-tight">
+                              {h12} {ampm}
+                           </span>
+                         </div>
                       </div>
                     );
                   })()}
