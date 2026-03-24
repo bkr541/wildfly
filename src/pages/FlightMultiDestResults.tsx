@@ -729,18 +729,15 @@ const FlightMultiDestResults = ({
                       background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.70) 78%, rgba(255,255,255,1.00) 100%)",
                     }}
                   />
-                  {/* IATA | City, State — bottom left, blends into the fade */}
+                  {/* IATA | City, State — bottom right, blends into the fade */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
-                    <h3 className="text-[22px] font-black leading-tight drop-shadow-none">
-                      <span style={{ color: isGoWild ? "#4A7C59" : "#1A3060" }}>{card.destination}</span>
-                      <span className="text-[#9AADAD] font-normal text-[18px]"> | </span>
+                    <h3 className="text-[28px] font-black leading-tight drop-shadow-none">
+                      <span style={{ color: isGoWild ? "#059669" : "#1A3060" }}>{card.destination}</span>
+                      <span className="text-[#9AADAD] font-normal text-[24px]"> | </span>
                       <span className="text-[#1A2E2E] uppercase tracking-wide font-extralight">
                         {card.city || card.destination}
-                        {((card.stateCode && card.stateCode !== "None") || card.country) && (
-                          <span>
-                            {", "}
-                            {(card.stateCode && card.stateCode !== "None") ? card.stateCode : card.country}
-                          </span>
+                        {(card.stateCode && card.stateCode !== "None") && (
+                          <span>{", "}{card.stateCode}</span>
                         )}
                       </span>
                     </h3>
@@ -758,7 +755,7 @@ const FlightMultiDestResults = ({
                       className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
                       style={
                         isGoWild
-                          ? { background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }
+                          ? { background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
                           : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
                       }
                     >
@@ -779,7 +776,7 @@ const FlightMultiDestResults = ({
                   {card.hasGoWild && card.minFare == null && (
                     <div
                       className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-                      style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
+                      style={{ background: "#059669", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
                     >
                       <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
                       <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
@@ -789,8 +786,6 @@ const FlightMultiDestResults = ({
 
                 {/* Card body */}
                  <div className="px-4 pt-3 pb-4">
-                   {/* Divider */}
-                   <div className="border-t border-[#F0F3F3] mb-2.5" />
 
                   {/* Stats grid: 2-column layout */}
                   <div className="flex flex-col gap-2 mb-4">
@@ -862,7 +857,7 @@ const FlightMultiDestResults = ({
                     className="w-full py-3 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 active:scale-95"
                     style={
                       isGoWild
-                        ? { background: "#4A7C59", color: "#FFFFFF" }
+                        ? { background: "#059669", color: "#FFFFFF" }
                         : { background: "rgba(0,0,0,0.07)", color: "#1A2E2E" }
                     }
                   >
