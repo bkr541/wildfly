@@ -168,7 +168,7 @@ async function fetchAndLogDayTrips(): Promise<void> {
         // silently ignore
       });
     }
-
+  } catch {
     // Non-blocking — silently ignore errors
   }
 }
