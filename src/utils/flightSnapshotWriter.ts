@@ -114,12 +114,10 @@ export async function writeFlightSnapshots(
         // trip context
         flight_type: f.flightType ?? f.flight_type ?? (f.stops === 0 ? "NonStop" : "Connect"),
         stops: cleanInt(f.stops),
-        total_trip_minutes: cleanInt(f.totalTripMinutes ?? f.total_trip_minutes),
         total_duration_display: f.total_duration ?? f.duration ?? null,
 
         // leg grain
         leg_index: idx + 1,
-        carrier_code: leg.origin ? (f.carrierCode ?? f.carrier_code ?? null) : null,
         flight_number: f.flightNumber ?? f.flight_number ?? `${f.airline ?? "XX"}${idx + 1}`,
         leg_origin_iata: leg.origin,
         leg_destination_iata: leg.destination,
