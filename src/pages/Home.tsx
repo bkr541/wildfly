@@ -93,6 +93,7 @@ interface HomePageProps {
 }
 
 const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
+  const { user } = useAuth();
   const [flights, setFlights] = useState<UserFlight[]>([]);
   const [searches, setSearches] = useState<FlightSearch[]>([]);
   const [loading, setLoading] = useState(true);
