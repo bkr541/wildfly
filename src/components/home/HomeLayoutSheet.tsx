@@ -44,7 +44,6 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
     if (!open) return;
     const load = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
       const { data } = await supabase
