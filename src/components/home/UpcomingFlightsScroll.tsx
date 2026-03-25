@@ -59,23 +59,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
           <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Upcoming Flights
         </h2>
-        <div className="flex items-center gap-2">
-          {!isCollapsed && (
-            <span
-              onClick={(e) => { e.stopPropagation(); onNavigate?.("itinerary"); }}
-              className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
-            >
-              View All
-              <ChevronRight size={13} strokeWidth={2.5} />
-            </span>
-          )}
-          <motion.div
-            animate={{ rotate: isCollapsed ? -90 : 0 }}
-            transition={{ duration: 0.22, ease: EASE }}
-          >
-            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
-          </motion.div>
-        </div>
+        <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
+          <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+        </motion.div>
       </button>
 
       {/* Collapsible content with cascading animation */}
@@ -192,6 +178,18 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            )}
+            {!loading && flights.length > 0 && (
+              <div className="flex justify-end px-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.("itinerary")}
+                  className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
+                >
+                  View All
+                  <ChevronRight size={13} strokeWidth={2.5} />
+                </button>
               </div>
             )}
             </div>
