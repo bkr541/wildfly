@@ -367,8 +367,6 @@ export type Database = {
         Row: {
           airline: string | null
           arrival_at: string
-          carrier_code: string | null
-          created_at: string
           currency: string | null
           departure_at: string
           discount_den_available_seats: number | null
@@ -377,7 +375,6 @@ export type Database = {
           discount_den_total: number | null
           display_cabin: string | null
           display_price: number | null
-          final_destination_iata: string
           flight_number: string
           flight_search_id: string
           flight_type: string | null
@@ -387,7 +384,6 @@ export type Database = {
           go_wild_total: number | null
           has_go_wild: boolean
           id: string
-          itinerary_flight_number: string | null
           leg_destination_iata: string
           leg_index: number
           leg_origin_iata: string
@@ -406,14 +402,11 @@ export type Database = {
           standard_total: number | null
           stops: number | null
           total_duration_display: string | null
-          total_trip_minutes: number | null
           updated_at: string
         }
         Insert: {
           airline?: string | null
           arrival_at: string
-          carrier_code?: string | null
-          created_at?: string
           currency?: string | null
           departure_at: string
           discount_den_available_seats?: number | null
@@ -422,7 +415,6 @@ export type Database = {
           discount_den_total?: number | null
           display_cabin?: string | null
           display_price?: number | null
-          final_destination_iata: string
           flight_number: string
           flight_search_id: string
           flight_type?: string | null
@@ -432,7 +424,6 @@ export type Database = {
           go_wild_total?: number | null
           has_go_wild?: boolean
           id?: string
-          itinerary_flight_number?: string | null
           leg_destination_iata: string
           leg_index: number
           leg_origin_iata: string
@@ -451,14 +442,11 @@ export type Database = {
           standard_total?: number | null
           stops?: number | null
           total_duration_display?: string | null
-          total_trip_minutes?: number | null
           updated_at?: string
         }
         Update: {
           airline?: string | null
           arrival_at?: string
-          carrier_code?: string | null
-          created_at?: string
           currency?: string | null
           departure_at?: string
           discount_den_available_seats?: number | null
@@ -467,7 +455,6 @@ export type Database = {
           discount_den_total?: number | null
           display_cabin?: string | null
           display_price?: number | null
-          final_destination_iata?: string
           flight_number?: string
           flight_search_id?: string
           flight_type?: string | null
@@ -477,7 +464,6 @@ export type Database = {
           go_wild_total?: number | null
           has_go_wild?: boolean
           id?: string
-          itinerary_flight_number?: string | null
           leg_destination_iata?: string
           leg_index?: number
           leg_origin_iata?: string
@@ -496,7 +482,6 @@ export type Database = {
           standard_total?: number | null
           stops?: number | null
           total_duration_display?: string | null
-          total_trip_minutes?: number | null
           updated_at?: string
         }
         Relationships: [
