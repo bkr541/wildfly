@@ -121,104 +121,66 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     loadUser();
   }, []);
 
-
-  const searchLocations = useCallback(async (query: string, setter: (r: LocationOption[]) => void) => {
-    if (query.length < 3) {
-      setter([]);
-      return;
-    }
-    const { data } = await supabase
-      .from("locations")
-      .select("id, city, state_code, name")
-      .or(`city.ilike.%${query}%,name.ilike.%${query}%`)
-      .limit(10);
-    setter((data as LocationOption[]) || []);
+  // Load all airports for the airport sheet
+  useEffect(() => {
+    supabase
+      .from("airports")
+      .select("id, iata_code, name, locations(city, state_code, region)")
+      .then(({ data }) => {
+        if (data) setAllAirports(data as AirportOption[]);
+      });
   }, []);
 
-  const handleHomeCitySearch = (val: string) => {
-    setHomeCitySearch(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      searchLocations(val, setHomeCityResults);
-    }, 300);
-  };
-
-  const handleFavSearch = (val: string) => {
-    setFavSearch(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      searchLocations(val, setFavResults);
-    }, 300);
-  };
-
-  const selectHomeCity = (loc: LocationOption) => {
-    setHomeCity(loc);
-    setHomeCitySearch(formatLocationDisplay(loc));
-    setShowHomeCitySheet(false);
-    setHomeCityError("");
-    // Remove from favorites if it was selected
-    setFavoriteCities((prev) => prev.filter((f) => f.id !== loc.id));
-  };
-
-  const addFavorite = (loc: LocationOption) => {
-    if (favoriteCities.length >= 5) return;
-    if (homeCity && loc.id === homeCity.id) return;
-    if (favoriteCities.some((f) => f.id === loc.id)) return;
-    setFavoriteCities((prev) => [...prev, loc]);
-    setFavSearch("");
-    setShowFavSheet(false);
-  };
-
-  const removeFavorite = (id: number) => {
-    setFavoriteCities((prev) => prev.filter((f) => f.id !== id));
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    if (!authUser) return;
-    const path = `${authUser.id}/avatar.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (!error) {
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatarUrl(urlData.publicUrl);
-      // Write to avatar_url (canonical) and keep image_file in sync for legacy reads
-      await supabase.from("user_info").update({ avatar_url: urlData.publicUrl, image_file: urlData.publicUrl }).eq("id", user.id);
+  // Focus airport sheet input when it opens
+  useEffect(() => {
+    if (showHomeAirportSheet) {
+      setAirportQuery("");
+      requestAnimationFrame(() => {
+        setTimeout(() => { airportInputRef.current?.focus(); }, 50);
+      });
     }
-  };
+  }, [showHomeAirportSheet]);
 
-  // Screen 1: Continue
-  const handleScreen1Continue = async () => {
-    if (!username.trim()) {
-      setUsernameError("Username is required");
-      return;
-    }
-    if (!user) return;
-    setSaving(true);
-    const updates: Record<string, any> = { username: username.trim() };
-    if (dob) updates.dob = dob;
-    if (mobileNumber.trim()) updates.mobile_number = mobileNumber.trim();
-    await supabase.from("user_info").update(updates).eq("id", user.id);
-    setSaving(false);
-    setStep(1);
-  };
+  // Filtered airports for the home airport sheet
+  const filteredAirports = useMemo(() => {
+    const q = airportQuery.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return allAirports
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.iata_code.toLowerCase().includes(q) ||
+          (a.locations && !Array.isArray(a.locations) && (a.locations as any).city?.toLowerCase().includes(q)),
+      )
+      .slice(0, 40);
+  }, [airportQuery, allAirports]);
 
+  const searchLocations = useCallback(async (query: string, setter: (r: LocationOption[]) => void) => {
+...
   // Screen 2: Continue
   const handleScreen2Continue = async () => {
+    let hasError = false;
     if (!homeCity) {
       setDestTab("home");
       setHomeCityError("Home City is required");
-      return;
+      hasError = true;
     }
+    if (!homeAirport) {
+      setDestTab("home");
+      setHomeAirportError("Home Airport is required");
+      hasError = true;
+    }
+    if (hasError) return;
     if (!user) return;
     setSaving(true);
-    const homeCityLabel = homeCity.city && homeCity.state_code
-      ? `${homeCity.city}, ${homeCity.state_code}`
-      : homeCity.name;
-    await supabase.from("user_info").update({ home_location_id: homeCity.id, home_city: homeCityLabel }).eq("id", user.id);
+    const homeCityLabel = homeCity!.city && homeCity!.state_code
+      ? `${homeCity!.city}, ${homeCity!.state_code}`
+      : homeCity!.name;
+    await supabase.from("user_info").update({
+      home_location_id: homeCity!.id,
+      home_city: homeCityLabel,
+      home_airport: homeAirport!.iata_code,
+    }).eq("id", user.id);
     // Sync user_locations: delete all then insert current favorites
     await supabase.from("user_locations").delete().eq("user_id", user.id);
     if (favoriteCities.length > 0) {
