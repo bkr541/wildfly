@@ -530,14 +530,14 @@ function DayTripCard({
 
         {/* Badges row */}
         {badges.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#F3F4F6]">
+          <div className="flex flex-wrap gap-1 mt-2.5 pt-2.5 border-t border-[#F3F4F6]">
             {badges.map((badge) => (
               <span
                 key={badge.key}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold whitespace-nowrap"
+                className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold whitespace-nowrap"
                 style={{ background: badge.color, color: badge.textColor }}
               >
-                <HugeiconsIcon icon={badge.icon} size={10} color={badge.textColor} strokeWidth={2} />
+                <HugeiconsIcon icon={badge.icon} size={9} color={badge.textColor} strokeWidth={2} />
                 {badge.label}
               </span>
             ))}
