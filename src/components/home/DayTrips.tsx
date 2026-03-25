@@ -10,7 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
