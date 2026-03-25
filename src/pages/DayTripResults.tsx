@@ -719,16 +719,22 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
           {/* Hero text */}
           <div className="relative mt-3">
             <p
-              className="text-white/70 text-[20px] font-light leading-tight"
+              className="text-white/70 text-[13px] font-semibold uppercase tracking-[0.18em] leading-tight"
               style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
             >
-              {departureAirport} ·
+              Day Trips From
             </p>
             <p
-              className="text-white text-[28px] font-black leading-tight uppercase tracking-wide"
+              className="text-white text-[32px] font-black leading-tight uppercase tracking-wide"
               style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
             >
-              {heroTitle}
+              {(() => {
+                const info = airportMap[departureAirport];
+                if (info?.city) {
+                  return info.stateCode ? `${info.city}, ${info.stateCode}` : info.city;
+                }
+                return departureAirport || "—";
+              })()}
             </p>
 
             {/* Meta pills */}
