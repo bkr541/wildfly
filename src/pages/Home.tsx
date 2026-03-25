@@ -4,8 +4,6 @@ import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
-import { format } from "date-fns";
-import { writeFlightSnapshots } from "@/utils/flightSnapshotWriter";
 
 
 interface UserFlight {
@@ -31,147 +29,6 @@ interface FlightSearch {
   gowild_found: boolean | null;
 }
 
-/** SHA-256 hex hash via Web Crypto (mirrors Flights.tsx) */
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-/** 12:01 AM on the given date in UTC — reset boundary (mirrors Flights.tsx) */
-function resetBucket(departureDateStr: string): string {
-  const [y, m, d] = departureDateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
-}
-
-async function fetchAndLogDayTrips(): Promise<void> {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: info } = await supabase
-      .from("user_info")
-      .select("home_location_id")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
-
-    if (!info?.home_location_id) return;
-
-    const { data: airport } = await supabase
-      .from("airports")
-      .select("iata_code")
-      .eq("location_id", info.home_location_id)
-      .limit(1)
-      .maybeSingle();
-
-    if (!airport?.iata_code) return;
-
-    const originIATA = airport.iata_code;
-    const today = format(new Date(), "yyyy-MM-dd");
-    const bucket = resetBucket(today);
-
-    const cacheKey = await sha256(`${originIATA}|__DAYTRIPS__|${today}`);
-
-    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-    const { data: cached } = await (supabase.from("flight_search_cache") as any)
-      .select("payload, updated_at")
-      .eq("cache_key", cacheKey)
-      .eq("status", "ready")
-      .gte("updated_at", sixHoursAgo)
-      .maybeSingle();
-
-    if (cached?.payload) return;
-
-    const { data: inFlight } = await (supabase.from("flight_search_cache") as any)
-      .select("status")
-      .eq("cache_key", cacheKey)
-      .eq("status", "fetching")
-      .gte("updated_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
-      .maybeSingle();
-
-    if (inFlight) return;
-
-    await (supabase.from("flight_search_cache") as any).upsert(
-      {
-        cache_key: cacheKey,
-        reset_bucket: bucket,
-        canonical_request: { origin: originIATA, date: today, layovertime: 6 },
-        provider: "frontier",
-        status: "fetching",
-        dep_iata: originIATA,
-        arr_iata: "__DAYTRIPS__",
-      },
-      { onConflict: "cache_key,reset_bucket" },
-    );
-
-    const url = `https://getmydata.fly.dev/api/flights/dayTrips?origin=${originIATA}&date=${today}&nonstop=true&layovertime=6`;
-    const res = await fetch(url, { method: "GET" });
-    if (!res.ok) {
-      await (supabase.from("flight_search_cache") as any).upsert(
-        {
-          cache_key: cacheKey,
-          reset_bucket: bucket,
-          canonical_request: { origin: originIATA, date: today, layovertime: 6 },
-          provider: "frontier",
-          status: "error",
-          error: `HTTP ${res.status}`,
-          dep_iata: originIATA,
-          arr_iata: "__DAYTRIPS__",
-        },
-        { onConflict: "cache_key,reset_bucket" },
-      );
-      return;
-    }
-
-    const payload = await res.json();
-
-    await (supabase.from("flight_search_cache") as any).upsert(
-      {
-        cache_key: cacheKey,
-        reset_bucket: bucket,
-        canonical_request: { origin: originIATA, date: today, layovertime: 6 },
-        provider: "frontier",
-        status: "ready",
-        payload,
-        dep_iata: originIATA,
-        arr_iata: "__DAYTRIPS__",
-      },
-      { onConflict: "cache_key,reset_bucket" },
-    );
-
-    const dayTripFlights: any[] = payload?.flights ?? [];
-    const dayTripGoWild = dayTripFlights.some(
-      (f: any) =>
-        f.fares?.go_wild != null ||
-        f.rawPayload?.fares?.go_wild?.total != null,
-    );
-    const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
-      user_id: user.id,
-      departure_airport: originIATA,
-      arrival_airport: null,
-      departure_date: today,
-      return_date: null,
-      trip_type: "day-trip",
-      all_destinations: "Yes",
-      json_body: payload,
-      credits_cost: 0,
-      arrival_airports_count: null,
-      gowild_found: dayTripGoWild,
-      flight_results_count: dayTripFlights.length,
-    }).select("id").single();
-    // Write flight_snapshots non-blockingly
-    if (fsRow?.id) {
-      writeFlightSnapshots(fsRow.id, dayTripFlights, originIATA).catch(() => {
-        // silently ignore
-      });
-    }
-  } catch {
-    // Non-blocking — silently ignore errors
-  }
-}
 
 interface HomepageComponent {
   component_name: string;
@@ -263,7 +120,6 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
         return;
       }
 
-      fetchAndLogDayTrips();
 
       const [flightsResult, searchesResult] = await Promise.all([
         supabase
