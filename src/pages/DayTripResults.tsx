@@ -466,7 +466,7 @@ function DayTripCard({
       </div>
 
       {/* Card body */}
-      <div className="px-4 pt-5 pb-3">
+      <div className="px-3 pt-4 pb-2.5">
         <div className="flex gap-2 items-start">
           {/* Outbound column */}
           <FlightColumn
