@@ -29,21 +29,6 @@ interface FlightSearch {
   gowild_found: boolean | null;
 }
 
-/** SHA-256 hex hash via Web Crypto (mirrors Flights.tsx) */
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-/** 12:01 AM on the given date in UTC — reset boundary (mirrors Flights.tsx) */
-function resetBucket(departureDateStr: string): string {
-  const [y, m, d] = departureDateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
-}
-
-async function fetchAndLogDayTrips(): Promise<void> {
   try {
     const {
       data: { user },
