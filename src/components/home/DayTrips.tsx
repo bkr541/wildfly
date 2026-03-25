@@ -6,7 +6,6 @@ import {
   SunCloud01Icon,
   Calendar03Icon,
   Clock01Icon,
-  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -327,16 +326,6 @@ function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
             </span>
             <span className="text-[10px] font-bold text-[#1A2E2E] text-center leading-tight">
               {pair.outbound.destination}
-            </span>
-            {/* Vertical separator */}
-            <div className="w-px h-4 bg-[#E5E7EB] mt-0.5" />
-            {/* GoWild badge */}
-            <span
-              className="inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[9px] font-black whitespace-nowrap"
-              style={{ background: "#059669", color: "#FFFFFF" }}
-            >
-              <HugeiconsIcon icon={Rocket01Icon} size={9} color="white" strokeWidth={2} />
-              GoWild
             </span>
           </div>
 

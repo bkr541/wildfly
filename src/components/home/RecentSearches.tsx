@@ -185,7 +185,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               y: 0,
                               transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                             }}
-                            className="text-left rounded-2xl overflow-hidden active:scale-[0.97] transition-transform flex-shrink-0 w-[185px]"
+                            className="text-left rounded-2xl overflow-hidden flex-shrink-0 w-[185px]"
                             style={{
                               scrollSnapAlign: "start",
                               background: "rgba(255,255,255,0.95)",

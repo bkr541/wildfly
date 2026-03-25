@@ -48,7 +48,7 @@ interface Props {
 
 export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
   return (
-    <section className="px-5 pt-1 pb-4 relative z-10">
+    <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Section header — clickable to toggle */}
       <button
         type="button"
