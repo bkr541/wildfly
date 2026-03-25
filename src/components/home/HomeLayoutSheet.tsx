@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
