@@ -59,13 +59,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
           <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Upcoming Flights
         </h2>
-        <motion.div
-            animate={{ rotate: isCollapsed ? -90 : 0 }}
-            transition={{ duration: 0.22, ease: EASE }}
-          >
-            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
-          </motion.div>
-        </div>
+        <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
+          <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+        </motion.div>
       </button>
 
       {/* Collapsible content with cascading animation */}
