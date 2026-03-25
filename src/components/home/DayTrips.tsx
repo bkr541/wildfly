@@ -128,79 +128,61 @@ function formatGround(minutes: number): string {
  * 4. Both flights have a GoWild fare
  */
 function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
-  const rawFlights: any[] = payload?.dayTrips ?? payload?.flights ?? [];
+  // dayTrips API returns an array of pair objects with outbound/return keys
+  const rawTrips: any[] = payload?.dayTrips ?? [];
   const pairs: DayTripPair[] = [];
   const seenDests = new Set<string>();
 
-  for (const f of rawFlights) {
-    const dest = (f.destination ?? f.arrive ?? "").toUpperCase();
+  for (const trip of rawTrips) {
+    const out = trip.outbound;
+    const ret = trip.return;
+    if (!out || !ret) continue;
+
+    const dest = (trip.destination ?? out.destination ?? "").toUpperCase();
     if (!dest || seenDests.has(dest)) continue;
 
-    // The dayTrips API returns flights with an embedded `inbound` object
-    const inbound = f.inbound ?? f.return_flight ?? null;
-    if (!inbound) continue;
+    // ── Both GoWild ───────────────────────────────────────────────────────────
+    const outGoWild = (out.cabin ?? "").toLowerCase().includes("wild") || (out.fares?.go_wild != null && out.fares.go_wild !== -1);
+    const retGoWild = (ret.cabin ?? "").toLowerCase().includes("wild") || (ret.fares?.go_wild != null && ret.fares.go_wild !== -1);
+    if (!outGoWild || !retGoWild) continue;
 
-    // ── Condition 3: both non-stop ────────────────────────────────────────────
-    const outStops =
-      f.stops != null ? Number(f.stops) : (Array.isArray(f.segments) ? f.segments.length - 1 : -1);
-    const inStops =
-      inbound.stops != null ? Number(inbound.stops) : (Array.isArray(inbound.segments) ? inbound.segments.length - 1 : -1);
-    if (outStops !== 0 || inStops !== 0) continue;
+    // ── Both non-stop ─────────────────────────────────────────────────────────
+    if (Number(out.stops ?? 0) !== 0 || Number(ret.stops ?? 0) !== 0) continue;
 
-    // ── Condition 4: both GoWild ──────────────────────────────────────────────
-    const outGoWild =
-      (f.fares?.go_wild != null && f.fares.go_wild !== -1) ||
-      (f.rawPayload?.fares?.go_wild?.total != null);
-    const inGoWild =
-      (inbound.fares?.go_wild != null && inbound.fares.go_wild !== -1) ||
-      (inbound.rawPayload?.fares?.go_wild?.total != null);
-    if (!outGoWild || !inGoWild) continue;
+    // ── Use pre-computed ground time if available, else compute ───────────────
+    const groundMinutes: number =
+      trip.timeInDestinationMinutes ??
+      (() => {
+        const outArr = new Date(out.arrivalIso ?? out.arrivalTime ?? "");
+        const retDep = new Date(ret.departureIso ?? ret.departureTime ?? "");
+        return isNaN(outArr.getTime()) || isNaN(retDep.getTime())
+          ? 0
+          : Math.floor((retDep.getTime() - outArr.getTime()) / 60000);
+      })();
 
-    // ── Parse times ───────────────────────────────────────────────────────────
-    const outDepTime = f.departureTime ?? f.depart_time ?? f.departure_time ?? "";
-    const outArrTime = f.arrivalTime ?? f.arrive_time ?? f.arrival_time ?? "";
-    const inDepTime = inbound.departureTime ?? inbound.depart_time ?? inbound.departure_time ?? "";
-    const inArrTime = inbound.arrivalTime ?? inbound.arrive_time ?? inbound.arrival_time ?? "";
-
-    const outDep = parseTimeString(outDepTime, dateStr);
-    const outArr = parseTimeString(outArrTime, dateStr);
-    const inDep = parseTimeString(inDepTime, dateStr);
-    const inArr = parseTimeString(inArrTime, dateStr);
-
-    if (!outDep || !outArr || !inDep || !inArr) continue;
-
-    // ── Condition 1: outbound dep AND return arr within same calendar day ─────
-    const dayStart = new Date(`${dateStr}T00:01:00`);
-    const dayEnd = new Date(`${dateStr}T23:59:00`);
-    if (outDep < dayStart || outDep > dayEnd) continue;
-    if (inArr < dayStart || inArr > dayEnd) continue;
-
-    // ── Condition 2: ground time ≥ 6 hours ────────────────────────────────────
-    const groundMs = inDep.getTime() - outArr.getTime();
-    const groundMinutes = Math.floor(groundMs / 60000);
-    if (groundMinutes < 360) continue; // < 6 hours
+    if (groundMinutes < 360) continue;
 
     seenDests.add(dest);
     pairs.push({
       id: `${dest}-${dateStr}`,
       date: dateStr,
       outbound: {
-        origin: (f.origin ?? "").toUpperCase(),
-        destination: dest,
-        departureTime: outDepTime,
-        arrivalTime: outArrTime,
-        duration: f.duration ?? f.total_duration ?? "",
-        stops: outStops,
+        origin: (out.origin ?? "").toUpperCase(),
+        destination: (out.destination ?? dest).toUpperCase(),
+        departureTime: out.departureIso ?? out.departureTime ?? "",
+        arrivalTime: out.arrivalIso ?? out.arrivalTime ?? "",
+        duration: out.duration ?? "",
+        stops: Number(out.stops ?? 0),
         goWild: outGoWild,
       },
       inbound: {
-        origin: dest,
-        destination: (inbound.origin ?? f.origin ?? "").toUpperCase(),
-        departureTime: inDepTime,
-        arrivalTime: inArrTime,
-        duration: inbound.duration ?? inbound.total_duration ?? "",
-        stops: inStops,
-        goWild: inGoWild,
+        origin: (ret.origin ?? dest).toUpperCase(),
+        destination: (ret.destination ?? out.origin ?? "").toUpperCase(),
+        departureTime: ret.departureIso ?? ret.departureTime ?? "",
+        arrivalTime: ret.arrivalIso ?? ret.arrivalTime ?? "",
+        duration: ret.duration ?? "",
+        stops: Number(ret.stops ?? 0),
+        goWild: retGoWild,
       },
       groundMinutes,
     });
