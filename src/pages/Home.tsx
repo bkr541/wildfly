@@ -5,6 +5,7 @@ import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
+import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
 
 
 interface UserFlight {
