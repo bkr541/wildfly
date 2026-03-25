@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronDown, ArrowRight } from "lucide-react";
+import allDestIcon from "@/assets/all-destinations-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
@@ -158,7 +159,12 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         </div>
                       ))
                     : searches.map((s, i) => {
-                        const isAllDest = s.all_destinations === "Yes";
+                        const arrRaw = s.arrival_airport ?? "";
+                        const isAllDest =
+                          s.all_destinations === "Yes" ||
+                          arrRaw === "__ALL__" ||
+                          arrRaw === "-" ||
+                          arrRaw.trim() === "";
                         const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
                         const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
                         const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
@@ -230,7 +236,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 </span>
                                 <ArrowRight size={18} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
                                 {isAllDest ? (
-                                  <HugeiconsIcon icon={EarthIcon} size={30} color="#1A2E2E" strokeWidth={2} />
+                                  <img src={allDestIcon} alt="All destinations" className="w-[30px] h-[30px] object-contain" />
                                 ) : (
                                   <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
                                     {arrCode ?? "—"}
