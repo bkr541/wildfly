@@ -128,7 +128,7 @@ function formatGround(minutes: number): string {
  * 4. Both flights have a GoWild fare
  */
 function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
-  const rawFlights: any[] = payload?.flights ?? [];
+  const rawFlights: any[] = payload?.dayTrips ?? payload?.flights ?? [];
   const pairs: DayTripPair[] = [];
   const seenDests = new Set<string>();
 
