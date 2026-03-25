@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
@@ -33,6 +34,7 @@ interface HomeLayoutSheetProps {
 }
 
 export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [homepageRows, setHomepageRows] = useState<HomepageRow[]>([]);
@@ -42,7 +44,6 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
     if (!open) return;
     const load = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
       const { data } = await supabase
@@ -102,7 +103,6 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
     if (emptyIndices.size > 0) { setRowErrors(emptyIndices); return; }
 
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
 
     const { error: deleteError } = await supabase.from("user_homepage").delete().eq("user_id", user.id);

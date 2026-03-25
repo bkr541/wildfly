@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface UserSettings {
   notifications_enabled: boolean;
@@ -22,31 +23,30 @@ const DEFAULTS: UserSettings = {
 };
 
 export function useUserSettings() {
+  const { userId, loading: authLoading } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      setUserId(user.id);
+    if (authLoading) return;
+    if (!userId) { setLoading(false); return; }
 
+    (async () => {
       const { data } = await supabase
         .from("user_settings")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (data) {
         setSettings({ ...DEFAULTS, ...data });
       } else {
         // Auto-provision
-        await supabase.from("user_settings").insert({ user_id: user.id, ...DEFAULTS });
+        await supabase.from("user_settings").insert({ user_id: userId, ...DEFAULTS });
       }
       setLoading(false);
     })();
-  }, []);
+  }, [userId, authLoading]);
 
   const update = useCallback(async (partial: Partial<UserSettings>) => {
     if (!userId) return;

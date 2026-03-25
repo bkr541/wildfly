@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileData {
   avatarUrl: string | null;
@@ -25,6 +26,7 @@ const ProfileContext = createContext<ProfileData>({
 export const useProfile = () => useContext(ProfileContext);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
+  const { userId } = useAuth();
   const [profile, setProfile] = useState<Omit<ProfileData, "refreshProfile" | "patchProfile">>({
     avatarUrl: null,
     initials: "U",
@@ -33,13 +35,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const loadProfile = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!userId) return;
 
     const { data } = await supabase
       .from("user_info")
       .select("avatar_url, image_file, first_name, last_name")
-      .eq("auth_user_id", user.id)
+      .eq("auth_user_id", userId)
       .maybeSingle();
 
     if (data) {
@@ -54,7 +55,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
       setProfile({ avatarUrl, initials, userName, fullName });
     }
-  }, []);
+  }, [userId]);
 
   const patchProfile = useCallback((patch: Partial<Omit<ProfileData, "refreshProfile" | "patchProfile">>) => {
     setProfile((prev) => {

@@ -17,6 +17,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -87,6 +88,7 @@ const APP_URL = window.location.origin;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useBilling(): BillingState {
+  const { userId, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -118,13 +120,13 @@ export function useBilling(): BillingState {
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
+    if (authLoading) return;
     let cancelled = false;
 
     const load = async () => {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || cancelled) {
+      if (!userId || cancelled) {
         setLoading(false);
         return;
       }
@@ -134,12 +136,12 @@ export function useBilling(): BillingState {
         supabase
           .from("user_credit_wallet")
           .select("monthly_used, purchased_balance, monthly_period_start, monthly_period_end")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .maybeSingle(),
         supabase
           .from("user_subscriptions")
           .select("plan_id, status")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .maybeSingle(),
         supabase
           .from("plans")
