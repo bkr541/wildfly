@@ -486,27 +486,27 @@ function DayTripCard({
           {/* Center: ground time + destination */}
           <div className="flex flex-col items-center justify-center gap-1 pt-6 shrink-0 w-[58px]">
             <div
-              className="flex items-center gap-1 rounded-full px-2.5 py-1.5"
+              className="flex items-center gap-0.5 rounded-full px-2 py-1"
               style={{ background: "#059669" }}
             >
-              <HugeiconsIcon icon={Clock01Icon} size={10} color="white" strokeWidth={2.5} />
-              <span className="text-white text-[11px] font-black leading-none">
+              <HugeiconsIcon icon={Clock01Icon} size={9} color="white" strokeWidth={2.5} />
+              <span className="text-white text-[10px] font-black leading-none">
                 {formatGround(pair.groundMinutes)}
               </span>
             </div>
-            <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight">
+            <span className="text-[8px] font-medium text-[#6B7280] text-center leading-tight">
               Ground Time in
             </span>
-            <span className="text-[11px] font-bold text-[#1A2E2E] text-center leading-tight">
+            <span className="text-[9px] font-bold text-[#1A2E2E] text-center leading-tight">
               {destLabel}
             </span>
             <div className="w-px h-3 bg-[#E5E7EB] mt-0.5" />
             {pair.goWild && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[9px] font-black whitespace-nowrap"
+                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-black whitespace-nowrap"
                 style={{ background: "#059669", color: "#FFFFFF" }}
               >
-                <HugeiconsIcon icon={Rocket01Icon} size={9} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={Rocket01Icon} size={8} color="white" strokeWidth={2} />
                 GoWild
               </span>
             )}
