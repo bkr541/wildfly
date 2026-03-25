@@ -241,7 +241,7 @@ function getBadges(pair: DayTripPair, allPairs: DayTripPair[]): Badge[] {
         label: "Best Balance",
         color: "#7C3AED",
         textColor: "#fff",
-        icon: ArrowUpDown01Icon,
+        icon: ArrowDown01Icon,
       });
     }
   }
