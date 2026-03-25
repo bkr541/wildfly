@@ -1149,15 +1149,15 @@ const FlightDestResults = ({
                                       </span>
                                     )}
                                   </div>
-                                  {/* Dot indicators — one per active badge */}
+                                  {/* Badge icons — one per active badge */}
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
-                                      {isGoWild && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#059669" }} />}
-                                      {isCheapest && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#1E3A5F" }} />}
-                                      {isQuickest && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#D4AF37" }} />}
-                                      {isBlackout && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#111827" }} />}
-                                      {flight.is_plus_one_day && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#E89830" }} />}
-                                      {isRedEye && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#DC2626" }} />}
+                                      {isGoWild && <HugeiconsIcon icon={Rocket01Icon} size={14} color="#059669" strokeWidth={2} />}
+                                      {isCheapest && <HugeiconsIcon icon={DollarCircleIcon} size={14} color="#1E3A5F" strokeWidth={2} />}
+                                      {isQuickest && <HugeiconsIcon icon={TrafficLightIcon} size={14} color="#D4AF37" strokeWidth={2} />}
+                                      {isBlackout && <HugeiconsIcon icon={UnavailableIcon} size={14} color="#111827" strokeWidth={2} />}
+                                      {flight.is_plus_one_day && <HugeiconsIcon icon={Clock01Icon} size={14} color="#E89830" strokeWidth={2} />}
+                                      {isRedEye && <HugeiconsIcon icon={Alert01Icon} size={14} color="#DC2626" strokeWidth={2} />}
                                     </div>
                                   )}
                                 </div>
