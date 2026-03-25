@@ -330,8 +330,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <img
           src="/assets/logo/logo2_shadow.png"
           alt="Logo"
-          className="w-auto object-contain"
-          style={{ height: "clamp(90px, 22vw, 140px)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }}
+          className="w-auto object-contain mx-auto"
+          style={{ height: "clamp(90px, 22vw, 140px)" }}
         />
       </div>
 
@@ -339,8 +339,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
         {/* Scrollable card — grows to fill remaining space, never crushes logo */}
         <div
-          className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 shadow-2xl flex flex-col overflow-y-auto"
-          style={{ height: "calc(100svh - 160px)" }}
+          className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 flex flex-col overflow-y-auto"
+          style={{ height: "calc(100svh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
         >
           {/* Header label */}
           <div className="w-full mb-4">

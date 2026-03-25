@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer02Icon } from "@hugeicons/core-free-icons";
@@ -55,8 +55,8 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
         onClick={onToggle}
         className="w-full flex items-center justify-between mb-1 px-1 group"
       >
-        <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
-          <HugeiconsIcon icon={Timer02Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
+        <h2 className="text-[15px] font-semibold text-[#6B7280] capitalize tracking-widest flex items-center gap-2">
+          <HugeiconsIcon icon={Timer02Icon} size={18} color="#059669" strokeWidth={2} />
           Upcoming Flights
         </h2>
         <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
