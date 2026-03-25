@@ -438,7 +438,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               {/* Tab Row */}
               <div className="flex items-center justify-around border-b border-[rgba(0,0,0,0.06)]">
                 {([
-                  { key: "home", label: "Home City", icon: Home01Icon },
+                  { key: "home", label: "Home Info", icon: Home01Icon },
                   { key: "favorites", label: "Favorite Cities", icon: HeartAddIcon },
                 ] as { key: "home" | "favorites"; label: string; icon: any }[]).map(({ key, label, icon }) => (
                   <button
@@ -466,23 +466,41 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
               {/* Tab Content */}
               <div className="p-5">
-                {/* Home City Tab */}
+                {/* Home Info Tab */}
                 {destTab === "home" && (
-                  <div className="form-group">
-                    <label className={labelStyle}>
-                      Home City <span className="text-red-500">*</span>
-                    </label>
-                    <AppInput
-                      icon={Home01Icon}
-                      value={homeCitySearch}
-                      onChange={() => {}}
-                      onFocus={() => setShowHomeCitySheet(true)}
-                      readOnly
-                      placeholder="Search for your home city..."
-                      error={homeCityError || undefined}
-                      clearable={!!homeCity}
-                      onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
-                    />
+                  <div className="flex flex-col gap-4">
+                    <div className="form-group">
+                      <label className={labelStyle}>
+                        Home City <span className="text-red-500">*</span>
+                      </label>
+                      <AppInput
+                        icon={Home01Icon}
+                        value={homeCitySearch}
+                        onChange={() => {}}
+                        onFocus={() => setShowHomeCitySheet(true)}
+                        readOnly
+                        placeholder="Search for your home city..."
+                        error={homeCityError || undefined}
+                        clearable={!!homeCity}
+                        onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className={labelStyle}>
+                        Home Airport <span className="text-red-500">*</span>
+                      </label>
+                      <AppInput
+                        icon={AirplaneTakeOff01Icon}
+                        value={homeAirport ? `${homeAirport.iata_code} – ${homeAirport.name}` : ""}
+                        onChange={() => {}}
+                        onFocus={() => setShowHomeAirportSheet(true)}
+                        readOnly
+                        placeholder="Select your home airport..."
+                        error={homeAirportError || undefined}
+                        clearable={!!homeAirport}
+                        onClear={() => { setHomeAirport(null); setHomeAirportError(""); }}
+                      />
+                    </div>
                   </div>
                 )}
 
