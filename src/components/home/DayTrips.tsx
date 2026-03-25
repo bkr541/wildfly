@@ -462,23 +462,9 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
           <HugeiconsIcon icon={SunCloud01Icon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
           Day Trips
         </h2>
-        <div className="flex items-center gap-2">
-          {!isCollapsed && pairs.length > 0 && (
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                onNavigate?.("flights");
-              }}
-              className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
-            >
-              Search
-              <ChevronRight size={13} strokeWidth={2.5} />
-            </span>
-          )}
-          <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
-            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
-          </motion.div>
-        </div>
+        <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
+          <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+        </motion.div>
       </button>
 
       {/* Collapsible content */}
