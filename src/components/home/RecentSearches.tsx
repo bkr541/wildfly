@@ -159,7 +159,12 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                         </div>
                       ))
                     : searches.map((s, i) => {
-                        const isAllDest = s.all_destinations === "Yes";
+                        const arrRaw = s.arrival_airport ?? "";
+                        const isAllDest =
+                          s.all_destinations === "Yes" ||
+                          arrRaw === "__ALL__" ||
+                          arrRaw === "-" ||
+                          arrRaw.trim() === "";
                         const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
                         const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
                         const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
