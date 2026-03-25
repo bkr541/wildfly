@@ -26,6 +26,7 @@ export interface NormalizedFlight {
 
 export interface NormalizedFlightsResponse {
   flights: NormalizedFlight[];
+  dayTrips?: any[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -193,7 +194,7 @@ export function normalizeGetMyDataResponse(raw: any, departureDate?: string): No
   });
 
   log.info("normalizeGetMyData complete", { outputCount: flights.length });
-  return { flights };
+  return { flights, dayTrips: raw?.dayTrips };
 }
 
 /**

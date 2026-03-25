@@ -107,9 +107,79 @@ function formatGround(minutes: number): string {
 
 /**
  * Parse day-trip API payload into DayTripPair[]
- * Filters: both legs nonstop, both have GoWild, same calendar day, ≥6h ground
+ *
+ * Handles two shapes:
+ *  1. payload.dayTrips[] — from /api/flights/dayTrips, each item has { outbound, return }
+ *  2. payload.flights[]  — legacy fallback where each flight has { inbound } or { return_flight }
  */
 function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
+  const rawDayTrips: any[] = payload?.dayTrips ?? [];
+
+  // ── Shape 1: server-provided pairs ──────────────────────────────────────────
+  if (rawDayTrips.length > 0) {
+    const pairs: DayTripPair[] = [];
+    const seenDests = new Set<string>();
+
+    for (const f of rawDayTrips) {
+      const dest = (f.destination ?? "").toUpperCase();
+      if (!dest || seenDests.has(dest)) continue;
+
+      const outbound = f.outbound;
+      const ret = f.return; // API field is named "return"
+      if (!outbound || !ret) continue;
+
+      const isNonstop = Number(outbound.stops ?? 0) === 0 && Number(ret.stops ?? 0) === 0;
+
+      const goWild =
+        !!outbound.cabin?.toLowerCase().includes("wild") &&
+        !!ret.cabin?.toLowerCase().includes("wild");
+
+      const outDepTime = outbound.departureTime ?? "";
+      const outArrTime = outbound.arrivalTime ?? "";
+      const inDepTime = ret.departureTime ?? "";
+      const inArrTime = ret.arrivalTime ?? "";
+
+      const outDep = parseTimeString(outDepTime, dateStr);
+      const outArr = parseTimeString(outArrTime, dateStr);
+      const inDep = parseTimeString(inDepTime, dateStr);
+      const inArr = parseTimeString(inArrTime, dateStr);
+
+      if (!outDep || !outArr || !inDep || !inArr) continue;
+
+      const dayStart = new Date(`${dateStr}T00:01:00`);
+      const dayEnd = new Date(`${dateStr}T23:59:00`);
+      const isSameDay =
+        outDep >= dayStart && outDep <= dayEnd && inArr >= dayStart && inArr <= dayEnd;
+
+      const groundMinutes = Math.floor((inDep.getTime() - outArr.getTime()) / 60000);
+
+      seenDests.add(dest);
+      pairs.push({
+        id: f.id ?? `${dest}-${dateStr}-${pairs.length}`,
+        date: dateStr,
+        origin: (outbound.origin ?? "").toUpperCase(),
+        destination: dest,
+        outbound: {
+          departureTime: outDepTime,
+          arrivalTime: outArrTime,
+          duration: outbound.duration ?? "",
+        },
+        inbound: {
+          departureTime: inDepTime,
+          arrivalTime: inArrTime,
+          duration: ret.duration ?? "",
+        },
+        groundMinutes,
+        isNonstop,
+        isSameDay,
+        goWild,
+      });
+    }
+
+    return pairs;
+  }
+
+  // ── Shape 2: legacy — individual flights with inbound attached ───────────────
   const rawFlights: any[] = payload?.flights ?? [];
   const pairs: DayTripPair[] = [];
   const seenDests = new Set<string>();
@@ -122,11 +192,7 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
     if (!inbound) continue;
 
     const outStops =
-      f.stops != null
-        ? Number(f.stops)
-        : Array.isArray(f.segments)
-        ? f.segments.length - 1
-        : -1;
+      f.stops != null ? Number(f.stops) : Array.isArray(f.segments) ? f.segments.length - 1 : -1;
     const inStops =
       inbound.stops != null
         ? Number(inbound.stops)
@@ -143,13 +209,10 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
       inbound.rawPayload?.fares?.go_wild?.total != null;
     const goWild = outGoWild && inGoWild;
 
-    const outDepTime =
-      f.departureTime ?? f.depart_time ?? f.departure_time ?? "";
+    const outDepTime = f.departureTime ?? f.depart_time ?? f.departure_time ?? "";
     const outArrTime = f.arrivalTime ?? f.arrive_time ?? f.arrival_time ?? "";
-    const inDepTime =
-      inbound.departureTime ?? inbound.depart_time ?? inbound.departure_time ?? "";
-    const inArrTime =
-      inbound.arrivalTime ?? inbound.arrive_time ?? inbound.arrival_time ?? "";
+    const inDepTime = inbound.departureTime ?? inbound.depart_time ?? inbound.departure_time ?? "";
+    const inArrTime = inbound.arrivalTime ?? inbound.arrive_time ?? inbound.arrival_time ?? "";
 
     const outDep = parseTimeString(outDepTime, dateStr);
     const outArr = parseTimeString(outArrTime, dateStr);
@@ -163,8 +226,7 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
     const isSameDay =
       outDep >= dayStart && outDep <= dayEnd && inArr >= dayStart && inArr <= dayEnd;
 
-    const groundMs = inDep.getTime() - outArr.getTime();
-    const groundMinutes = Math.floor(groundMs / 60000);
+    const groundMinutes = Math.floor((inDep.getTime() - outArr.getTime()) / 60000);
 
     seenDests.add(dest);
     pairs.push({
