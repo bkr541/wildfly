@@ -384,7 +384,7 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
         const today = format(new Date(), "yyyy-MM-dd");
         const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
 
-        // ── Load cache entries for today and tomorrow in parallel ─────────────
+        // ── 1. Try flight_search_cache first ──────────────────────────────────
         const [todayCacheKey, tomorrowCacheKey] = await Promise.all([
           sha256(`${homeIata}|__DAYTRIPS__|${today}`),
           sha256(`${homeIata}|__DAYTRIPS__|${tomorrow}`),
@@ -403,10 +403,36 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
             .maybeSingle(),
         ]);
 
-        const allPairs: DayTripPair[] = [
+        let allPairs: DayTripPair[] = [
           ...(todayCached.data?.payload ? parseDayTripPairs(todayCached.data.payload, today) : []),
           ...(tomorrowCached.data?.payload ? parseDayTripPairs(tomorrowCached.data.payload, tomorrow) : []),
         ];
+
+        // ── 2. Fall back to flight_searches if cache is empty ─────────────────
+        if (allPairs.length === 0) {
+          const { data: searches } = await supabase
+            .from("flight_searches")
+            .select("json_body, departure_date")
+            .eq("user_id", user.id)
+            .eq("departure_airport", homeIata)
+            .eq("trip_type", "day_trip")
+            .in("departure_date", [today, tomorrow])
+            .order("search_timestamp", { ascending: false })
+            .limit(4);
+
+          if (searches && searches.length > 0) {
+            // Group by date, use latest per date
+            const byDate: Record<string, any> = {};
+            for (const s of searches) {
+              const d = String(s.departure_date);
+              if (!byDate[d]) byDate[d] = s.json_body;
+            }
+            allPairs = [
+              ...(byDate[today] ? parseDayTripPairs(byDate[today], today) : []),
+              ...(byDate[tomorrow] ? parseDayTripPairs(byDate[tomorrow], tomorrow) : []),
+            ];
+          }
+        }
 
         setPairs(allPairs);
       } catch {
