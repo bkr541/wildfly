@@ -120,7 +120,6 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
         return;
       }
 
-      fetchAndLogDayTrips();
 
       const [flightsResult, searchesResult] = await Promise.all([
         supabase
