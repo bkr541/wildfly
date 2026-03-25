@@ -102,10 +102,8 @@ export async function writeFlightSnapshots(
 
         // itinerary identity
         source_itinerary_id: itineraryId,
-        itinerary_flight_number: f.flightNumber ?? f.flight_number ?? null,
         airline: f.airline ?? f.carrier ?? null,
         origin_iata: originIata,
-        final_destination_iata: finalDest || originIata,
         display_cabin: f.cabin ?? f.displayCabin ?? null,
         display_price: cleanNum(f.price ?? f.display_price),
         currency: f.currency ?? "USD",
