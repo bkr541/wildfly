@@ -700,6 +700,104 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   </div>
         </BottomSheet>
 
+        {/* ===================== Home Airport Sheet ===================== */}
+        <BottomSheet open={showHomeAirportSheet} onClose={() => setShowHomeAirportSheet(false)} style={{ top: "5%" }}>
+          <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={AirportIcon} size={15} color="white" strokeWidth={2} />
+              </div>
+              <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Home Airport</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowHomeAirportSheet(false)}
+              className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+            >
+              <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+            </button>
+          </div>
+
+          <div className="px-5 pt-4 pb-4">
+            <div className="app-input-container">
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <input
+                ref={airportInputRef}
+                type="text"
+                value={airportQuery}
+                onChange={(e) => setAirportQuery(e.target.value)}
+                placeholder="Search airport or city…"
+                className="app-input"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+              {airportQuery.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAirportQuery("")}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {airportQuery.trim().length < 2 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
+                  <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
+                </div>
+                <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for an airport</p>
+                <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
+              </div>
+            ) : filteredAirports.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
+                <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+              </div>
+            ) : (
+              filteredAirports.map((a) => {
+                const loc = Array.isArray(a.locations) ? a.locations[0] : a.locations;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      setHomeAirport(a);
+                      setHomeAirportError("");
+                      setShowHomeAirportSheet(false);
+                    }}
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#F2F3F3] transition-colors border-b border-[#F0F1F1] last:border-0 flex items-center gap-3"
+                  >
+                    <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                        <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                        <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                      </div>
+                      {loc?.city && (
+                        <p className="text-xs text-[#9CA3AF] truncate">
+                          {loc.city}{loc.state_code ? `, ${loc.state_code}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </BottomSheet>
+
         {/* ===================== Screen 3: Friends ===================== */}
         {step === 2 && (
           <div className="flex flex-col gap-4 animate-fade-in">
