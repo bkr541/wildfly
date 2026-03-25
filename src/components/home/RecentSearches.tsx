@@ -255,6 +255,18 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       })}
                 </div>
               )}
+              {!loading && searches.length > 0 && (
+                <div className="flex justify-end px-1 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate?.("flights")}
+                    className="flex items-center gap-0.5 text-[11px] font-semibold text-[#059669] hover:opacity-75 transition-opacity"
+                  >
+                    See More
+                    <ChevronRight size={13} strokeWidth={2.5} />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
