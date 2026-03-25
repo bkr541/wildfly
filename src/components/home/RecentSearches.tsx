@@ -245,21 +245,21 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               </div>
 
                               {/* Badges row */}
-                              <div className="flex items-center justify-center gap-1.5 flex-nowrap">
+                              <div className="flex items-center justify-center gap-1 flex-nowrap">
                                 {s.gowild_found && (
                                   <span
-                                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold whitespace-nowrap"
+                                    className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
                                     style={{ background: "#059669", color: "#FFFFFF" }}
                                   >
-                                    <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
+                                    <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2.5} />
                                     GoWild
                                   </span>
                                 )}
                                 <span
-                                  className="inline-flex items-center gap-1 rounded-full px-2.5 text-[11px] font-bold whitespace-nowrap"
-                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", paddingTop: "2.5px", paddingBottom: "2.5px" }}
+                                  className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}
                                 >
-                                  <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2} />
+                                  <HugeiconsIcon icon={tripIcon} size={10} color="#1D4ED8" strokeWidth={2.5} />
                                   {tripLabel}
                                 </span>
                               </div>
