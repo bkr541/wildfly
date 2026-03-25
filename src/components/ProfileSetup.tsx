@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
-import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon, UserCircle02Icon, AddCircleIcon } from "@hugeicons/core-free-icons";
+import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Location04Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon, UserCircle02Icon, AddCircleIcon, AirportIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import {
@@ -34,6 +34,13 @@ interface LocationOption {
   city: string | null;
   state_code: string | null;
   name: string;
+}
+
+interface AirportOption {
+  id: number;
+  iata_code: string;
+  name: string;
+  locations?: { city: string | null; state_code: string | null; region: string | null };
 }
 
 const formatLocationDisplay = (loc: LocationOption) =>
@@ -74,6 +81,14 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [homeCityError, setHomeCityError] = useState("");
   const [favCityError, setFavCityError] = useState("");
   const [destTab, setDestTab] = useState<"home" | "favorites">("home");
+
+  // Home Airport state
+  const [allAirports, setAllAirports] = useState<AirportOption[]>([]);
+  const [homeAirport, setHomeAirport] = useState<AirportOption | null>(null);
+  const [showHomeAirportSheet, setShowHomeAirportSheet] = useState(false);
+  const [airportQuery, setAirportQuery] = useState("");
+  const [homeAirportError, setHomeAirportError] = useState("");
+  const airportInputRef = useRef<HTMLInputElement>(null);
 
   const homeCityInputRef = useRef<HTMLInputElement>(null);
   const favCityInputRef = useRef<HTMLInputElement>(null);
