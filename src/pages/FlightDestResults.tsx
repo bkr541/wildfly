@@ -1061,8 +1061,8 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <div className="z-10 bg-[#E8EBEB] px-2.5 py-0.5 rounded-full border border-[#C8D5D5]">
-                                 <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                              <div className="z-10 bg-[#F4F7F7] px-2 py-px rounded-full border border-[#DDE4E4]">
+                                 <span className="text-[10px] font-medium text-[#9AABAB] leading-tight tracking-wide">
                                    {h12} {ampm}
                                  </span>
                                </div>
