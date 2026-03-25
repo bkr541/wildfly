@@ -136,12 +136,12 @@ export function useBilling(): BillingState {
         supabase
           .from("user_credit_wallet")
           .select("monthly_used, purchased_balance, monthly_period_start, monthly_period_end")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .maybeSingle(),
         supabase
           .from("user_subscriptions")
           .select("plan_id, status")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .maybeSingle(),
         supabase
           .from("plans")
