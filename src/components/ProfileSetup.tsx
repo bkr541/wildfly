@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AppInput } from "@/components/ui/app-input";
-import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon, UserCircle02Icon, AddCircleIcon } from "@hugeicons/core-free-icons";
+import { Call02Icon, Search01Icon, CalendarCheckOut02Icon, Cancel01Icon, Location01Icon, Location04Icon, Home01Icon, HeartAddIcon, ArrowRight01Icon, AirplaneTakeOff01Icon, UserCircle02Icon, AddCircleIcon, AirportIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import {
@@ -34,6 +34,13 @@ interface LocationOption {
   city: string | null;
   state_code: string | null;
   name: string;
+}
+
+interface AirportOption {
+  id: number;
+  iata_code: string;
+  name: string;
+  locations?: { city: string | null; state_code: string | null; region: string | null };
 }
 
 const formatLocationDisplay = (loc: LocationOption) =>
@@ -75,6 +82,14 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const [favCityError, setFavCityError] = useState("");
   const [destTab, setDestTab] = useState<"home" | "favorites">("home");
 
+  // Home Airport state
+  const [allAirports, setAllAirports] = useState<AirportOption[]>([]);
+  const [homeAirport, setHomeAirport] = useState<AirportOption | null>(null);
+  const [showHomeAirportSheet, setShowHomeAirportSheet] = useState(false);
+  const [airportQuery, setAirportQuery] = useState("");
+  const [homeAirportError, setHomeAirportError] = useState("");
+  const airportInputRef = useRef<HTMLInputElement>(null);
+
   const homeCityInputRef = useRef<HTMLInputElement>(null);
   const favCityInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -106,6 +121,39 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     loadUser();
   }, []);
 
+  // Load all airports for the airport sheet
+  useEffect(() => {
+    supabase
+      .from("airports")
+      .select("id, iata_code, name, locations(city, state_code, region)")
+      .then(({ data }) => {
+        if (data) setAllAirports(data as AirportOption[]);
+      });
+  }, []);
+
+  // Focus airport sheet input when it opens
+  useEffect(() => {
+    if (showHomeAirportSheet) {
+      setAirportQuery("");
+      requestAnimationFrame(() => {
+        setTimeout(() => { airportInputRef.current?.focus(); }, 50);
+      });
+    }
+  }, [showHomeAirportSheet]);
+
+  // Filtered airports for the home airport sheet
+  const filteredAirports = useMemo(() => {
+    const q = airportQuery.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return allAirports
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.iata_code.toLowerCase().includes(q) ||
+          (a.locations && !Array.isArray(a.locations) && (a.locations as any).city?.toLowerCase().includes(q)),
+      )
+      .slice(0, 40);
+  }, [airportQuery, allAirports]);
 
   const searchLocations = useCallback(async (query: string, setter: (r: LocationOption[]) => void) => {
     if (query.length < 3) {
@@ -141,7 +189,6 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     setHomeCitySearch(formatLocationDisplay(loc));
     setShowHomeCitySheet(false);
     setHomeCityError("");
-    // Remove from favorites if it was selected
     setFavoriteCities((prev) => prev.filter((f) => f.id !== loc.id));
   };
 
@@ -161,16 +208,13 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) return;
     const path = `${authUser.id}/avatar.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (!error) {
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
       setAvatarUrl(urlData.publicUrl);
-      // Write to avatar_url (canonical) and keep image_file in sync for legacy reads
       await supabase.from("user_info").update({ avatar_url: urlData.publicUrl, image_file: urlData.publicUrl }).eq("id", user.id);
     }
   };
@@ -193,17 +237,28 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
   // Screen 2: Continue
   const handleScreen2Continue = async () => {
+    let hasError = false;
     if (!homeCity) {
       setDestTab("home");
       setHomeCityError("Home City is required");
-      return;
+      hasError = true;
     }
+    if (!homeAirport) {
+      setDestTab("home");
+      setHomeAirportError("Home Airport is required");
+      hasError = true;
+    }
+    if (hasError) return;
     if (!user) return;
     setSaving(true);
-    const homeCityLabel = homeCity.city && homeCity.state_code
-      ? `${homeCity.city}, ${homeCity.state_code}`
-      : homeCity.name;
-    await supabase.from("user_info").update({ home_location_id: homeCity.id, home_city: homeCityLabel }).eq("id", user.id);
+    const homeCityLabel = homeCity!.city && homeCity!.state_code
+      ? `${homeCity!.city}, ${homeCity!.state_code}`
+      : homeCity!.name;
+    await supabase.from("user_info").update({
+      home_location_id: homeCity!.id,
+      home_city: homeCityLabel,
+      home_airport: homeAirport!.iata_code,
+    }).eq("id", user.id);
     // Sync user_locations: delete all then insert current favorites
     await supabase.from("user_locations").delete().eq("user_id", user.id);
     if (favoriteCities.length > 0) {
@@ -383,7 +438,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
               {/* Tab Row */}
               <div className="flex items-center justify-around border-b border-[rgba(0,0,0,0.06)]">
                 {([
-                  { key: "home", label: "Home City", icon: Home01Icon },
+                  { key: "home", label: "Home Info", icon: Home01Icon },
                   { key: "favorites", label: "Favorite Cities", icon: HeartAddIcon },
                 ] as { key: "home" | "favorites"; label: string; icon: any }[]).map(({ key, label, icon }) => (
                   <button
@@ -411,23 +466,41 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
 
               {/* Tab Content */}
               <div className="p-5">
-                {/* Home City Tab */}
+                {/* Home Info Tab */}
                 {destTab === "home" && (
-                  <div className="form-group">
-                    <label className={labelStyle}>
-                      Home City <span className="text-red-500">*</span>
-                    </label>
-                    <AppInput
-                      icon={Home01Icon}
-                      value={homeCitySearch}
-                      onChange={() => {}}
-                      onFocus={() => setShowHomeCitySheet(true)}
-                      readOnly
-                      placeholder="Search for your home city..."
-                      error={homeCityError || undefined}
-                      clearable={!!homeCity}
-                      onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
-                    />
+                  <div className="flex flex-col gap-4">
+                    <div className="form-group">
+                      <label className={labelStyle}>
+                        Home City <span className="text-red-500">*</span>
+                      </label>
+                      <AppInput
+                        icon={Home01Icon}
+                        value={homeCitySearch}
+                        onChange={() => {}}
+                        onFocus={() => setShowHomeCitySheet(true)}
+                        readOnly
+                        placeholder="Search for your home city..."
+                        error={homeCityError || undefined}
+                        clearable={!!homeCity}
+                        onClear={() => { setHomeCity(null); setHomeCitySearch(""); setHomeCityError(""); }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className={labelStyle}>
+                        Home Airport <span className="text-red-500">*</span>
+                      </label>
+                      <AppInput
+                        icon={AirplaneTakeOff01Icon}
+                        value={homeAirport ? `${homeAirport.iata_code} – ${homeAirport.name}` : ""}
+                        onChange={() => {}}
+                        onFocus={() => setShowHomeAirportSheet(true)}
+                        readOnly
+                        placeholder="Select your home airport..."
+                        error={homeAirportError || undefined}
+                        clearable={!!homeAirport}
+                        onClear={() => { setHomeAirport(null); setHomeAirportError(""); }}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -625,6 +698,104 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                         </button>
                       ))}
                   </div>
+        </BottomSheet>
+
+        {/* ===================== Home Airport Sheet ===================== */}
+        <BottomSheet open={showHomeAirportSheet} onClose={() => setShowHomeAirportSheet(false)} style={{ top: "5%" }}>
+          <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={AirportIcon} size={15} color="white" strokeWidth={2} />
+              </div>
+              <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Home Airport</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowHomeAirportSheet(false)}
+              className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
+            >
+              <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+            </button>
+          </div>
+
+          <div className="px-5 pt-4 pb-4">
+            <div className="app-input-container">
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <input
+                ref={airportInputRef}
+                type="text"
+                value={airportQuery}
+                onChange={(e) => setAirportQuery(e.target.value)}
+                placeholder="Search airport or city…"
+                className="app-input"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+              {airportQuery.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAirportQuery("")}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {airportQuery.trim().length < 2 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
+                  <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
+                </div>
+                <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for an airport</p>
+                <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
+              </div>
+            ) : filteredAirports.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
+                <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+              </div>
+            ) : (
+              filteredAirports.map((a) => {
+                const loc = Array.isArray(a.locations) ? a.locations[0] : a.locations;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      setHomeAirport(a);
+                      setHomeAirportError("");
+                      setShowHomeAirportSheet(false);
+                    }}
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#F2F3F3] transition-colors border-b border-[#F0F1F1] last:border-0 flex items-center gap-3"
+                  >
+                    <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                        <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                        <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                      </div>
+                      {loc?.city && (
+                        <p className="text-xs text-[#9CA3AF] truncate">
+                          {loc.city}{loc.state_code ? `, ${loc.state_code}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </BottomSheet>
 
         {/* ===================== Screen 3: Friends ===================== */}
