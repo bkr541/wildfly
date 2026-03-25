@@ -77,19 +77,6 @@ async function fetchIfMissing(
 
   if (cached || cancelled) return; // already fetched or in flight
 
-  // Also check flight_searches to avoid double-logging
-  const { data: existingSearch } = await supabase
-    .from("flight_searches")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("departure_airport", homeIata)
-    .eq("departure_date", dateStr)
-    .ilike("trip_type", "%day%trip%")
-    .limit(1)
-    .maybeSingle();
-
-  if (existingSearch || cancelled) return;
-
   // ── Write a "fetching" placeholder so concurrent runs don't double-call ──
   try {
     const canonicalRequest = { origin: homeIata, date: dateStr, nonstop: "true", layovertime: "6" };
