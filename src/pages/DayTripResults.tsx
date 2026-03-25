@@ -763,8 +763,13 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
             <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
               {[
                 { label: "TOTAL", value: pairs.length },
-                { label: "NONSTOP", value: pairs.filter((p) => p.isNonstop).length },
-                { label: "GOWILD", value: pairs.filter((p) => p.goWild).length },
+                {
+                  label: "MIN GROUND",
+                  value:
+                    pairs.length > 0
+                      ? formatGround(Math.min(...pairs.map((p) => p.groundMinutes)))
+                      : "—",
+                },
                 {
                   label: "MAX GROUND",
                   value:
