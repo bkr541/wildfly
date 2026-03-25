@@ -35,7 +35,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
