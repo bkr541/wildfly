@@ -356,9 +356,9 @@ function FlightColumn({
   return (
     <div className={`flex flex-col gap-0.5 flex-1 ${ta}`}>
       {/* Label chip */}
-      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"} mb-1.5`}>
+      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"} mb-1`}>
         <span
-          className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+          className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
           style={{ background: labelColor }}
         >
           {label}
@@ -367,36 +367,36 @@ function FlightColumn({
 
       {/* Origin IATA */}
       <span
-        className="text-[32px] font-black leading-none tracking-tight"
+        className="text-[22px] font-black leading-none tracking-tight"
         style={{ color: labelColor }}
       >
         {iataTop}
       </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
+      <span className="text-[11px] font-bold text-[#374151] leading-none">
         {formatDisplayTime(timeTop, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none mb-2">
+      <span className="text-[9px] font-medium text-[#6B7280] leading-none mb-1.5">
         {labelTop}
       </span>
 
       {/* Duration pill */}
       <div className={`flex ${align === "left" ? "justify-start" : "justify-end"}`}>
-        <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2.5 py-1 rounded-full">
+        <span className="text-[9px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
           {formatDuration(duration)}
         </span>
       </div>
 
       {/* Destination IATA */}
       <span
-        className="text-[32px] font-black leading-none tracking-tight mt-2"
+        className="text-[22px] font-black leading-none tracking-tight mt-1.5"
         style={{ color: labelColor }}
       >
         {iataBottom}
       </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
+      <span className="text-[11px] font-bold text-[#374151] leading-none">
         {formatDisplayTime(timeBottom, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none">
+      <span className="text-[9px] font-medium text-[#6B7280] leading-none">
         {labelBottom}
       </span>
     </div>
@@ -466,7 +466,7 @@ function DayTripCard({
       </div>
 
       {/* Card body */}
-      <div className="px-4 pt-5 pb-3">
+      <div className="px-3 pt-4 pb-2.5">
         <div className="flex gap-2 items-start">
           {/* Outbound column */}
           <FlightColumn
@@ -484,29 +484,29 @@ function DayTripCard({
           />
 
           {/* Center: ground time + destination */}
-          <div className="flex flex-col items-center justify-center gap-1.5 pt-7 shrink-0 w-[80px]">
+          <div className="flex flex-col items-center justify-center gap-1 pt-6 shrink-0 w-[58px]">
             <div
-              className="flex items-center gap-1 rounded-full px-2.5 py-1.5"
+              className="flex items-center gap-0.5 rounded-full px-2 py-1"
               style={{ background: "#059669" }}
             >
-              <HugeiconsIcon icon={Clock01Icon} size={10} color="white" strokeWidth={2.5} />
-              <span className="text-white text-[11px] font-black leading-none">
+              <HugeiconsIcon icon={Clock01Icon} size={9} color="white" strokeWidth={2.5} />
+              <span className="text-white text-[10px] font-black leading-none">
                 {formatGround(pair.groundMinutes)}
               </span>
             </div>
-            <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight">
+            <span className="text-[8px] font-medium text-[#6B7280] text-center leading-tight">
               Ground Time in
             </span>
-            <span className="text-[11px] font-bold text-[#1A2E2E] text-center leading-tight">
+            <span className="text-[9px] font-bold text-[#1A2E2E] text-center leading-tight">
               {destLabel}
             </span>
             <div className="w-px h-3 bg-[#E5E7EB] mt-0.5" />
             {pair.goWild && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[9px] font-black whitespace-nowrap"
+                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-black whitespace-nowrap"
                 style={{ background: "#059669", color: "#FFFFFF" }}
               >
-                <HugeiconsIcon icon={Rocket01Icon} size={9} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={Rocket01Icon} size={8} color="white" strokeWidth={2} />
                 GoWild
               </span>
             )}
@@ -530,14 +530,14 @@ function DayTripCard({
 
         {/* Badges row */}
         {badges.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#F3F4F6]">
+          <div className="flex flex-wrap gap-1 mt-2.5 pt-2.5 border-t border-[#F3F4F6]">
             {badges.map((badge) => (
               <span
                 key={badge.key}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold whitespace-nowrap"
+                className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold whitespace-nowrap"
                 style={{ background: badge.color, color: badge.textColor }}
               >
-                <HugeiconsIcon icon={badge.icon} size={10} color={badge.textColor} strokeWidth={2} />
+                <HugeiconsIcon icon={badge.icon} size={9} color={badge.textColor} strokeWidth={2} />
                 {badge.label}
               </span>
             ))}
@@ -798,13 +798,13 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
         </header>
 
         {/* ── Results ── */}
-        <div className="px-4 pt-4 pb-8 flex flex-col gap-4">
+        <div className="px-3 pt-4 pb-8 grid grid-cols-2 gap-3">
           <AnimatePresence>
             {pairs.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-2xl px-5 py-8 flex flex-col items-center gap-3 text-center"
+                className="col-span-2 rounded-2xl px-5 py-8 flex flex-col items-center gap-3 text-center"
                 style={{
                   background: "rgba(255,255,255,0.92)",
                   border: "1px solid rgba(255,255,255,0.65)",
