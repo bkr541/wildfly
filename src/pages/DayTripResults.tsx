@@ -356,9 +356,9 @@ function FlightColumn({
   return (
     <div className={`flex flex-col gap-0.5 flex-1 ${ta}`}>
       {/* Label chip */}
-      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"} mb-1.5`}>
+      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"} mb-1`}>
         <span
-          className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+          className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
           style={{ background: labelColor }}
         >
           {label}
@@ -367,36 +367,36 @@ function FlightColumn({
 
       {/* Origin IATA */}
       <span
-        className="text-[32px] font-black leading-none tracking-tight"
+        className="text-[22px] font-black leading-none tracking-tight"
         style={{ color: labelColor }}
       >
         {iataTop}
       </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
+      <span className="text-[11px] font-bold text-[#374151] leading-none">
         {formatDisplayTime(timeTop, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none mb-2">
+      <span className="text-[9px] font-medium text-[#6B7280] leading-none mb-1.5">
         {labelTop}
       </span>
 
       {/* Duration pill */}
       <div className={`flex ${align === "left" ? "justify-start" : "justify-end"}`}>
-        <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2.5 py-1 rounded-full">
+        <span className="text-[9px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
           {formatDuration(duration)}
         </span>
       </div>
 
       {/* Destination IATA */}
       <span
-        className="text-[32px] font-black leading-none tracking-tight mt-2"
+        className="text-[22px] font-black leading-none tracking-tight mt-1.5"
         style={{ color: labelColor }}
       >
         {iataBottom}
       </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
+      <span className="text-[11px] font-bold text-[#374151] leading-none">
         {formatDisplayTime(timeBottom, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none">
+      <span className="text-[9px] font-medium text-[#6B7280] leading-none">
         {labelBottom}
       </span>
     </div>
