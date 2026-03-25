@@ -13,8 +13,29 @@ export interface AppNotification {
   created_at: string;
 }
 
-// ── Fetch all notifications for current user ──────────────────────────────
-export function useNotifications() {
+// ── Lightweight unread count (HEAD request — no row data) ─────────────────
+export function useUnreadNotificationCount() {
+  const { userId } = useAuth();
+  const { data } = useQuery<number>({
+    queryKey: ["notifications-unread-count", userId],
+    queryFn: async () => {
+      if (!userId) return 0;
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_read", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+  });
+  return data ?? 0;
+}
+
+// ── Full notification list — lazy, only fetches when enabled=true ─────────
+export function useNotifications(enabled = true) {
   const { userId } = useAuth();
   return useQuery<AppNotification[]>({
     queryKey: ["notifications", userId],
@@ -29,15 +50,9 @@ export function useNotifications() {
       if (error) throw error;
       return (data ?? []) as AppNotification[];
     },
-    enabled: !!userId,
+    enabled: !!userId && enabled,
     staleTime: 30_000,
   });
-}
-
-// ── Unread count ───────────────────────────────────────────────────────────
-export function useUnreadNotificationCount() {
-  const { data } = useNotifications();
-  return (data ?? []).filter((n) => !n.is_read).length;
 }
 
 // ── Mark a single notification as read ────────────────────────────────────
