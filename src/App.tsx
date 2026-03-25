@@ -15,6 +15,7 @@ import FlightsPage from "./pages/Flights";
 import DestinationsPage from "./pages/Destinations";
 import FlightDestResults from "./pages/FlightDestResults";
 import FlightMultiDestResults from "./pages/FlightMultiDestResults";
+import DayTripResults from "./pages/DayTripResults";
 import AdminImport from "./pages/AdminImport";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
@@ -34,7 +35,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
@@ -203,6 +204,18 @@ const MainApp = () => {
 
   const handleNavigate = (page: string, data?: string) => {
     if (page === "flight-results" && data) {
+      // Detect if this is a day-trip result
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.tripType === "Day Trip") {
+          setFlightResultsData(data);
+          setCurrentPage("day-trip-results");
+          return;
+        }
+      } catch {
+        // fall through
+      }
+
       // Detect if this is a multi-destination result:
       // - arrivalAirport is "All"
       // - OR departureAirport starts with "CITY:" (city-area airports = multiple origins → all dests)
@@ -342,6 +355,14 @@ const MainApp = () => {
                 setFlightResultsFromMulti(true);
                 setCurrentPage("flight-results");
               }}
+            />
+          </div>
+        )}
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "day-trip-results" && (
+          <div className="h-full flex flex-col overflow-hidden">
+            <DayTripResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
             />
           </div>
         )}
