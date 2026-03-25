@@ -401,7 +401,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           <form
             key={isSignUp ? "signup" : "signin"}
             onSubmit={handleSubmit}
-            className="flex flex-col flex-1 animate-fade-in min-h-0"
+            className="flex flex-col flex-1 animate-fade-in min-h-0 mt-3"
             noValidate
           >
             {/* Fields — no fixed height, let content flow naturally */}
