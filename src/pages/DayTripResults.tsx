@@ -8,7 +8,7 @@ import {
   Clock01Icon,
   Rocket01Icon,
   Location01Icon,
-  ArrowUpDown01Icon,
+  ArrowDown01Icon,
   MapPinpoint01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
