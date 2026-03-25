@@ -93,7 +93,7 @@ interface NotificationsSheetProps {
 }
 
 export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
-  const { data: notifications, isLoading } = useNotifications();
+  const { data: notifications, isLoading } = useNotifications(open);
   const markAll = useMarkAllNotificationsRead();
   const sheetRef = useRef<HTMLDivElement>(null);
 
