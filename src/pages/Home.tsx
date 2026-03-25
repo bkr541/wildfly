@@ -102,6 +102,9 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
   const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
+  // Background-fetch day trips for today + tomorrow on login
+  useDayTripAutoFetch();
+
   const loadHomepageConfig = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("user_homepage")
