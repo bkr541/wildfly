@@ -167,35 +167,35 @@ function DestCardItem({
         </div>
         {/* GoWild badge — top LEFT of hero image */}
         {card.hasGoWild && (
-          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-[#059669] text-white"
-            style={{ boxShadow: "0 1px 4px rgba(5,150,105,0.35)" }}
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 bg-[#059669]"
+            style={{ border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
-            <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2} />
-            GoWild
-          </span>
+            <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
+            <span className="text-[10px] font-bold leading-none text-white">GoWild</span>
+          </div>
         )}
         {/* Min price badge — top RIGHT of hero image */}
         {card.minFare != null && (
-          <span
-            className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+          <div
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
             style={
               isGoWild
-                ? { background: "#059669", color: "#FFFFFF", border: "1.5px solid #D4AF37", boxShadow: "0 1px 4px rgba(5,150,105,0.35)" }
-                : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", color: "#1A2E2E", boxShadow: "0 1px 4px rgba(0,0,0,0.14)" }
+                ? { background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
+                : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
             }
           >
-            <span className="opacity-70 text-[10px]">From</span>
-            <span className="font-bold">${Math.round(card.minFare)}</span>
-          </span>
+            <span className="text-[10px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
+            <span className="text-[16px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
+          </div>
         )}
         {card.hasGoWild && card.minFare == null && (
-          <span
-            className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white"
-            style={{ background: "#059669", border: "1.5px solid #D4AF37", boxShadow: "0 1px 4px rgba(5,150,105,0.35)" }}
+          <div
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
+            style={{ background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
-            <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2} />
-            GoWild
-          </span>
+            <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
+            <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
+          </div>
         )}
       </div>
 
