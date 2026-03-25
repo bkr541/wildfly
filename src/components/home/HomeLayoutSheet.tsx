@@ -103,7 +103,6 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
     if (emptyIndices.size > 0) { setRowErrors(emptyIndices); return; }
 
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
 
     const { error: deleteError } = await supabase.from("user_homepage").delete().eq("user_id", user.id);
