@@ -151,7 +151,7 @@ function DestCardItem({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 45%, rgba(255,255,255,0.45) 78%, rgba(255,255,255,0.80) 100%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.22) 40%, rgba(255,255,255,0.62) 72%, rgba(255,255,255,0.92) 100%)",
           }}
         />
         {/* IATA | City, State — bottom, blends into the fade */}
