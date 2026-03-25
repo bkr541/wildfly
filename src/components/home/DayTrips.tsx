@@ -377,37 +377,63 @@ function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
+  const { user } = useAuth();
   const [pairs, setPairs] = useState<DayTripPair[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const load = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        const today = format(new Date(), "yyyy-MM-dd");
 
-        // Find home airport
-        const { data: info } = await supabase
-          .from("user_info")
-          .select("home_location_id")
-          .eq("auth_user_id", user.id)
-          .maybeSingle();
-        if (!info?.home_location_id) { setLoading(false); return; }
-
-        const { data: airport } = await supabase
-          .from("airports")
-          .select("iata_code")
-          .eq("location_id", info.home_location_id)
+        // ── Step 1: Check flight_searches for a today/home-airport/day-trip entry ──
+        const { data: recentSearch } = await supabase
+          .from("flight_searches")
+          .select("departure_airport")
+          .eq("user_id", user.id)
+          .eq("departure_date", today)
+          .ilike("trip_type", "%day%trip%")
+          .order("search_timestamp", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (!airport?.iata_code) { setLoading(false); return; }
 
-        const today = format(new Date(), "yyyy-MM-dd");
-        const cacheKey = await sha256(`${airport.iata_code}|__DAYTRIPS__|${today}`);
+        // ── Step 2: Resolve the home airport (from profile) ───────────────────
+        // Use the departure airport from a matching search if available,
+        // otherwise fall back to the user's profile home airport.
+        let homeIata: string | null = recentSearch?.departure_airport ?? null;
 
-        // Try to read from cache
+        if (!homeIata) {
+          const { data: info } = await supabase
+            .from("user_info")
+            .select("home_location_id")
+            .eq("auth_user_id", user.id)
+            .maybeSingle();
+
+          if (info?.home_location_id) {
+            const { data: airport } = await supabase
+              .from("airports")
+              .select("iata_code")
+              .eq("location_id", info.home_location_id)
+              .limit(1)
+              .maybeSingle();
+            homeIata = airport?.iata_code ?? null;
+          }
+        }
+
+        if (!homeIata) { setLoading(false); return; }
+
+        // ── Step 3: Only show cards if flight_searches has a today match ──────
+        // If there's no matching search record for today, don't show anything.
+        if (!recentSearch) { setLoading(false); return; }
+
+        // ── Step 4: Look up the cache using the canonical SHA-256 key ─────────
+        const cacheKey = await sha256(`${homeIata}|__DAYTRIPS__|${today}`);
+
         const { data: cached } = await (supabase.from("flight_search_cache") as any)
           .select("payload, status")
           .eq("cache_key", cacheKey)
@@ -424,8 +450,9 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
         setLoading(false);
       }
     };
+
     load();
-  }, []);
+  }, [user]);
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
