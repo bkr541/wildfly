@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronDown, ArrowRight } from "lucide-react";
+import allDestIcon from "@/assets/all-destinations-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
