@@ -242,8 +242,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                   </span>
                                 )}
                                 <span
-                                  className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}
+                                  className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}
                                 >
                                   <HugeiconsIcon icon={tripIcon} size={10} color="#1D4ED8" strokeWidth={2.5} />
                                   {tripLabel}

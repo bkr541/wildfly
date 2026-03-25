@@ -13,6 +13,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { BottomSheet } from "@/components/BottomSheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const COMPONENT_OPTIONS = [
   { value: "upcoming_flights", label: "Upcoming Flights" },
@@ -123,7 +125,7 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
   };
 
   return (
-    <BottomSheet open={open} onClose={() => onClose(false)} style={{ top: "30%" }}>
+    <BottomSheet open={open} onClose={() => onClose(false)} style={{ top: "5%" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
         <div className="flex items-center gap-2.5">
@@ -147,97 +149,128 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
         </button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-2">
-        {loading ? (
-          <p className="text-sm text-[#9CA3AF] text-center py-8">Loading…</p>
-        ) : (
-          <div className="space-y-2">
-            {homepageRows.length === 0 && (
-              <p className="text-sm text-[#9AADAD] px-1">
-                No components configured. Tap "Add Component" to begin.
-              </p>
+      {/* Tabs */}
+      <Tabs defaultValue="manage" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="w-full h-11 bg-transparent p-0 gap-0 border-b border-[rgba(0,0,0,0.06)] rounded-none flex-shrink-0 mx-0">
+          <TabsTrigger
+            value="manage"
+            className={cn(
+              "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center",
+              "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+              "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
             )}
-            {homepageRows.map((row, idx) => {
-              const hasError = rowErrors.has(idx);
-              return (
-                <div key={idx}>
-                  <div
-                    className={`flex items-center gap-2 bg-white rounded-xl border px-3 py-2 shadow-sm transition-colors ${
-                      hasError ? "border-red-400" : "border-[#E3E6E6]"
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-[#9AADAD] w-5 text-center shrink-0">
-                      {idx + 1}
-                    </span>
-                    <select
-                      value={row.component_name}
-                      onChange={(e) => updateComponent(idx, e.target.value)}
-                      className={`flex-1 text-sm font-medium bg-[#F7F8F8] border border-[#E3E6E6] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#059669]/30 appearance-none cursor-pointer transition-colors ${
-                        !row.component_name ? "text-[#9AADAD]" : "text-[#2E4A4A]"
-                      }`}
-                    >
-                      <option value="" disabled>Select a component…</option>
-                      {COMPONENT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => moveRow(idx, "up")}
-                        disabled={idx === 0}
-                        className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
-                      >
-                        <HugeiconsIcon icon={ArrowUp01Icon} size={12} color="#345C5A" strokeWidth={2} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveRow(idx, "down")}
-                        disabled={idx === homepageRows.length - 1}
-                        className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
-                      >
-                        <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="#345C5A" strokeWidth={2} />
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeRow(idx)}
-                      className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors shrink-0"
-                    >
-                      <HugeiconsIcon icon={Delete02Icon} size={16} color="#EF4444" strokeWidth={1.5} />
-                    </button>
-                  </div>
-                  {hasError && (
-                    <p className="text-xs text-red-500 mt-1 px-1">Component cannot be blank.</p>
-                  )}
-                </div>
-              );
-            })}
+          >
+            Manage Widgets
+          </TabsTrigger>
+          <TabsTrigger
+            value="explore"
+            className={cn(
+              "flex-1 h-11 text-sm font-medium rounded-none transition-all border-b-2 border-transparent bg-transparent flex items-center justify-center",
+              "data-[state=active]:border-[#059669] data-[state=active]:text-[#059669] data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+              "data-[state=inactive]:text-muted-foreground hover:text-foreground hover:bg-transparent",
+            )}
+          >
+            Explore Widgets
+          </TabsTrigger>
+        </TabsList>
 
+        <TabsContent value="manage" className="mt-0 focus-visible:outline-none flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto px-5 pt-4 pb-2">
+            {loading ? (
+              <p className="text-sm text-[#9CA3AF] text-center py-8">Loading…</p>
+            ) : (
+              <div className="space-y-2">
+                {homepageRows.length === 0 && (
+                  <p className="text-sm text-[#9AADAD] px-1">
+                    No components configured. Tap "Add Component" to begin.
+                  </p>
+                )}
+                {homepageRows.map((row, idx) => {
+                  const hasError = rowErrors.has(idx);
+                  return (
+                    <div key={idx}>
+                      <div
+                        className={`flex items-center gap-2 bg-white rounded-xl border px-3 py-2 shadow-sm transition-colors ${
+                          hasError ? "border-red-400" : "border-[#E3E6E6]"
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-[#9AADAD] w-5 text-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <select
+                          value={row.component_name}
+                          onChange={(e) => updateComponent(idx, e.target.value)}
+                          className={`flex-1 text-sm font-medium bg-[#F7F8F8] border border-[#E3E6E6] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#059669]/30 appearance-none cursor-pointer transition-colors ${
+                            !row.component_name ? "text-[#9AADAD]" : "text-[#2E4A4A]"
+                          }`}
+                        >
+                          <option value="" disabled>Select a component…</option>
+                          {COMPONENT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <div className="flex flex-col gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveRow(idx, "up")}
+                            disabled={idx === 0}
+                            className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
+                          >
+                            <HugeiconsIcon icon={ArrowUp01Icon} size={12} color="#345C5A" strokeWidth={2} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveRow(idx, "down")}
+                            disabled={idx === homepageRows.length - 1}
+                            className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
+                          >
+                            <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="#345C5A" strokeWidth={2} />
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRow(idx)}
+                          className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={16} color="#EF4444" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                      {hasError && (
+                        <p className="text-xs text-red-500 mt-1 px-1">Component cannot be blank.</p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="flex items-center gap-1.5 text-[#059669] text-sm font-semibold mt-3 px-1 hover:opacity-75 transition-opacity"
+                >
+                  <HugeiconsIcon icon={PlusSignIcon} size={15} color="#059669" strokeWidth={2.5} />
+                  Add Component
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Save button */}
+          <div className="px-5 pt-3 pb-4">
             <button
-              type="button"
-              onClick={addRow}
-              className="flex items-center gap-1.5 text-[#059669] text-sm font-semibold mt-3 px-1 hover:opacity-75 transition-opacity"
+              onClick={handleSave}
+              disabled={saving || loading}
+              className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-widest uppercase shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
             >
-              <HugeiconsIcon icon={PlusSignIcon} size={15} color="#059669" strokeWidth={2.5} />
-              Add Component
+              <span>{saving ? "Saving…" : "Save Layout"}</span>
+              {!saving && <HugeiconsIcon icon={FloppyDiskIcon} size={18} color="white" strokeWidth={2} />}
             </button>
           </div>
-        )}
-      </div>
+        </TabsContent>
 
-      {/* Save button */}
-      <div className="px-5 pt-3 pb-4">
-        <button
-          onClick={handleSave}
-          disabled={saving || loading}
-          className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-widest uppercase shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
-        >
-          <span>{saving ? "Saving…" : "Save Layout"}</span>
-          {!saving && <HugeiconsIcon icon={FloppyDiskIcon} size={18} color="white" strokeWidth={2} />}
-        </button>
-      </div>
+        <TabsContent value="explore" className="mt-0 focus-visible:outline-none flex-1 flex items-center justify-center">
+          <p className="text-sm text-[#9AADAD]">Coming soon…</p>
+        </TabsContent>
+      </Tabs>
     </BottomSheet>
   );
 };
