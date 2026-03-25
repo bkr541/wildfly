@@ -358,6 +358,14 @@ const MainApp = () => {
             />
           </div>
         )}
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "day-trip-results" && (
+          <div className="h-full flex flex-col overflow-hidden">
+            <DayTripResults
+              onBack={() => setCurrentPage("flights")}
+              responseData={flightResultsData}
+            />
+          </div>
+        )}
         <IOSInstallBanner />
       </div>
     </div>
