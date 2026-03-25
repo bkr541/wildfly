@@ -69,6 +69,7 @@ export function useMarkNotificationRead() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications", userId] });
+      qc.invalidateQueries({ queryKey: ["notifications-unread-count", userId] });
     },
   });
 }
@@ -89,6 +90,7 @@ export function useMarkAllNotificationsRead() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications", userId] });
+      qc.invalidateQueries({ queryKey: ["notifications-unread-count", userId] });
     },
   });
 }
