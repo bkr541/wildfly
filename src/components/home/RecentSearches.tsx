@@ -230,18 +230,18 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                             {/* Card body */}
                             <div className="px-4 pt-3 pb-3">
                               {/* Route row */}
-                              <div className="flex items-center justify-center gap-2 mb-2">
-                                <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                  {depCode}
-                                </span>
-                                <ArrowRight size={18} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
-                                {isAllDest ? (
-                                  <img src={allDestIcon} alt="All destinations" className="w-[30px] h-[30px] object-contain" />
-                                ) : (
-                                  <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                    {arrCode ?? "—"}
-                                  </span>
-                                )}
+                               <div className="flex items-center justify-center gap-2 mb-2">
+                                 <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                   {depCode}
+                                 </span>
+                                 <ArrowRight size={16} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
+                                 {isAllDest ? (
+                                   <img src={allDestIcon} alt="All destinations" className="w-[24px] h-[24px] object-contain" />
+                                 ) : (
+                                   <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                     {arrCode ?? "—"}
+                                   </span>
+                                 )}
                               </div>
 
                               {/* Badges row */}
