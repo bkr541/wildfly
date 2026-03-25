@@ -798,7 +798,7 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
         </header>
 
         {/* ── Results ── */}
-        <div className="px-4 pt-4 pb-8 flex flex-col gap-4">
+        <div className="px-3 pt-4 pb-8 grid grid-cols-2 gap-3">
           <AnimatePresence>
             {pairs.length === 0 ? (
               <motion.div
