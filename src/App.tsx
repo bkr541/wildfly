@@ -373,7 +373,7 @@ const MainApp = () => {
   );
 };
 
-  const App = () => (
+const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <BrowserRouter>
