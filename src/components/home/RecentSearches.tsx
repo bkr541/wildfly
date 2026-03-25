@@ -236,7 +236,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 </span>
                                 <ArrowRight size={18} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
                                 {isAllDest ? (
-                                  <HugeiconsIcon icon={EarthIcon} size={30} color="#1A2E2E" strokeWidth={2} />
+                                  <img src={allDestIcon} alt="All destinations" className="w-[30px] h-[30px] object-contain" />
                                 ) : (
                                   <span className="text-[30px] font-bold text-[#1A2E2E] leading-none tracking-tight">
                                     {arrCode ?? "—"}
