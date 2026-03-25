@@ -1212,10 +1212,51 @@ const FlightDestResults = ({
                               {/* Expanded detail — FlightLegTimeline + actions + Hide Details at the bottom */}
                               {isFlightOpen && (
                                 <div className="bg-white animate-fade-in">
-                                  <div className="px-2 pt-3">
-                                    <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                  </div>
-                                  <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-2">
+                                   <div className="px-2 pt-3">
+                                     <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                   </div>
+                                   {/* Badges inside expanded details */}
+                                   {hasBadges && (
+                                     <div className="flex flex-wrap gap-1 px-3 pt-2">
+                                       {isGoWild && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#059669", color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           GoWild
+                                         </span>
+                                       )}
+                                       {isCheapest && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={DollarCircleIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           Cheapest
+                                         </span>
+                                       )}
+                                       {isQuickest && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
+                                           <HugeiconsIcon icon={TrafficLightIcon} size={10} color="#1A1A1A" strokeWidth={2.5} />
+                                           Quickest
+                                         </span>
+                                       )}
+                                       {isBlackout && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#111827", color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={UnavailableIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           Blackout
+                                         </span>
+                                       )}
+                                       {flight.is_plus_one_day && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#E89830", color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={Clock01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           +1 Day
+                                         </span>
+                                       )}
+                                       {isRedEye && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={Alert01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           Red Eye
+                                         </span>
+                                       )}
+                                     </div>
+                                   )}
+                                   <div className="flex items-center justify-end gap-2 px-3 pt-3 pb-2">
                                      <button
                                        onClick={(e) => { e.stopPropagation(); toggleUserFlight(flight, "alert"); }}
                                        className={cn(
