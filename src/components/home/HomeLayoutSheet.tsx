@@ -34,6 +34,7 @@ interface HomeLayoutSheetProps {
 }
 
 export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [homepageRows, setHomepageRows] = useState<HomepageRow[]>([]);
