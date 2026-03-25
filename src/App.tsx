@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "./components/MainLayout";
 import AltSplashScreen from "./components/AltSplashScreen";
 import AuthPage from "./components/AuthPage";

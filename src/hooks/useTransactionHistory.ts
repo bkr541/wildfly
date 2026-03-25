@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface CreditTransaction {
   id: string;
@@ -30,6 +31,7 @@ interface UseTransactionHistoryResult {
 const PAGE_SIZE = 20;
 
 export function useTransactionHistory(): UseTransactionHistoryResult {
+  const { userId, loading: authLoading } = useAuth();
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,23 +39,19 @@ export function useTransactionHistory(): UseTransactionHistoryResult {
   const [hasMore, setHasMore] = useState(false);
 
   const fetchPage = useCallback(async (pageIndex: number) => {
+    if (!userId) { setLoading(false); return; }
+
     setLoading(true);
     setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
       const from = pageIndex * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
       const { data, error: err, count } = await supabase
         .from("credit_transactions")
         .select("*", { count: "exact" })
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -83,11 +81,12 @@ export function useTransactionHistory(): UseTransactionHistoryResult {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
+    if (authLoading) return;
     fetchPage(0);
-  }, [fetchPage]);
+  }, [fetchPage, authLoading]);
 
   const loadMore = useCallback(() => {
     const nextPage = page + 1;
