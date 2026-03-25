@@ -204,6 +204,18 @@ const MainApp = () => {
 
   const handleNavigate = (page: string, data?: string) => {
     if (page === "flight-results" && data) {
+      // Detect if this is a day-trip result
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.tripType === "Day Trip") {
+          setFlightResultsData(data);
+          setCurrentPage("day-trip-results");
+          return;
+        }
+      } catch {
+        // fall through
+      }
+
       // Detect if this is a multi-destination result:
       // - arrivalAirport is "All"
       // - OR departureAirport starts with "CITY:" (city-area airports = multiple origins → all dests)
