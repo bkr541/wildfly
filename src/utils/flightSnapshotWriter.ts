@@ -85,12 +85,6 @@ export async function writeFlightSnapshots(
       // synthesise a stable id if none provided
       [f.origin ?? originIata, f.destination, f.departureTime ?? f.depart_time].join("|");
 
-    const finalDest: string =
-      f.destination ??
-      f.arrival_airport ??
-      legs[legs.length - 1]?.destination ??
-      "";
-
     // ── One row per leg ──────────────────────────────────────────────────────
     legs.forEach((leg, idx) => {
       // Skip legs with missing times — can't satisfy NOT NULL constraint
