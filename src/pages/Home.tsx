@@ -5,6 +5,7 @@ import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
+import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
 
 
 interface UserFlight {
@@ -100,6 +101,9 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
   const [searchesLoading, setSearchesLoading] = useState(true);
   const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  // Background-fetch day trips for today + tomorrow on login
+  useDayTripAutoFetch();
 
   const loadHomepageConfig = useCallback(async (userId: string) => {
     const { data } = await supabase
