@@ -445,51 +445,6 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
     load();
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-check cache every 30 seconds while component is visible (handles async fetch completing)
-  useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(async () => {
-      if (pairs.length > 0) return; // already have data
-
-      const { data: info } = await supabase
-        .from("user_info")
-        .select("home_airport")
-        .eq("auth_user_id", user.id)
-        .maybeSingle();
-      const homeIata = info?.home_airport ?? null;
-      if (!homeIata) return;
-
-      const today = format(new Date(), "yyyy-MM-dd");
-      const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
-
-      const [todayCacheKey, tomorrowCacheKey] = await Promise.all([
-        sha256(`${homeIata}|__DAYTRIPS__|${today}`),
-        sha256(`${homeIata}|__DAYTRIPS__|${tomorrow}`),
-      ]);
-
-      const [todayCached, tomorrowCached] = await Promise.all([
-        (supabase.from("flight_search_cache") as any)
-          .select("payload, status")
-          .eq("cache_key", todayCacheKey)
-          .eq("status", "ready")
-          .maybeSingle(),
-        (supabase.from("flight_search_cache") as any)
-          .select("payload, status")
-          .eq("cache_key", tomorrowCacheKey)
-          .eq("status", "ready")
-          .maybeSingle(),
-      ]);
-
-      const allPairs: DayTripPair[] = [
-        ...(todayCached.data?.payload ? parseDayTripPairs(todayCached.data.payload, today) : []),
-        ...(tomorrowCached.data?.payload ? parseDayTripPairs(tomorrowCached.data.payload, tomorrow) : []),
-      ];
-
-      if (allPairs.length > 0) setPairs(allPairs);
-    }, 30_000);
-
-    return () => clearInterval(interval);
-  }, [user?.id, pairs.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
