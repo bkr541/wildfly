@@ -1152,12 +1152,12 @@ const FlightDestResults = ({
                                   {/* Badge icons — one per active badge */}
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
-                                      {isGoWild && <HugeiconsIcon icon={Rocket01Icon} size={14} color="#059669" strokeWidth={2} />}
-                                      {isCheapest && <HugeiconsIcon icon={DollarCircleIcon} size={14} color="#1E3A5F" strokeWidth={2} />}
-                                      {isQuickest && <HugeiconsIcon icon={TrafficLightIcon} size={14} color="#D4AF37" strokeWidth={2} />}
-                                      {isBlackout && <HugeiconsIcon icon={UnavailableIcon} size={14} color="#111827" strokeWidth={2} />}
-                                      {flight.is_plus_one_day && <HugeiconsIcon icon={Clock01Icon} size={14} color="#E89830" strokeWidth={2} />}
-                                      {isRedEye && <HugeiconsIcon icon={Alert01Icon} size={14} color="#DC2626" strokeWidth={2} />}
+                                      {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isCheapest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isQuickest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2.5} /></span>}
+                                      {isBlackout && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {flight.is_plus_one_day && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#E89830" }}><HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isRedEye && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#DC2626" }}><HugeiconsIcon icon={Alert01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                     </div>
                                   )}
                                 </div>
