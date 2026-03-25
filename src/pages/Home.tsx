@@ -113,15 +113,11 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
 
   useEffect(() => {
     const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         setSearchesLoading(false);
         return;
       }
-
 
       const [flightsResult, searchesResult] = await Promise.all([
         supabase
@@ -154,15 +150,13 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
       setSearchesLoading(false);
     };
     load();
-  }, [loadHomepageConfig]);
+  }, [user, loadHomepageConfig]);
 
   // Re-fetch homepage config whenever refreshTrigger increments (e.g. after Appearance save)
   useEffect(() => {
     if (refreshTrigger === undefined || refreshTrigger === 0) return;
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) loadHomepageConfig(user.id);
-    });
-  }, [refreshTrigger, loadHomepageConfig]);
+    if (user) loadHomepageConfig(user.id);
+  }, [refreshTrigger, loadHomepageConfig, user]);
 
   const toggleSection = useCallback((name: string) => {
     setCollapsedSections((prev) => ({ ...prev, [name]: !prev[name] }));
