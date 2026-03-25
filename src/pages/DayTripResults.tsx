@@ -804,7 +804,7 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-2xl px-5 py-8 flex flex-col items-center gap-3 text-center"
+                className="col-span-2 rounded-2xl px-5 py-8 flex flex-col items-center gap-3 text-center"
                 style={{
                   background: "rgba(255,255,255,0.92)",
                   border: "1px solid rgba(255,255,255,0.65)",
