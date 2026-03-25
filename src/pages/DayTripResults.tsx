@@ -484,7 +484,7 @@ function DayTripCard({
           />
 
           {/* Center: ground time + destination */}
-          <div className="flex flex-col items-center justify-center gap-1.5 pt-7 shrink-0 w-[80px]">
+          <div className="flex flex-col items-center justify-center gap-1 pt-6 shrink-0 w-[58px]">
             <div
               className="flex items-center gap-1 rounded-full px-2.5 py-1.5"
               style={{ background: "#059669" }}
