@@ -1135,7 +1135,7 @@ const FlightDestResults = ({
                             >
                               {/* Collapsed / main card content — NOT a button, click only via Show Details */}
                               <div className="text-left w-full px-4 pt-3.5 pb-2">
-                                {/* Row 1: Airline name + flight number + price badge */}
+                                {/* Row 1: Airline name + flight number + dot indicators */}
                                 <div className="flex items-center justify-between mb-1.5">
                                   <div className="flex items-center gap-2">
                                     <img
@@ -1149,6 +1149,17 @@ const FlightDestResults = ({
                                       </span>
                                     )}
                                   </div>
+                                  {/* Dot indicators — one per active badge */}
+                                  {hasBadges && (
+                                    <div className="flex items-center gap-1">
+                                      {isGoWild && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#059669" }} />}
+                                      {isCheapest && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#1E3A5F" }} />}
+                                      {isQuickest && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#D4AF37" }} />}
+                                      {isBlackout && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#111827" }} />}
+                                      {flight.is_plus_one_day && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#E89830" }} />}
+                                      {isRedEye && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#DC2626" }} />}
+                                    </div>
+                                  )}
                                 </div>
 
                                   {/* Row 2: Dep time — plane — Arr time */}
@@ -1180,48 +1191,6 @@ const FlightDestResults = ({
                                       {destCity}
                                     </span>
                                   </div>
-
-                                {/* Row 4: Status badges */}
-                                {hasBadges && (
-                                  <div className="flex flex-wrap gap-1 mt-2">
-                                    {isGoWild && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#059669", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
-                                        GoWild
-                                      </span>
-                                    )}
-                                    {isCheapest && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={DollarCircleIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
-                                        Cheapest
-                                      </span>
-                                    )}
-                                    {isQuickest && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
-                                        <HugeiconsIcon icon={TrafficLightIcon} size={10} color="#1A1A1A" strokeWidth={2.5} />
-                                        Quickest
-                                      </span>
-                                    )}
-                                    {isBlackout && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#111827", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={UnavailableIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
-                                        Blackout
-                                      </span>
-                                    )}
-                                    {flight.is_plus_one_day && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#E89830", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Clock01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
-                                        +1 Day
-                                      </span>
-                                    )}
-                                    {isRedEye && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
-                                        <HugeiconsIcon icon={Alert01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
-                                        Red Eye
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
                               </div>
 
                               {/* Show Details button — only visible when collapsed */}
