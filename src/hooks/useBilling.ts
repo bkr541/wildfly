@@ -88,6 +88,7 @@ const APP_URL = window.location.origin;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useBilling(): BillingState {
+  const { userId, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -119,13 +120,13 @@ export function useBilling(): BillingState {
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
+    if (authLoading) return;
     let cancelled = false;
 
     const load = async () => {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || cancelled) {
+      if (!userId || cancelled) {
         setLoading(false);
         return;
       }
