@@ -371,7 +371,10 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
 
     const load = async () => {
       try {
-        // ── Resolve home airport from profile ─────────────────────────────────
+        const today = format(new Date(), "yyyy-MM-dd");
+        const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+
+        // ── Resolve home airport ──────────────────────────────────────────────
         const { data: info } = await supabase
           .from("user_info")
           .select("home_airport")
@@ -379,46 +382,47 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
           .maybeSingle();
 
         const homeIata = info?.home_airport ?? null;
-        if (!homeIata) { setLoading(false); return; }
 
-        const today = format(new Date(), "yyyy-MM-dd");
-        const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+        let allPairs: DayTripPair[] = [];
 
-        // ── 1. Try flight_search_cache first ──────────────────────────────────
-        const [todayCacheKey, tomorrowCacheKey] = await Promise.all([
-          sha256(`${homeIata}|__DAYTRIPS__|${today}`),
-          sha256(`${homeIata}|__DAYTRIPS__|${tomorrow}`),
-        ]);
+        // ── 1. Try flight_search_cache if we have a home airport ──────────────
+        if (homeIata) {
+          const [todayCacheKey, tomorrowCacheKey] = await Promise.all([
+            sha256(`${homeIata}|__DAYTRIPS__|${today}`),
+            sha256(`${homeIata}|__DAYTRIPS__|${tomorrow}`),
+          ]);
 
-        const [todayCached, tomorrowCached] = await Promise.all([
-          (supabase.from("flight_search_cache") as any)
-            .select("payload, status")
-            .eq("cache_key", todayCacheKey)
-            .eq("status", "ready")
-            .maybeSingle(),
-          (supabase.from("flight_search_cache") as any)
-            .select("payload, status")
-            .eq("cache_key", tomorrowCacheKey)
-            .eq("status", "ready")
-            .maybeSingle(),
-        ]);
+          const [todayCached, tomorrowCached] = await Promise.all([
+            (supabase.from("flight_search_cache") as any)
+              .select("payload, status")
+              .eq("cache_key", todayCacheKey)
+              .eq("status", "ready")
+              .maybeSingle(),
+            (supabase.from("flight_search_cache") as any)
+              .select("payload, status")
+              .eq("cache_key", tomorrowCacheKey)
+              .eq("status", "ready")
+              .maybeSingle(),
+          ]);
 
-        let allPairs: DayTripPair[] = [
-          ...(todayCached.data?.payload ? parseDayTripPairs(todayCached.data.payload, today) : []),
-          ...(tomorrowCached.data?.payload ? parseDayTripPairs(tomorrowCached.data.payload, tomorrow) : []),
-        ];
+          allPairs = [
+            ...(todayCached.data?.payload ? parseDayTripPairs(todayCached.data.payload, today) : []),
+            ...(tomorrowCached.data?.payload ? parseDayTripPairs(tomorrowCached.data.payload, tomorrow) : []),
+          ];
+        }
 
-        // ── 2. Fall back to flight_searches if cache is empty ─────────────────
+        // ── 2. Always fall back to flight_searches (works even without home_airport) ──
         if (allPairs.length === 0) {
-          const { data: searches } = await supabase
+          const query = supabase
             .from("flight_searches")
-            .select("json_body, departure_date")
+            .select("json_body, departure_date, departure_airport")
             .eq("user_id", user.id)
-            .eq("departure_airport", homeIata)
             .eq("trip_type", "day_trip")
             .in("departure_date", [today, tomorrow])
             .order("search_timestamp", { ascending: false })
-            .limit(4);
+            .limit(10);
+
+          const { data: searches } = await query;
 
           if (searches && searches.length > 0) {
             // Group by date, use latest per date
