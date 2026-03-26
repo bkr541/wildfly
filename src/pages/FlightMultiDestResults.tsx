@@ -180,21 +180,21 @@ function DestCardItem({
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
             style={
               isGoWild
-                ? { background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
+                ? { background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
                 : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
             }
           >
-            <span className="text-[10px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
-            <span className="text-[16px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
+            <span className="text-[14px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
+            <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
           </div>
         )}
         {card.hasGoWild && card.minFare == null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-            style={{ background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+            style={{ background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
-            <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
-            <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
+            <span className="text-[14px] font-semibold leading-none text-white/80">From</span>
+            <span className="text-[20px] font-black leading-none tracking-tight text-white">GoWild</span>
           </div>
         )}
       </div>
