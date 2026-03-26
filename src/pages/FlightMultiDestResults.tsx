@@ -120,7 +120,7 @@ function DestCardItem({
     <motion.div
       ref={cardRef}
       className="rounded-2xl overflow-hidden bg-white"
-      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "1px solid #4A7C59" : "1px solid #E8EBEB" }}
+      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "2px solid #4A7C59" : "1px solid #E8EBEB" }}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
