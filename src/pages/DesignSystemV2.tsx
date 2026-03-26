@@ -1181,8 +1181,8 @@ function CollapsibleRow({
         onClick={onToggle}
         className="flex items-center w-full px-5 py-3.5 gap-3 hover:bg-surface-subtle transition-colors text-left"
       >
-        <span className="h-8 w-8 rounded-full bg-[#345C5A] flex items-center justify-center shrink-0">
-          <HugeiconsIcon icon={icon} size={15} color="#D1FAE5" strokeWidth={1.5} />
+        <span className="h-8 w-8 rounded-full bg-brand flex items-center justify-center shrink-0">
+          <HugeiconsIcon icon={icon} size={15} color="white" strokeWidth={1.5} />
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#2E4A4A]">{label}</p>

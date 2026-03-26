@@ -163,8 +163,8 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
             >
-              <span className="h-8 w-8 rounded-full bg-[#345C5A] flex items-center justify-center mr-3 shrink-0">
-                <HugeiconsIcon icon={item.icon} size={14} color="#D1FAE5" strokeWidth={1.5} />
+              <span className="h-8 w-8 rounded-full bg-brand flex items-center justify-center mr-3 shrink-0">
+                <HugeiconsIcon icon={item.icon} size={14} color="white" strokeWidth={1.5} />
               </span>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#2E4A4A]">{item.label}</p>
