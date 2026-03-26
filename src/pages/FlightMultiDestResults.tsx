@@ -156,8 +156,8 @@ function DestCardItem({
         />
         {/* IATA | City, State — bottom, blends into the fade */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
-          <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#047857" : "#0F2040", textShadow: "0 1px 3px rgba(255,255,255,0.6)" }}>{card.destination}</span>
-          <span className="font-bold text-[24px] leading-none" style={{ color: "#4B6060", textShadow: "0 1px 2px rgba(255,255,255,0.5)", margin: "0 6px" }}> | </span>
+          <span className="text-[42px] font-black leading-none" style={{ color: isGoWild ? "#047857" : "#0F2040", textShadow: "0 1px 3px rgba(255,255,255,0.6)" }}>{card.destination}</span>
+          <span className="font-bold text-[24px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)", margin: "0 6px" }}> | </span>
           <span className="uppercase tracking-wide font-semibold text-[19px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}>
             {card.city || card.destination}
             {(card.stateCode && card.stateCode !== "None") && (
@@ -679,10 +679,10 @@ const FlightMultiDestResults = ({
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
       <motion.div
-        className="sticky top-0 z-30 px-4 bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
+      className="sticky top-0 z-30 px-[22px] bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
         initial={false}
         animate={{
-          height: compactHeader ? 80 : 0,
+          height: compactHeader ? 92 : 0,
           opacity: compactHeader ? 1 : 0,
           pointerEvents: compactHeader ? "auto" : "none",
         }}
