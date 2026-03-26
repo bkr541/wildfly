@@ -202,7 +202,7 @@ function DestCardItem({
       {/* Card body */}
       <div className="px-4 pt-1.5 pb-4">
         {/* Stats grid: 2-column layout */}
-        <div className="flex flex-col gap-2.5 mb-2">
+        <div className="flex flex-col gap-2.5 mb-4">
           {/* Row A: Fare Range | Earliest Departure */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
