@@ -328,7 +328,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* Top section with logo */}
       <div className="w-full flex flex-col items-center justify-center z-10 gap-2 py-4">
         <img
-          src="/assets/logo/logo2_shadow.png"
+          src="/assets/logo/logo_horizontal.png"
           alt="Logo"
           className="w-auto object-contain mx-auto"
           style={{ height: "clamp(90px, 22vw, 140px)" }}
