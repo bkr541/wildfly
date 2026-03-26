@@ -157,8 +157,8 @@ function DestCardItem({
         {/* IATA | City, State — bottom, blends into the fade */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
           <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#047857" : "#0F2040", textShadow: "0 1px 3px rgba(255,255,255,0.6)" }}>{card.destination}</span>
-          <span className="font-bold text-[24px] leading-none mx-1" style={{ color: "#4B6060", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}> | </span>
-          <span className="uppercase tracking-wide font-semibold text-[15px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}>
+          <span className="font-bold text-[24px] leading-none" style={{ color: "#4B6060", textShadow: "0 1px 2px rgba(255,255,255,0.5)", margin: "0 4px" }}> | </span>
+          <span className="uppercase tracking-wide font-semibold text-[19px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}>
             {card.city || card.destination}
             {(card.stateCode && card.stateCode !== "None") && (
               <span>{", "}{card.stateCode}</span>
