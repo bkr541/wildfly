@@ -484,7 +484,7 @@ function DayTripCard({
             (e.currentTarget as HTMLImageElement).src = "/assets/locations/init_background.png";
           }}
         />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.10) 20%, rgba(0,0,0,0.10) 40%, rgba(0,0,0,0.18) 60%, rgba(255,255,255,0.62) 80%, rgba(255,255,255,0.92) 100%)" }}>
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 20%, rgba(0,0,0,0.10) 40%, rgba(0,0,0,0.18) 60%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.55) 100%)" }}>
           {/* City name — true center */}
           <div className="absolute inset-0 flex items-center justify-center">
             <span
