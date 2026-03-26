@@ -127,7 +127,7 @@ function DestCardItem({
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
     >
       {/* City photo */}
-      <div className="relative h-[170px] overflow-hidden bg-[#C8D5D5]">
+      <div className="relative h-[158px] overflow-hidden bg-[#C8D5D5]">
         {bgImage ? (
           <motion.img
             src={bgImage}
@@ -157,8 +157,8 @@ function DestCardItem({
         {/* IATA | City, State — bottom, blends into the fade */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
           <span className="text-[38px] font-black leading-none" style={{ color: isGoWild ? "#047857" : "#0F2040", textShadow: "0 1px 3px rgba(255,255,255,0.6)" }}>{card.destination}</span>
-          <span className="font-bold text-[24px] leading-none mx-1" style={{ color: "#4B6060", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}> | </span>
-          <span className="uppercase tracking-wide font-semibold text-[15px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}>
+          <span className="font-bold text-[24px] leading-none" style={{ color: "#4B6060", textShadow: "0 1px 2px rgba(255,255,255,0.5)", margin: "0 4px" }}> | </span>
+          <span className="uppercase tracking-wide font-semibold text-[19px] leading-none" style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}>
             {card.city || card.destination}
             {(card.stateCode && card.stateCode !== "None") && (
               <span>{", "}{card.stateCode}</span>
@@ -180,21 +180,21 @@ function DestCardItem({
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
             style={
               isGoWild
-                ? { background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
+                ? { background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
                 : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
             }
           >
-            <span className="text-[10px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
-            <span className="text-[16px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
+            <span className="text-[14px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
+            <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
           </div>
         )}
         {card.hasGoWild && card.minFare == null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
-            style={{ background: "#059669", border: "2px solid #D4AF37", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+            style={{ background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
-            <span className="text-[10px] font-semibold leading-none text-white/80">From</span>
-            <span className="text-[16px] font-black leading-none tracking-tight text-white">GoWild</span>
+            <span className="text-[14px] font-semibold leading-none text-white/80">From</span>
+            <span className="text-[20px] font-black leading-none tracking-tight text-white">GoWild</span>
           </div>
         )}
       </div>
