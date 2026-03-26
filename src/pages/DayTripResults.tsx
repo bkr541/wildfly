@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faPlane } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faPlane, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SunCloud01Icon,
@@ -266,26 +266,6 @@ interface Badge {
 function getBadges(pair: DayTripPair, allPairs: DayTripPair[]): Badge[] {
   const badges: Badge[] = [];
 
-  if (pair.isNonstop) {
-    badges.push({
-      key: "nonstop",
-      label: "Nonstop",
-      color: "#059669",
-      textColor: "#fff",
-      icon: Rocket01Icon,
-    });
-  }
-
-  if (pair.isSameDay) {
-    badges.push({
-      key: "sameday",
-      label: "Same Day",
-      color: "#2563EB",
-      textColor: "#fff",
-      icon: Calendar03Icon,
-    });
-  }
-
   // Best Balance = most ground time among same-day nonstop pairs
   const eligible = allPairs.filter((p) => p.isNonstop && p.isSameDay);
   if (eligible.length > 0) {
@@ -364,17 +344,17 @@ function FlightRow({
       {/* Times row */}
       <div className="flex items-start gap-2">
         {/* Departure */}
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-baseline gap-0.5">
+        <div className="flex flex-col w-[38%] shrink-0">
+          <div className="flex items-baseline gap-1">
             <span className="text-[26px] font-black leading-none text-[#111827]">{dep.time}</span>
             <span className="text-[13px] font-bold text-[#111827] leading-none">{dep.ampm}</span>
+            <span className="text-[13px] font-bold text-[#374151] leading-none">{depIata}</span>
           </div>
-          <span className="text-[13px] font-bold text-[#374151] mt-0.5 leading-none">{depIata}</span>
-          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight">{depAirportName}</span>
+          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight truncate">{depAirportName}</span>
         </div>
 
         {/* Center: dashed line + duration */}
-        <div className="flex-1 flex flex-col items-center pt-2.5 min-w-0">
+        <div className="flex-1 flex flex-col items-center pt-2.5">
           <div className="flex items-center w-full">
             <div className="flex-1 border-t-[1.5px] border-dashed border-[#D1D5DB]" />
             <FontAwesomeIcon icon={faPlane} className="mx-1.5 text-[#9CA3AF] w-3 h-3 flex-shrink-0" />
@@ -392,13 +372,13 @@ function FlightRow({
         </div>
 
         {/* Arrival */}
-        <div className="flex flex-col items-end min-w-0">
-          <div className="flex items-baseline gap-0.5">
+        <div className="flex flex-col items-end w-[38%] shrink-0">
+          <div className="flex items-baseline gap-1">
+            <span className="text-[13px] font-bold text-[#374151] leading-none">{arrIata}</span>
             <span className="text-[26px] font-black leading-none text-[#111827]">{arr.time}</span>
             <span className="text-[13px] font-bold text-[#111827] leading-none">{arr.ampm}</span>
           </div>
-          <span className="text-[13px] font-bold text-[#374151] mt-0.5 leading-none">{arrIata}</span>
-          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight text-right">{arrAirportName}</span>
+          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight text-right truncate">{arrAirportName}</span>
         </div>
       </div>
     </div>
@@ -432,6 +412,7 @@ function DayTripCard({
     /* keep raw */
   }
 
+  const [isOpen, setIsOpen] = useState(false);
   const badges = getBadges(pair, allPairs);
   const destLabel = destInfo
     ? destInfo.city
@@ -454,8 +435,30 @@ function DayTripCard({
         boxShadow: CARD_SHADOW,
       }}
     >
+      {/* Logo + badge icons */}
+      <div className="px-4 pt-3 pb-0 flex items-center justify-between">
+        <img
+          src="/assets/logo/frontier/frontier_full_logo.png"
+          alt="Frontier"
+          className="h-[18px] w-auto object-contain"
+        />
+        {badges.length > 0 && (
+          <div className="flex items-center gap-1">
+            {badges.map((badge) => (
+              <span
+                key={badge.key}
+                className="flex items-center justify-center w-5 h-5 rounded-full shrink-0"
+                style={{ background: badge.color }}
+              >
+                <HugeiconsIcon icon={badge.icon} size={11} color={badge.textColor} strokeWidth={2.5} />
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Outbound flight row */}
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-2 pb-2">
         <FlightRow
           label="Outbound Flight"
           labelColor="#059669"
@@ -472,7 +475,7 @@ function DayTripCard({
       </div>
 
       {/* City image banner with ground time pill overlay */}
-      <div className="mx-4 mb-0 rounded-xl overflow-hidden relative" style={{ height: 100 }}>
+      <div className="mb-0 overflow-hidden relative" style={{ height: 100 }}>
         <img
           src={cardImageSrc}
           alt={destLabel}
@@ -481,7 +484,7 @@ function DayTripCard({
             (e.currentTarget as HTMLImageElement).src = "/assets/locations/init_background.png";
           }}
         />
-        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.18)" }}>
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.10) 20%, rgba(0,0,0,0.10) 40%, rgba(0,0,0,0.18) 60%, rgba(255,255,255,0.62) 80%, rgba(255,255,255,0.92) 100%)" }}>
           {/* City name — true center */}
           <div className="absolute inset-0 flex items-center justify-center">
             <span
@@ -525,23 +528,27 @@ function DayTripCard({
         </div>
       </div>
 
-      {/* Badges row */}
-      {badges.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-4 pb-4 pt-0 border-t border-[#F3F4F6]">
-          <div className="pt-3 flex flex-wrap gap-1.5 w-full">
-            {badges.map((badge) => (
-              <span
-                key={badge.key}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold whitespace-nowrap"
-                style={{ background: badge.color, color: badge.textColor }}
-              >
-                <HugeiconsIcon icon={badge.icon} size={10} color={badge.textColor} strokeWidth={2} />
-                {badge.label}
-              </span>
-            ))}
-          </div>
-        </div>
+      {/* View Details button */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold border-t border-[#F3F4F6] text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+        >
+          View Details
+          <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
+        </button>
       )}
+
+      {isOpen && (
+        <button
+          onClick={() => setIsOpen(false)}
+          className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold border-t border-[#F3F4F6] text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+        >
+          Hide Details
+          <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+        </button>
+      )}
+
     </motion.div>
   );
 }
