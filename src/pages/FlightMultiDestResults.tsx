@@ -127,7 +127,7 @@ function DestCardItem({
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
     >
       {/* City photo */}
-      <div className="relative h-[170px] overflow-hidden bg-[#C8D5D5]">
+      <div className="relative h-[158px] overflow-hidden bg-[#C8D5D5]">
         {bgImage ? (
           <motion.img
             src={bgImage}
