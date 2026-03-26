@@ -648,15 +648,40 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       </AlertDialog>
 
       <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 text-center">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg">Login Failed</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              Credentials didn't match. Please try again.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-3 text-center gap-0">
+          {/* OOPS! split-flap tiles */}
+          <div className="flex items-center gap-1 w-full">
+            {(["O","O","P","S","!","_","_","_","_"] as const).map((char, i) => {
+              const isBlank = char === "_";
+              const isRed = char === "!";
+              return (
+                <div
+                  key={i}
+                  className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
+                  style={{
+                    height: 38,
+                    background: isRed
+                      ? "linear-gradient(135deg,#FCA5A5 0%,#F87171 50%,#EF4444 100%)"
+                      : "#e8eaed",
+                    borderColor: isRed ? "#DC2626" : "#d1d5db",
+                    opacity: isBlank ? 0.45 : 1,
+                  }}
+                >
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isRed ? "#B91C1Caa" : "#b0b5bdaa" }} />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20" style={{ background: isRed ? "#fecaca" : "#e8eaed", borderColor: isRed ? "#DC2626" : "#d1d5db" }} />
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20" style={{ background: isRed ? "#fecaca" : "#e8eaed", borderColor: isRed ? "#DC2626" : "#d1d5db" }} />
+                  {!isBlank && (
+                    <span className="font-black text-base leading-none select-none" style={{ color: "#1f2937", letterSpacing: "0.04em" }}>
+                      {char}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-[#6B7B7B] mt-2 mb-0">Credentials didn't match. Please try again.</p>
           <AlertDialogFooter className="mt-2">
-            <AlertDialogAction onClick={handleTryAgain} className="bg-[#10B981] w-full text-xs py-1">
+            <AlertDialogAction onClick={handleTryAgain} className="w-full text-xs py-1.5 bg-[#EF4444]">
               Try Again
             </AlertDialogAction>
           </AlertDialogFooter>

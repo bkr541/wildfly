@@ -1,6 +1,6 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faPlane, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faPlane, faChevronDown, faPlaneDeparture, faPlaneArrival } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SunCloud01Icon,
@@ -10,8 +10,15 @@ import {
   Location01Icon,
   ArrowDown01Icon,
   MapPinpoint01Icon,
+  FilterIcon,
+  SortByDown02Icon,
+  CheckmarkCircle02Icon,
+  AirplaneTakeOff01Icon,
+  AirplaneTakeOff02Icon,
 } from "@hugeicons/core-free-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { BottomSheet } from "@/components/BottomSheet";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -385,6 +392,118 @@ function FlightRow({
   );
 }
 
+// ─── Sub-component: Day Trip Timeline ───────────────────────────────────────
+
+function DayTripTimeline({
+  pair,
+  originInfo,
+  destInfo,
+}: {
+  pair: DayTripPair;
+  originInfo?: AirportInfo;
+  destInfo?: AirportInfo;
+}) {
+  const outDep = formatDisplayTime(pair.outbound.departureTime, pair.date);
+  const outArr = formatDisplayTime(pair.outbound.arrivalTime, pair.date);
+  const inDep  = formatDisplayTime(pair.inbound.departureTime, pair.date);
+  const inArr  = formatDisplayTime(pair.inbound.arrivalTime, pair.date);
+
+  // Shared layout helpers
+  // Each row: left half (pr-4, justify-end) | center dot (absolute) | right half (pl-4, justify-start)
+  const Row = ({ left, right, dot = true }: { left?: React.ReactNode; right?: React.ReactNode; dot?: boolean }) => (
+    <div className="relative flex items-center min-h-[28px]">
+      {dot && (
+        <div className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#374151] z-10" />
+      )}
+      <div className="w-1/2 pr-5 flex items-center justify-end">{left}</div>
+      <div className="w-1/2 pl-5 flex items-center justify-start">{right}</div>
+    </div>
+  );
+
+  const DurationPill = ({ dur }: { dur: string }) => (
+    <span className="text-[11px] font-medium text-[#6B7B7B] bg-[#F3F4F6] rounded-full px-2.5 py-1">
+      Duration: {formatDuration(dur)}
+    </span>
+  );
+
+  return (
+    <div className="relative px-4 py-4">
+      {/* Center vertical dashed line — runs full height */}
+      <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 border-l-2 border-dashed border-[#C8CDCD]" />
+
+      {/* Outbound departure (left) */}
+      <Row
+        left={
+          <div className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faPlaneDeparture} className="w-3.5 h-3.5 text-[#6B7B7B] shrink-0" />
+            <span className="text-[12px] font-semibold text-[#2E4A4A] text-right leading-tight">
+              Departure: {pair.origin} {outDep}
+            </span>
+          </div>
+        }
+      />
+
+      {/* Outbound duration — centered on the line between departure and arrival */}
+      <div className="relative flex items-center justify-center my-1.5 z-10">
+        <DurationPill dur={pair.outbound.duration} />
+      </div>
+
+      {/* Outbound arrival (right) */}
+      <Row
+        right={
+          <div className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faPlaneArrival} className="w-3.5 h-3.5 text-[#345C5A] shrink-0" />
+            <span className="text-[12px] font-semibold text-[#2E4A4A] leading-tight">
+              Arrival: {pair.destination} {outArr}
+            </span>
+          </div>
+        }
+      />
+
+      {/* EXPLORE pill — centered, overlaps the line */}
+      <div className="relative flex items-center justify-center my-2.5 z-10">
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2"
+          style={{ background: HEADER_GREEN }}
+        >
+          <span className="text-white text-[12px] font-black uppercase tracking-wide">
+            Explore {pair.destination} / {formatGround(pair.groundMinutes)}
+          </span>
+        </div>
+      </div>
+
+      {/* Return departure (left) */}
+      <Row
+        left={
+          <div className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faPlaneDeparture} className="w-3.5 h-3.5 text-[#6B7B7B] shrink-0" />
+            <span className="text-[12px] font-semibold text-[#2E4A4A] text-right leading-tight">
+              Departure: {pair.destination} {inDep}
+            </span>
+          </div>
+        }
+      />
+
+      {/* Return duration — centered on the line between departure and arrival */}
+      <div className="relative flex items-center justify-center my-1.5 z-10">
+        <DurationPill dur={pair.inbound.duration} />
+      </div>
+
+      {/* Return arrival (right) */}
+      <Row
+        right={
+          <div className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faPlaneArrival} className="w-3.5 h-3.5 text-[#345C5A] shrink-0" />
+            <span className="text-[12px] font-semibold text-[#2E4A4A] leading-tight">
+              Arrival: {pair.origin} {inArr}
+            </span>
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
 // ─── Sub-component: Trip Card ────────────────────────────────────────────────
 
 const CARD_SHADOW =
@@ -532,21 +651,25 @@ function DayTripCard({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold border-t border-[#F3F4F6] text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+          className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
         >
           View Details
           <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
         </button>
       )}
 
+      {/* Expanded timeline */}
       {isOpen && (
-        <button
-          onClick={() => setIsOpen(false)}
-          className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold border-t border-[#F3F4F6] text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
-        >
-          Hide Details
-          <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
-        </button>
+        <div>
+          <DayTripTimeline pair={pair} originInfo={originInfo} destInfo={destInfo} />
+          <button
+            onClick={() => setIsOpen(false)}
+            className="w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold text-[#6B7B7B] hover:text-[#2E4A4A] transition-colors"
+          >
+            Hide Details
+            <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+          </button>
+        </div>
       )}
 
     </motion.div>
@@ -566,6 +689,11 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
   const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<"ground_desc" | "ground_asc" | "depart_early">("ground_desc");
+  const [sortSheet, setSortSheet] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
+  const [filterSameDayOnly, setFilterSameDayOnly] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -598,6 +726,16 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
       return { pairs: [], departureDate: "", departureAirport: "" };
     }
   }, [responseData]);
+
+  const sortedPairs = useMemo(() => {
+    let result = [...pairs];
+    if (filterNonstopOnly) result = result.filter((p) => p.isNonstop);
+    if (filterSameDayOnly) result = result.filter((p) => p.isSameDay);
+    if (sortBy === "ground_desc") result.sort((a, b) => b.groundMinutes - a.groundMinutes);
+    if (sortBy === "ground_asc") result.sort((a, b) => a.groundMinutes - b.groundMinutes);
+    if (sortBy === "depart_early") result.sort((a, b) => a.outbound.departureTime.localeCompare(b.outbound.departureTime));
+    return result;
+  }, [pairs, sortBy, filterNonstopOnly, filterSameDayOnly]);
 
   // Fetch airport info for all destination codes
   const allCodes = useMemo(() => {
@@ -742,20 +880,6 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
               })()}
             </p>
 
-            {/* Meta pills */}
-            <div className="flex items-center gap-2 flex-wrap mt-3">
-              {formattedDate && (
-                <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
-                  style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
-                >
-                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                  <span className="text-[#065F46] text-xs font-semibold leading-none">
-                    {formattedDate}
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Stats strip */}
@@ -791,6 +915,45 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
           )}
         </header>
 
+        {/* ── Sort / filter bar ── */}
+        <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {formattedDate && (
+              <div className="inline-flex items-center gap-1.5 flex-shrink-0">
+                <HugeiconsIcon icon={Calendar03Icon} size={19} color="#10B981" strokeWidth={1.5} />
+                <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
+              </div>
+            )}
+            {(filterNonstopOnly || filterSameDayOnly) && (
+              <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
+                {[filterNonstopOnly && "Nonstop", filterSameDayOnly && "Same Day"].filter(Boolean).join(" · ")}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setSortSheet(true)}
+              className={cn(
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
+                sortBy !== "ground_desc" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+              )}
+            >
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "ground_desc" ? "white" : "#10B981"} strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterSheet(true)}
+              className={cn(
+                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
+                filterNonstopOnly || filterSameDayOnly ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+              )}
+            >
+              <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterSameDayOnly ? "white" : "#10B981"} strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+
         {/* ── Results ── */}
         <div className="px-4 pt-4 pb-8 flex flex-col gap-4">
           <AnimatePresence>
@@ -818,7 +981,7 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
                 </p>
               </motion.div>
             ) : (
-              pairs.map((pair, i) => (
+              sortedPairs.map((pair, i) => (
                 <DayTripCard
                   key={pair.id}
                   pair={pair}
@@ -832,6 +995,85 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ── Sort Sheet ── */}
+      <BottomSheet open={sortSheet} onClose={() => setSortSheet(false)}>
+        <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+          <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+            <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
+          </div>
+          <h2 className="text-base font-bold text-[#2E4A4A]">Sort By</h2>
+        </div>
+        <div className="flex flex-col py-2 pb-8">
+          {(
+            [
+              { key: "ground_desc", label: "Most Ground Time", desc: "Most time at destination first", icon: MapPinpoint01Icon },
+              { key: "ground_asc",  label: "Least Ground Time", desc: "Quickest turnaround first", icon: Clock01Icon },
+              { key: "depart_early", label: "Earliest Departure", desc: "Earliest outbound flight first", icon: AirplaneTakeOff02Icon },
+            ] as const
+          ).map(({ key, label, desc, icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => { setSortBy(key); setSortSheet(false); }}
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+            >
+              <div className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: sortBy === key ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={icon} size={17} color={sortBy === key ? "white" : "#6B7B7B"} strokeWidth={2} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className={cn("text-sm font-semibold", sortBy === key ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                <p className="text-xs text-[#9CA3AF]">{desc}</p>
+              </div>
+              {sortBy === key && (
+                <div className="h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                  <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color="white" strokeWidth={2.5} />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* ── Filter Sheet ── */}
+      <BottomSheet open={filterSheet} onClose={() => setFilterSheet(false)}>
+        <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+              <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
+            </div>
+            <h2 className="text-base font-bold text-[#2E4A4A]">Filter Results</h2>
+          </div>
+          {(filterNonstopOnly || filterSameDayOnly) && (
+            <button type="button" onClick={() => { setFilterNonstopOnly(false); setFilterSameDayOnly(false); }} className="text-xs font-semibold text-[#10B981]">
+              Clear All
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col py-2 pb-8">
+          {[
+            { label: "Nonstop Only", desc: "Show only nonstop day trips", active: filterNonstopOnly, toggle: () => setFilterNonstopOnly((v) => !v), icon: AirplaneTakeOff01Icon },
+            { label: "Same Day Only", desc: "Return flight arrives same day", active: filterSameDayOnly, toggle: () => setFilterSameDayOnly((v) => !v), icon: Calendar03Icon },
+          ].map(({ label, desc, active, toggle, icon }) => (
+            <div key={label} className="flex items-center gap-3 px-5 py-3.5">
+              <div className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}>
+                <HugeiconsIcon icon={icon} size={17} color={active ? "white" : "#6B7B7B"} strokeWidth={2} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className={cn("text-sm font-semibold", active ? "text-[#059669]" : "text-[#2E4A4A]")}>{label}</p>
+                <p className="text-xs text-[#9CA3AF]">{desc}</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggle}
+                className={cn("relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors", active ? "bg-[#10B981]" : "bg-[#D1D5DB]")}
+              >
+                <span className={cn("pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform", active ? "translate-x-5" : "translate-x-0")} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </BottomSheet>
     </div>
   );
 };

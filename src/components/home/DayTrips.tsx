@@ -213,46 +213,39 @@ function FlightColumn({
   date: string;
   align: "left" | "right";
 }) {
-  const labelBg = align === "left" ? "bg-[#F0F4F0] text-[#2D6A4F]" : "bg-[#2D2D2D] text-white";
-  const ta = align === "left" ? "text-left" : "text-right";
-  const labelAlign = align === "left" ? "justify-start" : "justify-end";
+  const isLeft = align === "left";
+  const labelBg = isLeft ? "bg-[#E8F4EE] text-[#2D6A4F]" : "bg-[#2D2D2D] text-white";
+  const ta = isLeft ? "text-left" : "text-right";
+  const labelAlign = isLeft ? "justify-start" : "justify-end";
 
   return (
     <div className={`flex flex-col gap-0.5 flex-1 ${ta}`}>
-      {/* Label chip */}
-      <div className={`flex ${labelAlign} mb-1`}>
-        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${labelBg}`}>
-          {label}
-        </span>
-      </div>
-
-      {/* Origin */}
-      <span className="text-[26px] font-black text-[#1A2E2E] leading-none tracking-tight">{origin}</span>
-      <span className="text-[12px] font-bold text-[#374151] leading-none">
+      {/* Origin IATA */}
+      <span className="text-[28px] font-black text-[#1A2E2E] leading-none tracking-tight">{origin}</span>
+      <span className="text-[13px] font-bold text-[#374151] leading-none mt-0.5">
         {formatDisplayTime(depTime, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none mb-1.5">Departure</span>
+      <div className="mb-3" />
 
-      {/* Duration pill */}
-      <div className={`flex ${labelAlign}`}>
-        <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
+      {/* Flight duration pill */}
+      <div className={`flex ${labelAlign} mb-3`}>
+        <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2.5 py-1 rounded-full">
           {formatDuration(duration)}
         </span>
       </div>
 
-      {/* Destination */}
-      <span className="text-[26px] font-black text-[#1A2E2E] leading-none tracking-tight mt-1.5">{destination}</span>
-      <span className="text-[12px] font-bold text-[#374151] leading-none">
+      {/* Destination IATA */}
+      <span className="text-[28px] font-black text-[#1A2E2E] leading-none tracking-tight">{destination}</span>
+      <span className="text-[13px] font-bold text-[#374151] leading-none mt-0.5">
         {formatDisplayTime(arrTime, date)}
       </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none">Arrival</span>
     </div>
   );
 }
 
 // ─── Sub-component: Trip Card ─────────────────────────────────────────────────
 
-function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
+function DayTripCard({ pair, index, cityNames }: { pair: DayTripPair; index: number; cityNames: Record<string, string> }) {
   let formattedDate = pair.date;
   try {
     formattedDate = format(new Date(pair.date + "T12:00:00"), "MMMM d, yyyy");
@@ -296,9 +289,8 @@ function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
       </div>
 
       {/* Card body */}
-      <div className="px-4 pt-4 pb-4">
-        {/* Flight columns */}
-        <div className="flex gap-2 items-start">
+      <div className="px-3 pt-3 pb-3">
+        <div className="flex items-stretch gap-1.5">
           <FlightColumn
             label="Outbound"
             origin={pair.outbound.origin}
@@ -310,22 +302,22 @@ function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
             align="left"
           />
 
-          {/* Center divider: ground time */}
-          <div className="flex flex-col items-center justify-center gap-1.5 pt-6 shrink-0 w-[72px]">
-            <div
-              className="flex items-center gap-1 rounded-full px-2.5 py-1.5"
-              style={{ background: "#059669" }}
+          {/* Center: ground time */}
+          <div className="flex flex-col gap-0.5 items-center shrink-0 w-[80px]">
+            <span className="text-[28px] font-black leading-none opacity-0 select-none">X</span>
+            <span className="text-[13px] font-bold leading-none mt-0.5 opacity-0 select-none">X</span>
+            <div className="mb-3" />
+            <span
+              className="rounded-full px-2.5 py-1 whitespace-nowrap text-[10px] font-semibold leading-none"
+              style={{ background: "#059669", color: "#fff" }}
             >
-              <HugeiconsIcon icon={Clock01Icon} size={10} color="white" strokeWidth={2.5} />
-              <span className="text-white text-[11px] font-black leading-none">
-                {formatGround(pair.groundMinutes)}
-              </span>
-            </div>
-            <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight">
+              {formatGround(pair.groundMinutes)}
+            </span>
+            <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight mt-1">
               Ground Time in
             </span>
             <span className="text-[10px] font-bold text-[#1A2E2E] text-center leading-tight">
-              {pair.outbound.destination}
+              {cityNames[pair.outbound.destination] || pair.outbound.destination}
             </span>
           </div>
 
@@ -350,6 +342,7 @@ function DayTripCard({ pair, index }: { pair: DayTripPair; index: number }) {
 export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
   const { user } = useAuth();
   const [pairs, setPairs] = useState<DayTripPair[]>([]);
+  const [cityNames, setCityNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -428,6 +421,22 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
         }
 
         setPairs(allPairs);
+
+        // Resolve destination city names
+        const destCodes = [...new Set(allPairs.map((p) => p.outbound.destination))];
+        if (destCodes.length > 0) {
+          const { data: airports } = await (supabase as any)
+            .from("airports")
+            .select("iata_code, locations(city)")
+            .in("iata_code", destCodes);
+          if (airports) {
+            const map: Record<string, string> = {};
+            for (const a of airports) {
+              map[a.iata_code] = a.locations?.city ?? "";
+            }
+            setCityNames(map);
+          }
+        }
       } catch {
         // silently fail
       } finally {
@@ -444,7 +453,9 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
       {/* Header */}
       <button type="button" onClick={onToggle} className="w-full flex items-center justify-between mb-1 px-1 group">
         <h2 className="text-[15px] font-semibold text-[#6B7280] capitalize tracking-widest flex items-center gap-2">
-          <HugeiconsIcon icon={SunCloud01Icon} size={18} color="#059669" strokeWidth={2} />
+          <div className="inline-flex items-center justify-center rounded-full border border-[#D5E6E2] bg-[#F6FBFA] p-1.5">
+            <HugeiconsIcon icon={SunCloud01Icon} size={18} color="#059669" strokeWidth={2} />
+          </div>
           Day Trips
         </h2>
         <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
@@ -528,7 +539,7 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
                   style={{ scrollSnapType: "x mandatory" }}
                 >
                   {pairs.map((pair, i) => (
-                    <DayTripCard key={pair.id} pair={pair} index={i} />
+                    <DayTripCard key={pair.id} pair={pair} index={i} cityNames={cityNames} />
                   ))}
                 </div>
               )}
