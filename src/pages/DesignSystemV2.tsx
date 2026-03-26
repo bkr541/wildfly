@@ -87,7 +87,7 @@ const surfaceCard =
 
 function StatusComplete() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#D1FAE5] px-2 py-0.5 text-[10px] font-bold text-[#065F46]">
+    <span className="inline-flex align-middle items-center gap-1 rounded-full bg-[#D1FAE5] px-2 py-0.5 text-xs font-bold text-[#065F46]">
       <HugeiconsIcon icon={CheckmarkCircle02Icon} size={10} color="#065F46" strokeWidth={2.5} />
       Complete
     </span>
@@ -96,7 +96,8 @@ function StatusComplete() {
 
 function StatusDraft() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#F2F3F3] px-2 py-0.5 text-[10px] font-bold text-[#6B7B7B]">
+    <span className="inline-flex align-middle items-center gap-1 rounded-full bg-[#F2F3F3] px-2 py-0.5 text-xs font-bold text-[#6B7B7B]">
+      <HugeiconsIcon icon={PencilEdit01Icon} size={10} color="currentColor" strokeWidth={2.5} />
       Draft
     </span>
   );
@@ -937,29 +938,33 @@ function BadgeDemo() {
 
 type SectionStatus = "complete" | "draft";
 
-const tokenSections: { label: string; icon: any; status: SectionStatus; content: ReactNode }[] = [
+const tokenSections: { label: string; desc: string; icon: any; status: SectionStatus; content: ReactNode }[] = [
   {
     label: "Color Tokens",
+    desc: "Brand, surface, text, and semantic color palette",
     icon: ColorsIcon,
-    status: "complete",
+    status: "draft",
     content: <ColorGroupSection />,
   },
   {
     label: "Typography Scale",
+    desc: "Font sizes, weights, and line-height ramp",
     icon: TextFontIcon,
-    status: "complete",
+    status: "draft",
     content: <TypographySection />,
   },
   {
     label: "Result Screen Header",
+    desc: "Canonical flight result card header layout",
     icon: Airplane01Icon,
-    status: "complete",
+    status: "draft",
     content: <ResultHeaderSection />,
   },
   {
     label: "Iconography",
+    desc: "Approved Hugeicons grouped by category",
     icon: Grid02Icon,
-    status: "complete",
+    status: "draft",
     content: (
       <div className="rounded-[24px] bg-[#F8FBFB] p-4 mt-1 mb-2 space-y-5">
         {[
@@ -1007,9 +1012,9 @@ const tokenSections: { label: string; icon: any; status: SectionStatus; content:
   },
 ];
 
-const componentSections: { label: string; icon: any; status: SectionStatus; content?: ReactNode }[] = [
-  { label: "Accordion",       icon: ArrowDown01Icon,       status: "complete", content: <AccordionDemo /> },
-  { label: "Alert",           icon: Alert01Icon,            status: "complete", content: (
+const componentSections: { label: string; desc: string; icon: any; status: SectionStatus; content?: ReactNode }[] = [
+  { label: "Accordion",       desc: "Expandable disclosure sections",                        icon: ArrowDown01Icon,       status: "draft", content: <AccordionDemo /> },
+  { label: "Alert",           desc: "Inline contextual messages and warnings",               icon: Alert01Icon,            status: "draft", content: (
     <DemoBox>
       <StateRow label="Default">
         <div className="w-full"><Alert><HugeiconsIcon icon={InformationCircleIcon} size={16} /><AlertTitle>Heads up</AlertTitle><AlertDescription>You can add components to your app.</AlertDescription></Alert></div>
@@ -1019,9 +1024,9 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Alert Dialog",    icon: AlertCircleIcon,        status: "complete", content: <AlertDialogDemo /> },
-  { label: "App Input",       icon: InputTextIcon,          status: "complete", content: <AppInputDemo /> },
-  { label: "Avatar",          icon: UserIcon,               status: "complete", content: (
+  { label: "Alert Dialog",    desc: "Modal confirmation dialog with actions",          icon: AlertCircleIcon,        status: "draft", content: <AlertDialogDemo /> },
+  { label: "App Input",       desc: "Branded text field with left icon and label",    icon: InputTextIcon,          status: "draft", content: <AppInputDemo /> },
+  { label: "Avatar",          desc: "User profile image with fallback initials",      icon: UserIcon,               status: "draft", content: (
     <DemoBox>
       <StateRow label="Fallback (no image)">
         <Avatar><AvatarFallback>AB</AvatarFallback></Avatar>
@@ -1034,16 +1039,16 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Badge",           icon: CheckmarkBadge01Icon,   status: "complete", content: <BadgeDemo /> },
-  { label: "Button",          icon: Cursor01Icon,           status: "complete", content: <ButtonDemo /> },
-  { label: "Card",            icon: Cards01Icon,            status: "complete", content: (
+  { label: "Badge",           desc: "Small status labels and trip type chips",       icon: CheckmarkBadge01Icon,   status: "draft", content: <BadgeDemo /> },
+  { label: "Button",          desc: "Primary CTA and utility action styles",          icon: Cursor01Icon,           status: "draft", content: <ButtonDemo /> },
+  { label: "Card",            desc: "Flight and destination result cards",             icon: Cards01Icon,            status: "draft", content: (
     <div className="space-y-3">
       <FlightCardDemo />
       <DestCardDemo />
     </div>
   )},
-  { label: "Checkbox",        icon: CheckmarkSquare01Icon,  status: "complete", content: <CheckboxDemo /> },
-  { label: "Chip",            icon: Tag01Icon,              status: "complete", content: (
+  { label: "Checkbox",        desc: "Boolean toggle for form selections",            icon: CheckmarkSquare01Icon,  status: "draft", content: <CheckboxDemo /> },
+  { label: "Chip",            desc: "Tappable airport filter pills",                  icon: Tag01Icon,              status: "draft", content: (
     <DemoBox>
       <StateRow label="Recent Airport chip">
         <div className="flex flex-nowrap gap-2.5 overflow-x-auto pb-1">
@@ -1061,17 +1066,17 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Collapsible",     icon: MenuCollapseIcon,       status: "complete", content: <CollapsibleDemo /> },
-  { label: "Date Picker",     icon: Calendar03Icon,         status: "complete", content: <DatePickerDemo /> },
-  { label: "Progress",        icon: Progress01Icon,         status: "complete", content: (
+  { label: "Collapsible",     desc: "Animated expand/collapse container",            icon: MenuCollapseIcon,       status: "draft", content: <CollapsibleDemo /> },
+  { label: "Date Picker",     desc: "Calendar-based date input",                     icon: Calendar03Icon,         status: "draft", content: <DatePickerDemo /> },
+  { label: "Progress",        desc: "Linear completion indicator",                   icon: Progress01Icon,         status: "draft", content: (
     <DemoBox>
       <StateRow label="0%"><Progress value={0} className="w-full" /></StateRow>
       <StateRow label="50%"><Progress value={50} className="w-full" /></StateRow>
       <StateRow label="100%"><Progress value={100} className="w-full" /></StateRow>
     </DemoBox>
   )},
-  { label: "Radio Group",     icon: RadioButtonIcon,        status: "complete", content: <RadioGroupDemo /> },
-  { label: "Scroll Area",     icon: ScrollVerticalIcon,     status: "complete", content: (
+  { label: "Radio Group",     desc: "Single-select option list",                     icon: RadioButtonIcon,        status: "draft", content: <RadioGroupDemo /> },
+  { label: "Scroll Area",     desc: "Custom scrollable container",                   icon: ScrollVerticalIcon,     status: "draft", content: (
     <DemoBox>
       <StateRow label="Vertical scroll">
         <ScrollArea className="h-32 w-full rounded-md border p-3">
@@ -1080,7 +1085,7 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Select",          icon: Select01Icon,           status: "complete", content: (
+  { label: "Select",          desc: "Dropdown option picker",                        icon: Select01Icon,           status: "draft", content: (
     <DemoBox>
       <StateRow label="Default">
         <Select><SelectTrigger className="w-40"><SelectValue placeholder="Select option" /></SelectTrigger>
@@ -1094,7 +1099,7 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Separator",       icon: DivideSignIcon,         status: "complete", content: (
+  { label: "Separator",       desc: "Visual divider between content sections",       icon: DivideSignIcon,         status: "draft", content: (
     <DemoBox>
       <StateRow label="Horizontal">
         <div className="w-full space-y-2">
@@ -1105,7 +1110,7 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Skeleton",        icon: Loading01Icon,          status: "complete", content: (
+  { label: "Skeleton",        desc: "Loading placeholder shimmer",                   icon: Loading01Icon,          status: "draft", content: (
     <DemoBox>
       <StateRow label="Text lines">
         <div className="w-full space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>
@@ -1118,7 +1123,7 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Slider",          icon: SlidersHorizontalIcon,  status: "complete", content: (
+  { label: "Slider",          desc: "Range value input control",                     icon: SlidersHorizontalIcon,  status: "draft", content: (
     <DemoBox>
       <StateRow label="Default"><Slider defaultValue={[0]} max={100} step={1} className="w-full" /></StateRow>
       <StateRow label="Mid (50%)"><Slider defaultValue={[50]} max={100} step={1} className="w-full" /></StateRow>
@@ -1126,8 +1131,8 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       <StateRow label="Disabled"><Slider defaultValue={[40]} max={100} step={1} disabled className="w-full" /></StateRow>
     </DemoBox>
   )},
-  { label: "Switch (Trip Type)", icon: ToggleOnIcon,        status: "complete", content: <TripTypeSwitchDemo /> },
-  { label: "Table",           icon: Table01Icon,            status: "complete", content: (
+  { label: "Switch (Trip Type)", desc: "Segmented trip type selector",                icon: ToggleOnIcon,          status: "draft", content: <TripTypeSwitchDemo /> },
+  { label: "Table",           desc: "Tabular data display",                          icon: Table01Icon,            status: "draft", content: (
     <DemoBox>
       <StateRow label="Default">
         <div className="w-full">
@@ -1142,31 +1147,31 @@ const componentSections: { label: string; icon: any; status: SectionStatus; cont
       </StateRow>
     </DemoBox>
   )},
-  { label: "Tabs",            icon: LayoutTopIcon,          status: "complete", content: <TabsDemo /> },
-  { label: "Textarea",        icon: NoteEditIcon,           status: "complete", content: (
+  { label: "Tabs",            desc: "Horizontal tab navigation row",                 icon: LayoutTopIcon,          status: "draft", content: <TabsDemo /> },
+  { label: "Textarea",        desc: "Multi-line text input field",                   icon: NoteEditIcon,           status: "draft", content: (
     <DemoBox>
       <StateRow label="Default"><Textarea placeholder="Type your message…" className="max-w-xs" /></StateRow>
       <StateRow label="Disabled"><Textarea placeholder="Disabled textarea" disabled className="max-w-xs" /></StateRow>
     </DemoBox>
   )},
-  { label: "Toggle Group",    icon: ToggleOffIcon,          status: "complete", content: <ToggleGroupDemo /> },
+  { label: "Toggle Group",    desc: "Multi-option toggle button group",              icon: ToggleOffIcon,          status: "draft", content: <ToggleGroupDemo /> },
   // Draft items
-  { label: "Calendar",        icon: Calendar03Icon,         status: "draft",    content: <OverlayNote text="Full month picker — states: Default, Focused, Selected, Disabled, Range. To be built." /> },
-  { label: "Carousel",        icon: ArrowLeftRightIcon,     status: "draft",    content: <OverlayNote text="Wraps embla-carousel. States: Default, Next, Previous, Loop. To be documented." /> },
-  { label: "Command",         icon: CommandIcon,            status: "draft",    content: <OverlayNote text="Searchable list (cmdk). States: Empty, Typing, Item focused, No results. To be built." /> },
-  { label: "Drawer / Sheet",  icon: SidebarLeft01Icon,      status: "draft",    content: <OverlayNote text="Slides up from bottom (vaul). States: Closed, Open, Dragging, Snapped. To be documented." /> },
-  { label: "Toast / Sonner",  icon: Notification01Icon,     status: "draft",    content: <OverlayNote text="Ephemeral notifications. Types: Default, Success, Error, Warning, Loading. To be built." /> },
-  { label: "Tooltip",         icon: HelpCircleIcon,         status: "draft",    content: <OverlayNote text="Appears on hover/focus. Sides: top, bottom, left, right. To be documented." /> },
-  { label: "Multi Select",    icon: CheckListIcon,          status: "draft",    content: <OverlayNote text="Not yet built. Needed for: passenger count, filter tags, airport multi-select." /> },
-  { label: "Searchbox",       icon: Search01Icon,           status: "draft",    content: <OverlayNote text="Global search pattern. To be extracted from Flights and standardized." /> },
+  { label: "Calendar",        desc: "Full month date picker (in progress)",          icon: Calendar03Icon,         status: "draft", content: <OverlayNote text="Full month picker — states: Default, Focused, Selected, Disabled, Range. To be built." /> },
+  { label: "Carousel",        desc: "Horizontally scrollable card reel",             icon: ArrowLeftRightIcon,     status: "draft", content: <OverlayNote text="Wraps embla-carousel. States: Default, Next, Previous, Loop. To be documented." /> },
+  { label: "Command",         desc: "Searchable command palette",                    icon: CommandIcon,            status: "draft", content: <OverlayNote text="Searchable list (cmdk). States: Empty, Typing, Item focused, No results. To be built." /> },
+  { label: "Drawer / Sheet",  desc: "Bottom slide-up sheet overlay",                 icon: SidebarLeft01Icon,      status: "draft", content: <OverlayNote text="Slides up from bottom (vaul). States: Closed, Open, Dragging, Snapped. To be documented." /> },
+  { label: "Toast / Sonner",  desc: "Ephemeral notification toasts",                 icon: Notification01Icon,     status: "draft", content: <OverlayNote text="Ephemeral notifications. Types: Default, Success, Error, Warning, Loading. To be built." /> },
+  { label: "Tooltip",         desc: "Hover-triggered contextual label",              icon: HelpCircleIcon,         status: "draft", content: <OverlayNote text="Appears on hover/focus. Sides: top, bottom, left, right. To be documented." /> },
+  { label: "Multi Select",    desc: "Tag-based multi-option input",                  icon: CheckListIcon,          status: "draft", content: <OverlayNote text="Not yet built. Needed for: passenger count, filter tags, airport multi-select." /> },
+  { label: "Searchbox",       desc: "Global airport and destination search",         icon: Search01Icon,           status: "draft", content: <OverlayNote text="Global search pattern. To be extracted from Flights and standardized." /> },
 ];
 
 // ─── Collapsible row ──────────────────────────────────────────────────────────
 
 function CollapsibleRow({
-  label, icon, status, isOpen, onToggle, children,
+  label, desc, icon, status, isOpen, onToggle, children,
 }: {
-  label: string; icon: any; status: SectionStatus;
+  label: string; desc?: string; icon: any; status: SectionStatus;
   isOpen: boolean; onToggle: () => void; children?: ReactNode;
 }) {
   return (
@@ -1176,10 +1181,13 @@ function CollapsibleRow({
         onClick={onToggle}
         className="flex items-center w-full px-5 py-3.5 gap-3 hover:bg-surface-subtle transition-colors text-left"
       >
-        <span className="h-8 w-8 rounded-lg bg-surface-muted flex items-center justify-center shrink-0">
-          <HugeiconsIcon icon={icon} size={15} color="#345C5A" strokeWidth={1.5} />
+        <span className="h-8 w-8 rounded-full bg-[#345C5A] flex items-center justify-center shrink-0">
+          <HugeiconsIcon icon={icon} size={15} color="#D1FAE5" strokeWidth={1.5} />
         </span>
-        <span className="flex-1 text-wf-base font-semibold text-wf-text-primary">{label}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#2E4A4A]">{label}</p>
+          {desc && <p className="text-xs text-[#6B7B7B] mt-0.5">{desc}</p>}
+        </div>
         {status === "complete" ? <StatusComplete /> : <StatusDraft />}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
@@ -1224,7 +1232,7 @@ export default function DesignSystemV2Page() {
     <div className="space-y-5 px-4 pb-24 pt-3 sm:px-5">
 
       {/* Hero */}
-      <div className={cn(surfaceCard, "overflow-hidden")} style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F8FBFB 100%)" }}>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
         <div className="space-y-4 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="rounded-full bg-surface-active px-3 py-1 text-[#047857] hover:bg-surface-active">Master design guide</Badge>
@@ -1233,49 +1241,52 @@ export default function DesignSystemV2Page() {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-wf-hero font-extrabold tracking-tight text-[#173433]">Wildfly Design System</h1>
-            <p className="max-w-3xl text-wf-base leading-6 text-wf-text-secondary">
-              Components marked <span className="font-bold text-[#065F46]">✓ Complete</span> are canonical.
-              All screens must conform to them. <span className="font-bold text-wf-text-secondary">Draft</span> items are documented but not yet reconciled across the app.
+            <h1 className="text-3xl font-extrabold tracking-tight text-[#173433]">Wildfly Design System</h1>
+            <p className="max-w-3xl text-sm leading-6 text-[#6B7B7B]">
+              Components marked <StatusComplete /> are canonical.
+              All screens must conform to them. <StatusDraft /> items are documented but not yet reconciled across the app.
             </p>
           </div>
 
           {/* Progress summary */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-surface-active border border-[#A7F3D0] p-3">
-              <p className="text-wf-2xs font-bold text-[#065F46] uppercase tracking-wider mb-1">Tokens & Patterns</p>
-              <p className="text-wf-hero font-black text-[#065F46] leading-none">{completedTokens}<span className="text-wf-base font-semibold">/{totalTokens}</span></p>
-              <p className="text-wf-2xs text-[#059669] mt-0.5">complete</p>
+            <div className="rounded-2xl bg-[#F2F3F3] border border-[#E3E6E6] p-3">
+              <p className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider mb-1">Tokens & Patterns</p>
+              <p className="text-2xl font-black text-[#2E4A4A] leading-none">{completedTokens}<span className="text-sm font-semibold">/{totalTokens}</span></p>
+              <p className="text-[10px] text-[#6B7B7B] mt-0.5">complete</p>
             </div>
-            <div className="rounded-2xl bg-surface-active border border-[#A7F3D0] p-3">
-              <p className="text-wf-2xs font-bold text-[#065F46] uppercase tracking-wider mb-1">Components</p>
-              <p className="text-wf-hero font-black text-[#065F46] leading-none">{completedComponents}<span className="text-wf-base font-semibold">/{totalComponents}</span></p>
-              <p className="text-wf-2xs text-[#059669] mt-0.5">complete</p>
+            <div className="rounded-2xl bg-[#F2F3F3] border border-[#E3E6E6] p-3">
+              <p className="text-[10px] font-bold text-[#6B7B7B] uppercase tracking-wider mb-1">Components</p>
+              <p className="text-2xl font-black text-[#2E4A4A] leading-none">{completedComponents}<span className="text-sm font-semibold">/{totalComponents}</span></p>
+              <p className="text-[10px] text-[#6B7B7B] mt-0.5">complete</p>
             </div>
           </div>
 
-          <Alert className="border-[#D8EFE6] bg-[#F4FFFA] text-[#173433]">
-            <HugeiconsIcon icon={InformationCircleIcon} size={18} className="mt-0.5 text-brand-mid" />
-            <AlertTitle className="text-wf-base">How to use this guide</AlertTitle>
-            <AlertDescription className="text-wf-xs text-wf-text-secondary">
-              When building or updating a screen, open the relevant component here first.
-              Copy the exact class names, token names, and structure shown. Do not deviate from Complete components without updating this file first.
-            </AlertDescription>
-          </Alert>
+          <div className="flex gap-3 rounded-lg border border-[#E3E6E6] bg-[#F2F3F3] p-4">
+            <HugeiconsIcon icon={InformationCircleIcon} size={18} color="#345C5A" strokeWidth={1.5} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-[#2E4A4A] mb-1">How to use this guide</p>
+              <p className="text-xs text-[#6B7B7B]">
+                When building or updating a screen, open the relevant component here first.
+                Copy the exact class names, token names, and structure shown. Do not deviate from Complete components without updating this file first.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Tokens */}
-      <div className="bg-surface rounded-[28px] border border-[#E7ECEC] shadow-[0_18px_40px_rgba(21,41,40,0.08)] overflow-hidden">
-        <div className="border-b border-wf-border-subtle px-5 py-4 sm:px-6">
-          <h2 className="text-wf-xl font-bold tracking-tight text-[#173433]">Tokens, Typography & Patterns</h2>
-          <p className="mt-1 text-wf-sm text-wf-text-secondary">The canonical color, type, and layout primitives for the entire app.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+        <div className="border-b border-[#F0F1F1] px-5 py-4 sm:px-6">
+          <h2 className="text-xl font-bold tracking-tight text-[#173433]">Tokens, Typography & Patterns</h2>
+          <p className="mt-1 text-xs text-[#6B7B7B]">The canonical color, type, and layout primitives for the entire app.</p>
         </div>
-        <div className="divide-y divide-wf-border-subtle">
-          {tokenSections.map(({ label, icon, status, content }) => (
+        <div className="divide-y divide-[#F0F1F1]">
+          {tokenSections.map(({ label, desc, icon, status, content }) => (
             <CollapsibleRow
               key={`token-${label}`}
               label={label}
+              desc={desc}
               icon={icon}
               status={status}
               isOpen={openSections.has(`token-${label}`)}
@@ -1288,19 +1299,19 @@ export default function DesignSystemV2Page() {
       </div>
 
       {/* Components */}
-      <div className="bg-surface rounded-[28px] border border-[#E7ECEC] shadow-[0_18px_40px_rgba(21,41,40,0.08)] overflow-hidden">
-        <div className="border-b border-wf-border-subtle px-5 py-4 sm:px-6">
-          <h2 className="text-wf-xl font-bold tracking-tight text-[#173433]">Components</h2>
-          <p className="mt-1 text-wf-sm text-wf-text-secondary">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
+        <div className="border-b border-[#F0F1F1] px-5 py-4 sm:px-6">
+          <h2 className="text-xl font-bold tracking-tight text-[#173433]">Components</h2>
+          <p className="mt-1 text-xs text-[#6B7B7B]">
             Expand any component to see its canonical implementation.
-            Complete components are locked — use them as-is across all screens.
           </p>
         </div>
-        <div className="divide-y divide-wf-border-subtle">
-          {componentSections.map(({ label, icon, status, content }) => (
+        <div className="divide-y divide-[#F0F1F1]">
+          {componentSections.map(({ label, desc, icon, status, content }) => (
             <CollapsibleRow
               key={`component-${label}`}
               label={label}
+              desc={desc}
               icon={icon}
               status={status}
               isOpen={openSections.has(`component-${label}`)}

@@ -55,6 +55,7 @@ interface MainLayoutProps {
   onNavigate: (page: string, data?: string) => void;
   hideHeaderRight?: boolean;
   subScreenTitle?: string | null;
+  subScreenIcon?: any;
   onSubScreenBack?: () => void;
   currentPage?: string;
   onHomeLayoutSaved?: () => void;
@@ -66,6 +67,7 @@ const MainLayout = ({
   onNavigate,
   hideHeaderRight = false,
   subScreenTitle,
+  subScreenIcon,
   onSubScreenBack,
   currentPage,
   onHomeLayoutSaved,
@@ -235,7 +237,12 @@ const MainLayout = ({
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="currentColor" strokeWidth={1.5} />
             </button>
-            <h1 className="text-lg font-bold text-[#345C5A] tracking-tight">{subScreenTitle}</h1>
+            <h1 className="text-lg font-bold text-[#345C5A] tracking-tight flex items-center gap-2">
+              {subScreenIcon && (
+                <HugeiconsIcon icon={subScreenIcon} size={20} color="currentColor" strokeWidth={1.5} />
+              )}
+              {subScreenTitle}
+            </h1>
             <div className="w-10" />
           </header>
         ) : (

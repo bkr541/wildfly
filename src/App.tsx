@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { CreditCardIcon } from "@hugeicons/core-free-icons";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ const MainApp = () => {
   const [multiResultsData, setMultiResultsData] = useState<string>("");
   const [quickSearchData, setQuickSearchData] = useState<string | null>(null);
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
+  const [subScreenIcon, setSubScreenIcon] = useState<any>(null);
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
   const accountBackRef = useRef<(() => void) | null>(null);
 
@@ -273,7 +275,13 @@ const MainApp = () => {
     } else if (page !== "flights") {
       setQuickSearchData(null);
     }
-    setSubScreenTitle(null);
+    if (page === "design-system") {
+      setSubScreenTitle("Design System");
+      setSubScreenIcon(CreditCardIcon);
+    } else {
+      setSubScreenTitle(null);
+      setSubScreenIcon(null);
+    }
     setCurrentPage(page as any);
   };
 
@@ -315,12 +323,21 @@ const MainApp = () => {
               onNavigate={handleNavigate}
               hideHeaderRight={hideHeaderRight || !!subScreenTitle}
               subScreenTitle={subScreenTitle}
-              onSubScreenBack={() => accountBackRef.current?.()}
+              subScreenIcon={subScreenIcon}
+              onSubScreenBack={() => {
+                if (currentPage === "design-system") {
+                  setSubScreenTitle(null);
+                  setSubScreenIcon(null);
+                  setCurrentPage("account");
+                } else {
+                  accountBackRef.current?.();
+                }
+              }}
               currentPage={currentPage}
               onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
             >
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} />}
-              {currentPage === "account" && <AccountHub onSubScreenChange={setSubScreenTitle} backRef={accountBackRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}

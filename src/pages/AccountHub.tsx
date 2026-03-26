@@ -27,7 +27,7 @@ import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
 import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 
 interface AccountHubProps {
-  onSubScreenChange?: (title: string | null) => void;
+  onSubScreenChange?: (title: string | null, icon?: any) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
   onNavigate?: (page: string) => void;
   onHomepageConfigChanged?: () => void;
@@ -68,14 +68,20 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
   const [username, setUsername] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
+  const menuItems: MenuItem[] = [
+    ...baseMenuItems,
+    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", desc: "Logs, debug toggles, and admin tools", key: "developer" }] : []),
+  ];
+
   const openScreen = (key: string) => {
+    const item = menuItems.find((m) => m.key === key);
     setActiveScreen(key);
-    onSubScreenChange?.(screenTitles[key] ?? null);
+    onSubScreenChange?.(screenTitles[key] ?? null, item?.icon ?? null);
   };
 
   const handleBack = () => {
     setActiveScreen(null);
-    onSubScreenChange?.(null);
+    onSubScreenChange?.(null, null);
   };
 
   useEffect(() => {
@@ -108,11 +114,6 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
     };
     check();
   }, []);
-
-  const menuItems: MenuItem[] = [
-    ...baseMenuItems,
-    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", desc: "Logs, debug toggles, and admin tools", key: "developer" }] : []),
-  ];
 
   if (activeScreen === "my-account") return <MyAccountScreen onBack={handleBack} />;
   if (activeScreen === "travel-prefs") return <TravelPreferencesScreen onBack={handleBack} />;
@@ -162,8 +163,8 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
                 idx < menuItems.length - 1 ? "border-b border-[#F0F1F1]" : ""
               }`}
             >
-              <span className="h-8 w-8 rounded-lg bg-[#D1FAE5] flex items-center justify-center mr-3 shrink-0">
-                <HugeiconsIcon icon={item.icon} size={14} color="#059669" strokeWidth={1.5} />
+              <span className="h-8 w-8 rounded-full bg-[#345C5A] flex items-center justify-center mr-3 shrink-0">
+                <HugeiconsIcon icon={item.icon} size={14} color="#D1FAE5" strokeWidth={1.5} />
               </span>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#2E4A4A]">{item.label}</p>

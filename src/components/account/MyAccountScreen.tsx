@@ -97,20 +97,23 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
       {/* Form */}
       <div className="flex-1 px-5 pb-4 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] p-4 space-y-4">
-          <AppInput
-            icon={UserIcon}
-            label="First Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="First"
-          />
-          <AppInput
-            icon={UserIcon}
-            label="Last Name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Last"
-          />
+          <div className="flex gap-3">
+            <AppInput
+              icon={UserIcon}
+              label="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First"
+              wrapperClassName="flex-1"
+            />
+            <AppInput
+              label="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last"
+              wrapperClassName="flex-1"
+            />
+          </div>
           <AppInput
             icon={UserIdVerificationIcon}
             label="Username"
@@ -124,21 +127,25 @@ const MyAccountScreen = ({ onBack }: MyAccountScreenProps) => {
             value={email}
             disabled
           />
-          <AppInput
-            icon={Calendar03Icon}
-            label="Date of Birth"
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-          />
-          <AppInput
-            icon={SmartPhone01Icon}
-            label="Mobile"
-            type="tel"
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
-            placeholder="+1 (555) 000-0000"
-          />
+          <div className="flex gap-3">
+            <AppInput
+              icon={Calendar03Icon}
+              label="Date of Birth"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              wrapperClassName="flex-1"
+            />
+            <AppInput
+              icon={SmartPhone01Icon}
+              label="Mobile"
+              type="tel"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              placeholder="+1 (555) 000-0000"
+              wrapperClassName="flex-1"
+            />
+          </div>
 
           {/* Bio */}
           <div>
