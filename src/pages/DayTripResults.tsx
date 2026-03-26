@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faPlane } from "@fortawesome/free-solid-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SunCloud01Icon,
@@ -323,82 +323,84 @@ function getBadges(pair: DayTripPair, allPairs: DayTripPair[]): Badge[] {
   return badges;
 }
 
-// ─── Sub-component: Flight Column ───────────────────────────────────────────
+// ─── Sub-component: Flight Row ───────────────────────────────────────────────
 
-function FlightColumn({
+function splitAmPm(t: string): { time: string; ampm: string } {
+  const m = t.match(/^(\d+:\d+)\s*(AM|PM)$/i);
+  if (m) return { time: m[1], ampm: m[2].toUpperCase() };
+  return { time: t, ampm: "" };
+}
+
+function FlightRow({
   label,
   labelColor,
-  iataTop,
-  timeTop,
-  labelTop,
+  labelBg,
+  depIata,
+  depTime,
+  depAirportName,
+  arrIata,
+  arrTime,
+  arrAirportName,
   duration,
-  iataBottom,
-  timeBottom,
-  labelBottom,
   date,
-  align,
 }: {
   label: string;
   labelColor: string;
-  iataTop: string;
-  timeTop: string;
-  labelTop: string;
+  labelBg: string;
+  depIata: string;
+  depTime: string;
+  depAirportName: string;
+  arrIata: string;
+  arrTime: string;
+  arrAirportName: string;
   duration: string;
-  iataBottom: string;
-  timeBottom: string;
-  labelBottom: string;
   date: string;
-  align: "left" | "right";
 }) {
-  const ta = align === "left" ? "text-left" : "text-right";
-  const alignItems = align === "left" ? "items-start" : "items-end";
+  const dep = splitAmPm(formatDisplayTime(depTime, date));
+  const arr = splitAmPm(formatDisplayTime(arrTime, date));
 
   return (
-    <div className={`flex flex-col gap-0.5 flex-1 ${ta}`}>
-      {/* Label chip */}
-      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"} mb-1.5`}>
-        <span
-          className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-          style={{ background: labelColor }}
-        >
-          {label}
-        </span>
+    <div>
+      {/* Times row */}
+      <div className="flex items-start gap-2">
+        {/* Departure */}
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-[26px] font-black leading-none text-[#111827]">{dep.time}</span>
+            <span className="text-[13px] font-bold text-[#111827] leading-none">{dep.ampm}</span>
+          </div>
+          <span className="text-[13px] font-bold text-[#374151] mt-0.5 leading-none">{depIata}</span>
+          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight">{depAirportName}</span>
+        </div>
+
+        {/* Center: dashed line + duration */}
+        <div className="flex-1 flex flex-col items-center pt-2.5 min-w-0">
+          <div className="flex items-center w-full">
+            <div className="flex-1 border-t-[1.5px] border-dashed border-[#D1D5DB]" />
+            <FontAwesomeIcon icon={faPlane} className="mx-1.5 text-[#9CA3AF] w-3 h-3 flex-shrink-0" />
+            <div className="flex-1 border-t-[1.5px] border-dashed border-[#D1D5DB]" />
+          </div>
+          <div
+            className="mt-2 flex items-center gap-1 rounded-full px-2.5 py-1"
+            style={{ background: labelBg }}
+          >
+            <HugeiconsIcon icon={Clock01Icon} size={10} color={labelColor} strokeWidth={2} />
+            <span className="text-[10px] font-semibold leading-none" style={{ color: labelColor }}>
+              {formatDuration(duration)}
+            </span>
+          </div>
+        </div>
+
+        {/* Arrival */}
+        <div className="flex flex-col items-end min-w-0">
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-[26px] font-black leading-none text-[#111827]">{arr.time}</span>
+            <span className="text-[13px] font-bold text-[#111827] leading-none">{arr.ampm}</span>
+          </div>
+          <span className="text-[13px] font-bold text-[#374151] mt-0.5 leading-none">{arrIata}</span>
+          <span className="text-[10px] text-[#9CA3AF] mt-0.5 leading-tight text-right">{arrAirportName}</span>
+        </div>
       </div>
-
-      {/* Origin IATA */}
-      <span
-        className="text-[32px] font-black leading-none tracking-tight"
-        style={{ color: labelColor }}
-      >
-        {iataTop}
-      </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
-        {formatDisplayTime(timeTop, date)}
-      </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none mb-2">
-        {labelTop}
-      </span>
-
-      {/* Duration pill */}
-      <div className={`flex ${align === "left" ? "justify-start" : "justify-end"}`}>
-        <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2.5 py-1 rounded-full">
-          {formatDuration(duration)}
-        </span>
-      </div>
-
-      {/* Destination IATA */}
-      <span
-        className="text-[32px] font-black leading-none tracking-tight mt-2"
-        style={{ color: labelColor }}
-      >
-        {iataBottom}
-      </span>
-      <span className="text-[13px] font-bold text-[#374151] leading-none">
-        {formatDisplayTime(timeBottom, date)}
-      </span>
-      <span className="text-[10px] font-medium text-[#6B7280] leading-none">
-        {labelBottom}
-      </span>
     </div>
   );
 }
@@ -414,11 +416,13 @@ function DayTripCard({
   pair,
   index,
   allPairs,
+  originInfo,
   destInfo,
 }: {
   pair: DayTripPair;
   index: number;
   allPairs: DayTripPair[];
+  originInfo?: AirportInfo;
   destInfo?: AirportInfo;
 }) {
   let formattedDate = pair.date;
@@ -435,6 +439,10 @@ function DayTripCard({
       : pair.destination
     : pair.destination;
 
+  const cardImageSrc = destInfo?.locationId
+    ? `/assets/locations/${destInfo.locationId}_background.png`
+    : `/assets/locations/init_background.png`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -446,91 +454,69 @@ function DayTripCard({
         boxShadow: CARD_SHADOW,
       }}
     >
-      {/* Date header */}
-      <div
-        className="relative flex items-center justify-center gap-1.5 px-4 py-2.5"
-        style={{ background: HEADER_GREEN }}
-      >
-        <HugeiconsIcon icon={Calendar03Icon} size={14} color="white" strokeWidth={2} />
-        <span className="text-white font-bold text-[13px] leading-none">{formattedDate}</span>
-        <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[calc(100%-1px)]"
-          style={{
-            width: 0,
-            height: 0,
-            borderLeft: "9px solid transparent",
-            borderRight: "9px solid transparent",
-            borderTop: `9px solid ${HEADER_GREEN}`,
-          }}
+      {/* Outbound flight row */}
+      <div className="px-4 pt-3 pb-2">
+        <FlightRow
+          label="Outbound Flight"
+          labelColor="#059669"
+          labelBg="#ECFDF5"
+          depIata={pair.origin}
+          depTime={pair.outbound.departureTime}
+          depAirportName={originInfo?.name ?? ""}
+          arrIata={pair.destination}
+          arrTime={pair.outbound.arrivalTime}
+          arrAirportName={destInfo?.name ?? ""}
+          duration={pair.outbound.duration}
+          date={pair.date}
         />
       </div>
 
-      {/* Card body */}
-      <div className="px-4 pt-5 pb-3">
-        <div className="flex gap-2 items-start">
-          {/* Outbound column */}
-          <FlightColumn
-            label="Outbound"
-            labelColor="#059669"
-            iataTop={pair.origin}
-            timeTop={pair.outbound.departureTime}
-            labelTop="Departure"
-            duration={pair.outbound.duration}
-            iataBottom={pair.destination}
-            timeBottom={pair.outbound.arrivalTime}
-            labelBottom="Arrival"
-            date={pair.date}
-            align="left"
-          />
-
-          {/* Center: ground time + destination */}
-          <div className="flex flex-col items-center justify-center gap-1.5 pt-7 shrink-0 w-[80px]">
-            <div
-              className="flex items-center gap-1 rounded-full px-2.5 py-1.5"
-              style={{ background: "#059669" }}
-            >
-              <HugeiconsIcon icon={Clock01Icon} size={10} color="white" strokeWidth={2.5} />
-              <span className="text-white text-[11px] font-black leading-none">
-                {formatGround(pair.groundMinutes)}
-              </span>
-            </div>
-            <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight">
-              Ground Time in
+      {/* City image banner with ground time pill overlay */}
+      <div className="mx-4 mb-0 rounded-xl overflow-hidden relative" style={{ height: 100 }}>
+        <img
+          src={cardImageSrc}
+          alt={destLabel}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/assets/locations/init_background.png";
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
+            style={{ background: "#059669", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+          >
+            <HugeiconsIcon icon={Clock01Icon} size={11} color="white" strokeWidth={2.5} />
+            <span className="text-white text-[11px] font-black leading-none">
+              {formatGround(pair.groundMinutes)}
             </span>
-            <span className="text-[11px] font-bold text-[#1A2E2E] text-center leading-tight">
-              {destLabel}
-            </span>
-            <div className="w-px h-3 bg-[#E5E7EB] mt-0.5" />
-            {pair.goWild && (
-              <span
-                className="inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[9px] font-black whitespace-nowrap"
-                style={{ background: "#059669", color: "#FFFFFF" }}
-              >
-                <HugeiconsIcon icon={Rocket01Icon} size={9} color="white" strokeWidth={2} />
-                GoWild
-              </span>
-            )}
           </div>
+        </div>
+      </div>
 
-          {/* Return column */}
-          <FlightColumn
-            label="Return"
+      {/* Return flight row */}
+      <div className="px-4 pt-0 pb-3">
+        <div className="pt-2">
+          <FlightRow
+            label="Return Flight"
             labelColor="#B45309"
-            iataTop={pair.destination}
-            timeTop={pair.inbound.departureTime}
-            labelTop="Departure"
+            labelBg="#FEF3C7"
+            depIata={pair.destination}
+            depTime={pair.inbound.departureTime}
+            depAirportName={destInfo?.name ?? ""}
+            arrIata={pair.origin}
+            arrTime={pair.inbound.arrivalTime}
+            arrAirportName={originInfo?.name ?? ""}
             duration={pair.inbound.duration}
-            iataBottom={pair.origin}
-            timeBottom={pair.inbound.arrivalTime}
-            labelBottom="Arrival"
             date={pair.date}
-            align="right"
           />
         </div>
+      </div>
 
-        {/* Badges row */}
-        {badges.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#F3F4F6]">
+      {/* Badges row */}
+      {badges.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-4 pt-0 border-t border-[#F3F4F6]">
+          <div className="pt-3 flex flex-wrap gap-1.5 w-full">
             {badges.map((badge) => (
               <span
                 key={badge.key}
@@ -542,8 +528,8 @@ function DayTripCard({
               </span>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -750,17 +736,6 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
                   </span>
                 </div>
               )}
-              {pairs.length > 0 && (
-                <div
-                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
-                  style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
-                >
-                  <HugeiconsIcon icon={SunCloud01Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                  <span className="text-[#065F46] text-xs font-semibold leading-none">
-                    {pairs.length} day trip{pairs.length !== 1 ? "s" : ""} found
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -830,6 +805,7 @@ const DayTripResults = ({ onBack, responseData }: Props) => {
                   pair={pair}
                   index={i}
                   allPairs={pairs}
+                  originInfo={airportMap[pair.origin]}
                   destInfo={airportMap[pair.destination]}
                 />
               ))

@@ -330,7 +330,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         <img
           src="/assets/logo/logo_horizontal.png"
           alt="Logo"
-          className="w-auto object-contain mx-auto"
+          className="w-auto object-contain mx-auto p-[6px]"
           style={{ height: "clamp(90px, 22vw, 140px)" }}
         />
       </div>
