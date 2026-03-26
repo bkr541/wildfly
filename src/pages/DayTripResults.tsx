@@ -481,15 +481,27 @@ function DayTripCard({
             (e.currentTarget as HTMLImageElement).src = "/assets/locations/init_background.png";
           }}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
-            style={{ background: "#059669", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
-          >
-            <HugeiconsIcon icon={Clock01Icon} size={11} color="white" strokeWidth={2.5} />
-            <span className="text-white text-[11px] font-black leading-none">
-              {formatGround(pair.groundMinutes)}
+        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.18)" }}>
+          {/* City name — true center */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className="text-white text-[22px] font-semibold uppercase tracking-wide leading-none"
+              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.45)" }}
+            >
+              {destInfo?.city || destLabel}
             </span>
+          </div>
+          {/* Duration pill — anchored to bottom */}
+          <div className="absolute bottom-2.5 inset-x-0 flex justify-center">
+            <div
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
+              style={{ background: "#059669", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+            >
+              <HugeiconsIcon icon={Clock01Icon} size={11} color="white" strokeWidth={2.5} />
+              <span className="text-white text-[11px] font-black leading-none">
+                {formatGround(pair.groundMinutes)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
