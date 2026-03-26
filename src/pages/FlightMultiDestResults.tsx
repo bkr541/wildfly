@@ -177,7 +177,7 @@ function DestCardItem({
         {/* Min price badge — top RIGHT of hero image */}
         {card.minFare != null && (
           <div
-            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
             style={
               isGoWild
                 ? { background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
@@ -190,7 +190,7 @@ function DestCardItem({
         )}
         {card.hasGoWild && card.minFare == null && (
           <div
-            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-xl px-3 py-1.5"
+            className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
             style={{ background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
             <span className="text-[14px] font-semibold leading-none text-white/80">From</span>
