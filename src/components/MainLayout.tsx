@@ -382,7 +382,7 @@ const MainLayout = ({
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>{children}</main>
       </div>
 
       {/* Global notifications sheet (triggered from Home bell icon) */}

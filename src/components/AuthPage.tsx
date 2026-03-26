@@ -322,7 +322,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat"
+      className="relative flex flex-col h-full overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo — takes remaining space above card, centers logo */}
@@ -340,7 +340,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         {/* Scrollable card */}
         <div
           className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 flex flex-col overflow-y-auto"
-          style={{ height: "calc(100svh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
+          style={{ height: "calc(100dvh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
         >
           {/* Header label */}
           <div className="w-full mb-4">
