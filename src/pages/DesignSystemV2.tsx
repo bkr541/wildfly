@@ -991,7 +991,7 @@ const tokenSections: { label: string; icon: any; status: SectionStatus; content:
             [PencilEdit01Icon, "Edit"], [ViewIcon, "Show"], [ViewOffSlashIcon, "Hide"],
           ]},
           { group: "Saves & Alerts", icons: [
-            [FavouriteIcon, "Favourite"], [HeartAddIcon, "Save"], [BookmarkAdd01Icon, "Bookmark"],
+            [FavouriteIcon, "Favorite"], [HeartAddIcon, "Save"], [BookmarkAdd01Icon, "Bookmark"],
             [Notification01Icon, "Notification"], [CheckmarkCircle01Icon, "Success"], [Alert01Icon, "Alert"],
           ]},
         ].map(({ group, icons }) => (
@@ -1179,7 +1179,7 @@ function CollapsibleRow({
         <span className="h-8 w-8 rounded-lg bg-surface-muted flex items-center justify-center shrink-0">
           <HugeiconsIcon icon={icon} size={15} color="#345C5A" strokeWidth={1.5} />
         </span>
-        <span className="flex-1 text-wf-base font-semibold text-brand-text">{label}</span>
+        <span className="flex-1 text-wf-base font-semibold text-wf-text-primary">{label}</span>
         {status === "complete" ? <StatusComplete /> : <StatusDraft />}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
@@ -1233,7 +1233,7 @@ export default function DesignSystemV2Page() {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-wf-hero font-extrabold tracking-tight text-[#173433]">Wildfly design system</h1>
+            <h1 className="text-wf-hero font-extrabold tracking-tight text-[#173433]">Wildfly Design System</h1>
             <p className="max-w-3xl text-wf-base leading-6 text-wf-text-secondary">
               Components marked <span className="font-bold text-[#065F46]">✓ Complete</span> are canonical.
               All screens must conform to them. <span className="font-bold text-wf-text-secondary">Draft</span> items are documented but not yet reconciled across the app.
@@ -1268,7 +1268,7 @@ export default function DesignSystemV2Page() {
       {/* Tokens */}
       <div className="bg-surface rounded-[28px] border border-[#E7ECEC] shadow-[0_18px_40px_rgba(21,41,40,0.08)] overflow-hidden">
         <div className="border-b border-wf-border-subtle px-5 py-4 sm:px-6">
-          <h2 className="text-wf-xl font-bold tracking-tight text-[#173433]">Tokens, typography & patterns</h2>
+          <h2 className="text-wf-xl font-bold tracking-tight text-[#173433]">Tokens, Typography & Patterns</h2>
           <p className="mt-1 text-wf-sm text-wf-text-secondary">The canonical color, type, and layout primitives for the entire app.</p>
         </div>
         <div className="divide-y divide-wf-border-subtle">

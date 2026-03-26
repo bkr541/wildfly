@@ -23,7 +23,7 @@ import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
 import IOSInstallBanner from "./components/IOSInstallBanner";
-import DesignSystemPage from "./pages/DesignSystem";
+import DesignSystemPage from "./pages/DesignSystemV2";
 import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";

@@ -17,6 +17,16 @@ export default {
       },
       extend: {
       colors: {
+        "surface":           "#FFFFFF",
+        "surface-subtle":    "#F7F8F8",
+        "surface-muted":     "#F2F3F3",
+        "surface-hover":     "#E8F5F0",
+        "surface-active":    "#D1FAE5",
+        "surface-page":      "#F1F5F5",
+        "wf-text-primary":   "#2E4A4A",
+        "wf-text-secondary": "#6B7B7B",
+        "wf-text-muted":     "#9CA3AF",
+        "wf-text-faint":     "#9AADAD",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
