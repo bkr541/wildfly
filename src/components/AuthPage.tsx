@@ -325,8 +325,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       className="relative flex flex-col min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
-      {/* Top section with logo */}
-      <div className="w-full flex flex-col items-center justify-center z-10 gap-2 py-4">
+      {/* Top section with logo — takes remaining space above card, centers logo */}
+      <div className="flex-1 flex flex-col items-center justify-center z-10">
         <img
           src="/assets/logo/logo_horizontal.png"
           alt="Logo"
@@ -336,8 +336,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       </div>
 
       {/* White card form */}
-      <div className="flex-1 flex flex-col items-center justify-end z-10 min-h-0">
-        {/* Scrollable card — grows to fill remaining space, never crushes logo */}
+      <div className="flex flex-col items-center justify-end z-10">
+        {/* Scrollable card */}
         <div
           className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 flex flex-col overflow-y-auto"
           style={{ height: "calc(100svh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
