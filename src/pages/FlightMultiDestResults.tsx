@@ -679,10 +679,10 @@ const FlightMultiDestResults = ({
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
       <motion.div
-        className="sticky top-0 z-30 px-4 bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
+      className="sticky top-0 z-30 px-[22px] bg-gradient-to-r from-[#10B981] to-[#059669] overflow-hidden"
         initial={false}
         animate={{
-          height: compactHeader ? 80 : 0,
+          height: compactHeader ? 92 : 0,
           opacity: compactHeader ? 1 : 0,
           pointerEvents: compactHeader ? "auto" : "none",
         }}
