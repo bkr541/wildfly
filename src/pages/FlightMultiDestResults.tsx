@@ -202,16 +202,16 @@ function DestCardItem({
       {/* Card body */}
       <div className="px-4 pt-1.5 pb-4">
         {/* Stats grid: 2-column layout */}
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {/* Row A: Fare Range | Earliest Departure */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
-                <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
+                <HugeiconsIcon icon={DollarCircleIcon} size={15} color="#4B6060" strokeWidth={2} />
               </div>
-              <span className="text-[12px] text-[#2E4A4A] truncate">
+              <span className="text-[13px] text-[#4B6060] truncate">
                 Range:{" "}
-                <span className="font-semibold">
+                <span className="font-bold text-[#1A2E2E]">
                   {card.minFare != null && card.maxFare != null
                     ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
                     : "—"}
@@ -219,33 +219,33 @@ function DestCardItem({
               </span>
             </div>
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
-                <HugeiconsIcon icon={SunriseIcon} size={13} color="#6B7B7B" strokeWidth={2} />
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
+                <HugeiconsIcon icon={SunriseIcon} size={15} color="#4B6060" strokeWidth={2} />
               </div>
-              <span className="text-[12px] text-[#2E4A4A] truncate">
-                Earliest: <span className="font-semibold">{card.earliestDeparture ?? "—"}</span>
+              <span className="text-[13px] text-[#4B6060] truncate">
+                Earliest: <span className="font-bold text-[#1A2E2E]">{card.earliestDeparture ?? "—"}</span>
               </span>
             </div>
           </div>
           {/* Row B: Quickest | Nonstop Count */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
-                <HugeiconsIcon icon={Clock01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
+                <HugeiconsIcon icon={Clock01Icon} size={15} color="#4B6060" strokeWidth={2} />
               </div>
-              <span className="text-[12px] text-[#2E4A4A] truncate">
+              <span className="text-[13px] text-[#4B6060] truncate">
                 Quickest:{" "}
-                <span className="font-semibold">
+                <span className="font-bold text-[#1A2E2E]">
                   {card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}
                 </span>
               </span>
             </div>
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.10)" }}>
-                <HugeiconsIcon icon={CircleArrowRight02Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
+                <HugeiconsIcon icon={CircleArrowRight02Icon} size={15} color="#4B6060" strokeWidth={2} />
               </div>
-              <span className="text-[12px] text-[#2E4A4A] truncate">
-                Nonstop: <span className="font-semibold">{card.nonstopCount}</span>
+              <span className="text-[13px] text-[#4B6060] truncate">
+                Nonstop: <span className="font-bold text-[#1A2E2E]">{card.nonstopCount}</span>
               </span>
             </div>
           </div>
