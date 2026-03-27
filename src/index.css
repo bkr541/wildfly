@@ -57,6 +57,7 @@
 
   html {
     height: 100%;
+    height: -webkit-fill-available;
   }
 
   body {
@@ -64,6 +65,7 @@
     background-color: #F1F5F5;
     overscroll-behavior: none;
     height: 100%;
+    min-height: -webkit-fill-available;
   }
 
   #root {
