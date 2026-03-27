@@ -322,7 +322,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col h-full overflow-hidden bg-cover bg-center bg-no-repeat"
+      className="relative flex flex-col min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo — takes remaining space above card, centers logo */}
