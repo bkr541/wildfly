@@ -293,7 +293,7 @@ const MainApp = () => {
     ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs"].includes(currentPage);
 
   return (
-    <div className="fixed inset-0 flex justify-center">
+    <div className="fixed inset-0 flex justify-center overflow-hidden">
       <div className="w-full max-w-[768px] h-full flex flex-col">
         {!splashDone && <AltSplashScreen onComplete={handleSplashComplete} />}
 
