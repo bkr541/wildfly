@@ -322,8 +322,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
+      className="relative flex flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')", minHeight: "calc(100vh + env(safe-area-inset-bottom))" }}
     >
       {/* Top section with logo — takes remaining space above card, centers logo */}
       <div className="flex-1 flex flex-col items-center justify-center z-10">
@@ -339,8 +339,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <div className="flex flex-col items-center justify-end z-10">
         {/* Scrollable card */}
         <div
-          className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-t-[2rem] px-7 pt-6 pb-6 flex flex-col overflow-y-auto"
-          style={{ height: "calc(100dvh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
+          className="w-full max-w-md bg-white backdrop-blur-md rounded-t-[2rem] px-7 pt-6 flex flex-col overflow-y-auto"
+          style={{ height: "calc(100dvh - 160px)", boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
         >
           {/* Header label */}
           <div className="w-full mb-4">

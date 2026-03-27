@@ -57,12 +57,12 @@
 
   html {
     height: 100%;
-    background-color: #E8EEEE;
+    background-color: white;
   }
 
   body {
     @apply text-foreground;
-    background-color: #E8EEEE;
+    background-color: white;
     overscroll-behavior: none;
     height: 100%;
   }
