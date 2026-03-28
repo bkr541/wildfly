@@ -914,21 +914,21 @@ function BadgeDemo() {
 
       <StateRow label="Price badge — Standard">
         <div
-          className="inline-flex flex-col items-end rounded-full px-6 py-3"
-          style={{ background: "#FFFFFF", border: "2px solid #1E2D5A", boxShadow: "0 2px 8px rgba(30,45,90,0.10)" }}
+          className="inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
+          style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }}
         >
-          <span className="text-wf-xs font-semibold leading-none" style={{ color: "#1E2D5A" }}>From</span>
-          <span className="text-wf-hero font-black leading-tight tracking-tight" style={{ color: "#1E2D5A" }}>$213</span>
+          <span className="text-[14px] font-semibold leading-none" style={{ color: "#6B7B7B" }}>From</span>
+          <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: "#1A2E2E" }}>$213</span>
         </div>
       </StateRow>
 
       <StateRow label="Price badge — GoWild">
         <div
-          className="inline-flex flex-col items-end rounded-full px-6 py-3"
-          style={{ background: "#4A7C59", border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(74,124,89,0.25)" }}
+          className="inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
+          style={{ background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
         >
-          <span className="text-wf-xs font-semibold leading-none text-white/80">From</span>
-          <span className="text-wf-hero font-black leading-tight tracking-tight text-white">GoWild</span>
+          <span className="text-[14px] font-semibold leading-none text-white/80">From</span>
+          <span className="text-[20px] font-black leading-none tracking-tight text-white">GoWild</span>
         </div>
       </StateRow>
 
