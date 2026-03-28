@@ -362,7 +362,7 @@ const MainApp = () => {
           </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-screen flex flex-col overflow-hidden">
             <FlightMultiDestResults
               onBack={() => setCurrentPage("flights")}
               responseData={flightResultsData}
