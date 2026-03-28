@@ -55,20 +55,9 @@
     @apply border-border;
   }
 
-  html {
-    height: 100%;
-    background-color: white;
-  }
-
   body {
     @apply text-foreground;
     background-color: white;
-    overscroll-behavior: none;
-    height: 100%;
-  }
-
-  #root {
-    height: 100%;
   }
 }
 

@@ -23,7 +23,6 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
-import IOSInstallBanner from "./components/IOSInstallBanner";
 import DesignSystemPage from "./pages/DesignSystemV2";
 import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
@@ -293,8 +292,8 @@ const MainApp = () => {
     ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs"].includes(currentPage);
 
   return (
-    <div className={`fixed inset-0 flex justify-center ${isMainLayoutPage ? "bg-[#E8EEEE]" : "bg-white"}`}>
-      <div className="w-full max-w-[768px] h-full flex flex-col">
+    <div className="flex justify-center">
+      <div className="w-full max-w-[768px] min-h-screen flex flex-col">
         {!splashDone && <AltSplashScreen onComplete={handleSplashComplete} />}
 
         {splashDone && checkingSession && (
@@ -384,7 +383,6 @@ const MainApp = () => {
             />
           </div>
         )}
-        <IOSInstallBanner />
       </div>
     </div>
   );

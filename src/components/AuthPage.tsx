@@ -322,11 +322,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col h-full overflow-hidden bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')", paddingTop: "env(safe-area-inset-top)" }}
+      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
-      {/* Top section with logo — fixed height below status bar */}
-      <div className="flex-shrink-0 flex flex-col items-center justify-center z-10" style={{ height: 160 }}>
+      {/* Top section with logo */}
+      <div className="flex-1 flex flex-col items-center justify-center z-10 py-10">
         <img
           src="/assets/logo/logo_horizontal.png"
           alt="Logo"
@@ -335,12 +335,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         />
       </div>
 
-      {/* White card form — flex-1 fills remaining height after logo */}
-      <div className="flex-1 flex flex-col items-center z-10 min-h-0">
-        {/* Scrollable card */}
+      {/* White card form */}
+      <div className="flex flex-col items-center z-10">
         <div
-          className="w-full max-w-md bg-white backdrop-blur-md rounded-t-[2rem] px-7 pt-6 flex flex-col overflow-y-auto h-full"
-          style={{ boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+          className="w-full max-w-md bg-white rounded-t-[2rem] px-7 pt-6 pb-8 flex flex-col"
+          style={{ boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
         >
           {/* Header label */}
           <div className="w-full mb-4">

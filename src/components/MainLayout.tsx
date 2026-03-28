@@ -229,7 +229,7 @@ const MainLayout = ({
       >
         {/* Header */}
         {subScreenTitle ? (
-          <header className="flex items-center justify-between px-5 pb-2 relative z-10" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}>
+          <header className="flex items-center justify-between px-5 pb-2 pt-4 relative z-10">
             <button
               type="button"
               onClick={onSubScreenBack}
@@ -246,7 +246,7 @@ const MainLayout = ({
             <div className="w-10" />
           </header>
         ) : (
-          <header className="flex flex-col px-5 pb-2 relative z-10 gap-3" style={{ background: "transparent", paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}>
+          <header className="flex flex-col px-5 pb-2 pt-6 relative z-10 gap-3" style={{ background: "transparent" }}>
             {/* Top row: hamburger + greeting + notification */}
             <div className="flex items-center gap-2">
               <button
@@ -382,7 +382,7 @@ const MainLayout = ({
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
 
       {/* Global notifications sheet (triggered from Home bell icon) */}
