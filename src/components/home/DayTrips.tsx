@@ -516,7 +516,7 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
                 </div>
               ) : pairs.length === 0 ? (
                 <div
-                  className="rounded-2xl px-4 py-5 flex items-center gap-3"
+                  className="rounded-2xl px-3 py-3 flex items-center gap-3"
                   style={{
                     background: "rgba(255,255,255,0.82)",
                     backdropFilter: "blur(18px)",
@@ -525,10 +525,14 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
                     boxShadow: CARD_SHADOW,
                   }}
                 >
-                  <HugeiconsIcon icon={SunCloud01Icon} size={20} color="#9AADAD" strokeWidth={1.5} />
+                  <img
+                    src="/assets/userhome/nodaytrips.png"
+                    alt="No day trips"
+                    className="flex-shrink-0 w-24 h-24 object-contain"
+                  />
                   <div>
-                    <p className="text-sm text-[#1A2E2E] font-semibold leading-tight">No day trips available today</p>
-                    <p className="text-[11px] text-[#9AADAD] font-medium mt-0.5">
+                    <p className="text-base text-[#1A2E2E] font-semibold leading-tight capitalize">No day trips available today</p>
+                    <p className="text-xs text-[#9AADAD] font-medium mt-0.5">
                       Check back later for GoWild nonstop same-day options
                     </p>
                   </div>

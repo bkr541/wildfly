@@ -766,7 +766,7 @@ const FlightMultiDestResults = ({
               { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
             ].map(({ label, value }) => (
               <div key={label} className="flex-1 flex flex-col items-center">
-                <span className="text-[13px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
+                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>
                 <span className="text-[24px] font-medium text-white leading-tight mt-0.5 text-center">{value}</span>
               </div>
             ))}
