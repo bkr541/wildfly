@@ -881,10 +881,10 @@ function BadgeDemo() {
         ].map(({ label, icon }) => (
           <div
             key={label}
-            className="inline-flex items-center gap-0.5 rounded-full text-wf-xs font-semibold"
-            style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}
+            className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+            style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}
           >
-            <HugeiconsIcon icon={icon} size={10} color="#1D4ED8" strokeWidth={2} />
+            <HugeiconsIcon icon={icon} size={11} color="#1D4ED8" strokeWidth={2.5} />
             {label}
           </div>
         ))}
@@ -903,10 +903,10 @@ function BadgeDemo() {
         ].map(({ label, bg, color, icon }) => (
           <div
             key={label}
-            className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-wf-xs font-semibold"
+            className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold"
             style={{ background: bg, color }}
           >
-            <HugeiconsIcon icon={icon} size={10} color={color} strokeWidth={2} />
+            <HugeiconsIcon icon={icon} size={11} color={color} strokeWidth={2.5} />
             {label}
           </div>
         ))}

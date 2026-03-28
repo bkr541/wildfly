@@ -998,23 +998,23 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
         {/* Trip Type badges */}
         <StateRow label="Trip Type">
           {/* One Way */}
-          <div className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}>
-            <HugeiconsIcon icon={ArrowRight04Icon} size={10} color="#1D4ED8" strokeWidth={2} />
+          <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={ArrowRight04Icon} size={10} color="#1D4ED8" strokeWidth={2.5} />
             One Way
           </div>
           {/* Round Trip */}
-          <div className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}>
-            <HugeiconsIcon icon={CircleArrowReload01Icon} size={10} color="#1D4ED8" strokeWidth={2} />
+          <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={CircleArrowReload01Icon} size={10} color="#1D4ED8" strokeWidth={2.5} />
             Round Trip
           </div>
           {/* Day Trip */}
-          <div className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}>
-            <HugeiconsIcon icon={SunCloud01Icon} size={10} color="#1D4ED8" strokeWidth={2} />
+          <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={SunCloud01Icon} size={10} color="#1D4ED8" strokeWidth={2.5} />
             Day Trip
           </div>
           {/* Multi Day */}
-          <div className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}>
-            <HugeiconsIcon icon={MapPinpoint01Icon} size={10} color="#1D4ED8" strokeWidth={2} />
+          <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8" }}>
+            <HugeiconsIcon icon={MapPinpoint01Icon} size={10} color="#1D4ED8" strokeWidth={2.5} />
             Multi Day
           </div>
         </StateRow>
@@ -1023,42 +1023,42 @@ const componentSections: { label: string; icon: any; content?: ReactNode }[] = [
         <StateRow label="Status Badges">
           {/* GoWild */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#4A7C59", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             GoWild
           </div>
           {/* Blackout */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#111827", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={UnavailableIcon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={UnavailableIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             Blackout
           </div>
           {/* Cheapest */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#1E3A5F", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={DollarCircleIcon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={DollarCircleIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             Cheapest
           </div>
           {/* Quickest */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#D4AF37", color: "#1A1A1A" }}>
-            <HugeiconsIcon icon={TrafficLightIcon} size={10} color="#1A1A1A" strokeWidth={2} />
+            <HugeiconsIcon icon={TrafficLightIcon} size={10} color="#1A1A1A" strokeWidth={2.5} />
             Quickest
           </div>
           {/* +1 Day */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#E89830", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={Clock01Icon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={Clock01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             +1 Day
           </div>
           {/* Red Eye */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#DC2626", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={Alert01Icon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={Alert01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             Red Eye
           </div>
           {/* Best Balance */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#7C3AED", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={ArrowDown01Icon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={ArrowDown01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             Best Balance
           </div>
           {/* Longest Time There */}
           <div className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#D97706", color: "#FFFFFF" }}>
-            <HugeiconsIcon icon={MapPinpoint01Icon} size={10} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={MapPinpoint01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             Longest Time There
           </div>
         </StateRow>
