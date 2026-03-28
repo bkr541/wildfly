@@ -201,54 +201,22 @@ function DestCardItem({
 
       {/* Card body */}
       <div className="px-4 pt-1.5 pb-4">
-        {/* Stats grid: 2-column layout */}
-        <div className="flex flex-col gap-2.5 mb-4">
-          {/* Row A: Fare Range | Earliest Departure */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
-                <HugeiconsIcon icon={DollarCircleIcon} size={15} color="#4B6060" strokeWidth={2} />
+        {/* Stats row: 4-up */}
+        <div className="grid grid-cols-4 gap-x-2 mb-4">
+          {[
+            { label: "RANGE",    value: card.minFare != null && card.maxFare != null ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}` : "—", icon: DollarCircleIcon },
+            { label: "EARLIEST", value: card.earliestDeparture ?? "—",                                                                                      icon: SunriseIcon },
+            { label: "QUICKEST", value: card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—",                                          icon: Clock01Icon },
+            { label: "NONSTOP",  value: card.nonstopCount,                                                                                                   icon: CircleArrowRight02Icon },
+          ].map(({ label, value, icon }) => (
+            <div key={label} className="flex flex-col items-center gap-0.5">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: isGoWild ? "#D1FAE5" : "rgba(107,123,123,0.12)" }}>
+                <HugeiconsIcon icon={icon} size={15} color={isGoWild ? "#047857" : "#4B6060"} strokeWidth={2} />
               </div>
-              <span className="text-[13px] text-[#4B6060] truncate">
-                Range:{" "}
-                <span className="font-bold text-[#1A2E2E]">
-                  {card.minFare != null && card.maxFare != null
-                    ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}`
-                    : "—"}
-                </span>
-              </span>
+              <span className="text-[13px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center">{label}</span>
+              <span className="text-[13px] font-medium text-[#6B7B7B] leading-tight text-center">{value}</span>
             </div>
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
-                <HugeiconsIcon icon={SunriseIcon} size={15} color="#4B6060" strokeWidth={2} />
-              </div>
-              <span className="text-[13px] text-[#4B6060] truncate">
-                Earliest: <span className="font-bold text-[#1A2E2E]">{card.earliestDeparture ?? "—"}</span>
-              </span>
-            </div>
-          </div>
-          {/* Row B: Quickest | Nonstop Count */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
-                <HugeiconsIcon icon={Clock01Icon} size={15} color="#4B6060" strokeWidth={2} />
-              </div>
-              <span className="text-[13px] text-[#4B6060] truncate">
-                Quickest:{" "}
-                <span className="font-bold text-[#1A2E2E]">
-                  {card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—"}
-                </span>
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(107,123,123,0.12)" }}>
-                <HugeiconsIcon icon={CircleArrowRight02Icon} size={15} color="#4B6060" strokeWidth={2} />
-              </div>
-              <span className="text-[13px] text-[#4B6060] truncate">
-                Nonstop: <span className="font-bold text-[#1A2E2E]">{card.nonstopCount}</span>
-              </span>
-            </div>
-          </div>
+          ))}
         </div>
         {/* View Flights button — full width */}
         <button
@@ -858,7 +826,7 @@ const FlightMultiDestResults = ({
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
-        <div className="flex-1 flex flex-col px-5 py-4 gap-6 relative z-10">
+        <div className="flex-1 flex flex-col px-10 py-4 gap-6 relative z-10">
           {sortedCards.map((card, index) => (
             <DestCardItem
               key={card.destination}

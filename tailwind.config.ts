@@ -18,6 +18,9 @@ export default {
       extend: {
       colors: {
         "brand":             "#10B981",
+        "accent-coral":      "#F97055",
+        "accent-amber":      "#F5A623",
+        "accent-sky":        "#38BDF8",
         "surface":           "#FFFFFF",
         "surface-subtle":    "#F7F8F8",
         "surface-muted":     "#F2F3F3",

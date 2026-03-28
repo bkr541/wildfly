@@ -612,6 +612,7 @@ function DatePickerSheet({
               if (isPast) textColor = "text-[#C4C9C9]";
               else if (isSelected || isDeparture) textColor = "text-white";
               else if (isBlackout) textColor = "text-white";
+              else if (isToday) textColor = "text-white";
               else if (isInRange) textColor = "text-[#059669]";
               else if (isWeekend) textColor = "text-red-500";
 
@@ -624,12 +625,9 @@ function DatePickerSheet({
                   boxShadow: "0 2px 8px rgba(16,185,129,0.35)",
                 };
               } else if (isBlackout) {
-                buttonStyle = {
-                  background: "#374151",
-                  ...(isToday ? { border: "2px solid #3B82F6" } : {}),
-                };
+                buttonStyle = { background: isToday ? "#3B82F6" : "#374151" };
               } else if (isToday) {
-                buttonStyle = { border: "2px solid #3B82F6" };
+                buttonStyle = { background: "#3B82F6" };
               }
 
               return (

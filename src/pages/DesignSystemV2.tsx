@@ -178,6 +178,15 @@ const colorTokens = [
       { name: "Border Strong",  variable: "--wf-border-strong",   hex: "#C8CDCD", tailwind: "border-wf-border-strong", usage: "Emphasis borders, timeline lines" },
     ],
   },
+  // Accents
+  {
+    group: "Accents",
+    tokens: [
+      { name: "Coral",  variable: "--wf-accent-coral",  hex: "#F97055", tailwind: "bg-accent-coral",  usage: "Alerts, warm highlights, destination tags" },
+      { name: "Amber",  variable: "--wf-accent-amber",  hex: "#F5A623", tailwind: "bg-accent-amber",  usage: "Badges, deal indicators, price highlights" },
+      { name: "Sky",    variable: "--wf-accent-sky",    hex: "#38BDF8", tailwind: "bg-accent-sky",    usage: "Info states, flight route lines, maps" },
+    ],
+  },
   // Semantic
   {
     group: "Semantic",
