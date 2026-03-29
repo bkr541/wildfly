@@ -1,8 +1,20 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer02Icon } from "@hugeicons/core-free-icons";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 interface UserFlight {
   id: string;
@@ -35,6 +47,16 @@ function formatTime(dateStr: string): string {
   }
 }
 
+function formatShortDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
@@ -44,9 +66,22 @@ interface Props {
   onNavigate?: (page: string) => void;
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onFlightRemoved?: (flightId: string) => void;
 }
 
-export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
+export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapsed = false, onToggle, onFlightRemoved }: Props) {
+  const [flightToRemove, setFlightToRemove] = useState<UserFlight | null>(null);
+  const [removing, setRemoving] = useState(false);
+
+  const handleRemove = async () => {
+    if (!flightToRemove) return;
+    setRemoving(true);
+    await supabase.from("user_flights").delete().eq("id", flightToRemove.id);
+    setRemoving(false);
+    setFlightToRemove(null);
+    onFlightRemoved?.(flightToRemove.id);
+  };
+
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Section header — clickable to toggle */}
@@ -136,7 +171,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       x: 0,
                       transition: { duration: 0.3, delay: i * 0.08, ease: EASE },
                     }}
-                    className="flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
+                    className="relative flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
                     style={{
                       scrollSnapAlign: "start",
                       background: "rgba(255,255,255,0.72)",
@@ -146,6 +181,15 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
                     }}
                   >
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setFlightToRemove(flight); }}
+                      className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+                    >
+                      <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                    </button>
+
                     <div className="flex items-center mb-3">
                       <img src={FRONTIER_LOGO} alt="Frontier" className="h-[18px] w-auto object-contain" loading="eager" />
                     </div>
@@ -176,6 +220,30 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Remove confirmation dialog */}
+      <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>
+        <AlertDialogContent className="rounded-2xl max-w-[340px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-[#1A2E2E]">
+              Removing {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-[#6B7B7B]">
+              Proceeding will remove {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on {flightToRemove ? formatShortDate(flightToRemove.departure_time) : ""} from your itinerary. Do you wish to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removing} className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemove}
+              disabled={removing}
+              className="rounded-full bg-red-600 hover:bg-red-700 text-white"
+            >
+              {removing ? "Removing…" : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
