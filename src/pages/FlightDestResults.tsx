@@ -272,7 +272,7 @@ const FlightDestResults = ({
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
-    Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }>
+    Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }>
   >({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
@@ -284,6 +284,7 @@ const FlightDestResults = ({
   const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: typeof flights[0] } | null>(null);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [filterDestType, setFilterDestType] = useState<"all" | "domestic" | "intl">("all");
   // Sticky compact header
   const [compactHeader, setCompactHeader] = useState(false);
   const [parallaxY, setParallaxY] = useState(0);
@@ -462,10 +463,10 @@ const FlightDestResults = ({
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code)")
+        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code, country)")
         .in("iata_code", destinationCodes);
       if (data) {
-        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }> = {};
+        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }> = {};
         const coords: Record<string, { lat: number; lng: number }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
@@ -473,6 +474,7 @@ const FlightDestResults = ({
             stateCode: a.locations?.state_code ?? "",
             name: a.name ?? "",
             locationId: a.location_id ?? null,
+            country: a.locations?.country ?? undefined,
           };
           if (a.latitude != null && a.longitude != null) {
             coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
