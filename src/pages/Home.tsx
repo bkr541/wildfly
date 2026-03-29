@@ -48,6 +48,7 @@ const COMPONENT_MAP: Record<
     onNavigate?: (page: string) => void;
     isCollapsed: boolean;
     onToggle: () => void;
+    onFlightRemoved?: (flightId: string) => void;
   }) => JSX.Element | null
 > = {
   upcoming_flights: (props) => (
