@@ -272,7 +272,7 @@ const FlightDestResults = ({
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
-    Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }>
+    Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }>
   >({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
@@ -284,6 +284,7 @@ const FlightDestResults = ({
   const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: typeof flights[0] } | null>(null);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
+  const [filterDestType, setFilterDestType] = useState<"all" | "domestic" | "intl">("all");
   // Sticky compact header
   const [compactHeader, setCompactHeader] = useState(false);
   const [parallaxY, setParallaxY] = useState(0);
@@ -462,10 +463,10 @@ const FlightDestResults = ({
     const fetchAirports = async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code)")
+        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code, country)")
         .in("iata_code", destinationCodes);
       if (data) {
-        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null }> = {};
+        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }> = {};
         const coords: Record<string, { lat: number; lng: number }> = {};
         for (const a of data as any[]) {
           map[a.iata_code] = {
@@ -473,6 +474,7 @@ const FlightDestResults = ({
             stateCode: a.locations?.state_code ?? "",
             name: a.name ?? "",
             locationId: a.location_id ?? null,
+            country: a.locations?.country ?? undefined,
           };
           if (a.latitude != null && a.longitude != null) {
             coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
@@ -535,7 +537,14 @@ const FlightDestResults = ({
       const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
       return vals.length ? Math.min(...vals) : Infinity;
     };
-    return groups.map((g) => {
+    return groups
+      .filter((g) => {
+        if (filterDestType === "all") return true;
+        const country = airportMap[g.destination]?.country;
+        if (filterDestType === "domestic") return country === "United States of America";
+        return country !== "United States of America";
+      })
+      .map((g) => {
       let flts = [...g.flights];
       // Apply filters
       if (filterNonstopOnly) flts = flts.filter((f) => f.legs.length === 1);
@@ -552,7 +561,7 @@ const FlightDestResults = ({
       });
       return { ...g, flights: flts };
     });
-  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly]);
+  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType, airportMap]);
 
   const origin = useMemo(() => {
     if (flights.length === 0) return "";
@@ -622,20 +631,20 @@ const FlightDestResults = ({
                 onClick={() => setSortSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                  sortBy !== "time" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
                 )}
               >
-                <HugeiconsIcon icon={SortByDown02Icon} size={16} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "#FFD700" : "white"} strokeWidth={2} />
               </button>
               <button
                 type="button"
                 onClick={() => setFilterSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
                 )}
               >
-                <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -896,7 +905,7 @@ const FlightDestResults = ({
         <div className="flex flex-col px-4 pt-3 pb-6 gap-3.5 relative z-10">
           {/* Count row + sort/filter */}
           {(() => {
-            const isFiltered = filterNonstopOnly || filterGoWildOnly;
+            const isFiltered = filterNonstopOnly || filterGoWildOnly || filterDestType !== "all";
             const isSorted = sortBy !== "time";
             const hasActive = isFiltered || isSorted;
             const filteredCount = sortedGroups.reduce((sum, g) => sum + g.flights.length, 0);
@@ -919,14 +928,14 @@ const FlightDestResults = ({
                       </>
                     )}
                   </span>
-                  {/* Right: icon buttons */}
+                  {/* Right: icon buttons — gold when active */}
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setSortSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isSorted ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isSorted ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
@@ -937,7 +946,7 @@ const FlightDestResults = ({
                       onClick={() => setFilterSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isFiltered ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isFiltered ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
@@ -945,27 +954,12 @@ const FlightDestResults = ({
                     </button>
                   </div>
                 </div>
-                {/* Clear-all chip — only when sort or filter is active */}
+                {/* Clear-all chip — only when sort or filter is active, no value chips */}
                 {hasActive && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {isSorted && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        {{ time: "Time", fare: "Price", duration: "Duration", stops: "Stops" }[sortBy]}
-                      </span>
-                    )}
-                    {filterNonstopOnly && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        Nonstop
-                      </span>
-                    )}
-                    {filterGoWildOnly && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        GoWild
-                      </span>
-                    )}
                     <button
                       type="button"
-                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); setFilterDestType("all"); }}
                       className="text-[11px] font-semibold text-[#9CA3AF] hover:text-[#EF4444] transition-colors px-2.5 py-1 rounded-full border border-[#E8EBEB] bg-white"
                     >
                       Clear all ×
@@ -1472,10 +1466,10 @@ const FlightDestResults = ({
                   </div>
                   <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
                 </div>
-                {(filterNonstopOnly || filterGoWildOnly) && (
+                {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
                   <button
                     type="button"
-                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); setFilterDestType("all"); }}
                     className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
                   >
                     Clear all
@@ -1483,6 +1477,32 @@ const FlightDestResults = ({
                 )}
               </div>
               <div className="flex flex-col py-2">
+                {/* Destination Type */}
+                <div className="px-5 py-3">
+                  <p className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wide mb-2">Destination Type</p>
+                  <div className="flex gap-2">
+                    {([
+                      { key: "all", label: "All" },
+                      { key: "domestic", label: "Domestic" },
+                      { key: "intl", label: "Intl" },
+                    ] as const).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFilterDestType(key)}
+                        className={cn(
+                          "px-4 py-2 rounded-full text-sm font-semibold transition-all border",
+                          filterDestType === key
+                            ? "bg-[#059669] text-white border-[#059669]"
+                            : "bg-white text-[#2E4A4A] border-[#E8EBEB] hover:bg-[#F4F8F8]",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Toggle filters */}
                 {([
                   { key: "nonstop", label: "Nonstop Only",  desc: "Show only nonstop flights",            icon: AirplaneTakeOff01Icon, active: filterNonstopOnly, toggle: () => setFilterNonstopOnly((v) => !v) },
                   { key: "gowild",  label: "GoWild Fares",  desc: "Show only flights with GoWild pricing", icon: TicketStarIcon,        active: filterGoWildOnly,  toggle: () => setFilterGoWildOnly((v) => !v) },
