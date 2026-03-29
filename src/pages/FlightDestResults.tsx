@@ -905,7 +905,7 @@ const FlightDestResults = ({
         <div className="flex flex-col px-4 pt-3 pb-6 gap-3.5 relative z-10">
           {/* Count row + sort/filter */}
           {(() => {
-            const isFiltered = filterNonstopOnly || filterGoWildOnly;
+            const isFiltered = filterNonstopOnly || filterGoWildOnly || filterDestType !== "all";
             const isSorted = sortBy !== "time";
             const hasActive = isFiltered || isSorted;
             const filteredCount = sortedGroups.reduce((sum, g) => sum + g.flights.length, 0);
@@ -928,14 +928,14 @@ const FlightDestResults = ({
                       </>
                     )}
                   </span>
-                  {/* Right: icon buttons */}
+                  {/* Right: icon buttons — gold when active */}
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setSortSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isSorted ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isSorted ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
@@ -946,7 +946,7 @@ const FlightDestResults = ({
                       onClick={() => setFilterSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isFiltered ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isFiltered ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
@@ -954,27 +954,12 @@ const FlightDestResults = ({
                     </button>
                   </div>
                 </div>
-                {/* Clear-all chip — only when sort or filter is active */}
+                {/* Clear-all chip — only when sort or filter is active, no value chips */}
                 {hasActive && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {isSorted && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        {{ time: "Time", fare: "Price", duration: "Duration", stops: "Stops" }[sortBy]}
-                      </span>
-                    )}
-                    {filterNonstopOnly && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        Nonstop
-                      </span>
-                    )}
-                    {filterGoWildOnly && (
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full">
-                        GoWild
-                      </span>
-                    )}
                     <button
                       type="button"
-                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); setFilterDestType("all"); }}
                       className="text-[11px] font-semibold text-[#9CA3AF] hover:text-[#EF4444] transition-colors px-2.5 py-1 rounded-full border border-[#E8EBEB] bg-white"
                     >
                       Clear all ×
