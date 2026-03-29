@@ -59,6 +59,7 @@ export default {
           yellow: "hsl(var(--accent-yellow))",
           blue: "hsl(var(--accent-blue))",
           coral: "hsl(var(--accent-coral))",
+          gold: "hsl(var(--accent-gold))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
