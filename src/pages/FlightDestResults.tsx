@@ -1466,10 +1466,10 @@ const FlightDestResults = ({
                   </div>
                   <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
                 </div>
-                {(filterNonstopOnly || filterGoWildOnly) && (
+                {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
                   <button
                     type="button"
-                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); }}
+                    onClick={() => { setFilterNonstopOnly(false); setFilterGoWildOnly(false); setFilterDestType("all"); }}
                     className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
                   >
                     Clear all
@@ -1477,6 +1477,32 @@ const FlightDestResults = ({
                 )}
               </div>
               <div className="flex flex-col py-2">
+                {/* Destination Type */}
+                <div className="px-5 py-3">
+                  <p className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wide mb-2">Destination Type</p>
+                  <div className="flex gap-2">
+                    {([
+                      { key: "all", label: "All" },
+                      { key: "domestic", label: "Domestic" },
+                      { key: "intl", label: "Intl" },
+                    ] as const).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFilterDestType(key)}
+                        className={cn(
+                          "px-4 py-2 rounded-full text-sm font-semibold transition-all border",
+                          filterDestType === key
+                            ? "bg-[#059669] text-white border-[#059669]"
+                            : "bg-white text-[#2E4A4A] border-[#E8EBEB] hover:bg-[#F4F8F8]",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Toggle filters */}
                 {([
                   { key: "nonstop", label: "Nonstop Only",  desc: "Show only nonstop flights",            icon: AirplaneTakeOff01Icon, active: filterNonstopOnly, toggle: () => setFilterNonstopOnly((v) => !v) },
                   { key: "gowild",  label: "GoWild Fares",  desc: "Show only flights with GoWild pricing", icon: TicketStarIcon,        active: filterGoWildOnly,  toggle: () => setFilterGoWildOnly((v) => !v) },
