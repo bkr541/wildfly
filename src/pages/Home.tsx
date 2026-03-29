@@ -185,6 +185,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           onNavigate,
           isCollapsed: !!collapsedSections[item.component_name],
           onToggle: () => toggleSection(item.component_name),
+          onFlightRemoved: handleFlightRemoved,
         });
       })}
     </div>
