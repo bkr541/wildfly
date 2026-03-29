@@ -631,7 +631,7 @@ const FlightDestResults = ({
                 onClick={() => setSortSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  sortBy !== "time" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                  sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
                 )}
               >
                 <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -641,7 +641,7 @@ const FlightDestResults = ({
                 onClick={() => setFilterSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
                 )}
               >
                 <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -935,22 +935,22 @@ const FlightDestResults = ({
                       onClick={() => setSortSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isSorted ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isSorted ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
-                      <HugeiconsIcon icon={SortByDown02Icon} size={16} color={isSorted ? "white" : "#6B7B7B"} strokeWidth={1.5} />
+                      <HugeiconsIcon icon={SortByDown02Icon} size={16} color={isSorted ? "#FFD700" : "#6B7B7B"} strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setFilterSheet(true)}
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isFiltered ? "bg-accent-gold border-accent-gold" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
+                        isFiltered ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
                       )}
                       style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
                     >
-                      <HugeiconsIcon icon={FilterIcon} size={16} color={isFiltered ? "white" : "#6B7B7B"} strokeWidth={1.5} />
+                      <HugeiconsIcon icon={FilterIcon} size={16} color={isFiltered ? "#FFD700" : "#6B7B7B"} strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
