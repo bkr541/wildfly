@@ -631,20 +631,20 @@ const FlightDestResults = ({
                 onClick={() => setSortSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                  sortBy !== "time" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
                 )}
               >
-                <HugeiconsIcon icon={SortByDown02Icon} size={16} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "#FFD700" : "white"} strokeWidth={2} />
               </button>
               <button
                 type="button"
                 onClick={() => setFilterSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  filterNonstopOnly || filterGoWildOnly ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
                 )}
               >
-                <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
+                <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
               </button>
             </div>
           </div>
