@@ -511,8 +511,8 @@ const FlightMultiDestResults = ({
     let filtered = [...cards];
     if (filterNonstopOnly) filtered = filtered.filter((c) => c.hasNonstop);
     if (filterGoWildOnly) filtered = filtered.filter((c) => c.hasGoWild);
-    if (filterDestType === "domestic") filtered = filtered.filter((c) => !c.country || c.country === "United States" || c.country === "US");
-    if (filterDestType === "international") filtered = filtered.filter((c) => c.country && c.country !== "United States" && c.country !== "US");
+    if (filterDestType === "domestic") filtered = filtered.filter((c) => !c.country || c.country === "United States of America");
+    if (filterDestType === "international") filtered = filtered.filter((c) => c.country && c.country !== "United States of America");
     return filtered.sort((a, b) => {
       if (sortBy === "fare") {
         if (a.minFare == null && b.minFare == null) return 0;
@@ -670,27 +670,27 @@ const FlightMultiDestResults = ({
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setSortSheet(true)}
-              className={cn(
-                "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                sortBy !== "city" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
-              )}
-            >
-              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="white" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterSheet(true)}
-              className={cn(
-                "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
-              )}
-            >
-              <HugeiconsIcon icon={FilterIcon} size={16} color="white" strokeWidth={2} />
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setSortSheet(true)}
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                  sortBy !== "city" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "#FFD700" : "white"} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterSheet(true)}
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
+              </button>
+            </div>
         </div>
 
         {/* Stats row */}
@@ -772,18 +772,13 @@ const FlightMultiDestResults = ({
 
         {/* ── Sort / filter bar ───────────────────────────────── */}
         <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
-          {/* Left: date + active filter indicator */}
+          {/* Left: date */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {formattedDate && (
               <div className="inline-flex items-center gap-1.5 flex-shrink-0">
                 <HugeiconsIcon icon={Calendar03Icon} size={19} color="#10B981" strokeWidth={1.5} />
                 <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
               </div>
-            )}
-            {(filterNonstopOnly || filterGoWildOnly || filterDestType !== "all") && (
-              <span className="text-[11px] font-semibold text-[#10B981] bg-[#E6FAF4] px-2.5 py-1 rounded-full whitespace-nowrap">
-                {[filterNonstopOnly && "Nonstop", filterGoWildOnly && "GoWild", filterDestType !== "all" && (filterDestType === "domestic" ? "Domestic" : "Intl")].filter(Boolean).join(" · ")}
-              </span>
             )}
           </div>
 
@@ -803,10 +798,10 @@ const FlightMultiDestResults = ({
               onClick={() => setSortSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                sortBy !== "city" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+                sortBy !== "city" ? "bg-accent-gold border-accent-gold" : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon icon={SortByDown02Icon} size={16} color="#10B981" strokeWidth={2} />
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "white" : "#10B981"} strokeWidth={2} />
             </button>
             {/* Filter button */}
             <button
@@ -814,10 +809,10 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
+                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold border-accent-gold" : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon icon={FilterIcon} size={16} color="#10B981" strokeWidth={2} />
+              <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "white" : "#10B981"} strokeWidth={2} />
             </button>
           </div>
         </div>
