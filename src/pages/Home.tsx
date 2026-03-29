@@ -168,6 +168,10 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
     setCollapsedSections((prev) => ({ ...prev, [name]: !prev[name] }));
   }, []);
 
+  const handleFlightRemoved = useCallback((flightId: string) => {
+    setFlights((prev) => prev.filter((f) => f.id !== flightId));
+  }, []);
+
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
