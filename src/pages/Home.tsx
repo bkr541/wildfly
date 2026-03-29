@@ -48,6 +48,7 @@ const COMPONENT_MAP: Record<
     onNavigate?: (page: string) => void;
     isCollapsed: boolean;
     onToggle: () => void;
+    onFlightRemoved?: (flightId: string) => void;
   }) => JSX.Element | null
 > = {
   upcoming_flights: (props) => (
@@ -58,6 +59,7 @@ const COMPONENT_MAP: Record<
       onNavigate={props.onNavigate}
       isCollapsed={props.isCollapsed}
       onToggle={props.onToggle}
+      onFlightRemoved={props.onFlightRemoved}
     />
   ),
   recent_searches: (props) => (
@@ -166,6 +168,10 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
     setCollapsedSections((prev) => ({ ...prev, [name]: !prev[name] }));
   }, []);
 
+  const handleFlightRemoved = useCallback((flightId: string) => {
+    setFlights((prev) => prev.filter((f) => f.id !== flightId));
+  }, []);
+
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
@@ -179,6 +185,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           onNavigate,
           isCollapsed: !!collapsedSections[item.component_name],
           onToggle: () => toggleSection(item.component_name),
+          onFlightRemoved: handleFlightRemoved,
         });
       })}
     </div>
