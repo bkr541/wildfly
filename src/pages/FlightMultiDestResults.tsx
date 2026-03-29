@@ -120,7 +120,7 @@ function DestCardItem({
     <motion.div
       ref={cardRef}
       className="rounded-2xl overflow-hidden bg-white"
-      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "2px solid #4A7C59" : "1px solid #E8EBEB" }}
+      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "2px solid #FFD700" : "1px solid #E8EBEB" }}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -204,15 +204,12 @@ function DestCardItem({
         {/* Stats row: 4-up */}
         <div className="grid grid-cols-4 gap-x-2 mb-4">
           {[
-            { label: "RANGE",    value: card.minFare != null && card.maxFare != null ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}` : "—", icon: DollarCircleIcon },
-            { label: "EARLIEST", value: card.earliestDeparture ?? "—",                                                                                      icon: SunriseIcon },
-            { label: "QUICKEST", value: card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—",                                          icon: Clock01Icon },
-            { label: "NONSTOP",  value: card.nonstopCount,                                                                                                   icon: CircleArrowRight02Icon },
-          ].map(({ label, value, icon }) => (
+            { label: "RANGE",    value: card.minFare != null && card.maxFare != null ? `$${Math.round(card.minFare)} – $${Math.round(card.maxFare)}` : "—" },
+            { label: "EARLIEST", value: card.earliestDeparture ?? "—" },
+            { label: "QUICKEST", value: card.minDurationMin > 0 ? formatDurationMinutes(card.minDurationMin) : "—" },
+            { label: "NONSTOP",  value: card.nonstopCount },
+          ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center gap-0.5">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: isGoWild ? "#D1FAE5" : "rgba(107,123,123,0.12)" }}>
-                <HugeiconsIcon icon={icon} size={15} color={isGoWild ? "#047857" : "#4B6060"} strokeWidth={2} />
-              </div>
               <span className="text-[13px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center">{label}</span>
               <span className="text-[13px] font-medium text-[#6B7B7B] leading-tight text-center">{value}</span>
             </div>
