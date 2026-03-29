@@ -210,8 +210,8 @@ function DestCardItem({
             { label: "NONSTOP",  value: card.nonstopCount },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center gap-0.5">
-              <span className="text-[13px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center">{label}</span>
-              <span className="text-[13px] font-medium text-[#6B7B7B] leading-tight text-center">{value}</span>
+              <span className="text-[12px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center whitespace-nowrap">{label}</span>
+              <span className="text-[12px] font-medium text-[#6B7B7B] leading-tight text-center whitespace-nowrap">{value}</span>
             </div>
           ))}
         </div>
