@@ -675,7 +675,7 @@ const FlightMultiDestResults = ({
                 onClick={() => setSortSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  sortBy !== "city" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                  sortBy !== "city" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
                 )}
               >
                 <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -685,7 +685,7 @@ const FlightMultiDestResults = ({
                 onClick={() => setFilterSheet(true)}
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold/30 border-accent-gold" : "bg-white/10 border-white/30",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
                 )}
               >
                 <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -798,10 +798,10 @@ const FlightMultiDestResults = ({
               onClick={() => setSortSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                sortBy !== "city" ? "bg-accent-gold border-accent-gold" : "bg-white border-[#E8EBEB]",
+                sortBy !== "city" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "white" : "#10B981"} strokeWidth={2} />
+              <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "#FFD700" : "#10B981"} strokeWidth={2} />
             </button>
             {/* Filter button */}
             <button
@@ -809,10 +809,10 @@ const FlightMultiDestResults = ({
               onClick={() => setFilterSheet(true)}
               className={cn(
                 "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-accent-gold border-accent-gold" : "bg-white border-[#E8EBEB]",
+                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
               )}
             >
-              <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "white" : "#10B981"} strokeWidth={2} />
+              <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "#10B981"} strokeWidth={2} />
             </button>
           </div>
         </div>
