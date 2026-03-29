@@ -58,6 +58,7 @@ const COMPONENT_MAP: Record<
       onNavigate={props.onNavigate}
       isCollapsed={props.isCollapsed}
       onToggle={props.onToggle}
+      onFlightRemoved={props.onFlightRemoved}
     />
   ),
   recent_searches: (props) => (
