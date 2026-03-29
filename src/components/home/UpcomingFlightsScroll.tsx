@@ -223,21 +223,23 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
 
       {/* Remove confirmation dialog */}
       <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>
-        <AlertDialogContent className="rounded-2xl max-w-[340px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base font-bold text-[#1A2E2E]">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">
               Removing {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-[#6B7B7B]">
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
               Proceeding will remove {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on {flightToRemove ? formatShortDate(flightToRemove.departure_time) : ""} from your itinerary. Do you wish to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={removing} className="rounded-full">Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-row gap-2 mt-2">
+            <AlertDialogCancel disabled={removing} className="w-full text-xs py-1 mt-0">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemove}
               disabled={removing}
-              className="rounded-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1"
             >
               {removing ? "Removing…" : "Remove"}
             </AlertDialogAction>
