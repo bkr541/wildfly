@@ -537,7 +537,14 @@ const FlightDestResults = ({
       const vals = [f.fares.basic, f.fares.economy, f.fares.premium, f.fares.business].filter((v): v is number => v != null);
       return vals.length ? Math.min(...vals) : Infinity;
     };
-    return groups.map((g) => {
+    return groups
+      .filter((g) => {
+        if (filterDestType === "all") return true;
+        const country = airportMap[g.destination]?.country;
+        if (filterDestType === "domestic") return country === "United States of America";
+        return country !== "United States of America";
+      })
+      .map((g) => {
       let flts = [...g.flights];
       // Apply filters
       if (filterNonstopOnly) flts = flts.filter((f) => f.legs.length === 1);
@@ -554,7 +561,7 @@ const FlightDestResults = ({
       });
       return { ...g, flights: flts };
     });
-  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly]);
+  }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType, airportMap]);
 
   const origin = useMemo(() => {
     if (flights.length === 0) return "";
