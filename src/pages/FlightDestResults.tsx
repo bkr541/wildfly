@@ -582,6 +582,8 @@ const FlightDestResults = ({
 
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5] overflow-hidden">
+      {/* ── Scrollable content ── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
       {/* ── Compact sticky header (appears when hero scrolls away) ── */}
       {!hideHeader && (
         <motion.div
@@ -654,8 +656,6 @@ const FlightDestResults = ({
           </div>
         </motion.div>
       )}
-      {/* ── Scrollable content ── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
       {!hideHeader &&
         (() => {
           const locationId = arrivalAirport && arrivalAirport !== "All" ? airportMap[arrivalAirport]?.locationId : null;
