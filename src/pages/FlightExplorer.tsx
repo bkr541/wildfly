@@ -34,7 +34,7 @@ const FlightExplorer = () => {
                 "flex-1 text-center text-xs font-semibold py-1.5 uppercase tracking-wider",
               table: "w-full border-collapse",
               row: "flex w-full",
-              cell: "flex-1 aspect-[1/0.9] flex items-center justify-center p-0.5",
+              cell: "flex-1 aspect-[1/0.82] flex items-center justify-center p-px",
               day: "h-full w-full flex items-center justify-center rounded-full text-sm font-medium text-card-foreground hover:bg-muted transition-colors cursor-pointer",
               day_selected:
                 "!bg-primary !text-primary-foreground font-bold",
