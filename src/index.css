@@ -267,3 +267,15 @@
 .animate-float-delay-2 {
   animation: float 3s ease-in-out 2s infinite;
 }
+
+/* Explorer Calendar — matches Flights Departure Date sheet colors */
+.explorer-calendar .explorer-day-selected {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35) !important;
+}
+
+.explorer-calendar .explorer-day-today:not(.explorer-day-selected) {
+  background: #3B82F6 !important;
+  color: white !important;
+}
