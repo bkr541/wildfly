@@ -31,6 +31,7 @@ const menuItems = [
   { icon: Location01Icon, label: "Destinations", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
+  { icon: Search01Icon, label: "Explorer", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
@@ -41,6 +42,7 @@ const pageMap: Record<string, string> = {
   Flights: "flights",
   Destinations: "destinations",
   Itinerary: "itinerary",
+  Explorer: "explorer",
   Routes: "routes",
   Friends: "friends",
   Hubs: "hubs",
@@ -295,6 +297,7 @@ const MainLayout = ({
                   const prefixMap: Record<string, string> = {
                     destinations: "Explore",
                     routes: "Explore",
+                    explorer: "Flight",
                     itinerary: "My",
                     friends: "Find",
                     account: "My",
@@ -302,6 +305,7 @@ const MainLayout = ({
                   const labelMap: Record<string, string> = {
                     destinations: "DESTINATIONS",
                     itinerary: "ITINERARY",
+                    explorer: "EXPLORER",
                     routes: "ROUTES",
                     account: "ACCOUNT",
                     "design-system": "DESIGN SYSTEM",
