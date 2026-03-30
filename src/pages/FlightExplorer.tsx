@@ -6,8 +6,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
   Location01Icon,
+  Location04Icon,
   AddCircleIcon,
   Cancel01Icon,
+  AirportIcon,
 } from "@hugeicons/core-free-icons";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
