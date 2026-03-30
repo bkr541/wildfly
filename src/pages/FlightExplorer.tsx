@@ -9,7 +9,7 @@ const FlightExplorer = () => {
   return (
     <div className="flex-1 flex flex-col relative z-10 animate-fade-in">
       {/* Calendar — top ~1/3 */}
-      <div className="px-4 pt-2 pb-2">
+      <div className="px-4 pt-2 pb-3">
         <div className="rounded-2xl overflow-hidden shadow-lg border border-border/30 bg-card">
           <DayPicker
             mode="single"
@@ -22,7 +22,7 @@ const FlightExplorer = () => {
               months: "w-full",
               month: "w-full",
               caption:
-                "flex items-center justify-between px-4 py-2 bg-primary text-primary-foreground rounded-t-2xl",
+                "flex items-center justify-between px-4 py-2.5 bg-primary text-primary-foreground rounded-t-2xl",
               caption_label: "text-base font-bold tracking-wide",
               nav: "flex items-center gap-2",
               nav_button:
@@ -34,7 +34,7 @@ const FlightExplorer = () => {
                 "flex-1 text-center text-xs font-semibold py-1.5 uppercase tracking-wider",
               table: "w-full border-collapse",
               row: "flex w-full",
-              cell: "flex-1 flex items-center justify-center p-0.5",
+              cell: "flex-1 aspect-[1/0.9] flex items-center justify-center p-0.5",
               day: "h-full w-full flex items-center justify-center rounded-full text-sm font-medium text-card-foreground hover:bg-muted transition-colors cursor-pointer",
               day_selected:
                 "!bg-primary !text-primary-foreground font-bold",
