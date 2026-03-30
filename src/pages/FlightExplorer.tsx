@@ -9,7 +9,7 @@ const FlightExplorer = () => {
   return (
     <div className="flex-1 flex flex-col relative z-10 animate-fade-in">
       {/* Calendar — top ~1/3 */}
-      <div className="px-4 pt-2 pb-4">
+      <div className="px-4 pt-2 pb-2">
         <div className="rounded-2xl overflow-hidden shadow-lg border border-border/30 bg-card">
           <DayPicker
             mode="single"
