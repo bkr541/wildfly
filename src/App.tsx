@@ -23,6 +23,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
+import FlightExplorerPage from "./pages/FlightExplorer";
 import DesignSystemPage from "./pages/DesignSystemV2";
 import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
@@ -36,7 +37,7 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
@@ -289,7 +290,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer"].includes(currentPage);
 
   return (
     <div className="flex justify-center">
@@ -343,6 +344,7 @@ const MainApp = () => {
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "friends" && <FriendsPage />}
               {currentPage === "hubs" && <HubsPage />}
+              {currentPage === "explorer" && <FlightExplorerPage />}
               {currentPage === "design-system" && <DesignSystemPage />}
             </MainLayout>
           </ProfileProvider>
