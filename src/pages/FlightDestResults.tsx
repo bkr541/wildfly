@@ -1556,7 +1556,10 @@ const FlightDestResults = ({
             className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl px-6 pt-6 pb-5 flex flex-col gap-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[17px] font-bold text-[#1A2E2E]">Redirecting to Frontier</h2>
+             <h2 className="text-[17px] font-bold text-[#1A2E2E] uppercase flex items-center gap-2">
+               <HugeiconsIcon icon={Directions02Icon} size={20} color="#1A2E2E" strokeWidth={2} />
+               Redirecting to Frontier
+             </h2>
             <p className="text-[13px] text-[#4B5563] leading-relaxed">
               Continuing will take you to flyfrontier.com to finish your booking, as well as add this flight to your itinerary. Do you want to continue?
             </p>
