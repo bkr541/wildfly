@@ -22,19 +22,19 @@ const FlightExplorer = () => {
               months: "w-full",
               month: "w-full",
               caption:
-                "flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground rounded-t-2xl",
+                "flex items-center justify-between px-4 py-2 bg-primary text-primary-foreground rounded-t-2xl",
               caption_label: "text-base font-bold tracking-wide",
               nav: "flex items-center gap-2",
               nav_button:
-                "h-8 w-8 flex items-center justify-center rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/15 transition-colors",
+                "h-7 w-7 flex items-center justify-center rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/15 transition-colors",
               nav_button_previous: "",
               nav_button_next: "",
               head_row: "flex w-full bg-secondary text-secondary-foreground/70",
               head_cell:
-                "flex-1 text-center text-xs font-semibold py-2 uppercase tracking-wider",
+                "flex-1 text-center text-xs font-semibold py-1.5 uppercase tracking-wider",
               table: "w-full border-collapse",
               row: "flex w-full",
-              cell: "flex-1 aspect-square flex items-center justify-center p-0.5",
+              cell: "flex-1 flex items-center justify-center p-0.5",
               day: "h-full w-full flex items-center justify-center rounded-full text-sm font-medium text-card-foreground hover:bg-muted transition-colors cursor-pointer",
               day_selected:
                 "!bg-primary !text-primary-foreground font-bold",
