@@ -344,7 +344,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       {/* White card form */}
       <div className="flex flex-col items-center z-10">
         <div
-          className="w-full max-w-md bg-white rounded-t-[2rem] px-7 pt-6 pb-8 flex flex-col"
+          className="w-full max-w-md bg-white rounded-t-[2rem] px-7 pt-6 pb-[44px] flex flex-col"
           style={{ boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
         >
           {/* Header label */}
