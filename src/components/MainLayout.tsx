@@ -297,6 +297,7 @@ const MainLayout = ({
                   const prefixMap: Record<string, string> = {
                     destinations: "Explore",
                     routes: "Explore",
+                    explorer: "Flight",
                     itinerary: "My",
                     friends: "Find",
                     account: "My",
@@ -304,6 +305,7 @@ const MainLayout = ({
                   const labelMap: Record<string, string> = {
                     destinations: "DESTINATIONS",
                     itinerary: "ITINERARY",
+                    explorer: "EXPLORER",
                     routes: "ROUTES",
                     account: "ACCOUNT",
                     "design-system": "DESIGN SYSTEM",
