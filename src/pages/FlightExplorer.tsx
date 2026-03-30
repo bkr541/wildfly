@@ -183,54 +183,113 @@ function AirportSearchSheet({
         </div>
       </div>
 
-      {/* Recent chips */}
-      {!shouldShow && recentAirports.length > 0 && (
-        <div className="px-5 pb-3">
-          <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Recent</p>
-          <div className="flex flex-wrap gap-2">
-            {recentAirports.map((a) => (
+      {/* Content area */}
+      <div className="flex-1 overflow-y-auto">
+        {!shouldShow ? (
+          <div className="px-5 pt-2">
+            {/* Close To Me */}
+            <div className="mb-5">
+              <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2">Close To Me</p>
               <button
-                key={a.id}
                 type="button"
-                onClick={() => addAirport(a)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-card text-card-foreground hover:bg-muted transition-colors"
+                className="flex items-center justify-center gap-1.5 w-full text-sm font-semibold text-[#059669] hover:opacity-75 transition-opacity"
               >
-                {a.iata_code}
+                <HugeiconsIcon icon={Location01Icon} size={14} color="#059669" strokeWidth={2.5} />
+                Use current location to search
               </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Results */}
-      <div className="flex-1 overflow-y-auto px-5">
-        {shouldShow && Object.keys(groupedAirports).length === 0 && (
-          <p className="text-sm text-muted-foreground py-4 text-center">No airports found</p>
-        )}
-        {Object.entries(groupedAirports).map(([groupKey, groupAirports]) => {
-          const isSingle = groupKey.startsWith("__single__");
-          const displayKey = isSingle ? groupKey.replace("__single__", "") : groupKey;
-          return (
-            <div key={groupKey} className="mb-3">
-              {!isSingle && groupAirports.length > 1 && (
-                <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1">{displayKey}</p>
-              )}
-              {groupAirports.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => addAirport(a)}
-                  className="w-full text-left py-2.5 px-1 flex items-center gap-3 hover:bg-muted rounded-lg transition-colors"
-                >
-                  <span className="text-sm font-bold text-foreground">{a.iata_code}</span>
-                  <span className="text-sm text-muted-foreground truncate">
-                    {a.locations?.city ?? a.name}
-                  </span>
-                </button>
-              ))}
             </div>
-          );
-        })}
+
+            {recentAirports.length > 0 && (
+              <div className="mb-6">
+                <p className="block text-[11px] font-bold text-[#6B7B7B] tracking-[0.15em] uppercase mb-2">Recent Airports</p>
+                <div className="flex flex-nowrap gap-2.5 overflow-x-auto pb-1 -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
+                  {recentAirports.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => addAirport(a)}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-semibold transition-colors shrink-0 whitespace-nowrap"
+                      style={{
+                        background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                        color: "#065F46",
+                        border: "1px solid #6EE7B7",
+                      }}
+                    >
+                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={14} color="#059669" strokeWidth={2.5} />
+                      <span className="font-bold">{a.iata_code}</span>
+                      {a.locations?.city && (
+                        <span className="opacity-60 font-medium">{a.locations.city}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
+                <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
+              </div>
+              <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for an airport</p>
+              <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
+            </div>
+          </div>
+        ) : Object.keys(groupedAirports).length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+            <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
+            <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+          </div>
+        ) : (
+          <div className="py-3 px-4">
+            {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+              const isSingle = cityGroup.startsWith("__single__");
+              const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+              return (
+                <div key={cityGroup} className="mb-2 last:mb-0">
+                  {!isSingle && (
+                    <button
+                      type="button"
+                      onClick={() => { onChange(cityAirports[0]); onClose(); }}
+                      className="w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
+                    >
+                      <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
+                      {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                    </button>
+                  )}
+                  {cityAirports.map((a, aIdx) => (
+                    <div key={a.id}>
+                      {aIdx > 0 && <div className="border-t border-[#F0F1F1] mx-1" />}
+                      <button
+                        type="button"
+                        onClick={() => addAirport(a)}
+                        className={cn(
+                          "w-full text-left pr-4 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
+                          isSingle ? "pl-4" : "pl-14",
+                        )}
+                      >
+                        <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                            <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                            <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                          </div>
+                          {a.locations?.city && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2F3F3] text-[#6B7B7B] text-xs font-medium mt-0.5">
+                              <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
+                              <span className="truncate">{a.locations.city}{a.locations.state_code ? `, ${a.locations.state_code}` : ""}</span>
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div className="h-10" />
       </div>
     </BottomSheet>
