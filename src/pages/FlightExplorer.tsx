@@ -10,7 +10,7 @@ const FlightExplorer = () => {
     <div className="flex-1 flex flex-col relative z-10 animate-fade-in">
       {/* Calendar — top ~1/3 */}
       <div className="px-4 pt-2 pb-4">
-        <div className="rounded-2xl overflow-hidden shadow-lg border border-border/30 bg-card/60">
+        <div className="rounded-2xl overflow-hidden shadow-lg border border-border/30 bg-card">
           <DayPicker
             mode="single"
             selected={selectedDate}
@@ -22,24 +22,24 @@ const FlightExplorer = () => {
               months: "w-full",
               month: "w-full",
               caption:
-                "flex items-center justify-between px-4 py-3 bg-gradient-to-b from-[hsl(var(--primary))] to-[hsl(184,60%,28%)] text-primary-foreground rounded-t-2xl",
+                "flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground rounded-t-2xl",
               caption_label: "text-base font-bold tracking-wide",
               nav: "flex items-center gap-2",
               nav_button:
-                "h-8 w-8 flex items-center justify-center rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/15 transition-colors",
+                "h-8 w-8 flex items-center justify-center rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/15 transition-colors",
               nav_button_previous: "",
               nav_button_next: "",
-              head_row: "flex w-full bg-[hsl(184,40%,25%)] text-primary-foreground/70",
+              head_row: "flex w-full bg-secondary text-secondary-foreground/70",
               head_cell:
                 "flex-1 text-center text-xs font-semibold py-2 uppercase tracking-wider",
               table: "w-full border-collapse",
               row: "flex w-full",
               cell: "flex-1 aspect-square flex items-center justify-center p-0.5",
-              day: "h-full w-full flex items-center justify-center rounded-full text-sm font-medium text-foreground hover:bg-accent/20 transition-colors cursor-pointer",
+              day: "h-full w-full flex items-center justify-center rounded-full text-sm font-medium text-card-foreground hover:bg-muted transition-colors cursor-pointer",
               day_selected:
-                "!bg-[hsl(var(--primary))] !text-primary-foreground font-bold",
+                "!bg-primary !text-primary-foreground font-bold",
               day_today:
-                "ring-2 ring-[hsl(var(--primary))] ring-inset font-bold",
+                "ring-2 ring-ring ring-inset font-bold",
               day_outside: "text-muted-foreground/40",
               day_disabled: "text-muted-foreground/30 cursor-not-allowed",
               day_range_middle: "",
