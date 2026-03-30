@@ -272,34 +272,48 @@ const FlightExplorer = () => {
 
       {/* Departure Airport Input */}
       <div className="px-4 pt-2 pb-2">
-        <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure</label>
         <div
-          className="app-input-container cursor-pointer"
-          style={{ minHeight: 48 }}
-          onClick={() => setSheetOpen(true)}
+          className="rounded-2xl overflow-visible"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+          }}
         >
-          <button type="button" tabIndex={-1} className="app-input-icon-btn">
-            <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
-          </button>
-          <span
-            className="app-input truncate flex-1 flex items-center"
-            style={{ color: displayValue ? "#1F2937" : "#6B7280" }}
-          >
-            {displayValue || "Search airport or city..."}
-          </span>
-          {departure && (
-            <button
-              type="button"
-              aria-label="Clear departure"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeparture(null);
-              }}
-              className="app-input-reset app-input-reset--visible"
+          <div className="relative px-5 pt-4 pb-3">
+            <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure</label>
+            <div
+              className="app-input-container cursor-pointer"
+              style={{ minHeight: 48 }}
+              onClick={() => setSheetOpen(true)}
             >
-              <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
-            </button>
-          )}
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <span
+                className="app-input truncate flex-1 flex items-center"
+                style={{ color: displayValue ? "#1F2937" : "#6B7280" }}
+              >
+                {displayValue || "Search airport or city..."}
+              </span>
+              {departure && (
+                <button
+                  type="button"
+                  aria-label="Clear departure"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeparture(null);
+                  }}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
