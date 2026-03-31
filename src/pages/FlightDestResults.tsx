@@ -33,9 +33,10 @@ import {
   Clock01Icon,
   Rocket01Icon,
   UnavailableIcon,
-  Alert01Icon,
+   Alert01Icon,
    TrafficLightIcon,
    Directions02Icon,
+   SeatSelectorIcon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
