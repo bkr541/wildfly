@@ -52,6 +52,7 @@ interface ParsedFlight {
   fares: { basic: number | null; economy: number | null; premium: number | null; business: number | null };
   legs: { origin: string; destination: string; departure_time: string; arrival_time: string }[];
   flightNumber?: string;
+  rawPayload?: any;
 }
 
 interface DestinationGroup {
