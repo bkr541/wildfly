@@ -1153,6 +1153,12 @@ const FlightDestResults = ({
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
                                       {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isGoWild && goWildSeats != null && (
+                                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: "#047857" }}>
+                                          <HugeiconsIcon icon={SeatSelectorIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                          {goWildSeats}
+                                        </span>
+                                      )}
                                       {isCheapest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isQuickest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2.5} /></span>}
                                       {isBlackout && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
