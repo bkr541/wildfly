@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip } from "@/lib/flightApi";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -1182,10 +1183,9 @@ const FlightsPage = ({
                     layovertime: "6",
                   });
                   edgeLog.info("Day Trip search", { origin: originCode, date: depFormatted });
-                  const res = await fetch(`https://getmydata.fly.dev/api/flights/dayTrips?${params}`);
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const dayTripResult = await fetchDayTrips({ origin: originCode, date: depFormatted, nonstop: "true", layovertime: "6" });
+                  data = dayTripResult.data;
+                  error = null;
                 } else if (tripType === "round-trip" && arrivalDate) {
                   // POST /api/flights/roundTrip — fetches outbound + return simultaneously
                   const body = {
@@ -1195,14 +1195,9 @@ const FlightsPage = ({
                     returnDate: format(arrivalDate, "yyyy-MM-dd"),
                   };
                   edgeLog.info("Round Trip search", body);
-                  const res = await fetch("https://getmydata.fly.dev/api/flights/roundTrip", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                  });
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const rtResult = await fetchRoundTrip(body);
+                  data = rtResult.data;
+                  error = null;
                 } else {
                   // POST /api/flights/search — one-way, search-all, multi-day
                   const body: Record<string, string> = {
@@ -1213,14 +1208,9 @@ const FlightsPage = ({
                     body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
                   }
                   edgeLog.info("One-way / Search-all search", { origin: originCode, dest: body.destination ?? "ALL", date: depFormatted });
-                  const res = await fetch("https://getmydata.fly.dev/api/flights/search", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                  });
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const searchResult = await fetchFlightSearch(body);
+                  data = searchResult.data;
+                  error = null;
                 }
               } catch (fetchErr) {
                 data = null;

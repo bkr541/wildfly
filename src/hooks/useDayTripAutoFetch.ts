@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchDayTrips } from "@/lib/flightApi";
 
 /** SHA-256 hex – same algorithm used in Flights.tsx & DayTrips.tsx */
 async function sha256(input: string): Promise<string> {
@@ -98,24 +99,12 @@ async function fetchIfMissing(
 
   // ── Call the API ──────────────────────────────────────────────────────────
   try {
-    const params = new URLSearchParams({
+    const { data: json } = await fetchDayTrips({
       origin: homeIata,
       date: dateStr,
       nonstop: "true",
       layovertime: "6",
     });
-
-    const res = await fetch(`https://getmydata.fly.dev/api/flights/dayTrips?${params}`);
-    if (!res.ok) {
-      // Mark cache as error so we don't endlessly retry in the same session
-      await (supabase.from("flight_search_cache") as any)
-        .update({ status: "error", error: `HTTP ${res.status}` })
-        .eq("cache_key", cacheKey)
-        .eq("reset_bucket", bucket);
-      return;
-    }
-
-    const json = await res.json();
     if (cancelled) return;
 
     // ── Write normalized payload to cache ─────────────────────────────────
