@@ -1208,14 +1208,9 @@ const FlightsPage = ({
                     body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
                   }
                   edgeLog.info("One-way / Search-all search", { origin: originCode, dest: body.destination ?? "ALL", date: depFormatted });
-                  const res = await fetch("https://getmydata.fly.dev/api/flights/search", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                  });
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const searchResult = await fetchFlightSearch(body);
+                  data = searchResult.data;
+                  error = null;
                 }
               } catch (fetchErr) {
                 data = null;
