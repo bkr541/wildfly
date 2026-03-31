@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { format, addDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchDayTrips } from "@/lib/flightApi";
 
 /** SHA-256 hex – same algorithm used in Flights.tsx & DayTrips.tsx */
 async function sha256(input: string): Promise<string> {
