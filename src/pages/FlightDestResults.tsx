@@ -448,6 +448,8 @@ const FlightDestResults = ({
 
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
+    if (departureAirport) codes.add(departureAirport);
+    if (arrivalAirport && arrivalAirport !== "All") codes.add(arrivalAirport);
     for (const f of flights) {
       for (const leg of f.legs) {
         if (leg.origin) codes.add(leg.origin);
@@ -455,7 +457,7 @@ const FlightDestResults = ({
       }
     }
     return Array.from(codes);
-  }, [flights]);
+  }, [flights, departureAirport, arrivalAirport]);
 
   const [airportCoords, setAirportCoords] = useState<Record<string, { lat: number; lng: number }>>({});
 
@@ -721,10 +723,10 @@ const FlightDestResults = ({
                   {arrivalAirport && arrivalAirport !== "All" ? (
                     <>
                       <span className="text-[30px] font-black">{arrivalAirport}</span>
-                      {airportMap[arrivalAirport]?.city && airportMap[arrivalAirport]?.stateCode ? (
+                      {airportMap[arrivalAirport]?.city ? (
                         <span className="text-[30px] font-light">
                           {" "}
-                          | {airportMap[arrivalAirport].city}, {airportMap[arrivalAirport].stateCode}
+                          | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
                         </span>
                       ) : null}
                     </>

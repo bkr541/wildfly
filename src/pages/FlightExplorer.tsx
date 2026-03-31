@@ -8,12 +8,14 @@ import {
   Cancel01Icon,
   AirportIcon,
   CalendarCheckOut02Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 import { DatePickerSheet } from "@/components/DatePickerSheet";
+import { DestCardItem, DestCard, buildDestCards } from "@/components/DestCardItem";
 
 interface Airport {
   id: number;
@@ -299,13 +301,20 @@ function AirportSearchSheet({
 }
 
 /* ── Flight Explorer Page ──────────────────────────── */
-const FlightExplorer = () => {
+const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: string) => void }) => {
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [departureDate, setDepartureDate] = useState<Date | undefined>(undefined);
   const [depDateOpen, setDepDateOpen] = useState(false);
   const today = startOfDay(new Date());
+
+  // ── Cached flight results for selected date + airport ──
+  const [explorerCards, setExplorerCards] = useState<DestCard[]>([]);
+  const [explorerAirportMap, setExplorerAirportMap] = useState<
+    Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
+  >({});
+  const [explorerLoading, setExplorerLoading] = useState(false);
 
   useEffect(() => {
     const loadAirports = async () => {
@@ -317,6 +326,89 @@ const FlightExplorer = () => {
     };
     loadAirports();
   }, []);
+
+  // ── Query flight_searches when both inputs are set ──
+  useEffect(() => {
+    if (!departure || !departureDate) {
+      setExplorerCards([]);
+      setExplorerAirportMap({});
+      return;
+    }
+    const dateStr = format(departureDate, "yyyy-MM-dd");
+    const iata = departure.iata_code;
+
+    setExplorerLoading(true);
+    (async () => {
+      const { data: searches } = await supabase
+        .from("flight_searches")
+        .select("json_body, departure_airport, departure_date")
+        .eq("departure_airport", iata)
+        .eq("departure_date", dateStr)
+        .not("json_body", "is", null)
+        .order("search_timestamp", { ascending: false })
+        .limit(20);
+
+      if (!searches || searches.length === 0) {
+        setExplorerCards([]);
+        setExplorerLoading(false);
+        return;
+      }
+
+      // Merge flights from all matching searches
+      const rawFlights: any[] = [];
+      for (const row of searches) {
+        const body = row.json_body as any;
+        const flights: any[] = body?.response?.flights ?? body?.flights ?? [];
+        rawFlights.push(...flights);
+      }
+
+      // Collect all destination IATA codes
+      const destCodes = new Set<string>();
+      destCodes.add(iata);
+      for (const f of rawFlights) {
+        if (Array.isArray(f.legs)) {
+          for (const leg of f.legs) {
+            if (leg.origin) destCodes.add(leg.origin);
+            if (leg.destination) destCodes.add(leg.destination);
+          }
+        } else if (f.destination) {
+          destCodes.add(f.destination);
+        }
+      }
+
+      const { data: airportData } = await supabase
+        .from("airports")
+        .select("iata_code, name, location_id, locations(city, state_code, country)")
+        .in("iata_code", Array.from(destCodes));
+
+      const aMap: Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }> = {};
+      for (const a of (airportData ?? []) as any[]) {
+        aMap[a.iata_code] = {
+          city: a.locations?.city ?? "",
+          stateCode: a.locations?.state_code ?? "",
+          country: a.locations?.country ?? "",
+          name: a.name ?? "",
+          locationId: a.location_id ?? null,
+        };
+      }
+
+      setExplorerAirportMap(aMap);
+      setExplorerCards(buildDestCards(rawFlights, aMap));
+      setExplorerLoading(false);
+    })();
+  }, [departure, departureDate]);
+
+  const handleViewDest = (card: DestCard) => {
+    if (!onNavigate || !departure || !departureDate) return;
+    const payload = JSON.stringify({
+      departureAirport: departure.iata_code,
+      arrivalAirport: card.destination,
+      departureDate: format(departureDate, "yyyy-MM-dd"),
+      tripType: "One Way",
+      response: { flights: card.flights },
+    });
+    onNavigate("flight-results", payload);
+  };
 
   const displayValue = departure
     ? `${departure.iata_code} | ${departure.locations?.city ?? departure.name}`
@@ -412,6 +504,58 @@ const FlightExplorer = () => {
         </div>
       </div>
 
+      {/* Cached flight results */}
+      {(departure && departureDate) && (
+        <div className="px-4 pt-2 pb-6">
+          {explorerLoading ? (
+            <div className="flex flex-col gap-4">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl overflow-hidden bg-white animate-pulse"
+                  style={{ border: "1px solid #E8EBEB", boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+                >
+                  <div className="h-[158px] bg-[#E5E7EB]" />
+                  <div className="px-4 pt-3 pb-4">
+                    <div className="grid grid-cols-4 gap-2 mb-4">
+                      {[1, 2, 3, 4].map((j) => <div key={j} className="h-8 rounded bg-[#E5E7EB]" />)}
+                    </div>
+                    <div className="h-11 rounded-full bg-[#E5E7EB]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : explorerCards.length === 0 ? (
+            <div
+              className="rounded-2xl px-5 py-8 flex flex-col items-center gap-3 text-center"
+              style={{
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+                border: "1px solid rgba(255,255,255,0.55)",
+                boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13)",
+              }}
+            >
+              <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center">
+                <HugeiconsIcon icon={Search01Icon} size={22} color="#9CA3AF" strokeWidth={1.5} />
+              </div>
+              <p className="text-[#2E4A4A] font-bold text-base">No Recently Searched Flights</p>
+              <p className="text-[#9CA3AF] text-sm">No cached results for this date and airport</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {explorerCards.map((card, i) => (
+                <DestCardItem
+                  key={card.destination}
+                  card={card}
+                  index={i}
+                  onViewDest={handleViewDest}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

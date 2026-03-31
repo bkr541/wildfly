@@ -344,7 +344,7 @@ const MainApp = () => {
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "friends" && <FriendsPage />}
               {currentPage === "hubs" && <HubsPage />}
-              {currentPage === "explorer" && <FlightExplorerPage />}
+              {currentPage === "explorer" && <FlightExplorerPage onNavigate={handleNavigate} />}
               {currentPage === "design-system" && <DesignSystemPage />}
             </MainLayout>
           </ProfileProvider>
