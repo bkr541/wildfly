@@ -1223,6 +1223,12 @@ const FlightDestResults = ({
                                          <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#059669", color: "#FFFFFF" }}>
                                            <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
                                            GoWild
+                                           {goWildSeats != null && (
+                                             <span className="inline-flex items-center gap-0.5 ml-1 rounded-full bg-white/20 px-1.5 py-px text-[10px] font-bold">
+                                               <HugeiconsIcon icon={SeatSelectorIcon} size={9} color="#FFFFFF" strokeWidth={2.5} />
+                                               {goWildSeats}
+                                             </span>
+                                           )}
                                          </span>
                                        )}
                                        {isCheapest && (
