@@ -1183,10 +1183,9 @@ const FlightsPage = ({
                     layovertime: "6",
                   });
                   edgeLog.info("Day Trip search", { origin: originCode, date: depFormatted });
-                  const res = await fetch(`https://getmydata.fly.dev/api/flights/dayTrips?${params}`);
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const dayTripResult = await fetchDayTrips({ origin: originCode, date: depFormatted, nonstop: "true", layovertime: "6" });
+                  data = dayTripResult.data;
+                  error = null;
                 } else if (tripType === "round-trip" && arrivalDate) {
                   // POST /api/flights/roundTrip — fetches outbound + return simultaneously
                   const body = {
