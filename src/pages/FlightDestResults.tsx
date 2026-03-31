@@ -33,9 +33,10 @@ import {
   Clock01Icon,
   Rocket01Icon,
   UnavailableIcon,
-  Alert01Icon,
+   Alert01Icon,
    TrafficLightIcon,
    Directions02Icon,
+   SeatSelectorIcon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -51,6 +52,7 @@ interface ParsedFlight {
   fares: { basic: number | null; economy: number | null; premium: number | null; business: number | null };
   legs: { origin: string; destination: string; departure_time: string; arrival_time: string }[];
   flightNumber?: string;
+  rawPayload?: any;
 }
 
 interface DestinationGroup {
@@ -1077,6 +1079,7 @@ const FlightDestResults = ({
 
                         // Derive cheapest fare and Frontier booking URL
                         const isGoWild = isGoWildFlight(flight);
+                        const goWildSeats = (flight as any).rawPayload?.fares?.go_wild?.availableSeats ?? null;
                         const cheapest = [
                           flight.fares.basic,
                           flight.fares.economy,
@@ -1150,6 +1153,12 @@ const FlightDestResults = ({
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
                                       {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isGoWild && goWildSeats != null && (
+                                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: "#047857" }}>
+                                          <HugeiconsIcon icon={SeatSelectorIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                          {goWildSeats}
+                                        </span>
+                                      )}
                                       {isCheapest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isQuickest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2.5} /></span>}
                                       {isBlackout && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
@@ -1214,6 +1223,12 @@ const FlightDestResults = ({
                                          <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#059669", color: "#FFFFFF" }}>
                                            <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
                                            GoWild
+                                           {goWildSeats != null && (
+                                             <span className="inline-flex items-center gap-0.5 ml-1 rounded-full bg-white/20 px-1.5 py-px text-[10px] font-bold">
+                                               <HugeiconsIcon icon={SeatSelectorIcon} size={9} color="#FFFFFF" strokeWidth={2.5} />
+                                               {goWildSeats}
+                                             </span>
+                                           )}
                                          </span>
                                        )}
                                        {isCheapest && (
