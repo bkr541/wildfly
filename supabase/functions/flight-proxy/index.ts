@@ -16,7 +16,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate the calling user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -27,22 +26,22 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    // User client – to verify the caller
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
 
     // Parse the request body
     const body = await req.json();
@@ -63,8 +62,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Read gowilder_token from app_config for this user
-    const { data: configRow, error: configError } = await supabase
+    // Admin client – bypasses RLS to read app_config
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: configRow, error: configError } = await adminClient
       .from("app_config")
       .select("config_value")
       .eq("config_key", "gowilder_token")
