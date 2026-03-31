@@ -1079,6 +1079,7 @@ const FlightDestResults = ({
 
                         // Derive cheapest fare and Frontier booking URL
                         const isGoWild = isGoWildFlight(flight);
+                        const goWildSeats = (flight as any).rawPayload?.fares?.go_wild?.availableSeats ?? null;
                         const cheapest = [
                           flight.fares.basic,
                           flight.fares.economy,
