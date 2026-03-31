@@ -46,6 +46,72 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const [clearingFlights, setClearingFlights] = useState(false);
   const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
 
+  // Tokens section state
+  const [tokensOpen, setTokensOpen] = useState(false);
+  const [gowilderToken, setGowilderToken] = useState("");
+  const [gowilderTokenSaved, setGowilderTokenSaved] = useState("");
+  const [gowilderTokenLoading, setGowilderTokenLoading] = useState(false);
+
+  // Load GoWilder token on mount
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("app_config")
+        .select("config_value")
+        .eq("user_id", user.id)
+        .eq("config_key", "gowilder_token")
+        .maybeSingle();
+      if (data) {
+        setGowilderToken(data.config_value);
+        setGowilderTokenSaved(data.config_value);
+      }
+    })();
+  }, []);
+
+  const saveGowilderToken = async () => {
+    setGowilderTokenLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const { error } = await supabase
+        .from("app_config")
+        .upsert(
+          { user_id: user.id, config_key: "gowilder_token", config_value: gowilderToken },
+          { onConflict: "user_id,config_key" }
+        );
+      if (error) throw error;
+      setGowilderTokenSaved(gowilderToken);
+      toast.success("GoWilder Token saved");
+    } catch (err: any) {
+      toast.error(`Save failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setGowilderTokenLoading(false);
+    }
+  };
+
+  const deleteGowilderToken = async () => {
+    setGowilderTokenLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const { error } = await supabase
+        .from("app_config")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("config_key", "gowilder_token");
+      if (error) throw error;
+      setGowilderToken("");
+      setGowilderTokenSaved("");
+      toast.success("GoWilder Token deleted");
+    } catch (err: any) {
+      toast.error(`Delete failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setGowilderTokenLoading(false);
+    }
+  };
+
   const clearFlightSearchAndCache = async () => {
     setClearingFlights(true);
     try {
