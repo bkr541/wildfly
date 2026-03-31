@@ -355,7 +355,60 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             </div>
           )}
 
-          {/* Enable Logging */}
+          {/* Tokens */}
+          <button
+            type="button"
+            onClick={() => setTokensOpen((o) => !o)}
+            className={`flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left ${tokensOpen ? "" : "border-b border-[#F0F1F1]"}`}
+          >
+            <span className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={Key01Icon} size={15} color="#047857" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#2E4A4A]">Tokens</p>
+              <p className="text-xs text-[#6B7B7B]">Manage API tokens and keys</p>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform duration-200 ${tokensOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {tokensOpen && (
+            <div className="border-t border-[#F0F1F1] border-b border-[#F0F1F1] px-4 py-3 animate-fade-in bg-[#F8F9F9] space-y-3">
+              <AppInput
+                label="GoWilder Token"
+                value={gowilderToken}
+                onChange={(e) => setGowilderToken(e.target.value)}
+                placeholder="Enter your GoWilder token..."
+                isPassword
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={saveGowilderToken}
+                  disabled={gowilderTokenLoading || !gowilderToken.trim() || gowilderToken === gowilderTokenSaved}
+                  className="flex-1 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
+                >
+                  {gowilderTokenLoading ? "Saving..." : "Save"}
+                </button>
+                {gowilderTokenSaved && (
+                  <button
+                    type="button"
+                    onClick={deleteGowilderToken}
+                    disabled={gowilderTokenLoading}
+                    className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={14} color="currentColor" strokeWidth={1.5} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => toggle("logging_enabled")}
