@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppInput } from "@/components/ui/app-input";
-import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon, Megaphone02Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon, Megaphone02Icon, Key01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,6 +45,72 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
   const [clearingFlights, setClearingFlights] = useState(false);
   const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
+
+  // Tokens section state
+  const [tokensOpen, setTokensOpen] = useState(false);
+  const [gowilderToken, setGowilderToken] = useState("");
+  const [gowilderTokenSaved, setGowilderTokenSaved] = useState("");
+  const [gowilderTokenLoading, setGowilderTokenLoading] = useState(false);
+
+  // Load GoWilder token on mount
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("app_config")
+        .select("config_value")
+        .eq("user_id", user.id)
+        .eq("config_key", "gowilder_token")
+        .maybeSingle();
+      if (data) {
+        setGowilderToken(data.config_value);
+        setGowilderTokenSaved(data.config_value);
+      }
+    })();
+  }, []);
+
+  const saveGowilderToken = async () => {
+    setGowilderTokenLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const { error } = await supabase
+        .from("app_config")
+        .upsert(
+          { user_id: user.id, config_key: "gowilder_token", config_value: gowilderToken },
+          { onConflict: "user_id,config_key" }
+        );
+      if (error) throw error;
+      setGowilderTokenSaved(gowilderToken);
+      toast.success("GoWilder Token saved");
+    } catch (err: any) {
+      toast.error(`Save failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setGowilderTokenLoading(false);
+    }
+  };
+
+  const deleteGowilderToken = async () => {
+    setGowilderTokenLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Not authenticated"); return; }
+      const { error } = await supabase
+        .from("app_config")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("config_key", "gowilder_token");
+      if (error) throw error;
+      setGowilderToken("");
+      setGowilderTokenSaved("");
+      toast.success("GoWilder Token deleted");
+    } catch (err: any) {
+      toast.error(`Delete failed: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setGowilderTokenLoading(false);
+    }
+  };
 
   const clearFlightSearchAndCache = async () => {
     setClearingFlights(true);
@@ -289,7 +355,60 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
             </div>
           )}
 
-          {/* Enable Logging */}
+          {/* Tokens */}
+          <button
+            type="button"
+            onClick={() => setTokensOpen((o) => !o)}
+            className={`flex items-center w-full px-4 py-3 gap-3 hover:bg-[#F8F9F9] transition-colors text-left ${tokensOpen ? "" : "border-b border-[#F0F1F1]"}`}
+          >
+            <span className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={Key01Icon} size={15} color="#047857" strokeWidth={1.5} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#2E4A4A]">Tokens</p>
+              <p className="text-xs text-[#6B7B7B]">Manage API tokens and keys</p>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={13}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform duration-200 ${tokensOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {tokensOpen && (
+            <div className="border-t border-[#F0F1F1] border-b border-[#F0F1F1] px-4 py-3 animate-fade-in bg-[#F8F9F9] space-y-3">
+              <AppInput
+                label="GoWilder Token"
+                value={gowilderToken}
+                onChange={(e) => setGowilderToken(e.target.value)}
+                placeholder="Enter your GoWilder token..."
+                isPassword
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={saveGowilderToken}
+                  disabled={gowilderTokenLoading || !gowilderToken.trim() || gowilderToken === gowilderTokenSaved}
+                  className="flex-1 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
+                >
+                  {gowilderTokenLoading ? "Saving..." : "Save"}
+                </button>
+                {gowilderTokenSaved && (
+                  <button
+                    type="button"
+                    onClick={deleteGowilderToken}
+                    disabled={gowilderTokenLoading}
+                    className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={14} color="currentColor" strokeWidth={1.5} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => toggle("logging_enabled")}
