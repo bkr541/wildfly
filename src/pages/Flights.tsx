@@ -1195,14 +1195,9 @@ const FlightsPage = ({
                     returnDate: format(arrivalDate, "yyyy-MM-dd"),
                   };
                   edgeLog.info("Round Trip search", body);
-                  const res = await fetch("https://getmydata.fly.dev/api/flights/roundTrip", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                  });
-                  const json = await res.json();
-                  data = json;
-                  error = res.ok ? null : new Error(`HTTP ${res.status}`);
+                  const rtResult = await fetchRoundTrip(body);
+                  data = rtResult.data;
+                  error = null;
                 } else {
                   // POST /api/flights/search — one-way, search-all, multi-day
                   const body: Record<string, string> = {
