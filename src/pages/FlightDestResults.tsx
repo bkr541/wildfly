@@ -273,6 +273,7 @@ const FlightDestResults = ({
 }) => {
   const handleBack = onBackOverride ?? onBack;
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
+  const [legTab, setLegTab] = useState<"Departing" | "Return">("Departing");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
     Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }>
