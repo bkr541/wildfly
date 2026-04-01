@@ -540,7 +540,7 @@ const FlightDestResults = ({
         hasNonstop: flts.some((f) => f.legs.length === 1),
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
-  }, [flights, airportMap]);
+  }, [activeFlights, airportMap]);
 
   // Per-group sorted+filtered flights for the timeline
   const sortedGroups: DestinationGroup[] = useMemo(() => {
