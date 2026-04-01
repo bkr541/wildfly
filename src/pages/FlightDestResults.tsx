@@ -972,7 +972,7 @@ const FlightDestResults = ({
                       </>
                     ) : (
                       <>
-                        <span className="text-[#10B981] font-black">{flights.length}</span>
+                        <span className="text-[#10B981] font-black">{activeFlights.length}</span>
                         <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
                       </>
                     )}
