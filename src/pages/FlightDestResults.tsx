@@ -469,14 +469,15 @@ const FlightDestResults = ({
     const codes = new Set<string>();
     if (departureAirport) codes.add(departureAirport);
     if (arrivalAirport && arrivalAirport !== "All") codes.add(arrivalAirport);
-    for (const f of flights) {
+    const allFlts = isRoundTrip ? [...outboundFlights, ...returnFlights] : oneWayFlights;
+    for (const f of allFlts) {
       for (const leg of f.legs) {
         if (leg.origin) codes.add(leg.origin);
         if (leg.destination) codes.add(leg.destination);
       }
     }
     return Array.from(codes);
-  }, [flights, departureAirport, arrivalAirport]);
+  }, [isRoundTrip, outboundFlights, returnFlights, oneWayFlights, departureAirport, arrivalAirport]);
 
   const [airportCoords, setAirportCoords] = useState<Record<string, { lat: number; lng: number }>>({});
 
