@@ -587,9 +587,9 @@ const FlightDestResults = ({
   }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType, airportMap]);
 
   const origin = useMemo(() => {
-    if (flights.length === 0) return "";
-    return flights[0].legs[0]?.origin ?? "";
-  }, [flights]);
+    if (activeFlights.length === 0) return "";
+    return activeFlights[0].legs[0]?.origin ?? "";
+  }, [activeFlights]);
 
   const selectedGroup = useMemo(() => {
     if (!selectedDest) return null;
