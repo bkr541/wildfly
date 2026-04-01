@@ -273,6 +273,7 @@ const FlightDestResults = ({
 }) => {
   const handleBack = onBackOverride ?? onBack;
   const [activeTab, setActiveTab] = useState<TabType>("Flights");
+  const [legTab, setLegTab] = useState<"Departing" | "Return">("Departing");
   const [expandedFlightKey, setExpandedFlightKey] = useState<string | null>(null);
   const [airportMap, setAirportMap] = useState<
     Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }>
@@ -284,7 +285,7 @@ const FlightDestResults = ({
   const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
   const [sortSheet, setSortSheet] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
-  const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: typeof flights[0] } | null>(null);
+  const [bookingConfirm, setBookingConfirm] = useState<{ url: string; flight: ParsedFlight } | null>(null);
   const [filterNonstopOnly, setFilterNonstopOnly] = useState(false);
   const [filterGoWildOnly, setFilterGoWildOnly] = useState(false);
   const [filterDestType, setFilterDestType] = useState<"all" | "domestic" | "intl">("all");
@@ -423,43 +424,60 @@ const FlightDestResults = ({
     [userFlights, flightKey, showToast],
   );
 
-  const { flights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache } = useMemo(() => {
+  const { oneWayFlights, outboundFlights, returnFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache, isRoundTrip } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
+      const tt = parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way";
+      const outbound = (parsed.response?.outboundFlights ?? []) as ParsedFlight[];
+      const ret = (parsed.response?.returnFlights ?? []) as ParsedFlight[];
+      const oneWay = (parsed.response?.flights ?? []) as ParsedFlight[];
+      const round = outbound.length > 0 || ret.length > 0 || tt.toLowerCase().includes("round");
       return {
-        flights: (parsed.response?.flights ?? []) as ParsedFlight[],
+        oneWayFlights: oneWay,
+        outboundFlights: outbound,
+        returnFlights: ret,
         departureDate: parsed.departureDate ?? null,
         arrivalDate: parsed.arrivalDate ?? null,
-        tripType: parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way",
+        tripType: tt,
         departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
         arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "",
         fromCache: parsed.fromCache === true,
+        isRoundTrip: round,
       };
     } catch {
       return {
-        flights: [],
+        oneWayFlights: [] as ParsedFlight[],
+        outboundFlights: [] as ParsedFlight[],
+        returnFlights: [] as ParsedFlight[],
         departureDate: null,
         arrivalDate: null,
         tripType: "One Way",
         departureAirport: "",
         arrivalAirport: "All",
         fromCache: false,
+        isRoundTrip: false,
       };
     }
   }, [responseData]);
+
+  const activeFlights = useMemo(() => {
+    if (!isRoundTrip) return oneWayFlights;
+    return legTab === "Departing" ? outboundFlights : returnFlights;
+  }, [isRoundTrip, legTab, oneWayFlights, outboundFlights, returnFlights]);
 
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
     if (departureAirport) codes.add(departureAirport);
     if (arrivalAirport && arrivalAirport !== "All") codes.add(arrivalAirport);
-    for (const f of flights) {
+    const allFlts = isRoundTrip ? [...outboundFlights, ...returnFlights] : oneWayFlights;
+    for (const f of allFlts) {
       for (const leg of f.legs) {
         if (leg.origin) codes.add(leg.origin);
         if (leg.destination) codes.add(leg.destination);
       }
     }
     return Array.from(codes);
-  }, [flights, departureAirport, arrivalAirport]);
+  }, [isRoundTrip, outboundFlights, returnFlights, oneWayFlights, departureAirport, arrivalAirport]);
 
   const [airportCoords, setAirportCoords] = useState<Record<string, { lat: number; lng: number }>>({});
 
@@ -506,7 +524,7 @@ const FlightDestResults = ({
   // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
-    for (const f of flights) {
+    for (const f of activeFlights) {
       const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
@@ -522,7 +540,7 @@ const FlightDestResults = ({
         hasNonstop: flts.some((f) => f.legs.length === 1),
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
-  }, [flights, airportMap]);
+  }, [activeFlights, airportMap]);
 
   // Per-group sorted+filtered flights for the timeline
   const sortedGroups: DestinationGroup[] = useMemo(() => {
@@ -569,9 +587,9 @@ const FlightDestResults = ({
   }, [groups, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType, airportMap]);
 
   const origin = useMemo(() => {
-    if (flights.length === 0) return "";
-    return flights[0].legs[0]?.origin ?? "";
-  }, [flights]);
+    if (activeFlights.length === 0) return "";
+    return activeFlights[0].legs[0]?.origin ?? "";
+  }, [activeFlights]);
 
   const selectedGroup = useMemo(() => {
     if (!selectedDest) return null;
@@ -657,10 +675,10 @@ const FlightDestResults = ({
           {/* Stats row */}
           <div className="flex items-center justify-center gap-4 mt-2 pb-1">
             {[
-              { label: "FLIGHTS", value: flights.length },
-              { label: "NONSTOP", value: flights.filter((f) => f.legs.length === 1).length },
-              { label: "GOWILD", value: flights.filter((f) => isGoWildFlight(f)).length },
-              { label: "STOPS", value: flights.filter((f) => f.legs.length > 1).length },
+              { label: "FLIGHTS", value: activeFlights.length },
+              { label: "NONSTOP", value: activeFlights.filter((f) => f.legs.length === 1).length },
+              { label: "GOWILD", value: activeFlights.filter((f) => isGoWildFlight(f)).length },
+              { label: "STOPS", value: activeFlights.filter((f) => f.legs.length > 1).length },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center gap-1">
                 <span className="text-[11px] font-bold text-white/80">{label}</span>
@@ -772,7 +790,7 @@ const FlightDestResults = ({
               {arrivalAirport && arrivalAirport !== "All" && (
                 <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
                   {(() => {
-                    const allFlights = flights;
+                    const allFlights = activeFlights;
                     let earliestH: number | null = null;
                     let latestH: number | null = null;
                     let nonstopCnt = 0;
@@ -842,21 +860,28 @@ const FlightDestResults = ({
           ))}
         </div>
       )}
-      {/* Static tab row — Departing & Return only, no functionality */}
-      {!hideHeader && (
+      {/* Departing / Return tab row — only for round-trip */}
+      {!hideHeader && isRoundTrip && (
         <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200">
           {(
             [
-              { label: "Departing", icon: InformationCircleIcon },
-              { label: "Return", icon: AirplaneTakeOff01Icon },
-            ] as { label: string; icon: any }[]
+              { label: "Departing" as const, icon: AirplaneTakeOff01Icon },
+              { label: "Return" as const, icon: AirplaneTakeOff01Icon },
+            ]
           ).map(({ label, icon }) => (
             <button
               key={label}
-              className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] relative text-gray-400 font-semibold cursor-default"
+              onClick={() => setLegTab(label)}
+              className={cn(
+                "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative",
+                label === legTab ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+              )}
             >
-              <HugeiconsIcon icon={icon} size={15} strokeWidth={1.5} />
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === legTab ? 2.5 : 1.5} color={label === legTab ? "#10B981" : undefined} style={label === "Return" ? { transform: "scaleX(-1)" } : undefined} />
               {label}
+              {label === legTab && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+              )}
             </button>
           ))}
         </div>
@@ -879,10 +904,10 @@ const FlightDestResults = ({
             )}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Total Flights", value: flights.length },
+                { label: "Total Flights", value: activeFlights.length },
                 { label: "Destinations", value: groups.length },
-                { label: "Nonstop Options", value: flights.filter((f) => f.legs.length === 1).length },
-                { label: "GoWild Fares", value: flights.filter((f) => isGoWildFlight(f)).length },
+                { label: "Nonstop Options", value: activeFlights.filter((f) => f.legs.length === 1).length },
+                { label: "GoWild Fares", value: activeFlights.filter((f) => isGoWildFlight(f)).length },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
                   <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
@@ -942,12 +967,12 @@ const FlightDestResults = ({
                       <>
                         <span className="text-[#10B981] font-black">{filteredCount}</span>
                         <span className="text-[#6B7B7B] font-medium"> of </span>
-                        <span className="text-[#2E4A4A] font-black">{flights.length}</span>
+                        <span className="text-[#2E4A4A] font-black">{activeFlights.length}</span>
                         <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-[#10B981] font-black">{flights.length}</span>
+                        <span className="text-[#10B981] font-black">{activeFlights.length}</span>
                         <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
                       </>
                     )}
@@ -1372,7 +1397,7 @@ const FlightDestResults = ({
                     </span>
                     <textarea
                       readOnly
-                      value={JSON.stringify({ flights }, null, 2)}
+                      value={JSON.stringify({ activeFlights }, null, 2)}
                       className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
                     />
                   </div>
