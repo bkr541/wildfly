@@ -860,21 +860,28 @@ const FlightDestResults = ({
           ))}
         </div>
       )}
-      {/* Static tab row — Departing & Return only, no functionality */}
-      {!hideHeader && (
+      {/* Departing / Return tab row — only for round-trip */}
+      {!hideHeader && isRoundTrip && (
         <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200">
           {(
             [
-              { label: "Departing", icon: InformationCircleIcon },
-              { label: "Return", icon: AirplaneTakeOff01Icon },
-            ] as { label: string; icon: any }[]
+              { label: "Departing" as const, icon: AirplaneTakeOff01Icon },
+              { label: "Return" as const, icon: AirplaneTakeOff01Icon },
+            ]
           ).map(({ label, icon }) => (
             <button
               key={label}
-              className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] relative text-gray-400 font-semibold cursor-default"
+              onClick={() => setLegTab(label)}
+              className={cn(
+                "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] transition-colors relative",
+                label === legTab ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+              )}
             >
-              <HugeiconsIcon icon={icon} size={15} strokeWidth={1.5} />
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={label === legTab ? 2.5 : 1.5} color={label === legTab ? "#10B981" : undefined} style={label === "Return" ? { transform: "scaleX(-1)" } : undefined} />
               {label}
+              {label === legTab && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />
+              )}
             </button>
           ))}
         </div>
