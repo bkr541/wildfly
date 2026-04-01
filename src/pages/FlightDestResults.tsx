@@ -904,10 +904,10 @@ const FlightDestResults = ({
             )}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Total Flights", value: flights.length },
+                { label: "Total Flights", value: activeFlights.length },
                 { label: "Destinations", value: groups.length },
-                { label: "Nonstop Options", value: flights.filter((f) => f.legs.length === 1).length },
-                { label: "GoWild Fares", value: flights.filter((f) => isGoWildFlight(f)).length },
+                { label: "Nonstop Options", value: activeFlights.filter((f) => f.legs.length === 1).length },
+                { label: "GoWild Fares", value: activeFlights.filter((f) => isGoWildFlight(f)).length },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col rounded-xl border border-[#E8EBEB] bg-[#F4F8F8] px-3 py-2.5">
                   <span className="text-[10px] font-semibold text-[#6B7B7B] uppercase tracking-wide">{label}</span>
