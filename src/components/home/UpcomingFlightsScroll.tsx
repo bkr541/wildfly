@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, X } from "lucide-react";
 import planeIcon from "@/assets/plane-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Timer02Icon } from "@hugeicons/core-free-icons";
+import { Timer02Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -83,7 +83,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
   };
 
   return (
-    <section className="px-5 pt-0 pb-5 relative z-10">
+    <section className="px-5 pt-0 pb-2 relative z-10">
       {/* Section header — clickable to toggle */}
       <button
         type="button"
@@ -112,7 +112,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "2px 6px 10px" }}>
+            <div style={{ padding: "2px 6px 0" }}>
             {loading ? (
               <div
                 className="rounded-2xl px-4 py-5"
@@ -121,7 +121,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                   backdropFilter: "blur(18px)",
                   WebkitBackdropFilter: "blur(18px)",
                   border: "1px solid rgba(255,255,255,0.55)",
-                  boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                  boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                 }}
               >
                 <div className="flex gap-3">
@@ -142,7 +142,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                   backdropFilter: "blur(18px)",
                   WebkitBackdropFilter: "blur(18px)",
                   border: "1px solid rgba(255,255,255,0.65)",
-                  boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                  boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                 }}
               >
                 <img
@@ -159,7 +159,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               </div>
             ) : (
               <div
-                className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
+                className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide"
                 style={{ scrollSnapType: "x mandatory" }}
               >
                 {flights.map((flight, i) => (
@@ -174,11 +174,11 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     className="relative flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4"
                     style={{
                       scrollSnapAlign: "start",
-                      background: "rgba(255,255,255,0.72)",
+                      background: "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(18px)",
                       WebkitBackdropFilter: "blur(18px)",
-                      border: "1px solid rgba(255,255,255,0.55)",
-                      boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+                      border: "1px solid rgba(255,255,255,0.65)",
+                      boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                     }}
                   >
                     {/* Remove button */}
@@ -223,16 +223,19 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
 
       {/* Remove confirmation dialog */}
       <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
-          <AlertDialogHeader className="space-y-1">
-            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#FEE2E2] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={Delete02Icon} size={18} color="#EF4444" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">
               Removing {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
               Proceeding will remove {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on {flightToRemove ? formatShortDate(flightToRemove.departure_time) : ""} from your itinerary. Do you wish to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 mt-2">
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
             <AlertDialogCancel disabled={removing} className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]">
               Cancel
             </AlertDialogCancel>

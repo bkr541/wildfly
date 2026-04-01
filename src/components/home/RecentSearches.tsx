@@ -68,7 +68,7 @@ const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
 const HEADER_GREEN = "#2D6A4F";
 const CARD_SHADOW =
-  "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)";
+  "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
 interface Props {
   searches: FlightSearch[];
@@ -81,7 +81,7 @@ interface Props {
 export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
 
   return (
-    <section className="px-5 pt-0 pb-5 relative z-10">
+    <section className="px-5 pt-0 pb-2 relative z-10">
       {/* Header */}
       <button type="button" onClick={onToggle} className="w-full flex items-center justify-between mb-1 px-1 group">
         <h2 className="text-[15px] font-semibold text-[#6B7280] capitalize tracking-widest flex items-center gap-2">
@@ -123,7 +123,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                 </div>
               ) : (
                 <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
-                <div className="flex gap-3 pb-1" style={{ padding: "2px 20px 0", scrollSnapType: "x mandatory" }}>
+                <div className="flex gap-3" style={{ padding: "2px 20px 10px", scrollSnapType: "x mandatory" }}>
                   {loading
                     ? [1, 2].map((i) => (
                         <div
@@ -191,7 +191,9 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                             className="text-left rounded-2xl overflow-hidden flex-shrink-0 w-[185px]"
                             style={{
                               scrollSnapAlign: "start",
-                              background: "rgba(255,255,255,0.95)",
+                              background: "rgba(255,255,255,0.82)",
+                              backdropFilter: "blur(18px)",
+                              WebkitBackdropFilter: "blur(18px)",
                               border: "1px solid rgba(255,255,255,0.65)",
                               boxShadow: CARD_SHADOW,
                             }}

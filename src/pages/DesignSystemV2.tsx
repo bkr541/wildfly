@@ -652,6 +652,8 @@ function AlertDialogDemo() {
   const [showPw, setShowPw] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [errorOpen, setErrorOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   const handleConfirm = () => {
     if (!confirmPw) { setConfirmError("Please confirm your password"); return; }
@@ -671,7 +673,7 @@ function AlertDialogDemo() {
           Open Dialog
         </Button>
       </StateRow>
-      <StateRow label="Error popup (Cancel + Action)">
+      <StateRow label="Error popup — floating icon, centered (e.g. Incorrect Credentials)">
         <Button
           size="sm"
           className="bg-[#EF4444] hover:bg-[#DC2626] text-white text-wf-xs"
@@ -680,6 +682,26 @@ function AlertDialogDemo() {
           Open Error
         </Button>
       </StateRow>
+      <StateRow label="Success popup — floating icon, centered (e.g. Clear Complete)">
+        <Button
+          size="sm"
+          className="bg-[#059669] hover:bg-[#047857] text-white text-wf-xs"
+          onClick={() => setSuccessOpen(true)}
+        >
+          Open Success
+        </Button>
+      </StateRow>
+      <StateRow label="Destructive popup — floating icon, Cancel + Action (e.g. Remove Flight)">
+        <Button
+          size="sm"
+          className="bg-[#EF4444] hover:bg-[#DC2626] text-white text-wf-xs"
+          onClick={() => setRemoveOpen(true)}
+        >
+          Open Remove
+        </Button>
+      </StateRow>
+
+      {/* Confirm Password */}
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
           <AlertDialogHeader className="space-y-1">
@@ -716,23 +738,65 @@ function AlertDialogDemo() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error popup — floating icon */}
       <AlertDialog open={errorOpen} onOpenChange={setErrorOpen}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
-          <span className="h-8 w-8 rounded-full bg-[#FEE2E2] flex items-center justify-center shrink-0">
-            <HugeiconsIcon icon={AlertCircleIcon} size={15} color="#EF4444" strokeWidth={1.5} />
-          </span>
-          <AlertDialogHeader className="space-y-1">
-            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Incorrect Credentials</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#FEE2E2] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={AlertCircleIcon} size={18} color="#EF4444" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">Incorrect Credentials</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
               Credentials didn't match. Please check your email and password and try again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 mt-1">
-            <AlertDialogCancel className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]" onClick={() => setErrorOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
             <AlertDialogAction onClick={() => setErrorOpen(false)} className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1">
               Try Again
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Success popup — floating icon */}
+      <AlertDialog open={successOpen} onOpenChange={setSuccessOpen}>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#D1FAE5] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} color="#047857" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">Clear Complete</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
+              Your flight search history and cache have been successfully cleared.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
+            <AlertDialogAction onClick={() => setSuccessOpen(false)} className="w-full bg-[#059669] hover:bg-[#047857] text-xs py-1">
+              Done
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Destructive popup — floating icon, Cancel + Action */}
+      <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#FEE2E2] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={Delete01Icon} size={18} color="#EF4444" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">Removing ATL to PHL</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
+              Proceeding will remove ATL to PHL on Jan 15 from your itinerary. Do you wish to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
+            <AlertDialogCancel className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]" onClick={() => setRemoveOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => setRemoveOpen(false)} className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1">
+              Remove
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
