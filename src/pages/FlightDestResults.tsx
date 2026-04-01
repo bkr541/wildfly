@@ -1397,7 +1397,7 @@ const FlightDestResults = ({
                     </span>
                     <textarea
                       readOnly
-                      value={JSON.stringify({ flights }, null, 2)}
+                      value={JSON.stringify({ activeFlights }, null, 2)}
                       className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
                     />
                   </div>
