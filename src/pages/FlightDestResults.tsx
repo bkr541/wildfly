@@ -675,10 +675,10 @@ const FlightDestResults = ({
           {/* Stats row */}
           <div className="flex items-center justify-center gap-4 mt-2 pb-1">
             {[
-              { label: "FLIGHTS", value: flights.length },
-              { label: "NONSTOP", value: flights.filter((f) => f.legs.length === 1).length },
-              { label: "GOWILD", value: flights.filter((f) => isGoWildFlight(f)).length },
-              { label: "STOPS", value: flights.filter((f) => f.legs.length > 1).length },
+              { label: "FLIGHTS", value: activeFlights.length },
+              { label: "NONSTOP", value: activeFlights.filter((f) => f.legs.length === 1).length },
+              { label: "GOWILD", value: activeFlights.filter((f) => isGoWildFlight(f)).length },
+              { label: "STOPS", value: activeFlights.filter((f) => f.legs.length > 1).length },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center gap-1">
                 <span className="text-[11px] font-bold text-white/80">{label}</span>
