@@ -524,7 +524,7 @@ const FlightDestResults = ({
   // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
-    for (const f of flights) {
+    for (const f of activeFlights) {
       const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
       if (!grouped[dest]) grouped[dest] = [];
       grouped[dest].push(f);
