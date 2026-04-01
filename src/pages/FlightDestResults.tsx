@@ -1060,7 +1060,7 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <span className="z-10 bg-[#F1F5F5] px-2 text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                              <span className="z-10 bg-[#F1F5F5] px-2 text-[13px] font-semibold text-[#6B7B7B] leading-tight">
                                 {h12} {ampm}
                               </span>
                             </div>
@@ -1127,10 +1127,19 @@ const FlightDestResults = ({
                               animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
                             }}
                           >
+                            {(hasAlert || hasGoing) && (
+                              <div className="absolute top-[8px] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                                <div className="h-9 w-9 rounded-full bg-[#059669] flex items-center justify-center shadow-md border-2 border-white">
+                                  <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="white" strokeWidth={1.5} />
+                                </div>
+                              </div>
+                            )}
                             <div
                               className={cn(
-                                "flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-200 w-full",
-                                isGoWild ? "border border-[#059669]" : isFlightOpen ? "border border-[#345C5A]/20" : "border border-[#E8EBEB]",
+                                "flex flex-col rounded-2xl overflow-hidden transition-all duration-200 w-full",
+                                hasAlert || hasGoing
+                                  ? "bg-[#A7F3D0] border border-[#059669]"
+                                  : isGoWild ? "bg-white border border-[#059669]" : isFlightOpen ? "bg-white border border-[#345C5A]/20" : "bg-white border border-[#E8EBEB]",
                               )}
                               style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
@@ -1189,7 +1198,7 @@ const FlightDestResults = ({
                                     {/* Row 2 left: origin city */}
                                     <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">{originCity}</span>
                                     {/* Row 2 center: duration chip — same column as plane, so always aligned */}
-                                    <span className="text-[11px] font-semibold text-[#065F46] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full text-center justify-self-center">{formatDuration(flight.total_duration)}</span>
+                                    <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-center justify-self-center", hasAlert || hasGoing ? "text-white bg-[#065F46]" : "text-[#065F46] bg-[#D1FAE5]")}>{formatDuration(flight.total_duration)}</span>
                                     {/* Row 2 right: dest city */}
                                     <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">{destCity}</span>
                                   </div>
