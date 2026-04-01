@@ -790,7 +790,7 @@ const FlightDestResults = ({
               {arrivalAirport && arrivalAirport !== "All" && (
                 <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
                   {(() => {
-                    const allFlights = flights;
+                    const allFlights = activeFlights;
                     let earliestH: number | null = null;
                     let latestH: number | null = null;
                     let nonstopCnt = 0;
