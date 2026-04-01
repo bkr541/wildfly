@@ -842,6 +842,25 @@ const FlightDestResults = ({
           ))}
         </div>
       )}
+      {/* Static tab row — Departing & Return only, no functionality */}
+      {!hideHeader && (
+        <div className="relative z-10 flex items-center justify-around bg-white px-3 border-b border-gray-200">
+          {(
+            [
+              { label: "Departing", icon: InformationCircleIcon },
+              { label: "Return", icon: AirplaneTakeOff01Icon },
+            ] as { label: string; icon: any }[]
+          ).map(({ label, icon }) => (
+            <button
+              key={label}
+              className="flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] w-[30%] relative text-gray-400 font-semibold cursor-default"
+            >
+              <HugeiconsIcon icon={icon} size={15} strokeWidth={1.5} />
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       {/* Tab: Info */}
       {activeTab === "Info" && (
         <div className="flex-1 flex flex-col px-5 pt-4 pb-6 gap-4 relative z-10">
