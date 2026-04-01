@@ -36,6 +36,7 @@ import {
   Alert01Icon,
    TrafficLightIcon,
    Directions02Icon,
+   AirplaneSeatIcon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
