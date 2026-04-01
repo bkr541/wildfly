@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import { Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -653,40 +653,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       </AlertDialog>
 
       <AlertDialog open={showLoginError} onOpenChange={setShowLoginError}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-3 text-center gap-0">
-          {/* OOPS! split-flap tiles */}
-          <div className="flex items-center gap-1 w-full">
-            {(["O","O","P","S","!","_","_","_","_"] as const).map((char, i) => {
-              const isBlank = char === "_";
-              const isRed = char === "!";
-              return (
-                <div
-                  key={i}
-                  className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
-                  style={{
-                    height: 38,
-                    background: isRed
-                      ? "linear-gradient(135deg,#FCA5A5 0%,#F87171 50%,#EF4444 100%)"
-                      : "#e8eaed",
-                    borderColor: isRed ? "#DC2626" : "#d1d5db",
-                    opacity: isBlank ? 0.45 : 1,
-                  }}
-                >
-                  <div className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10" style={{ background: isRed ? "#B91C1Caa" : "#b0b5bdaa" }} />
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20" style={{ background: isRed ? "#fecaca" : "#e8eaed", borderColor: isRed ? "#DC2626" : "#d1d5db" }} />
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-1.5 h-1.5 rounded-full border z-20" style={{ background: isRed ? "#fecaca" : "#e8eaed", borderColor: isRed ? "#DC2626" : "#d1d5db" }} />
-                  {!isBlank && (
-                    <span className="font-black text-base leading-none select-none" style={{ color: "#1f2937", letterSpacing: "0.04em" }}>
-                      {char}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-xs text-[#6B7B7B] mt-2 mb-0">Credentials didn't match. Please try again.</p>
-          <AlertDialogFooter className="mt-2">
-            <AlertDialogAction onClick={handleTryAgain} className="w-full text-xs py-1.5 bg-[#EF4444]">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <span className="h-8 w-8 rounded-full bg-[#FEE2E2] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={AlertCircleIcon} size={15} color="#EF4444" strokeWidth={1.5} />
+          </span>
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Incorrect Credentials</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
+              Credentials didn't match. Please check your email and password and try again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 mt-1">
+            <AlertDialogAction onClick={handleTryAgain} className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1">
               Try Again
             </AlertDialogAction>
           </AlertDialogFooter>

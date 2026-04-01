@@ -106,7 +106,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "2px 6px 10px" }}>
+            <div style={{ padding: "2px 0 10px" }}>
               {!loading && searches.length === 0 ? (
                 <div
                   className="rounded-2xl px-4 py-5 flex items-center gap-3"
@@ -122,7 +122,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                   <p className="text-sm text-[#9AADAD] font-medium">No recent searches yet</p>
                 </div>
               ) : (
-                <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
+                <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
+                <div className="flex gap-3 pb-1" style={{ padding: "2px 20px 0", scrollSnapType: "x mandatory" }}>
                   {loading
                     ? [1, 2].map((i) => (
                         <div
@@ -255,6 +256,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           </motion.button>
                         );
                       })}
+                </div>
                 </div>
               )}
             </div>

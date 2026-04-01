@@ -29,6 +29,7 @@ import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 interface AccountHubProps {
   onSubScreenChange?: (title: string | null, icon?: any) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
+  devRef?: React.MutableRefObject<(() => void) | null>;
   onNavigate?: (page: string) => void;
   onHomepageConfigChanged?: () => void;
 }
@@ -62,16 +63,13 @@ const screenTitles: Record<string, string> = {
   developer: "Developer Tools",
 };
 
-const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
+const AccountHub = ({ onSubScreenChange, backRef, devRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
 
-  const menuItems: MenuItem[] = [
-    ...baseMenuItems,
-    ...(isDeveloper ? [{ icon: SourceCodeIcon, label: "Developer Tools", desc: "Logs, debug toggles, and admin tools", key: "developer" }] : []),
-  ];
+  const menuItems: MenuItem[] = [...baseMenuItems];
 
   const openScreen = (key: string) => {
     const item = menuItems.find((m) => m.key === key);
@@ -90,6 +88,13 @@ const AccountHub = ({ onSubScreenChange, backRef, onNavigate, onHomepageConfigCh
       if (backRef) backRef.current = null;
     };
   }, [backRef]);
+
+  useEffect(() => {
+    if (devRef && isDeveloper) devRef.current = () => openScreen("developer");
+    return () => {
+      if (devRef) devRef.current = null;
+    };
+  }, [devRef, isDeveloper]);
 
   useEffect(() => {
     const check = async () => {

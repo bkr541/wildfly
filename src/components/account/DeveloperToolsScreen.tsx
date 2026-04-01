@@ -482,18 +482,18 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
 
         {/* Clear Complete Dialog */}
         <AlertDialog open={clearCompleteOpen} onOpenChange={setClearCompleteOpen}>
-          <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 text-center">
+          <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+            <span className="h-8 w-8 rounded-full bg-[#D1FAE5] flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={Tick02Icon} size={15} color="#047857" strokeWidth={1.5} />
+            </span>
             <AlertDialogHeader className="space-y-1">
-              <div className="mx-auto h-12 w-12 rounded-full bg-[#345C5A]/10 flex items-center justify-center mb-2">
-                <HugeiconsIcon icon={Tick02Icon} size={24} color="#345C5A" strokeWidth={1.5} />
-              </div>
-              <AlertDialogTitle className="text-center text-[#2E4A4A]">Clear Complete</AlertDialogTitle>
-              <AlertDialogDescription className="text-center">
+              <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Clear Complete</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-[#6B7B7B]">
                 Your flight search history and cache have been successfully cleared.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="sm:justify-center">
-              <AlertDialogAction onClick={() => setClearCompleteOpen(false)} className="bg-[#345C5A] hover:opacity-90">
+            <AlertDialogFooter className="flex-row gap-2 mt-1">
+              <AlertDialogAction onClick={() => setClearCompleteOpen(false)} className="w-full bg-[#059669] hover:bg-[#047857] text-xs py-1">
                 Done
               </AlertDialogAction>
             </AlertDialogFooter>

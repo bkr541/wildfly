@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogAction,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -651,6 +651,7 @@ function AlertDialogDemo() {
   const [confirmPw, setConfirmPw] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [errorOpen, setErrorOpen] = useState(false);
 
   const handleConfirm = () => {
     if (!confirmPw) { setConfirmError("Please confirm your password"); return; }
@@ -668,6 +669,15 @@ function AlertDialogDemo() {
           onClick={() => { setConfirmPw(""); setConfirmError(null); setOpen(true); }}
         >
           Open Dialog
+        </Button>
+      </StateRow>
+      <StateRow label="Error popup (Cancel + Action)">
+        <Button
+          size="sm"
+          className="bg-[#EF4444] hover:bg-[#DC2626] text-white text-wf-xs"
+          onClick={() => setErrorOpen(true)}
+        >
+          Open Error
         </Button>
       </StateRow>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -696,12 +706,33 @@ function AlertDialogDemo() {
             </div>
             {confirmError && <p className="text-wf-error text-wf-2xs mt-1 font-bold">{confirmError}</p>}
           </div>
-          <AlertDialogFooter className="flex-row gap-2 mt-2">
+          <AlertDialogFooter className="flex-row gap-2 mt-1">
             <AlertDialogAction
               onClick={handleConfirm}
               className="w-full bg-brand hover:bg-brand-mid text-wf-xs py-1"
             >
               Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={errorOpen} onOpenChange={setErrorOpen}>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
+          <span className="h-8 w-8 rounded-full bg-[#FEE2E2] flex items-center justify-center shrink-0">
+            <HugeiconsIcon icon={AlertCircleIcon} size={15} color="#EF4444" strokeWidth={1.5} />
+          </span>
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Incorrect Credentials</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
+              Credentials didn't match. Please check your email and password and try again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 mt-1">
+            <AlertDialogCancel className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]" onClick={() => setErrorOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => setErrorOpen(false)} className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1">
+              Try Again
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -233,7 +233,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 mt-2">
-            <AlertDialogCancel disabled={removing} className="w-full text-xs py-1 mt-0">
+            <AlertDialogCancel disabled={removing} className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

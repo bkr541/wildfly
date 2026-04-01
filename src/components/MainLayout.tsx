@@ -17,7 +17,9 @@ import {
   AddCircleIcon,
   Cancel01Icon,
   ResourcesAddIcon,
+  SourceCodeIcon,
 } from "@hugeicons/core-free-icons";
+import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
@@ -61,6 +63,7 @@ interface MainLayoutProps {
   onSubScreenBack?: () => void;
   currentPage?: string;
   onHomeLayoutSaved?: () => void;
+  onAccountDevPress?: () => void;
 }
 
 const MainLayout = ({
@@ -73,15 +76,25 @@ const MainLayout = ({
   onSubScreenBack,
   currentPage,
   onHomeLayoutSaved,
+  onAccountDevPress,
 }: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [homeLayoutOpen, setHomeLayoutOpen] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("developer_allowlist").select("user_id").eq("user_id", user.id).maybeSingle()
+        .then(({ data }) => { if (data) setIsDeveloper(true); });
+    });
+  }, []);
 
   const handleMenuClick = (label: string) => {
     setDrawerOpen(false);
@@ -326,6 +339,16 @@ const MainLayout = ({
                     </span>
                   );
                 })()}
+
+              {currentPage === "account" && isDeveloper && !subScreenTitle && (
+                <button
+                  type="button"
+                  onClick={onAccountDevPress}
+                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
+                >
+                  <HugeiconsIcon icon={SourceCodeIcon} size={22} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
 
               {(currentPage === "home" || currentPage === "friends") && (
                 <div className="flex items-center gap-0.5 ml-auto">

@@ -1060,11 +1060,9 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <div className="z-10 bg-[#E8EBEB] px-2.5 py-0.5 rounded-full border border-[#C8D5D5]">
-                                 <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
-                                   {h12} {ampm}
-                                 </span>
-                               </div>
+                              <span className="z-10 bg-[#F1F5F5] px-2 text-[11px] font-semibold text-[#6B7B7B] leading-tight">
+                                {h12} {ampm}
+                              </span>
                             </div>
                           );
                         }
@@ -1079,7 +1077,10 @@ const FlightDestResults = ({
 
                         // Derive cheapest fare and Frontier booking URL
                         const isGoWild = isGoWildFlight(flight);
-                        const goWildSeats = (flight as any).rawPayload?.fares?.go_wild?.availableSeats ?? null;
+                        const goWildSeats = (flight as any).rawPayload?.fares?.go_wild?.availableSeats
+                          ?? (flight as any).rawPayload?.fares?.go_wild?.available_seats
+                          ?? null;
+                        const seatColor = goWildSeats == null ? "#047857" : goWildSeats > 10 ? "#496F5D" : goWildSeats >= 5 ? "#EE9F0B" : "#A01818";
                         const cheapest = [
                           flight.fares.basic,
                           flight.fares.economy,
@@ -1154,8 +1155,8 @@ const FlightDestResults = ({
                                     <div className="flex items-center gap-1">
                                       {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isGoWild && goWildSeats != null && (
-                                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: "#047857" }}>
-                                          <HugeiconsIcon icon={SeatSelectorIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: seatColor }}>
+                                          <HugeiconsIcon icon={AirplaneSeatIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
                                           {goWildSeats}
                                         </span>
                                       )}
@@ -1223,12 +1224,12 @@ const FlightDestResults = ({
                                          <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#059669", color: "#FFFFFF" }}>
                                            <HugeiconsIcon icon={Rocket01Icon} size={10} color="#FFFFFF" strokeWidth={2.5} />
                                            GoWild
-                                           {goWildSeats != null && (
-                                             <span className="inline-flex items-center gap-0.5 ml-1 rounded-full bg-white/20 px-1.5 py-px text-[10px] font-bold">
-                                               <HugeiconsIcon icon={SeatSelectorIcon} size={9} color="#FFFFFF" strokeWidth={2.5} />
-                                               {goWildSeats}
-                                             </span>
-                                           )}
+                                         </span>
+                                       )}
+                                       {isGoWild && goWildSeats != null && (
+                                         <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: seatColor, color: "#FFFFFF" }}>
+                                           <HugeiconsIcon icon={AirplaneSeatIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                           {goWildSeats} seats
                                          </span>
                                        )}
                                        {isCheapest && (
@@ -1571,21 +1572,22 @@ const FlightDestResults = ({
         <div className="fixed inset-0 z-[10000] flex items-center justify-center px-5" onClick={() => setBookingConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
           <div
-            className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl px-6 pt-6 pb-5 flex flex-col gap-3"
+            className="relative w-full max-w-xs bg-white rounded-xl shadow-2xl p-4 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-             <h2 className="text-[17px] font-bold text-[#1A2E2E] uppercase flex items-center gap-2">
-               <HugeiconsIcon icon={Directions02Icon} size={20} color="#1A2E2E" strokeWidth={2} />
-               Redirecting to Frontier
-             </h2>
-            <p className="text-[13px] text-[#4B5563] leading-relaxed">
-              Continuing will take you to flyfrontier.com to finish your booking, as well as add this flight to your itinerary. Do you want to continue?
-            </p>
-            <div className="flex gap-3 mt-1">
+            <span className="h-8 w-8 rounded-full bg-[#D1FAE5] flex items-center justify-center shrink-0 mb-2">
+              <HugeiconsIcon icon={Directions02Icon} size={15} color="#047857" strokeWidth={1.5} />
+            </span>
+            <div className="flex flex-col gap-y-1 mb-1">
+              <h2 className="text-lg font-bold text-[#2E4A4A]">Redirecting to Frontier</h2>
+              <p className="text-xs text-[#6B7B7B]">
+                Continuing will take you to flyfrontier.com to finish your booking, as well as add this flight to your itinerary. Do you want to continue?
+              </p>
+            </div>
+            <div className="flex gap-2 mt-1">
               <button
                 onClick={() => setBookingConfirm(null)}
-                className="flex-1 py-2.5 rounded-full text-sm font-semibold text-[#2E4A4A] border border-[#D1D5DB] transition-all hover:bg-[#F4F8F8]"
-                style={{ background: "rgba(0,0,0,0.07)" }}
+                className="w-full text-xs py-1 rounded-md font-semibold bg-white text-[#4B5563] border border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A] transition-colors"
               >
                 Back
               </button>
@@ -1595,7 +1597,7 @@ const FlightDestResults = ({
                   window.open(bookingConfirm.url, "_blank", "noopener,noreferrer");
                   setBookingConfirm(null);
                 }}
-                className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90"
+                className="w-full text-xs py-1 rounded-md font-semibold text-white transition-all hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
               >
                 Continue
