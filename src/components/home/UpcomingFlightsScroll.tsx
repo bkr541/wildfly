@@ -223,12 +223,12 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
 
       {/* Remove confirmation dialog */}
       <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#FEE2E2] flex items-center justify-center shadow-sm">
-            <HugeiconsIcon icon={Delete02Icon} size={18} color="#EF4444" strokeWidth={1.5} />
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={Delete02Icon} size={22} color="#EF4444" strokeWidth={1.5} />
           </div>
           <AlertDialogHeader className="space-y-1 text-center">
-            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
               Removing {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">

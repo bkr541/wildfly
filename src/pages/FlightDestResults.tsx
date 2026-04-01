@@ -1581,14 +1581,14 @@ const FlightDestResults = ({
         <div className="fixed inset-0 z-[10000] flex items-center justify-center px-5" onClick={() => setBookingConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
           <div
-            className="relative w-full max-w-xs bg-white rounded-xl shadow-2xl p-4 pt-10 flex flex-col items-center overflow-visible"
+            className="relative w-full max-w-xs bg-white rounded-xl shadow-lg p-4 pt-10 flex flex-col items-center overflow-visible border border-[#047857]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-[#D1FAE5] flex items-center justify-center shadow-sm">
-              <HugeiconsIcon icon={Directions02Icon} size={18} color="#047857" strokeWidth={1.5} />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#D1FAE5] border-2 border-[#047857] flex items-center justify-center shadow-sm">
+              <HugeiconsIcon icon={Directions02Icon} size={22} color="#047857" strokeWidth={1.5} />
             </div>
             <div className="flex flex-col gap-y-1 mb-1 text-center">
-              <h2 className="text-lg font-bold text-[#2E4A4A]">Redirecting to Frontier</h2>
+              <h2 className="text-lg font-bold text-[#047857]">Redirecting to Frontier</h2>
               <p className="text-xs text-[#6B7B7B]">
                 Continuing will take you to flyfrontier.com to finish your booking, as well as add this flight to your itinerary. Do you want to continue?
               </p>
@@ -1596,7 +1596,7 @@ const FlightDestResults = ({
             <div className="flex gap-2 mt-3 w-full">
               <button
                 onClick={() => setBookingConfirm(null)}
-                className="w-full text-xs py-1 rounded-md font-semibold bg-white text-[#4B5563] border border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A] transition-colors"
+                className="w-full h-10 rounded-md text-sm font-medium bg-white text-[#4B5563] border border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A] transition-colors"
               >
                 Back
               </button>
@@ -1606,7 +1606,7 @@ const FlightDestResults = ({
                   window.open(bookingConfirm.url, "_blank", "noopener,noreferrer");
                   setBookingConfirm(null);
                 }}
-                className="w-full text-xs py-1 rounded-md font-semibold text-white transition-all hover:opacity-90"
+                className="w-full h-10 rounded-md text-sm font-medium text-white transition-all hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
               >
                 Continue
