@@ -424,30 +424,46 @@ const FlightDestResults = ({
     [userFlights, flightKey, showToast],
   );
 
-  const { flights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache } = useMemo(() => {
+  const { oneWayFlights, outboundFlights, returnFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache, isRoundTrip } = useMemo(() => {
     try {
       const parsed = JSON.parse(responseData);
+      const tt = parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way";
+      const outbound = (parsed.response?.outboundFlights ?? []) as ParsedFlight[];
+      const ret = (parsed.response?.returnFlights ?? []) as ParsedFlight[];
+      const oneWay = (parsed.response?.flights ?? []) as ParsedFlight[];
+      const round = outbound.length > 0 || ret.length > 0 || tt.toLowerCase().includes("round");
       return {
-        flights: (parsed.response?.flights ?? []) as ParsedFlight[],
+        oneWayFlights: oneWay,
+        outboundFlights: outbound,
+        returnFlights: ret,
         departureDate: parsed.departureDate ?? null,
         arrivalDate: parsed.arrivalDate ?? null,
-        tripType: parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way",
+        tripType: tt,
         departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
         arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "",
         fromCache: parsed.fromCache === true,
+        isRoundTrip: round,
       };
     } catch {
       return {
-        flights: [],
+        oneWayFlights: [] as ParsedFlight[],
+        outboundFlights: [] as ParsedFlight[],
+        returnFlights: [] as ParsedFlight[],
         departureDate: null,
         arrivalDate: null,
         tripType: "One Way",
         departureAirport: "",
         arrivalAirport: "All",
         fromCache: false,
+        isRoundTrip: false,
       };
     }
   }, [responseData]);
+
+  const activeFlights = useMemo(() => {
+    if (!isRoundTrip) return oneWayFlights;
+    return legTab === "Departing" ? outboundFlights : returnFlights;
+  }, [isRoundTrip, legTab, oneWayFlights, outboundFlights, returnFlights]);
 
   const destinationCodes = useMemo(() => {
     const codes = new Set<string>();
