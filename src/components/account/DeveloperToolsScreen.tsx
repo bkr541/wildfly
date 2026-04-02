@@ -72,19 +72,21 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
     setGowilderTokenLoading(true);
     try {
       // Try to update the existing global row first
+      // Try update existing row first
       const { data: updated, error: updateErr } = await supabase
         .from("app_config")
         .update({ config_value: gowilderToken } as any)
-        .is("user_id", null)
         .eq("config_key", "gowilder_token")
         .select("id");
       if (updateErr) throw updateErr;
 
-      // If no row existed yet, insert it
+      // If no row existed yet, insert with user's own id (user_id is NOT NULL)
       if (!updated || updated.length === 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
         const { error: insertErr } = await supabase
           .from("app_config")
-          .insert({ user_id: null, config_key: "gowilder_token", config_value: gowilderToken } as any);
+          .insert({ user_id: user.id, config_key: "gowilder_token", config_value: gowilderToken } as any);
         if (insertErr) throw insertErr;
       }
 
