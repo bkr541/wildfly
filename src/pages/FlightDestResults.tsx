@@ -28,6 +28,7 @@ import {
   FilterIcon,
   SortByDown02Icon,
   CheckmarkCircle02Icon,
+  SchoolBell02Icon,
   DollarCircleIcon,
   AirplaneTakeOff02Icon,
   Clock01Icon,
@@ -313,10 +314,10 @@ const FlightDestResults = ({
 
   // user_flights tracking
   const [userFlights, setUserFlights] = useState<Record<string, { id: string; type: string }>>({});
-  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
+  const [toast, setToast] = useState<{ message: string; visible: boolean; type: "alert" | "going" | null }>({ message: "", visible: false, type: null });
 
-  const showToast = useCallback((message: string) => {
-    setToast({ message, visible: true });
+  const showToast = useCallback((message: string, type: "alert" | "going" | null = null) => {
+    setToast({ message, visible: true, type });
     setTimeout(() => setToast((t) => ({ ...t, visible: false })), 1800);
   }, []);
 
@@ -398,7 +399,7 @@ const FlightDestResults = ({
           delete next[key];
           return next;
         });
-        showToast(type === "alert" ? "Alerts turned off" : "Not going");
+        showToast(type === "alert" ? "Alerts turned off" : "Not going", type);
       } else {
         const dep = flight.legs[0];
         const arr = flight.legs[flight.legs.length - 1];
@@ -417,7 +418,7 @@ const FlightDestResults = ({
           .single()) as any;
         if (inserted) {
           setUserFlights((prev) => ({ ...prev, [key]: { id: inserted.id, type } }));
-          showToast(type === "alert" ? "Alert set!" : "You're going! 🎉");
+          showToast(type === "alert" ? "Alert set!" : "You're going! 🎉", type);
         }
       }
     },
@@ -962,8 +963,9 @@ const FlightDestResults = ({
             return (
               <div className="flex items-center bg-white border-b border-gray-200 px-3 -mx-4 -mt-3">
                 {/* Left: count — takes up remaining space */}
-                <span className="flex-1 text-[15px] font-semibold text-[#2E4A4A] py-3.5">
-                  {displayCount} Flights
+                <span className="flex-1 py-3.5">
+                  <span className="text-[22px] font-black text-[#059669]">{displayCount}</span>
+                  <span className="text-[15px] font-semibold text-[#2E4A4A] ml-1.5">Flights</span>
                 </span>
                 {/* Right: Sort + Filter tab-style buttons */}
                 <button
@@ -1158,19 +1160,29 @@ const FlightDestResults = ({
                           >
                             {(hasAlert || hasGoing) && (
                               <div className="absolute top-[8px] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                                <div className="h-9 w-9 rounded-full bg-[#059669] flex items-center justify-center shadow-md border-2 border-white">
-                                  <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="white" strokeWidth={1.5} />
+                                <div
+                                  className="h-9 w-9 rounded-full flex items-center justify-center shadow-md border-2 border-white"
+                                  style={{ background: hasAlert && !hasGoing ? "#E89830" : "#059669" }}
+                                >
+                                  <HugeiconsIcon
+                                    icon={hasAlert && !hasGoing ? SchoolBell02Icon : CheckmarkCircle02Icon}
+                                    size={20}
+                                    color="white"
+                                    strokeWidth={1.5}
+                                  />
                                 </div>
                               </div>
                             )}
                             <div
                               className={cn(
                                 "flex flex-col rounded-2xl overflow-hidden transition-all duration-200 w-full",
-                                hasAlert || hasGoing
-                                  ? "bg-[#A7F3D0] border border-[#059669]"
+                                hasGoing
+                                  ? "bg-white border-[3px] border-[#059669]"
+                                  : hasAlert
+                                  ? "bg-white border-[3px] border-[#E89830]"
                                   : isGoWild ? "bg-white border border-[#059669]" : isFlightOpen ? "bg-white border border-[#345C5A]/20" : "bg-white border border-[#E8EBEB]",
                               )}
-                              style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+                              style={{ boxShadow: hasAlert && !hasGoing ? "0 2px 16px 0 rgba(232,152,48,0.25)" : "0 2px 12px 0 rgba(53,92,90,0.10)" }}
                             >
                               {/* Collapsed / main card content — NOT a button, click only via Show Details */}
                               <div className="text-left w-full px-4 pt-3.5 pb-2">
@@ -1191,13 +1203,13 @@ const FlightDestResults = ({
                                   {/* Badge icons — one per active badge */}
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
-                                      {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isGoWild && goWildSeats != null && (
                                         <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: seatColor }}>
                                           <HugeiconsIcon icon={AirplaneSeatIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
                                           {goWildSeats}
                                         </span>
                                       )}
+                                      {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isCheapest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                       {isQuickest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2.5} /></span>}
                                       {isBlackout && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
@@ -1208,10 +1220,10 @@ const FlightDestResults = ({
                                 </div>
 
                                   {/* Rows 2+3: single 3-col grid — lines stretch to timestamps, chip aligns under plane */}
-                                  <div className="grid grid-cols-[1fr_auto_1fr] gap-y-1 mb-2">
+                                  <div className="grid grid-cols-[1fr_auto_1fr] gap-y-1 mb-1">
                                     {/* Row 1 left: dep time + line */}
                                     <div className="flex items-center gap-1">
-                                      <span className="text-[17px] font-bold text-[#1a2e2e] leading-none tabular-nums">{formatTime(depLeg?.departure_time)}</span>
+                                      <span className="text-[20px] font-bold text-[#1a2e2e] leading-none tabular-nums">{formatTime(depLeg?.departure_time)}</span>
                                       <div className="flex-1 h-px bg-[#C8D5D5]" />
                                     </div>
                                     {/* Row 1 center: plane icon */}
@@ -1222,7 +1234,7 @@ const FlightDestResults = ({
                                     {/* Row 1 right: line + arr time */}
                                     <div className="flex items-center gap-1">
                                       <div className="flex-1 h-px bg-[#C8D5D5]" />
-                                      <span className="text-[17px] font-bold text-[#1a2e2e] leading-none tabular-nums">{formatTime(arrLeg?.arrival_time)}</span>
+                                      <span className="text-[20px] font-bold text-[#1a2e2e] leading-none tabular-nums">{formatTime(arrLeg?.arrival_time)}</span>
                                     </div>
                                     {/* Row 2 left: origin city */}
                                     <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">{originCity}</span>
@@ -1242,7 +1254,7 @@ const FlightDestResults = ({
                                     const card = (e.currentTarget as HTMLElement).closest("[data-flight-card]") as HTMLElement | null;
                                     if (card) setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                                   }}
-                                  className={cn("w-full flex items-center justify-center gap-1 py-2 text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
+                                  className={cn("w-full flex items-center justify-center gap-1 pt-1 pb-3.5 text-[12px] font-semibold transition-colors", isGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]")}
                                 >
                                   Show Details
                                   <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
@@ -1466,11 +1478,23 @@ const FlightDestResults = ({
       {/* Toast popup */}
       <div
         className={cn(
-          "fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-[#2E4A4A] text-white text-sm font-bold shadow-lg transition-all duration-300 pointer-events-none",
+          `fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center justify-center gap-3 px-8 py-6 rounded-3xl border pointer-events-none transition-all duration-300 ${toast.type === "alert" ? "bg-[#EEB264] border-[#D79E58]" : "bg-[#44B08F] border-[#439A81]"}`,
           toast.visible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95",
         )}
+        style={{ boxShadow: "0 8px 32px 0 rgba(53,92,90,0.18)", minWidth: 240 }}
       >
-        {toast.message}
+        <div
+          className="h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: "rgba(255,255,255,0.25)" }}
+        >
+          <HugeiconsIcon
+            icon={toast.type === "alert" ? SchoolBell02Icon : CheckmarkCircle02Icon}
+            size={24}
+            color="white"
+            strokeWidth={1.8}
+          />
+        </div>
+        <span className="text-base font-bold text-white whitespace-nowrap">{toast.message}</span>
       </div>
 
       {/* ── Sort Sheet ──────────────────────────────────────── */}
