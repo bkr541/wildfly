@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon, AlertCircleIcon, PasswordValidationIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -622,10 +622,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       {/* --- ALL ALERT DIALOGS --- */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
-          <AlertDialogHeader className="space-y-1">
-            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A]">Confirm Password</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#047857]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#D1FAE5] border-2 border-[#047857] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={PasswordValidationIcon} size={22} color="#047857" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#047857] text-center">Confirm Password</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
               Re-enter your password to finish.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -644,7 +647,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           <AlertDialogFooter className="flex-row gap-2 mt-2">
             <AlertDialogAction
               onClick={handleConfirmSignUp}
-              className="w-full bg-[#10B981] hover:bg-[#059669] text-xs py-1"
+              className="w-full bg-[#047857] hover:bg-[#065F46] text-xs py-1"
             >
               Confirm
             </AlertDialogAction>
