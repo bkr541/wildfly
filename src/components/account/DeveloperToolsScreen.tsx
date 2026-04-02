@@ -58,8 +58,8 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
       const { data } = await supabase
         .from("app_config")
         .select("config_value")
-        .is("user_id", null)
         .eq("config_key", "gowilder_token")
+        .limit(1)
         .maybeSingle();
       if (data) {
         setGowilderToken(data.config_value);
