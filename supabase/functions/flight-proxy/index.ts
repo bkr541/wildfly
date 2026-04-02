@@ -41,8 +41,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = user.id;
-
     // Parse the request body
     const body = await req.json();
     const { path, method, params, payload } = body as {
@@ -62,26 +60,39 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Admin client – bypasses RLS to read app_config
+    // Admin client – bypasses RLS to read global app_config
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: configRow, error: configError } = await adminClient
       .from("app_config")
       .select("config_value")
       .eq("config_key", "gowilder_token")
-      .eq("user_id", userId)
-      .single();
+      .is("user_id", null)
+      .maybeSingle();
 
-    if (configError || !configRow?.config_value) {
+    if (configError) {
+      console.error("[flight-proxy] gowilder_token lookup failed:", configError.message);
       return new Response(
-        JSON.stringify({ error: "Missing gowilder_token in app_config" }),
+        JSON.stringify({ error: "Failed to load gowilder_token from app_config" }),
         {
-          status: 400,
+          status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
+    if (!configRow?.config_value) {
+      console.error("[flight-proxy] gowilder_token is missing or empty in app_config");
+      return new Response(
+        JSON.stringify({ error: "gowilder_token is not configured in app_config" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("[flight-proxy] gowilder_token lookup ok");
     const gowilderToken = configRow.config_value;
 
     // Build upstream request
@@ -103,8 +114,13 @@ Deno.serve(async (req) => {
       fetchOptions.body = JSON.stringify(payload ?? {});
     }
 
+    console.log(`[flight-proxy] scraper request start: ${method} ${url}`);
     const upstream = await fetch(url, fetchOptions);
     const responseData = await upstream.json();
+
+    if (!upstream.ok) {
+      console.error(`[flight-proxy] scraper request failed: ${upstream.status} ${method} ${path}`);
+    }
 
     return new Response(JSON.stringify(responseData), {
       status: upstream.status,

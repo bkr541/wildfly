@@ -55,12 +55,10 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   // Load GoWilder token on mount
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
       const { data } = await supabase
         .from("app_config")
         .select("config_value")
-        .eq("user_id", user.id)
+        .is("user_id", null)
         .eq("config_key", "gowilder_token")
         .maybeSingle();
       if (data) {
@@ -73,15 +71,23 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const saveGowilderToken = async () => {
     setGowilderTokenLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("Not authenticated"); return; }
-      const { error } = await supabase
+      // Try to update the existing global row first
+      const { data: updated, error: updateErr } = await supabase
         .from("app_config")
-        .upsert(
-          { user_id: user.id, config_key: "gowilder_token", config_value: gowilderToken },
-          { onConflict: "user_id,config_key" }
-        );
-      if (error) throw error;
+        .update({ config_value: gowilderToken } as any)
+        .is("user_id", null)
+        .eq("config_key", "gowilder_token")
+        .select("id");
+      if (updateErr) throw updateErr;
+
+      // If no row existed yet, insert it
+      if (!updated || updated.length === 0) {
+        const { error: insertErr } = await supabase
+          .from("app_config")
+          .insert({ user_id: null, config_key: "gowilder_token", config_value: gowilderToken } as any);
+        if (insertErr) throw insertErr;
+      }
+
       setGowilderTokenSaved(gowilderToken);
       toast.success("GoWilder Token saved");
     } catch (err: any) {
@@ -94,12 +100,10 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   const deleteGowilderToken = async () => {
     setGowilderTokenLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("Not authenticated"); return; }
       const { error } = await supabase
         .from("app_config")
         .delete()
-        .eq("user_id", user.id)
+        .is("user_id", null)
         .eq("config_key", "gowilder_token");
       if (error) throw error;
       setGowilderToken("");

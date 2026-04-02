@@ -145,7 +145,7 @@ export type Database = {
           created_at: string
           id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           config_key: string
@@ -153,7 +153,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           config_key?: string
@@ -161,7 +161,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
