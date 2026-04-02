@@ -1,51 +1,27 @@
 
 
-## Plan: Fix round-trip parsing + build error
+## Plan: Fix off-by-one date display in FlightDestResults
 
-### What's broken
-1. **`FlightDestResults.tsx`** only reads `parsed.response.flights` — round-trip payloads have `outboundFlights` and `returnFlights` instead, so round-trip results show empty.
-2. **Departing/Return tabs** are static (no click handler, no state) — they need to toggle which flight array is displayed.
-3. **Build error** in `flight-proxy/index.ts` line 115: `err` is typed `unknown` — needs `(err as Error).message`.
+### Root cause
 
-### Changes
+`departureDate` is a plain date string like `"2025-04-17"`. When passed to `new Date("2025-04-17")`, JavaScript parses it as **UTC midnight**. In any US timezone, that's the **previous evening** (April 16th), so `toLocaleDateString` shows "Thu, Apr 16" instead of "Fri, Apr 17".
 
-**File 1: `supabase/functions/flight-proxy/index.ts`**
-- Line 115: cast `err` to `Error` → `(err as Error).message`
+This is the classic JS date-string timezone pitfall.
 
-**File 2: `src/pages/FlightDestResults.tsx`**
+### Fix
 
-1. **Add state** for the leg tab:
-   ```ts
-   const [legTab, setLegTab] = useState<"Departing" | "Return">("Departing");
-   ```
+**File: `src/pages/FlightDestResults.tsx`**
 
-2. **Update the `useMemo` at ~line 426** to also extract `outboundFlights` and `returnFlights`:
-   ```ts
-   const outboundFlights = (parsed.response?.outboundFlights ?? []) as ParsedFlight[];
-   const returnFlights = (parsed.response?.returnFlights ?? []) as ParsedFlight[];
-   const flights = (parsed.response?.flights ?? []) as ParsedFlight[];
-   ```
+Every place that does `new Date(departureDate)` or `new Date(arrivalDate)` for display needs to either:
+- Append `T12:00:00` to force a noon local parse, or
+- Pass `{ timeZone: "UTC" }` to `toLocaleDateString`
 
-3. **Derive `isRoundTrip`** from tripType or presence of outbound/return arrays.
+The simplest and safest fix: add `timeZone: "UTC"` to the `toLocaleDateString` options wherever these date-only strings are displayed. There are at least two spots:
 
-4. **Derive `activeFlights`**:
-   ```ts
-   const activeFlights = isRoundTrip
-     ? (legTab === "Departing" ? outboundFlights : returnFlights)
-     : flights;
-   ```
-
-5. **Make the Departing/Return tab row functional**: add `onClick` handlers that call `setLegTab`, apply active styling, and **only show this row for round-trip**.
-
-6. **Replace all downstream usages of `flights`** with `activeFlights` in:
-   - `groups` memo (line ~507)
-   - `destinationCodes` memo (line ~451)
-   - Info tab stats (line ~882)
-   - Header counts
-   - Any other reference to the `flights` array
-
-7. **Date handling**: when `legTab === "Return"`, use `arrivalDate` as the contextual date for `buildFullDateTime` and display purposes.
+1. **Line ~781** (hero pill): `new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })` — add `timeZone: "UTC"`
+2. **Line ~932** (Info tab): `{departureDate}` raw string display — this one shows the raw `yyyy-MM-dd` string so it's correct, but if it were also formatted, same fix applies
+3. Any other `new Date(departureDate)` or `new Date(arrivalDate)` used for display
 
 ### Scope
-Only two files touched. No new dependencies.
+Single file, single-line fix per occurrence. No logic changes.
 

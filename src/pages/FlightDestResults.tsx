@@ -779,7 +779,7 @@ const FlightDestResults = ({
                       >
                         <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
                         <span className="text-[#065F46] text-xs font-semibold leading-none">
-                          {new Date(departureDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                          {new Date(departureDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
                         </span>
                       </div>
                     )}
