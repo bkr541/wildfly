@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { ChevronDown } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
@@ -8,9 +9,11 @@ import {
   Timer02Icon,
   Calendar03Icon,
   Airplane01Icon,
+  Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import StaticRouteMapBase from "@/components/StaticRouteMapBase";
+import RouteMapCard from "@/components/RouteMapCard";
 
 interface UserFlight {
   id: string;
@@ -83,21 +86,31 @@ const FlightDetails = ({ flight, onBack }: Props) => {
   // SVG route overlay above the gradient in perfect map alignment.
   const [depPx, setDepPx] = useState<{ x: number; y: number } | null>(null);
   const [arrPx, setArrPx] = useState<{ x: number; y: number } | null>(null);
+  const [flightDetailsOpen, setFlightDetailsOpen] = useState(true);
+  const [savedInfoOpen, setSavedInfoOpen] = useState(true);
+  const [routeMapOpen, setRouteMapOpen] = useState(false);
+  const [depCity, setDepCity] = useState<string | undefined>(undefined);
+  const [arrCity, setArrCity] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, latitude, longitude")
+        .select("iata_code, latitude, longitude, locations(city)")
         .in("iata_code", [flight.departure_airport, flight.arrival_airport]);
       if (!data) return;
-      const map: Record<string, { lat: number; lng: number }> = {};
+      const coordMap: Record<string, { lat: number; lng: number }> = {};
+      const cityMap: Record<string, string> = {};
       for (const row of data as any[]) {
         if (row.latitude != null && row.longitude != null)
-          map[row.iata_code] = { lat: row.latitude, lng: row.longitude };
+          coordMap[row.iata_code] = { lat: row.latitude, lng: row.longitude };
+        if (row.locations?.city)
+          cityMap[row.iata_code] = row.locations.city;
       }
-      setDepCoords(map[flight.departure_airport] ?? null);
-      setArrCoords(map[flight.arrival_airport] ?? null);
+      setDepCoords(coordMap[flight.departure_airport] ?? null);
+      setArrCoords(coordMap[flight.arrival_airport] ?? null);
+      setDepCity(cityMap[flight.departure_airport]);
+      setArrCity(cityMap[flight.arrival_airport]);
     })();
   }, [flight.departure_airport, flight.arrival_airport]);
 
@@ -282,54 +295,89 @@ const FlightDetails = ({ flight, onBack }: Props) => {
           {/* Flight details card */}
           {(flightNumber || aircraft || confirmationCode || terminal || gate || flight.type) && (
             <div
-              className="rounded-2xl bg-white border border-[#E8EBEB] p-4"
+              className="rounded-2xl bg-white border border-[#E8EBEB] overflow-hidden"
               style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
             >
-              <div className="flex items-center gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setFlightDetailsOpen((o) => !o)}
+                className="w-full flex items-center gap-2 p-4 text-left"
+              >
                 <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg,#059669 0%,#10b981 100%)" }}>
                   <HugeiconsIcon icon={Airplane01Icon} size={13} color="white" strokeWidth={2} />
                 </div>
-                <h3 className="text-[13px] font-bold text-[#2E4A4A] uppercase tracking-widest">Flight Details</h3>
-              </div>
+                <h3 className="flex-1 text-[13px] font-bold text-[#2E4A4A] uppercase tracking-widest">Flight Details</h3>
+                <ChevronDown size={16} strokeWidth={2.5} className="text-[#9AADAD] transition-transform duration-200" style={{ transform: flightDetailsOpen ? "rotate(0deg)" : "rotate(-90deg)" }} />
+              </button>
 
-              <div className="flex flex-col gap-2.5">
-                {flightNumber && (
-                  <Row label="Flight Number" value={flightNumber} />
-                )}
-                {flight.type && (
-                  <Row label="Trip Type" value={flight.type} />
-                )}
-                {aircraft && (
-                  <Row label="Aircraft" value={aircraft} />
-                )}
-                {terminal && (
-                  <Row label="Terminal" value={terminal} />
-                )}
-                {gate && (
-                  <Row label="Gate" value={gate} />
-                )}
-                {confirmationCode && (
-                  <Row label="Confirmation" value={confirmationCode} />
-                )}
-              </div>
+              {flightDetailsOpen && (
+                <div className="flex flex-col gap-2.5 px-4 pb-4">
+                  {flightNumber && <Row label="Flight Number" value={flightNumber} />}
+                  {flight.type && <Row label="Trip Type" value={flight.type} />}
+                  {aircraft && <Row label="Aircraft" value={aircraft} />}
+                  {terminal && <Row label="Terminal" value={terminal} />}
+                  {gate && <Row label="Gate" value={gate} />}
+                  {confirmationCode && <Row label="Confirmation" value={confirmationCode} />}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Route Map card */}
+          {depCoords && arrCoords && (
+            <div
+              className="rounded-2xl bg-white border border-[#E8EBEB] overflow-hidden"
+              style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
+            >
+              <button
+                type="button"
+                onClick={() => setRouteMapOpen((o) => !o)}
+                className="w-full flex items-center gap-2 p-4 text-left"
+              >
+                <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg,#059669 0%,#10b981 100%)" }}>
+                  <HugeiconsIcon icon={Location01Icon} size={13} color="white" strokeWidth={2} />
+                </div>
+                <h3 className="flex-1 text-[13px] font-bold text-[#2E4A4A] uppercase tracking-widest">Route Map</h3>
+                <ChevronDown size={16} strokeWidth={2.5} className="text-[#9AADAD] transition-transform duration-200" style={{ transform: routeMapOpen ? "rotate(0deg)" : "rotate(-90deg)" }} />
+              </button>
+
+              {routeMapOpen && (
+                <div className="px-3 pb-3">
+                  <RouteMapCard
+                    depLatLng={[depCoords.lat, depCoords.lng]}
+                    arrLatLng={[arrCoords.lat, arrCoords.lng]}
+                    depIata={flight.departure_airport}
+                    arrIata={flight.arrival_airport}
+                    depCity={depCity}
+                    arrCity={arrCity}
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {/* Added date card */}
           <div
-            className="rounded-2xl bg-white border border-[#E8EBEB] p-4"
+            className="rounded-2xl bg-white border border-[#E8EBEB] overflow-hidden"
             style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)" }}
           >
-            <div className="flex items-center gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => setSavedInfoOpen((o) => !o)}
+              className="w-full flex items-center gap-2 p-4 text-left"
+            >
               <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg,#059669 0%,#10b981 100%)" }}>
                 <HugeiconsIcon icon={Calendar03Icon} size={13} color="white" strokeWidth={2} />
               </div>
-              <h3 className="text-[13px] font-bold text-[#2E4A4A] uppercase tracking-widest">Saved Info</h3>
-            </div>
-            <Row
-              label="Added to itinerary"
-              value={formatDate(flight.created_at)}
-            />
+              <h3 className="flex-1 text-[13px] font-bold text-[#2E4A4A] uppercase tracking-widest">Saved Info</h3>
+              <ChevronDown size={16} strokeWidth={2.5} className="text-[#9AADAD] transition-transform duration-200" style={{ transform: savedInfoOpen ? "rotate(0deg)" : "rotate(-90deg)" }} />
+            </button>
+
+            {savedInfoOpen && (
+              <div className="px-4 pb-4">
+                <Row label="Added to itinerary" value={formatDate(flight.created_at)} />
+              </div>
+            )}
           </div>
         </div>
       </div>
