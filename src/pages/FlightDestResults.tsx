@@ -956,65 +956,50 @@ const FlightDestResults = ({
           {(() => {
             const isFiltered = filterNonstopOnly || filterGoWildOnly || filterDestType !== "all";
             const isSorted = sortBy !== "time";
-            const hasActive = isFiltered || isSorted;
-            const filteredCount = sortedGroups.reduce((sum, g) => sum + g.flights.length, 0);
+            const filterCount = (filterNonstopOnly ? 1 : 0) + (filterGoWildOnly ? 1 : 0) + (filterDestType !== "all" ? 1 : 0);
+            const sortCount = isSorted ? 1 : 0;
+            const displayCount = isFiltered ? sortedGroups.reduce((sum, g) => sum + g.flights.length, 0) : activeFlights.length;
             return (
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                   {/* Left: count */}
-                  <span className="text-[18px] font-semibold text-[#2E4A4A]">
-                    {isFiltered ? (
-                      <>
-                        <span className="text-[#10B981] font-black">{filteredCount}</span>
-                        <span className="text-[#6B7B7B] font-medium"> of </span>
-                        <span className="text-[#2E4A4A] font-black">{activeFlights.length}</span>
-                        <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-[#10B981] font-black">{activeFlights.length}</span>
-                        <span className="text-[#6B7B7B] font-medium"> Available Flights</span>
-                      </>
-                    )}
-                  </span>
-                  {/* Right: icon buttons — gold when active */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSortSheet(true)}
-                      className={cn(
-                        "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isSorted ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
-                      )}
-                      style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
-                    >
-                      <HugeiconsIcon icon={SortByDown02Icon} size={16} color={isSorted ? "#FFD700" : "#6B7B7B"} strokeWidth={1.5} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFilterSheet(true)}
-                      className={cn(
-                        "flex items-center justify-center w-8 h-8 rounded-lg border transition-all",
-                        isFiltered ? "bg-[#10B981] border-[#10B981]" : "border-[#E8EBEB] bg-white hover:bg-[#F4F8F8]",
-                      )}
-                      style={{ boxShadow: "0 1px 4px 0 rgba(53,92,90,0.08)" }}
-                    >
-                      <HugeiconsIcon icon={FilterIcon} size={16} color={isFiltered ? "#FFD700" : "#6B7B7B"} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                </div>
-                {/* Clear-all chip — only when sort or filter is active, no value chips */}
-                {hasActive && (
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => { setSortBy("time"); setFilterNonstopOnly(false); setFilterGoWildOnly(false); setFilterDestType("all"); }}
-                      className="text-[11px] font-semibold text-[#9CA3AF] hover:text-[#EF4444] transition-colors px-2.5 py-1 rounded-full border border-[#E8EBEB] bg-white"
-                    >
-                      Clear all ×
-                    </button>
-                  </div>
-                )}
+              <div className="flex items-center bg-white border-b border-gray-200 px-3 -mx-4 -mt-3">
+                {/* Left: count — takes up remaining space */}
+                <span className="flex-1 text-[15px] font-semibold text-[#2E4A4A] py-3.5">
+                  {displayCount} Flights
+                </span>
+                {/* Right: Sort + Filter tab-style buttons */}
+                <button
+                  type="button"
+                  onClick={() => setSortSheet(true)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] transition-colors relative",
+                    isSorted ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+                  )}
+                >
+                  <HugeiconsIcon icon={SortByDown02Icon} size={15} strokeWidth={isSorted ? 2.5 : 1.5} color={isSorted ? "#10B981" : undefined} />
+                  Sort
+                  {sortCount > 0 && (
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#10B981] text-white text-[10px] font-bold leading-none">
+                      {sortCount}
+                    </span>
+                  )}
+                  {isSorted && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterSheet(true)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] transition-colors relative",
+                    isFiltered ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
+                  )}
+                >
+                  <HugeiconsIcon icon={FilterIcon} size={15} strokeWidth={isFiltered ? 2.5 : 1.5} color={isFiltered ? "#10B981" : undefined} />
+                  Filter
+                  {filterCount > 0 && (
+                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#10B981] text-white text-[10px] font-bold leading-none">
+                      {filterCount}
+                    </span>
+                  )}
+                  {isFiltered && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />}
+                </button>
               </div>
             );
           })()}

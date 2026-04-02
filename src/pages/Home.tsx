@@ -17,6 +17,7 @@ interface UserFlight {
   type: string;
   flight_json: any;
   created_at: string;
+  status: string | null;
 }
 
 interface FlightSearch {
@@ -49,6 +50,7 @@ const COMPONENT_MAP: Record<
     isCollapsed: boolean;
     onToggle: () => void;
     onFlightRemoved?: (flightId: string) => void;
+    onFlightClick?: (flight: UserFlight) => void;
   }) => JSX.Element | null
 > = {
   upcoming_flights: (props) => (
@@ -60,6 +62,7 @@ const COMPONENT_MAP: Record<
       isCollapsed={props.isCollapsed}
       onToggle={props.onToggle}
       onFlightRemoved={props.onFlightRemoved}
+      onFlightClick={props.onFlightClick}
     />
   ),
   recent_searches: (props) => (
@@ -93,9 +96,10 @@ const COMPONENT_MAP: Record<
 interface HomePageProps {
   onNavigate?: (page: string) => void;
   refreshTrigger?: number;
+  onFlightClick?: (flight: UserFlight) => void;
 }
 
-const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
+const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) => {
   const { user } = useAuth();
   const [flights, setFlights] = useState<UserFlight[]>([]);
   const [searches, setSearches] = useState<FlightSearch[]>([]);
@@ -130,6 +134,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           .from("user_flights")
           .select("*")
           .eq("user_id", user.id)
+          .eq("status", "Current")
           .gte("departure_time", new Date().toISOString())
           .order("departure_time", { ascending: true })
           .limit(20),
@@ -186,6 +191,7 @@ const HomePage = ({ onNavigate, refreshTrigger }: HomePageProps) => {
           isCollapsed: !!collapsedSections[item.component_name],
           onToggle: () => toggleSection(item.component_name),
           onFlightRemoved: handleFlightRemoved,
+          onFlightClick,
         });
       })}
     </div>

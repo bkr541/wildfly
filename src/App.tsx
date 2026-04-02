@@ -25,6 +25,7 @@ import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
 import FlightExplorerPage from "./pages/FlightExplorer";
 import DesignSystemPage from "./pages/DesignSystemV2";
+import FlightDetails from "./pages/FlightDetails";
 import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
@@ -37,8 +38,9 @@ const MainApp = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
+  const [selectedFlight, setSelectedFlight] = useState<any>(null);
   /** When true, the flight-results back button returns to flight-multi-results */
   const [flightResultsFromMulti, setFlightResultsFromMulti] = useState(false);
   /** Saved multi-results data to restore when navigating back from single-dest drill-down */
@@ -338,7 +340,7 @@ const MainApp = () => {
               onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
               onAccountDevPress={() => accountDevRef.current?.()}
             >
-              {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} />}
+              {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} onFlightClick={(flight) => { setSelectedFlight(flight); setCurrentPage("flight-details"); }} />}
               {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} devRef={accountDevRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
@@ -352,6 +354,14 @@ const MainApp = () => {
           </ProfileProvider>
         )}
 
+        {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-details" && selectedFlight && (
+          <div className="h-full flex flex-col overflow-hidden">
+            <FlightDetails
+              flight={selectedFlight}
+              onBack={() => { setCurrentPage("home"); setSelectedFlight(null); }}
+            />
+          </div>
+        )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
           <div className="h-full flex flex-col overflow-hidden">
             <FlightDestResults
