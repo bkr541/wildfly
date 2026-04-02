@@ -105,7 +105,6 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
       const { error } = await supabase
         .from("app_config")
         .delete()
-        .is("user_id", null)
         .eq("config_key", "gowilder_token");
       if (error) throw error;
       setGowilderToken("");
