@@ -838,6 +838,7 @@ export type Database = {
           departure_time: string
           flight_json: Json
           id: string
+          status: string | null
           type: string
           user_id: string
         }
@@ -849,6 +850,7 @@ export type Database = {
           departure_time: string
           flight_json: Json
           id?: string
+          status?: string | null
           type: string
           user_id: string
         }
@@ -860,6 +862,7 @@ export type Database = {
           departure_time?: string
           flight_json?: Json
           id?: string
+          status?: string | null
           type?: string
           user_id?: string
         }
