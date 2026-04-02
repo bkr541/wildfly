@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
       .from("app_config")
       .select("config_value")
       .eq("config_key", "gowilder_token")
-      .is("user_id", null)
+      .limit(1)
       .maybeSingle();
 
     if (configError) {
