@@ -25,11 +25,13 @@ import AppearanceScreen from "@/components/account/AppearanceScreen";
 import HelpSupportScreen from "@/components/account/HelpSupportScreen";
 import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
 import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
+import ManageUsersScreen from "@/components/account/ManageUsersScreen";
 
 interface AccountHubProps {
   onSubScreenChange?: (title: string | null, icon?: any) => void;
   backRef?: React.MutableRefObject<(() => void) | null>;
   devRef?: React.MutableRefObject<(() => void) | null>;
+  manageUsersRef?: React.MutableRefObject<(() => void) | null>;
   onNavigate?: (page: string) => void;
   onHomepageConfigChanged?: () => void;
 }
@@ -61,9 +63,10 @@ const screenTitles: Record<string, string> = {
   help: "Help & Support",
   security: "Security & Privacy",
   developer: "Developer Tools",
+  "manage-users": "Manage Users",
 };
 
-const AccountHub = ({ onSubScreenChange, backRef, devRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
+const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavigate, onHomepageConfigChanged }: AccountHubProps) => {
   const { avatarUrl, initials, fullName } = useProfile();
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
@@ -95,6 +98,13 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, onNavigate, onHomepage
       if (devRef) devRef.current = null;
     };
   }, [devRef, isDeveloper]);
+
+  useEffect(() => {
+    if (manageUsersRef && isDeveloper) manageUsersRef.current = () => openScreen("manage-users");
+    return () => {
+      if (manageUsersRef) manageUsersRef.current = null;
+    };
+  }, [manageUsersRef, isDeveloper]);
 
   useEffect(() => {
     const check = async () => {
@@ -135,6 +145,7 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, onNavigate, onHomepage
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
   if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} onNavigate={onNavigate} />;
+  if (activeScreen === "manage-users") return <ManageUsersScreen onBack={handleBack} />;
 
   return (
     <>
