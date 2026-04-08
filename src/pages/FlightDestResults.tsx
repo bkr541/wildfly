@@ -43,6 +43,7 @@ import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
+import { toAirportUTC } from "@/utils/airportTime";
 import { cn } from "@/lib/utils";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
 import { fetchDeveloperSettings } from "@/lib/logSettings";
@@ -131,31 +132,6 @@ function formatDuration(raw: string): string {
   return result.join(" ");
 }
 
-/**
- * Combine a time-only string like "3:08 PM" with a date from responseData
- * to produce a full ISO datetime string (e.g. "2025-03-15T15:08:00").
- */
-function buildFullDateTime(timeStr: string, responseData: string, isArrival = false): string {
-  try {
-    const parsed = JSON.parse(responseData);
-    const dateStr: string | null = isArrival
-      ? (parsed.arrivalDate ?? parsed.departureDate ?? null)
-      : (parsed.departureDate ?? null);
-    if (!dateStr || !timeStr) return timeStr;
-    const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (!m) return timeStr;
-    let h = parseInt(m[1], 10);
-    const min = parseInt(m[2], 10);
-    const ampm = m[3].toUpperCase();
-    if (ampm === "PM" && h !== 12) h += 12;
-    if (ampm === "AM" && h === 12) h = 0;
-    const dt = new Date(`${dateStr}T00:00:00`);
-    dt.setHours(h, min, 0, 0);
-    return dt.toISOString();
-  } catch {
-    return timeStr;
-  }
-}
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -361,6 +337,26 @@ const FlightDestResults = ({
       if (userFlights[key]) return; // already saved, nothing to do
       const dep = flight.legs[0];
       const arr = flight.legs[flight.legs.length - 1];
+
+      // Look up airport timezones so times are stored as correct UTC
+      const iatas = [dep?.origin, arr?.destination].filter(Boolean) as string[];
+      const { data: airportRows } = await (supabase as any)
+        .from("airports")
+        .select("iata_code, timezone")
+        .in("iata_code", iatas);
+      const tzMap: Record<string, string | null> = Object.fromEntries(
+        (airportRows ?? []).map((a: any) => [a.iata_code, a.timezone]),
+      );
+
+      // Fallback dates needed when the time string is "HH:MM AM/PM" with no embedded date
+      let depDate: string | null = null;
+      let arrDate: string | null = null;
+      try {
+        const parsed = JSON.parse(responseData);
+        depDate = parsed.departureDate ?? null;
+        arrDate = parsed.arrivalDate ?? parsed.departureDate ?? null;
+      } catch { /* ignore */ }
+
       const { data: inserted } = (await supabase
         .from("user_flights" as any)
         .insert({
@@ -369,8 +365,8 @@ const FlightDestResults = ({
           flight_json: flight,
           departure_airport: dep?.origin ?? "",
           arrival_airport: arr?.destination ?? "",
-          departure_time: buildFullDateTime(dep?.departure_time ?? "", responseData),
-          arrival_time: buildFullDateTime(arr?.arrival_time ?? "", responseData, true),
+          departure_time: toAirportUTC(dep?.departure_time ?? "", depDate, tzMap[dep?.origin ?? ""] ?? null),
+          arrival_time: toAirportUTC(arr?.arrival_time ?? "", arrDate, tzMap[arr?.destination ?? ""] ?? null),
         } as any)
         .select("id")
         .single()) as any;
@@ -403,6 +399,26 @@ const FlightDestResults = ({
       } else {
         const dep = flight.legs[0];
         const arr = flight.legs[flight.legs.length - 1];
+
+        // Look up airport timezones so times are stored as correct UTC
+        const iatas = [dep?.origin, arr?.destination].filter(Boolean) as string[];
+        const { data: airportRows } = await (supabase as any)
+          .from("airports")
+          .select("iata_code, timezone")
+          .in("iata_code", iatas);
+        const tzMap: Record<string, string | null> = Object.fromEntries(
+          (airportRows ?? []).map((a: any) => [a.iata_code, a.timezone]),
+        );
+
+        // Fallback dates needed when the time string is "HH:MM AM/PM" with no embedded date
+        let depDate: string | null = null;
+        let arrDate: string | null = null;
+        try {
+          const parsed = JSON.parse(responseData);
+          depDate = parsed.departureDate ?? null;
+          arrDate = parsed.arrivalDate ?? parsed.departureDate ?? null;
+        } catch { /* ignore */ }
+
         const { data: inserted } = (await supabase
           .from("user_flights" as any)
           .insert({
@@ -411,8 +427,8 @@ const FlightDestResults = ({
             flight_json: flight,
             departure_airport: dep?.origin ?? "",
             arrival_airport: arr?.destination ?? "",
-            departure_time: buildFullDateTime(dep?.departure_time ?? "", responseData),
-            arrival_time: buildFullDateTime(arr?.arrival_time ?? "", responseData, true),
+            departure_time: toAirportUTC(dep?.departure_time ?? "", depDate, tzMap[dep?.origin ?? ""] ?? null),
+            arrival_time: toAirportUTC(arr?.arrival_time ?? "", arrDate, tzMap[arr?.destination ?? ""] ?? null),
           } as any)
           .select("id")
           .single()) as any;
