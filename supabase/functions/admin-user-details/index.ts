@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch all details in parallel
-    const [subRes, settingsRes, walletRes, txRes] = await Promise.all([
+    const [subRes, settingsRes, walletRes, txRes, searchesRes] = await Promise.all([
       serviceClient
         .from("user_subscriptions")
         .select("*")
@@ -82,6 +82,12 @@ Deno.serve(async (req) => {
         .eq("user_id", target_user_id)
         .order("created_at", { ascending: false })
         .limit(50),
+      serviceClient
+        .from("flight_searches")
+        .select("id,departure_airport,arrival_airport,departure_date,return_date,trip_type,all_destinations,flight_results_count,gowild_found,credits_cost,search_timestamp")
+        .eq("user_id", target_user_id)
+        .order("search_timestamp", { ascending: false })
+        .limit(100),
     ]);
 
     return new Response(
@@ -90,6 +96,7 @@ Deno.serve(async (req) => {
         settings: settingsRes.data ?? null,
         wallet: walletRes.data ?? null,
         transactions: txRes.data ?? [],
+        searches: searchesRes.data ?? [],
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
