@@ -10,22 +10,70 @@ import {
   ArrowDown01Icon,
   FloppyDiskIcon,
   AddCircleIcon,
+  Airplane01Icon,
+  Search01Icon,
+  Alert01Icon,
+  Location01Icon,
+  FlashIcon,
+  Key01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { BottomSheet } from "@/components/BottomSheet";
 import { cn } from "@/lib/utils";
 
-const BASE_COMPONENT_OPTIONS = [
-  { value: "upcoming_flights", label: "Upcoming Flights" },
-  { value: "watched_flights", label: "Watched Flights" },
-  { value: "recent_searches", label: "Recent Searches" },
-  { value: "quick_searches", label: "Quick Searches" },
-  { value: "day_trips", label: "Day Trips" },
-];
+const COMPONENT_META: Record<string, {
+  label: string;
+  description: string;
+  icon: any;
+  iconBg: string;
+  iconColor: string;
+}> = {
+  upcoming_flights: {
+    label: "Upcoming Flights",
+    description: "Shows your next booked trip",
+    icon: Airplane01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+  watched_flights: {
+    label: "Watched Flights",
+    description: "Tracks price-drop alerts",
+    icon: Alert01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+  recent_searches: {
+    label: "Recent Searches",
+    description: "Displays your latest fare lookups",
+    icon: Search01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+  quick_searches: {
+    label: "Quick Searches",
+    description: "Fast access to frequent routes",
+    icon: FlashIcon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+  day_trips: {
+    label: "Day Trips",
+    description: "Quick getaways from your airport",
+    icon: Location01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+  token_expiration: {
+    label: "Token Expiration",
+    description: "Displays your GoWild token status",
+    icon: Key01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
+};
 
-const DEVELOPER_COMPONENT_OPTIONS = [
-  { value: "token_expiration", label: "Token Expiration" },
-];
+const ALL_COMPONENT_OPTIONS = Object.entries(COMPONENT_META).map(([value, m]) => ({ value, label: m.label }));
+const BASE_VALUES = new Set(["upcoming_flights", "watched_flights", "recent_searches", "quick_searches", "day_trips"]);
 
 interface HomepageRow {
   id?: string;
@@ -37,6 +85,19 @@ interface HomepageRow {
 interface HomeLayoutSheetProps {
   open: boolean;
   onClose: (configChanged?: boolean) => void;
+}
+
+// Six-dot drag handle
+function DragHandle() {
+  return (
+    <svg width="10" height="15" viewBox="0 0 10 15" fill="none" className="shrink-0">
+      {[2, 7, 12].map((cy) =>
+        [2, 8].map((cx) => (
+          <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.5} fill="#C4CACA" />
+        ))
+      )}
+    </svg>
+  );
 }
 
 export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
@@ -82,6 +143,10 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
     };
     load();
   }, [open]);
+
+  const availableOptions = ALL_COMPONENT_OPTIONS.filter(
+    (opt) => isDeveloper || BASE_VALUES.has(opt.value)
+  );
 
   const addRow = () => {
     const hasEmpty = homepageRows.some((r) => r.component_name === "");
@@ -182,8 +247,8 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
         ))}
       </div>
 
-      {/* Scrollable content — direct flex-1 child of BottomSheet */}
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-5 pt-4 pb-2">
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pt-3 pb-2">
         {activeTab === "manage" && (
           <>
             {loading ? (
@@ -191,63 +256,98 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
             ) : (
               <>
                 {homepageRows.length === 0 && (
-                  <p className="text-sm text-[#9AADAD] px-1">
-                    No components configured. Tap "Add Component" to begin.
+                  <p className="text-sm text-[#9AADAD] px-1 mb-2">
+                    No components configured. Tap "Add Widget" to begin.
                   </p>
                 )}
-                <div className="space-y-2">
+
+                <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
                   {homepageRows.map((row, idx) => {
+                    const meta = COMPONENT_META[row.component_name];
                     const hasError = rowErrors.has(idx);
+                    const isLast = idx === homepageRows.length - 1;
+
                     return (
                       <div key={idx}>
-                        <div
-                          className={`flex items-center gap-2 bg-white rounded-xl border px-3 py-2 shadow-sm transition-colors ${
-                            hasError ? "border-red-400" : "border-[#E3E6E6]"
-                          }`}
-                        >
-                          <span className="text-xs font-bold text-[#9AADAD] w-5 text-center shrink-0">
-                            {idx + 1}
-                          </span>
-                          <select
-                            value={row.component_name}
-                            onChange={(e) => updateComponent(idx, e.target.value)}
-                            className={`flex-1 text-sm font-medium bg-[#F7F8F8] border border-[#E3E6E6] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#059669]/30 appearance-none cursor-pointer transition-colors ${
-                              !row.component_name ? "text-[#9AADAD]" : "text-[#2E4A4A]"
-                            }`}
+                        {/* Configured row */}
+                        {meta ? (
+                          <div
+                            className={cn(
+                              "flex items-center gap-3 px-4 py-3",
+                              !isLast && "border-b border-[#F0F1F1]",
+                              hasError && "bg-red-50",
+                            )}
                           >
-                            <option value="" disabled>Select a component…</option>
-                            {[...BASE_COMPONENT_OPTIONS, ...(isDeveloper ? DEVELOPER_COMPONENT_OPTIONS : [])].map((opt) => (
-                              <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                          </select>
-                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <DragHandle />
+                            <span
+                              className="h-9 w-9 rounded-full flex items-center justify-center shrink-0"
+                              style={{ background: meta.iconBg }}
+                            >
+                              <HugeiconsIcon icon={meta.icon} size={17} color={meta.iconColor} strokeWidth={1.5} />
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-[#2E4A4A] leading-tight">{meta.label}</p>
+                              <p className="text-xs text-[#6B7B7B] leading-tight mt-0.5">{meta.description}</p>
+                            </div>
+                            <div className="flex flex-col gap-0.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => moveRow(idx, "up")}
+                                disabled={idx === 0}
+                                className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
+                              >
+                                <HugeiconsIcon icon={ArrowUp01Icon} size={12} color="#9CA3AF" strokeWidth={2} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveRow(idx, "down")}
+                                disabled={isLast}
+                                className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
+                              >
+                                <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="#9CA3AF" strokeWidth={2} />
+                              </button>
+                            </div>
                             <button
                               type="button"
-                              onClick={() => moveRow(idx, "up")}
-                              disabled={idx === 0}
-                              className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
+                              onClick={() => removeRow(idx)}
+                              className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors shrink-0"
                             >
-                              <HugeiconsIcon icon={ArrowUp01Icon} size={12} color="#345C5A" strokeWidth={2} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveRow(idx, "down")}
-                              disabled={idx === homepageRows.length - 1}
-                              className="h-5 w-5 flex items-center justify-center rounded hover:bg-[#F2F3F3] disabled:opacity-20 transition-colors"
-                            >
-                              <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="#345C5A" strokeWidth={2} />
+                              <HugeiconsIcon icon={Delete02Icon} size={16} color="#EF4444" strokeWidth={1.5} />
                             </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeRow(idx)}
-                            className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                        ) : (
+                          /* New row — select picker */
+                          <div
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2",
+                              !isLast && "border-b border-[#F0F1F1]",
+                              hasError && "bg-red-50",
+                            )}
                           >
-                            <HugeiconsIcon icon={Delete02Icon} size={16} color="#EF4444" strokeWidth={1.5} />
-                          </button>
-                        </div>
+                            <select
+                              value={row.component_name}
+                              onChange={(e) => updateComponent(idx, e.target.value)}
+                              className={cn(
+                                "flex-1 text-sm font-medium bg-[#F7F8F8] border border-[#E3E6E6] rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#059669]/30 appearance-none cursor-pointer transition-colors",
+                                !row.component_name ? "text-[#9AADAD]" : "text-[#2E4A4A]",
+                              )}
+                            >
+                              <option value="" disabled>Select a widget…</option>
+                              {availableOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => removeRow(idx)}
+                              className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                            >
+                              <HugeiconsIcon icon={Delete02Icon} size={16} color="#EF4444" strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        )}
                         {hasError && (
-                          <p className="text-xs text-red-500 mt-1 px-1">Component cannot be blank.</p>
+                          <p className="text-xs text-red-500 px-4 pb-2">Widget cannot be blank.</p>
                         )}
                       </div>
                     );
@@ -260,7 +360,7 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
                   className="flex items-center gap-1.5 text-[#059669] text-sm font-semibold mt-auto pt-3 px-1 hover:opacity-75 transition-opacity"
                 >
                   <HugeiconsIcon icon={PlusSignIcon} size={15} color="#059669" strokeWidth={2.5} />
-                  Add Component
+                  Add Widget
                 </button>
               </>
             )}
