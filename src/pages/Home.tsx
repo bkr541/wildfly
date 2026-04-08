@@ -6,6 +6,7 @@ import { WatchedFlightsScroll } from "@/components/home/WatchedFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
+import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
 import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
 
 
@@ -103,6 +104,13 @@ const COMPONENT_MAP: Record<
       isCollapsed={props.isCollapsed}
       onToggle={props.onToggle}
       onNavigate={props.onNavigate}
+    />
+  ),
+  token_expiration: (props) => (
+    <TokenExpirationCard
+      key="token_expiration"
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
     />
   ),
 };
