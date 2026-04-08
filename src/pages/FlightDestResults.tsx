@@ -362,6 +362,7 @@ const FlightDestResults = ({
         .insert({
           user_id: user.id,
           type,
+          status: "Current",
           flight_json: flight,
           departure_airport: dep?.origin ?? "",
           arrival_airport: arr?.destination ?? "",
@@ -424,6 +425,7 @@ const FlightDestResults = ({
           .insert({
             user_id: user.id,
             type,
+            status: "Current",
             flight_json: flight,
             departure_airport: dep?.origin ?? "",
             arrival_airport: arr?.destination ?? "",
