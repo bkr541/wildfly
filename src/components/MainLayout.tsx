@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useRef, useEffect } from "react";
+import { useState, type ReactNode, useRef, useEffect, useCallback } from "react";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -18,6 +18,7 @@ import {
   Cancel01Icon,
   ResourcesAddIcon,
   SourceCodeIcon,
+  Key01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -25,6 +26,15 @@ import { cn } from "@/lib/utils";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { HomeLayoutSheet } from "@/components/home/HomeLayoutSheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
@@ -86,15 +96,43 @@ const MainLayout = ({
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [homeLayoutOpen, setHomeLayoutOpen] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
+  const [tokenExpiryPopupOpen, setTokenExpiryPopupOpen] = useState(false);
+  const [tokenExpiry, setTokenExpiry] = useState<Date | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      supabase.from("developer_allowlist").select("user_id").eq("user_id", user.id).maybeSingle()
-        .then(({ data }) => { if (data) setIsDeveloper(true); });
+      const { data: devRow } = await supabase
+        .from("developer_allowlist")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!devRow) return;
+      setIsDeveloper(true);
+
+      // Show token expiry popup once per browser session
+      if (sessionStorage.getItem("token_expiry_shown")) return;
+      const { data: configRow } = await supabase
+        .from("app_config")
+        .select("config_value")
+        .eq("config_key", "gowilder_token")
+        .limit(1)
+        .maybeSingle();
+      if (!configRow?.config_value) return;
+      try {
+        const parts = configRow.config_value.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+          if (payload.exp) {
+            setTokenExpiry(new Date(payload.exp * 1000));
+            setTokenExpiryPopupOpen(true);
+            sessionStorage.setItem("token_expiry_shown", "1");
+          }
+        }
+      } catch { /* not a JWT — skip */ }
     });
   }, []);
 
@@ -434,6 +472,41 @@ const MainLayout = ({
           if (configChanged) onHomeLayoutSaved?.();
         }}
       />
+
+      {/* Token expiry popup — shown once per session for developer users */}
+      <AlertDialog open={tokenExpiryPopupOpen} onOpenChange={setTokenExpiryPopupOpen}>
+        <AlertDialogContent className="max-w-xs rounded-2xl bg-white p-4 pt-10 overflow-visible border border-[#D5E6E2]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#F0FDF4] border-2 border-[#D5E6E2] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={Key01Icon} size={22} color="#059669" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-2 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#2E4A4A] text-center">
+              Token Expiration
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="text-center space-y-1">
+                <p className="text-xs text-[#6B7B7B]">The current GoWilder token expires on</p>
+                <p className={`text-sm font-semibold ${tokenExpiry && tokenExpiry < new Date() ? "text-red-500" : "text-[#059669]"}`}>
+                  {tokenExpiry
+                    ? tokenExpiry.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+                    : "—"}
+                </p>
+                {tokenExpiry && tokenExpiry < new Date() && (
+                  <p className="text-xs text-red-500 font-medium">This token has expired.</p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogAction
+              onClick={() => setTokenExpiryPopupOpen(false)}
+              className="w-full bg-[#345C5A] hover:bg-[#2E4A4A] text-white text-sm font-bold py-2 rounded-xl"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomSheet open={isSearchOpen} onClose={() => setIsSearchOpen(false)} style={{ top: "5%" }}>
               {/* Title row */}
