@@ -64,6 +64,7 @@ interface MainLayoutProps {
   currentPage?: string;
   onHomeLayoutSaved?: () => void;
   onAccountDevPress?: () => void;
+  onAccountManageUsersPress?: () => void;
 }
 
 const MainLayout = ({
@@ -77,6 +78,7 @@ const MainLayout = ({
   currentPage,
   onHomeLayoutSaved,
   onAccountDevPress,
+  onAccountManageUsersPress,
 }: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -341,13 +343,22 @@ const MainLayout = ({
                 })()}
 
               {currentPage === "account" && isDeveloper && !subScreenTitle && (
-                <button
-                  type="button"
-                  onClick={onAccountDevPress}
-                  className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 ml-auto"
-                >
-                  <HugeiconsIcon icon={SourceCodeIcon} size={22} color="currentColor" strokeWidth={2} />
-                </button>
+                <div className="flex items-center gap-0.5 ml-auto">
+                  <button
+                    type="button"
+                    onClick={onAccountManageUsersPress}
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={UserGroupIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onAccountDevPress}
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={SourceCodeIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
+                </div>
               )}
 
               {(currentPage === "home" || currentPage === "friends") && (
