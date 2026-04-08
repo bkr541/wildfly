@@ -41,6 +41,7 @@ interface UserDetails {
   settings: Record<string, unknown> | null;
   wallet: Record<string, unknown> | null;
   transactions: Record<string, unknown>[];
+  searches: Record<string, unknown>[];
 }
 
 interface ManageUsersScreenProps {
@@ -327,6 +328,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                       ) : userDetails ? (
                         <>
                           <CollapsibleDetailSection icon={CreditCardIcon} title="Subscription" data={userDetails.subscription} />
+                          <CollapsibleSearchesSection searches={userDetails.searches} />
                           <CollapsibleDetailSection icon={Settings01Icon} title="Settings" data={userDetails.settings} />
                           <CollapsibleDetailSection icon={Wallet01Icon} title="Credit Wallet" data={userDetails.wallet} />
                           <CollapsibleTransactionsSection transactions={userDetails.transactions} />
