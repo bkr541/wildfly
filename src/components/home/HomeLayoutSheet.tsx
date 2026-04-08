@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const COMPONENT_OPTIONS = [
   { value: "upcoming_flights", label: "Upcoming Flights" },
+  { value: "watched_flights", label: "Watched Flights" },
   { value: "recent_searches", label: "Recent Searches" },
   { value: "quick_searches", label: "Quick Searches" },
   { value: "day_trips", label: "Day Trips" },

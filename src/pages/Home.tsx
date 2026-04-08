@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { UpcomingFlightsScroll } from "@/components/home/UpcomingFlightsScroll";
+import { WatchedFlightsScroll } from "@/components/home/WatchedFlightsScroll";
 import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
@@ -43,6 +44,7 @@ const COMPONENT_MAP: Record<
   string,
   (props: {
     flights: UserFlight[];
+    watchedFlights: UserFlight[];
     searches: FlightSearch[];
     loading: boolean;
     searchesLoading: boolean;
@@ -50,6 +52,7 @@ const COMPONENT_MAP: Record<
     isCollapsed: boolean;
     onToggle: () => void;
     onFlightRemoved?: (flightId: string) => void;
+    onWatchedFlightRemoved?: (flightId: string) => void;
     onFlightClick?: (flight: UserFlight) => void;
   }) => JSX.Element | null
 > = {
@@ -63,6 +66,17 @@ const COMPONENT_MAP: Record<
       onToggle={props.onToggle}
       onFlightRemoved={props.onFlightRemoved}
       onFlightClick={props.onFlightClick}
+    />
+  ),
+  watched_flights: (props) => (
+    <WatchedFlightsScroll
+      key="watched_flights"
+      flights={props.watchedFlights}
+      loading={props.loading}
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+      onFlightRemoved={props.onWatchedFlightRemoved}
     />
   ),
   recent_searches: (props) => (
@@ -102,6 +116,7 @@ interface HomePageProps {
 const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) => {
   const { user } = useAuth();
   const [flights, setFlights] = useState<UserFlight[]>([]);
+  const [watchedFlights, setWatchedFlights] = useState<UserFlight[]>([]);
   const [searches, setSearches] = useState<FlightSearch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchesLoading, setSearchesLoading] = useState(true);
@@ -129,12 +144,22 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
         return;
       }
 
-      const [flightsResult, searchesResult] = await Promise.all([
+      const [flightsResult, watchedResult, searchesResult] = await Promise.all([
         supabase
           .from("user_flights")
           .select("*")
           .eq("user_id", user.id)
           .eq("status", "Current")
+          .eq("type", "going")
+          .gte("departure_time", new Date().toISOString())
+          .order("departure_time", { ascending: true })
+          .limit(20),
+        supabase
+          .from("user_flights")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("status", "Current")
+          .eq("type", "alert")
           .gte("departure_time", new Date().toISOString())
           .order("departure_time", { ascending: true })
           .limit(20),
@@ -156,6 +181,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
         return true;
       }).slice(0, 7);
       setFlights(flightsResult.data || []);
+      setWatchedFlights(watchedResult.data || []);
       setSearches(uniqueSearches);
       setLoading(false);
       setSearchesLoading(false);
@@ -177,6 +203,10 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
     setFlights((prev) => prev.filter((f) => f.id !== flightId));
   }, []);
 
+  const handleWatchedFlightRemoved = useCallback((flightId: string) => {
+    setWatchedFlights((prev) => prev.filter((f) => f.id !== flightId));
+  }, []);
+
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
@@ -184,6 +214,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
         if (!renderer) return null;
         return renderer({
           flights,
+          watchedFlights,
           searches,
           loading,
           searchesLoading,
@@ -191,6 +222,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
           isCollapsed: !!collapsedSections[item.component_name],
           onToggle: () => toggleSection(item.component_name),
           onFlightRemoved: handleFlightRemoved,
+          onWatchedFlightRemoved: handleWatchedFlightRemoved,
           onFlightClick,
         });
       })}

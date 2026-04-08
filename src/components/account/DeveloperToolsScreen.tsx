@@ -36,6 +36,18 @@ const KNOWN_NAMESPACES = [
   "Wallet",
 ];
 
+function getJWTExpiry(token: string): Date | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (!payload.exp) return null;
+    return new Date(payload.exp * 1000);
+  } catch {
+    return null;
+  }
+}
+
 const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
@@ -390,6 +402,19 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
                 placeholder="Enter your GoWilder token..."
                 isPassword
               />
+              {(() => {
+                const expiry = gowilderTokenSaved ? getJWTExpiry(gowilderTokenSaved) : null;
+                if (!expiry) return null;
+                const expired = expiry < new Date();
+                return (
+                  <p className="text-xs text-[#6B7B7B]">
+                    Expiration Date:{" "}
+                    <span className={`font-medium ${expired ? "text-red-500" : "text-[#2E4A4A]"}`}>
+                      {expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    </span>
+                  </p>
+                );
+              })()}
               <div className="flex gap-2">
                 <button
                   type="button"
