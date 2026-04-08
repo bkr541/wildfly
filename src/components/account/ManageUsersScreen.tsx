@@ -490,5 +490,88 @@ const CollapsibleTransactionsSection = ({ transactions }: { transactions: Record
     </Collapsible>
   );
 };
+/* ─── Collapsible Searches Section ────────────────────────────────── */
+const CollapsibleSearchesSection = ({ searches }: { searches: Record<string, unknown>[] }) => {
+  const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? searches : searches.slice(0, 5);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="rounded-xl border border-[#E3E6E6] bg-white overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button type="button" className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-[#F2F3F3] transition-colors">
+            <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={Search01Icon} size={12} color="#047857" strokeWidth={1.5} />
+            </span>
+            <span className="text-xs font-semibold text-[#2E4A4A] flex-1">
+              Flight Searches ({searches.length})
+            </span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={12}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border-t border-[#F0F1F1]">
+            {searches.length === 0 ? (
+              <p className="text-[11px] text-[#6B7B7B] px-3 py-2">No searches.</p>
+            ) : (
+              <div className="divide-y divide-[#F0F1F1]">
+                {visible.map((s, i) => {
+                  const dest = s.all_destinations === "Yes"
+                    ? "All Destinations"
+                    : String(s.arrival_airport ?? "—");
+                  const gwFound = s.gowild_found === true;
+                  return (
+                    <div key={i} className="px-3 py-1.5 flex justify-between text-[11px]">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[#2E4A4A] font-semibold truncate">
+                          {String(s.departure_airport ?? "")} → {dest}
+                        </span>
+                        <span className="text-[#6B7B7B]">
+                          {s.departure_date ? new Date(String(s.departure_date)).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                          {s.return_date ? ` – ${new Date(String(s.return_date)).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
+                          {" · "}
+                          {String(s.trip_type ?? "").replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0 ml-2 flex flex-col items-end">
+                        <span className="text-[#2E4A4A] font-semibold">
+                          {s.flight_results_count != null ? `${s.flight_results_count} results` : "—"}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {gwFound && (
+                            <span className="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] font-bold">GW</span>
+                          )}
+                          {s.credits_cost != null && (
+                            <span className="text-[#6B7B7B]">{String(s.credits_cost)} cr</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {searches.length > 5 && !showAll && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAll(true)}
+                    className="w-full text-center text-[11px] text-emerald-600 font-semibold py-2 hover:bg-[#F2F3F3]"
+                  >
+                    Show all {searches.length} searches
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
 
 export default ManageUsersScreen;
