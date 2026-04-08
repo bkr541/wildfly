@@ -1,17 +1,21 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  PencilEdit01Icon,
-  Delete01Icon,
+  EditUser02Icon,
+  UserRemove01Icon,
   ArrowDown01Icon,
   CreditCardIcon,
   Settings01Icon,
   Wallet01Icon,
   ArrowRight01Icon,
+  Search01Icon,
+  FilterIcon,
+  SortingAZ01Icon,
 } from "@hugeicons/core-free-icons";
 
 interface UserRow {
@@ -27,6 +31,9 @@ interface UserRow {
   home_city: string | null;
   is_discoverable: boolean;
   signup_type: string;
+  date_joined: string | null;
+  plan_id: string | null;
+  plan_status: string | null;
 }
 
 interface UserDetails {
@@ -40,12 +47,19 @@ interface ManageUsersScreenProps {
   onBack: () => void;
 }
 
+type SortKey = "name" | "date" | "plan";
+
 const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [details, setDetails] = useState<Record<string, UserDetails>>({});
   const [detailsLoading, setDetailsLoading] = useState<Record<string, boolean>>({});
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortAsc, setSortAsc] = useState(true);
+  const [filterPlan, setFilterPlan] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +88,41 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
       }
     })();
   }, []);
+
+  const uniquePlans = useMemo(() => {
+    const plans = new Set<string>();
+    users.forEach((u) => { if (u.plan_id) plans.add(u.plan_id); });
+    return Array.from(plans).sort();
+  }, [users]);
+
+  const filtered = useMemo(() => {
+    let list = [...users];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((u) =>
+        [u.first_name, u.last_name, u.email, u.username, u.display_name]
+          .filter(Boolean)
+          .some((v) => v!.toLowerCase().includes(q))
+      );
+    }
+    if (filterPlan) {
+      list = list.filter((u) => u.plan_id === filterPlan);
+    }
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "name") {
+        const na = displayName(a).toLowerCase();
+        const nb = displayName(b).toLowerCase();
+        cmp = na.localeCompare(nb);
+      } else if (sortKey === "date") {
+        cmp = (a.date_joined ?? "").localeCompare(b.date_joined ?? "");
+      } else if (sortKey === "plan") {
+        cmp = (a.plan_id ?? "").localeCompare(b.plan_id ?? "");
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+    return list;
+  }, [users, search, filterPlan, sortKey, sortAsc]);
 
   const fetchDetails = useCallback(async (authUserId: string) => {
     if (details[authUserId] || detailsLoading[authUserId]) return;
@@ -119,11 +168,79 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
     return f + l || "U";
   };
 
-  const displayName = (u: UserRow) =>
-    [u.first_name, u.last_name].filter(Boolean).join(" ") || u.display_name || u.email;
+  const cycleSortKey = () => {
+    if (sortKey === "name") { setSortKey("date"); setSortAsc(false); }
+    else if (sortKey === "date") { setSortKey("plan"); setSortAsc(true); }
+    else { setSortKey("name"); setSortAsc(true); }
+  };
+
+  const sortLabel = sortKey === "name" ? "A–Z" : sortKey === "date" ? "Date" : "Plan";
 
   return (
-    <div className="flex-1 flex flex-col px-5 pb-4 gap-4 relative z-10 animate-fade-in">
+    <div className="flex-1 flex flex-col px-5 pb-4 gap-3 relative z-10 animate-fade-in">
+      {/* Search + Filter + Sort bar */}
+      <div className="flex flex-col gap-2 mt-1">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <HugeiconsIcon icon={Search01Icon} size={16} color="#6B7B7B" strokeWidth={2} />
+          </span>
+          <Input
+            placeholder="Search users…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-9 text-sm rounded-xl border-[#E3E6E6] bg-white shadow-sm focus-visible:ring-emerald-500/30"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${
+              filterPlan ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-[#E3E6E6] text-[#6B7B7B] hover:bg-[#F2F3F3]"
+            }`}
+          >
+            <HugeiconsIcon icon={FilterIcon} size={12} strokeWidth={2} color={filterPlan ? "#047857" : "#6B7B7B"} />
+            {filterPlan ? filterPlan : "Filter"}
+          </button>
+          <button
+            type="button"
+            onClick={cycleSortKey}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-[#E3E6E6] bg-white text-[#6B7B7B] hover:bg-[#F2F3F3] transition-colors"
+          >
+            <HugeiconsIcon icon={SortingAZ01Icon} size={12} strokeWidth={2} color="#6B7B7B" />
+            {sortLabel} {sortAsc ? "↑" : "↓"}
+          </button>
+          <span className="ml-auto text-[11px] text-[#6B7B7B] self-center font-medium">
+            {filtered.length} user{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        {showFilters && (
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => { setFilterPlan(null); setShowFilters(false); }}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
+                !filterPlan ? "bg-emerald-600 text-white border-emerald-600" : "bg-white border-[#E3E6E6] text-[#6B7B7B]"
+              }`}
+            >
+              All
+            </button>
+            {uniquePlans.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => { setFilterPlan(p); setShowFilters(false); }}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
+                  filterPlan === p ? "bg-emerald-600 text-white border-emerald-600" : "bg-white border-[#E3E6E6] text-[#6B7B7B]"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="space-y-3 mt-2">
           {[...Array(6)].map((_, i) => (
@@ -132,7 +249,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
-          {users.map((user, idx) => {
+          {filtered.map((user, idx) => {
             const uid = user.auth_user_id;
             if (!uid) return null;
             const isOpen = expandedUserId === uid;
@@ -141,9 +258,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
 
             return (
               <Collapsible key={uid} open={isOpen} onOpenChange={() => toggleUser(uid)}>
-                <div
-                  className={`${idx < users.length - 1 && !isOpen ? "border-b border-[#F0F1F1]" : ""}`}
-                >
+                <div className={`${idx < filtered.length - 1 && !isOpen ? "border-b border-[#F0F1F1]" : ""}`}>
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
@@ -156,25 +271,39 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#2E4A4A] truncate">
-                          {displayName(user)}
-                        </p>
-                        <p className="text-xs text-[#6B7B7B] truncate">
-                          {user.username ? `@${user.username}` : user.email}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[#2E4A4A] truncate">
+                            {displayName(user)}
+                          </p>
+                          {user.plan_id && (
+                            <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-700 uppercase tracking-wide">
+                              {user.plan_id}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-[#6B7B7B] truncate">
+                            {user.username ? `@${user.username}` : user.email}
+                          </p>
+                          {user.date_joined && (
+                            <span className="text-[10px] text-[#A0ADAD] shrink-0">
+                              · {new Date(user.date_joined).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0 ml-2">
                         <span
                           className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-black/5"
-                          onClick={(e) => { e.stopPropagation(); /* future edit */ }}
+                          onClick={(e) => { e.stopPropagation(); }}
                         >
-                          <HugeiconsIcon icon={PencilEdit01Icon} size={13} color="#6B7B7B" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={EditUser02Icon} size={13} color="#6B7B7B" strokeWidth={1.5} />
                         </span>
                         <span
                           className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50"
-                          onClick={(e) => { e.stopPropagation(); /* future delete */ }}
+                          onClick={(e) => { e.stopPropagation(); }}
                         >
-                          <HugeiconsIcon icon={Delete01Icon} size={13} color="#EF4444" strokeWidth={1.5} />
+                          <HugeiconsIcon icon={UserRemove01Icon} size={13} color="#EF4444" strokeWidth={1.5} />
                         </span>
                         <HugeiconsIcon
                           icon={ArrowDown01Icon}
@@ -188,7 +317,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    <div className="px-4 pb-4 pt-1 space-y-3 border-b border-[#F0F1F1] bg-[#FAFBFB]">
+                    <div className="px-4 pb-4 pt-1 space-y-2 border-b border-[#F0F1F1] bg-[#FAFBFB]">
                       {isLoadingDetails ? (
                         <div className="space-y-2">
                           <Skeleton className="h-10 w-full rounded-lg" />
@@ -197,22 +326,10 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                         </div>
                       ) : userDetails ? (
                         <>
-                          <DetailSection
-                            icon={CreditCardIcon}
-                            title="Subscription"
-                            data={userDetails.subscription}
-                          />
-                          <DetailSection
-                            icon={Settings01Icon}
-                            title="Settings"
-                            data={userDetails.settings}
-                          />
-                          <DetailSection
-                            icon={Wallet01Icon}
-                            title="Credit Wallet"
-                            data={userDetails.wallet}
-                          />
-                          <TransactionsSection transactions={userDetails.transactions} />
+                          <CollapsibleDetailSection icon={CreditCardIcon} title="Subscription" data={userDetails.subscription} />
+                          <CollapsibleDetailSection icon={Settings01Icon} title="Settings" data={userDetails.settings} />
+                          <CollapsibleDetailSection icon={Wallet01Icon} title="Credit Wallet" data={userDetails.wallet} />
+                          <CollapsibleTransactionsSection transactions={userDetails.transactions} />
                         </>
                       ) : (
                         <p className="text-xs text-[#6B7B7B]">No details available.</p>
@@ -223,7 +340,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
               </Collapsible>
             );
           })}
-          {users.length === 0 && (
+          {filtered.length === 0 && (
             <p className="text-center text-sm text-[#6B7B7B] py-8">No users found.</p>
           )}
         </div>
@@ -232,8 +349,12 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
   );
 };
 
-/* ─── Detail Section ─────────────────────────────────────────────── */
-const DetailSection = ({
+/* ─── Helpers ────────────────────────────────────────────────────── */
+const displayName = (u: UserRow) =>
+  [u.first_name, u.last_name].filter(Boolean).join(" ") || u.display_name || u.email;
+
+/* ─── Collapsible Detail Section ─────────────────────────────────── */
+const CollapsibleDetailSection = ({
   icon,
   title,
   data,
@@ -242,9 +363,11 @@ const DetailSection = ({
   title: string;
   data: Record<string, unknown> | null;
 }) => {
+  const [open, setOpen] = useState(false);
+
   if (!data) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#6B7B7B]">
+      <div className="flex items-center gap-2 text-xs text-[#6B7B7B] px-1 py-1">
         <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
           <HugeiconsIcon icon={icon} size={12} color="#047857" strokeWidth={1.5} />
         </span>
@@ -259,81 +382,110 @@ const DetailSection = ({
   );
 
   return (
-    <div className="rounded-xl border border-[#E3E6E6] bg-white overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#F0F1F1]">
-        <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
-          <HugeiconsIcon icon={icon} size={12} color="#047857" strokeWidth={1.5} />
-        </span>
-        <span className="text-xs font-semibold text-[#2E4A4A]">{title}</span>
-      </div>
-      <div className="px-3 py-2 space-y-1">
-        {entries.map(([key, value]) => (
-          <div key={key} className="flex justify-between text-[11px]">
-            <span className="text-[#6B7B7B] font-medium">{key.replace(/_/g, " ")}</span>
-            <span className="text-[#2E4A4A] font-semibold text-right max-w-[55%] truncate">
-              {value === null ? "—" : typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="rounded-xl border border-[#E3E6E6] bg-white overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button type="button" className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-[#F2F3F3] transition-colors">
+            <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={icon} size={12} color="#047857" strokeWidth={1.5} />
             </span>
+            <span className="text-xs font-semibold text-[#2E4A4A] flex-1">{title}</span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={12}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-3 py-2 space-y-1 border-t border-[#F0F1F1]">
+            {entries.map(([key, value]) => (
+              <div key={key} className="flex justify-between text-[11px]">
+                <span className="text-[#6B7B7B] font-medium">{key.replace(/_/g, " ")}</span>
+                <span className="text-[#2E4A4A] font-semibold text-right max-w-[55%] truncate">
+                  {value === null ? "—" : typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </CollapsibleContent>
       </div>
-    </div>
+    </Collapsible>
   );
 };
 
-/* ─── Transactions Section ───────────────────────────────────────── */
-const TransactionsSection = ({ transactions }: { transactions: Record<string, unknown>[] }) => {
+/* ─── Collapsible Transactions Section ───────────────────────────── */
+const CollapsibleTransactionsSection = ({ transactions }: { transactions: Record<string, unknown>[] }) => {
+  const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? transactions : transactions.slice(0, 5);
 
   return (
-    <div className="rounded-xl border border-[#E3E6E6] bg-white overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#F0F1F1]">
-        <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
-          <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#047857" strokeWidth={1.5} />
-        </span>
-        <span className="text-xs font-semibold text-[#2E4A4A]">
-          Transactions ({transactions.length})
-        </span>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="rounded-xl border border-[#E3E6E6] bg-white overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button type="button" className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-[#F2F3F3] transition-colors">
+            <span className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center shrink-0">
+              <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#047857" strokeWidth={1.5} />
+            </span>
+            <span className="text-xs font-semibold text-[#2E4A4A] flex-1">
+              Transactions ({transactions.length})
+            </span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={12}
+              color="#C4CACA"
+              strokeWidth={1.5}
+              className={`transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border-t border-[#F0F1F1]">
+            {transactions.length === 0 ? (
+              <p className="text-[11px] text-[#6B7B7B] px-3 py-2">No transactions.</p>
+            ) : (
+              <div className="divide-y divide-[#F0F1F1]">
+                {visible.map((tx, i) => (
+                  <div key={i} className="px-3 py-1.5 flex justify-between text-[11px]">
+                    <div className="flex flex-col">
+                      <span className="text-[#2E4A4A] font-semibold">
+                        {String(tx.transaction_type ?? "").replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[#6B7B7B]">
+                        {tx.created_at ? new Date(String(tx.created_at)).toLocaleDateString() : "—"}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`font-bold ${
+                          Number(tx.amount ?? 0) < 0 ? "text-red-500" : "text-emerald-600"
+                        }`}
+                      >
+                        {Number(tx.amount ?? 0) > 0 ? "+" : ""}
+                        {String(tx.amount ?? 0)}
+                      </span>
+                      <p className="text-[#6B7B7B]">{String(tx.bucket ?? "")}</p>
+                    </div>
+                  </div>
+                ))}
+                {transactions.length > 5 && !showAll && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAll(true)}
+                    className="w-full text-center text-[11px] text-emerald-600 font-semibold py-2 hover:bg-[#F2F3F3]"
+                  >
+                    Show all {transactions.length} transactions
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
       </div>
-      {transactions.length === 0 ? (
-        <p className="text-[11px] text-[#6B7B7B] px-3 py-2">No transactions.</p>
-      ) : (
-        <div className="divide-y divide-[#F0F1F1]">
-          {visible.map((tx, i) => (
-            <div key={i} className="px-3 py-1.5 flex justify-between text-[11px]">
-              <div className="flex flex-col">
-                <span className="text-[#2E4A4A] font-semibold">
-                  {String(tx.transaction_type ?? "").replace(/_/g, " ")}
-                </span>
-                <span className="text-[#6B7B7B]">
-                  {tx.created_at ? new Date(String(tx.created_at)).toLocaleDateString() : "—"}
-                </span>
-              </div>
-              <div className="text-right">
-                <span
-                  className={`font-bold ${
-                    Number(tx.amount ?? 0) < 0 ? "text-red-500" : "text-emerald-600"
-                  }`}
-                >
-                  {Number(tx.amount ?? 0) > 0 ? "+" : ""}
-                  {String(tx.amount ?? 0)}
-                </span>
-                <p className="text-[#6B7B7B]">{String(tx.bucket ?? "")}</p>
-              </div>
-            </div>
-          ))}
-          {transactions.length > 5 && !showAll && (
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="w-full text-center text-[11px] text-emerald-600 font-semibold py-2 hover:bg-[#F2F3F3]"
-            >
-              Show all {transactions.length} transactions
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+    </Collapsible>
   );
 };
 

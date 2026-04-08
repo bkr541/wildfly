@@ -50,21 +50,47 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch all users
-    const { data: users, error: usersError } = await serviceClient
-      .from("user_info")
-      .select("id, auth_user_id, first_name, last_name, email, username, avatar_url, display_name, home_airport, home_city, is_discoverable, signup_type, onboarding_complete, created_at:id")
-      .order("id", { ascending: true })
-      .limit(500);
+    // Fetch users, subscriptions, and auth users in parallel
+    const [usersRes, subsRes, authUsersRes] = await Promise.all([
+      serviceClient
+        .from("user_info")
+        .select("id, auth_user_id, first_name, last_name, email, username, avatar_url, display_name, home_airport, home_city, is_discoverable, signup_type")
+        .order("id", { ascending: true })
+        .limit(500),
+      serviceClient
+        .from("user_subscriptions")
+        .select("user_id, plan_id, status")
+        .limit(500),
+      serviceClient.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
 
-    if (usersError) {
-      return new Response(JSON.stringify({ error: usersError.message }), {
+    if (usersRes.error) {
+      return new Response(JSON.stringify({ error: usersRes.error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ users: users ?? [] }), {
+    // Build lookup maps
+    const subMap: Record<string, { plan_id: string; status: string }> = {};
+    for (const s of subsRes.data ?? []) {
+      subMap[s.user_id] = { plan_id: s.plan_id, status: s.status };
+    }
+
+    const authDateMap: Record<string, string> = {};
+    for (const au of authUsersRes.data?.users ?? []) {
+      authDateMap[au.id] = au.created_at;
+    }
+
+    // Merge into user list
+    const users = (usersRes.data ?? []).map((u: any) => ({
+      ...u,
+      date_joined: u.auth_user_id ? authDateMap[u.auth_user_id] ?? null : null,
+      plan_id: u.auth_user_id ? subMap[u.auth_user_id]?.plan_id ?? null : null,
+      plan_status: u.auth_user_id ? subMap[u.auth_user_id]?.status ?? null : null,
+    }));
+
+    return new Response(JSON.stringify({ users }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
