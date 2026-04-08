@@ -51,6 +51,7 @@ const MainApp = () => {
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
   const accountBackRef = useRef<(() => void) | null>(null);
   const accountDevRef = useRef<(() => void) | null>(null);
+  const accountManageUsersRef = useRef<(() => void) | null>(null);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -339,9 +340,10 @@ const MainApp = () => {
               currentPage={currentPage}
               onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
               onAccountDevPress={() => accountDevRef.current?.()}
+              onAccountManageUsersPress={() => accountManageUsersRef.current?.()}
             >
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} onFlightClick={(flight) => { setSelectedFlight(flight); setCurrentPage("flight-details"); }} />}
-              {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} devRef={accountDevRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
+              {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} devRef={accountDevRef} manageUsersRef={accountManageUsersRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}
               {currentPage === "destinations" && <DestinationsPage />}
               {currentPage === "itinerary" && <ItineraryPage />}
