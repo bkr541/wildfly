@@ -117,6 +117,7 @@ const MainApp = () => {
         if (!isMounted) return;
         setIsSignedIn(true);
         setNeedsOnboarding(true);
+        setAccountPending(false);
       }
     };
 
