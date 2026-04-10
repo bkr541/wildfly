@@ -8,6 +8,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "./components/MainLayout";
 import AltSplashScreen from "./components/AltSplashScreen";
+import AccountPending from "./components/AccountPending";
 import AuthPage from "./components/AuthPage";
 import Onboarding from "./components/Onboarding";
 import ProfileSetup from "./components/ProfileSetup";
