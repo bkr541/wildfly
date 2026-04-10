@@ -179,6 +179,7 @@ const MainApp = () => {
           setIsSignedIn(false);
           setNeedsOnboarding(false);
           setShowProfileSetup(false);
+          setAccountPending(false);
           return;
         }
 
@@ -216,6 +217,7 @@ const MainApp = () => {
     setIsSignedIn(false);
     setNeedsOnboarding(false);
     setShowProfileSetup(false);
+    setAccountPending(false);
   };
 
   const handleNavigate = (page: string, data?: string) => {
