@@ -322,11 +322,11 @@ const MainApp = () => {
           <AccountPending onSignOut={handleSignOut} />
         )}
 
-        {splashDone && !checkingSession && isSignedIn && needsOnboarding && !showProfileSetup && (
+        {splashDone && !checkingSession && isSignedIn && !accountPending && needsOnboarding && !showProfileSetup && (
           <Onboarding onComplete={() => setShowProfileSetup(true)} />
         )}
 
-        {splashDone && !checkingSession && isSignedIn && showProfileSetup && (
+        {splashDone && !checkingSession && isSignedIn && !accountPending && showProfileSetup && (
           <ProfileSetup
             onComplete={() => {
               setNeedsOnboarding(false);
