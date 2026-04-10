@@ -110,9 +110,11 @@ const MainApp = () => {
         }
 
         const isPending = profile.status === "pending";
+        const needsOnboard = profile.onboarding_complete !== "Yes";
         setIsSignedIn(true);
-        setAccountPending(isPending);
-        setNeedsOnboarding(!isPending && profile.onboarding_complete !== "Yes");
+        // Show onboarding first if incomplete, then pending gate after
+        setAccountPending(!needsOnboard && isPending);
+        setNeedsOnboarding(needsOnboard);
       } catch {
         if (!isMounted) return;
         setIsSignedIn(true);
