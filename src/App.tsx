@@ -99,16 +99,20 @@ const MainApp = () => {
             onboarding_complete: "No",
             image_file: "",
             signup_type: signupType,
+            status: "pending",
           });
 
           if (!isMounted) return;
           setIsSignedIn(true);
           setNeedsOnboarding(true);
+          setAccountPending(true);
           return;
         }
 
+        const isPending = profile.status === "pending";
         setIsSignedIn(true);
-        setNeedsOnboarding(profile.onboarding_complete !== "Yes");
+        setAccountPending(isPending);
+        setNeedsOnboarding(!isPending && profile.onboarding_complete !== "Yes");
       } catch {
         if (!isMounted) return;
         setIsSignedIn(true);
