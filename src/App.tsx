@@ -207,7 +207,14 @@ const MainApp = () => {
     setIsSignedIn(true);
     setShowProfileSetup(false);
 
-    // Check pending status before proceeding
+    // New signups / incomplete profiles must finish onboarding + profile setup
+    // before the pending gate is shown.
+    if (onboarding) {
+      setAccountPending(false);
+      setNeedsOnboarding(true);
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
@@ -215,14 +222,16 @@ const MainApp = () => {
         .select("status")
         .eq("auth_user_id", user.id)
         .maybeSingle();
+
       if (profile?.status === "pending") {
         setAccountPending(true);
         setNeedsOnboarding(false);
         return;
       }
     }
+
     setAccountPending(false);
-    setNeedsOnboarding(onboarding);
+    setNeedsOnboarding(false);
   };
 
   const handleSignOut = async () => {
