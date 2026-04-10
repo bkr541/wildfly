@@ -918,6 +918,7 @@ export type Database = {
           onboarding_complete: string
           remember_me: boolean
           signup_type: string
+          status: string
           username: string | null
         }
         Insert: {
@@ -939,6 +940,7 @@ export type Database = {
           onboarding_complete: string
           remember_me?: boolean
           signup_type?: string
+          status?: string
           username?: string | null
         }
         Update: {
@@ -960,6 +962,7 @@ export type Database = {
           onboarding_complete?: string
           remember_me?: boolean
           signup_type?: string
+          status?: string
           username?: string | null
         }
         Relationships: [
