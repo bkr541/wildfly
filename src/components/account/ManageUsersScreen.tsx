@@ -172,6 +172,36 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
     return f + l || "U";
   };
 
+  const approveUser = async (authUserId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-update-user-status`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ target_user_id: authUserId, status: "current" }),
+        }
+      );
+      const json = await res.json();
+      if (json.success) {
+        setUsers((prev) => prev.map((u) => u.auth_user_id === authUserId ? { ...u, status: "current" } : u));
+        const user = users.find((u) => u.auth_user_id === authUserId);
+        toast.success(`${displayName(user!)} has been accepted`);
+      } else {
+        toast.error(json.error || "Failed to approve user");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to approve user");
+    }
+  };
+
   const cycleSortKey = () => {
     if (sortKey === "name") { setSortKey("date"); setSortAsc(false); }
     else if (sortKey === "date") { setSortKey("plan"); setSortAsc(true); }
