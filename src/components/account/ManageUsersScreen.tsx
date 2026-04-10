@@ -314,6 +314,13 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                               {user.plan_id}
                             </span>
                           )}
+                          <span className={`shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide ${
+                            user.status === "current"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}>
+                            {user.status}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs text-[#6B7B7B] truncate">
@@ -333,6 +340,14 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                         >
                           <HugeiconsIcon icon={EditUser02Icon} size={13} color="#6B7B7B" strokeWidth={1.5} />
                         </span>
+                        {user.status === "pending" && (
+                          <span
+                            className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-emerald-50"
+                            onClick={(e) => { e.stopPropagation(); approveUser(uid); }}
+                          >
+                            <HugeiconsIcon icon={CheckmarkBadge01Icon} size={13} color="#047857" strokeWidth={1.5} />
+                          </span>
+                        )}
                         <span
                           className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50"
                           onClick={(e) => { e.stopPropagation(); }}
