@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     const [usersRes, subsRes, authUsersRes] = await Promise.all([
       serviceClient
         .from("user_info")
-        .select("id, auth_user_id, first_name, last_name, email, username, avatar_url, display_name, home_airport, home_city, is_discoverable, signup_type")
+        .select("id, auth_user_id, first_name, last_name, email, username, avatar_url, display_name, home_airport, home_city, is_discoverable, signup_type, status")
         .order("id", { ascending: true })
         .limit(500),
       serviceClient
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
+    return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
