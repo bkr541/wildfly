@@ -38,6 +38,7 @@ const MainApp = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [accountPending, setAccountPending] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
