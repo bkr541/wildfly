@@ -304,7 +304,7 @@ const MainApp = () => {
   const hideHeaderRight = false;
 
   // Pages that use the shared MainLayout
-  const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup &&
+  const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
     ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer"].includes(currentPage);
 
   return (
@@ -317,6 +317,10 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
+
+        {splashDone && !checkingSession && isSignedIn && accountPending && (
+          <AccountPending onSignOut={handleSignOut} />
+        )}
 
         {splashDone && !checkingSession && isSignedIn && needsOnboarding && !showProfileSetup && (
           <Onboarding onComplete={() => setShowProfileSetup(true)} />
