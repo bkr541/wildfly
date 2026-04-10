@@ -33,6 +33,7 @@ interface UserRow {
   home_city: string | null;
   is_discoverable: boolean;
   signup_type: string;
+  status: string;
   date_joined: string | null;
   plan_id: string | null;
   plan_status: string | null;
