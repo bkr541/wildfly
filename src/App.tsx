@@ -67,6 +67,7 @@ const MainApp = () => {
         setIsSignedIn(false);
         setNeedsOnboarding(false);
         setShowProfileSetup(false);
+        setAccountPending(false);
         return;
       }
 
@@ -75,7 +76,7 @@ const MainApp = () => {
       try {
         const { data: profile, error: profileError } = await supabase
           .from("user_info")
-          .select("onboarding_complete")
+          .select("onboarding_complete, status")
           .eq("auth_user_id", user.id)
           .maybeSingle();
 
@@ -84,6 +85,7 @@ const MainApp = () => {
         if (profileError) {
           setIsSignedIn(true);
           setNeedsOnboarding(true);
+          setAccountPending(false);
           return;
         }
 
