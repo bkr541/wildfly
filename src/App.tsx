@@ -200,11 +200,27 @@ const MainApp = () => {
     };
   }, []);
 
-  const handleSignIn = (onboarding: boolean) => {
+  const handleSignIn = async (onboarding: boolean) => {
     setCurrentPage("home");
     setIsSignedIn(true);
-    setNeedsOnboarding(onboarding);
     setShowProfileSetup(false);
+
+    // Check pending status before proceeding
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("user_info")
+        .select("status")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      if (profile?.status === "pending") {
+        setAccountPending(true);
+        setNeedsOnboarding(false);
+        return;
+      }
+    }
+    setAccountPending(false);
+    setNeedsOnboarding(onboarding);
   };
 
   const handleSignOut = async () => {
@@ -328,7 +344,22 @@ const MainApp = () => {
 
         {splashDone && !checkingSession && isSignedIn && !accountPending && showProfileSetup && (
           <ProfileSetup
-            onComplete={() => {
+            onComplete={async () => {
+              // Re-check pending status after onboarding/profile setup
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: profile } = await supabase
+                  .from("user_info")
+                  .select("status")
+                  .eq("auth_user_id", user.id)
+                  .maybeSingle();
+                if (profile?.status === "pending") {
+                  setAccountPending(true);
+                  setNeedsOnboarding(false);
+                  setShowProfileSetup(false);
+                  return;
+                }
+              }
               setNeedsOnboarding(false);
               setShowProfileSetup(false);
             }}
