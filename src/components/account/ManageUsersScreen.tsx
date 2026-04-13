@@ -50,11 +50,12 @@ interface UserDetails {
 
 interface ManageUsersScreenProps {
   onBack: () => void;
+  onTitleChange?: (title: string) => void;
 }
 
 type SortKey = "name" | "date" | "plan";
 
-const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
+const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
@@ -216,7 +217,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
     return (
       <EditUserScreen
         user={editingUser}
-        onBack={() => setEditingUser(null)}
+        onBack={() => { setEditingUser(null); onTitleChange?.("Manage Users"); }}
         onUserUpdated={(updated) => {
           setUsers((prev) =>
             prev.map((u) =>
@@ -323,32 +324,37 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        {/* Row 1: Name + date */}
+                        {/* Row 1: Name + username */}
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-[#2E4A4A] truncate">
                             {displayName(user)}
                           </p>
-                          {user.date_joined && (
+                          {user.username && (
                             <span className="text-[10px] text-[#A0ADAD] shrink-0">
-                              · {new Date(user.date_joined).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                              · @{user.username}
                             </span>
                           )}
                         </div>
-                        {/* Row 2: Email/username */}
+                        {/* Row 2: Created date */}
                         <p className="text-xs text-[#6B7B7B] truncate">
-                          {user.username ? `@${user.username}` : user.email}
+                          {user.date_joined
+                            ? `Created On: ${new Date(user.date_joined).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                            : user.email}
                         </p>
-                        {/* Row 3: Chips */}
+                        {/* Row 3: Subscription + Status */}
                         <div className="flex items-center gap-1.5 mt-1.5">
                           {user.plan_id && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-700 uppercase tracking-wide">
-                              {user.plan_id}
-                            </span>
+                            <>
+                              <span className="text-[9px] text-[#A0ADAD] font-medium">Subscription:</span>
+                              <span className="text-[9px] font-semibold text-emerald-700 uppercase tracking-wide">
+                                {user.plan_id}
+                              </span>
+                              <span className="text-[9px] text-[#A0ADAD]">·</span>
+                            </>
                           )}
-                          <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide ${
-                            user.status === "current"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-amber-50 text-amber-700"
+                          <span className="text-[9px] text-[#A0ADAD] font-medium">Status:</span>
+                          <span className={`text-[9px] font-semibold uppercase tracking-wide ${
+                            user.status === "current" ? "text-emerald-700" : "text-amber-700"
                           }`}>
                             {user.status}
                           </span>
@@ -357,7 +363,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                       <div className="flex items-center gap-1 shrink-0 ml-2">
                         <span
                           className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-black/5"
-                          onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
+                          onClick={(e) => { e.stopPropagation(); setEditingUser(user); onTitleChange?.("Edit User"); }}
                         >
                           <HugeiconsIcon icon={EditUser02Icon} size={13} color="#6B7B7B" strokeWidth={1.5} />
                         </span>

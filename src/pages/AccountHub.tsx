@@ -145,7 +145,7 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavi
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
   if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} onNavigate={onNavigate} />;
-  if (activeScreen === "manage-users") return <ManageUsersScreen onBack={handleBack} />;
+  if (activeScreen === "manage-users") return <ManageUsersScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
 
   return (
     <>
