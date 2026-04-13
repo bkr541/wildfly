@@ -212,6 +212,22 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
 
   const sortLabel = sortKey === "name" ? "A–Z" : sortKey === "date" ? "Date" : "Plan";
 
+  if (editingUser) {
+    return (
+      <EditUserScreen
+        user={editingUser}
+        onBack={() => setEditingUser(null)}
+        onUserUpdated={(updated) => {
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.auth_user_id === updated.auth_user_id ? { ...u, ...updated } : u
+            )
+          );
+        }}
+      />
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col px-5 pb-4 gap-3 relative z-10 animate-fade-in">
       {/* Search + Filter + Sort bar */}
