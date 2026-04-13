@@ -314,35 +314,19 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
-                      className="flex items-center w-full px-4 py-3 text-left hover:bg-[#F2F3F3] transition-colors"
+                      className="flex items-center w-full px-4 py-3.5 text-left hover:bg-[#F2F3F3] transition-colors"
                     >
-                      <Avatar className="h-9 w-9 mr-3 shrink-0">
+                      <Avatar className="h-10 w-10 mr-3 shrink-0">
                         <AvatarImage src={user.avatar_url ?? undefined} />
                         <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-xs font-bold">
                           {initials(user)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
+                        {/* Row 1: Name + date */}
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-[#2E4A4A] truncate">
                             {displayName(user)}
-                          </p>
-                          {user.plan_id && (
-                            <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-700 uppercase tracking-wide">
-                              {user.plan_id}
-                            </span>
-                          )}
-                          <span className={`shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide ${
-                            user.status === "current"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-amber-50 text-amber-700"
-                          }`}>
-                            {user.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-[#6B7B7B] truncate">
-                            {user.username ? `@${user.username}` : user.email}
                           </p>
                           {user.date_joined && (
                             <span className="text-[10px] text-[#A0ADAD] shrink-0">
@@ -350,11 +334,30 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
                             </span>
                           )}
                         </div>
+                        {/* Row 2: Email/username */}
+                        <p className="text-xs text-[#6B7B7B] truncate">
+                          {user.username ? `@${user.username}` : user.email}
+                        </p>
+                        {/* Row 3: Chips */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          {user.plan_id && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-700 uppercase tracking-wide">
+                              {user.plan_id}
+                            </span>
+                          )}
+                          <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide ${
+                            user.status === "current"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}>
+                            {user.status}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0 ml-2">
                         <span
                           className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-black/5"
-                          onClick={(e) => { e.stopPropagation(); }}
+                          onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
                         >
                           <HugeiconsIcon icon={EditUser02Icon} size={13} color="#6B7B7B" strokeWidth={1.5} />
                         </span>
