@@ -19,6 +19,7 @@ import {
   SortingAZ01Icon,
   CheckmarkBadge01Icon,
 } from "@hugeicons/core-free-icons";
+import EditUserScreen from "@/components/account/EditUserScreen";
 
 interface UserRow {
   id: number;
