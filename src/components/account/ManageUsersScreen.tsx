@@ -65,6 +65,7 @@ const ManageUsersScreen = ({ onBack }: ManageUsersScreenProps) => {
   const [sortAsc, setSortAsc] = useState(true);
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     (async () => {
