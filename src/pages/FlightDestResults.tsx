@@ -1283,9 +1283,101 @@ const FlightDestResults = ({
                               {isFlightOpen && (
                                  <div className="bg-white animate-fade-in pl-3">
                                     <div className="px-2 pt-1">
-                                      <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
-                                   </div>
-                                   {/* Badges inside expanded details */}
+                                       <FlightLegTimeline legs={flight.legs} airportMap={airportMap} />
+                                    </div>
+                                    {/* Fare options from raw payload */}
+                                    {(() => {
+                                      const FARE_LABELS: Record<string, string> = {
+                                        go_wild: "GoWild",
+                                        discount_den: "Discount Den",
+                                        standard: "Standard",
+                                        basic: "Basic",
+                                        economy: "Economy",
+                                        premium: "Premium",
+                                        business: "Business",
+                                        first: "First",
+                                      };
+                                      const FARE_ORDER = ["go_wild", "discount_den", "standard", "basic", "economy", "premium", "business", "first"];
+                                      const rawFares = (flight as any).rawPayload?.fares ?? {};
+                                      const merged: { key: string; label: string; price: number; isGoWild: boolean }[] = [];
+                                      const seen = new Set<string>();
+                                      for (const key of FARE_ORDER) {
+                                        const rawEntry = rawFares?.[key];
+                                        let price: number | null = null;
+                                        if (rawEntry && typeof rawEntry === "object") {
+                                          const t = Number(rawEntry.total ?? rawEntry.price ?? rawEntry.amount);
+                                          if (Number.isFinite(t) && t > 0) price = t;
+                                        } else if (rawEntry != null) {
+                                          const t = Number(rawEntry);
+                                          if (Number.isFinite(t) && t > 0) price = t;
+                                        }
+                                        if (price == null) {
+                                          const fallback = (flight.fares as any)?.[key];
+                                          const t = Number(fallback);
+                                          if (Number.isFinite(t) && t > 0) price = t;
+                                        }
+                                        if (price != null) {
+                                          merged.push({ key, label: FARE_LABELS[key] ?? key, price, isGoWild: key === "go_wild" });
+                                          seen.add(key);
+                                        }
+                                      }
+                                      // Catch any extra fare keys not in FARE_ORDER
+                                      for (const key of Object.keys(rawFares ?? {})) {
+                                        if (seen.has(key)) continue;
+                                        const rawEntry = rawFares[key];
+                                        let price: number | null = null;
+                                        if (rawEntry && typeof rawEntry === "object") {
+                                          const t = Number(rawEntry.total ?? rawEntry.price ?? rawEntry.amount);
+                                          if (Number.isFinite(t) && t > 0) price = t;
+                                        }
+                                        if (price != null) {
+                                          const label = FARE_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+                                          merged.push({ key, label, price, isGoWild: false });
+                                        }
+                                      }
+                                      if (merged.length === 0) return null;
+                                      const cheapestPrice = Math.min(...merged.map((m) => m.price));
+                                      return (
+                                        <div className="px-3 pt-3">
+                                          <div className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7B7B] mb-1.5">
+                                            Fare Options
+                                          </div>
+                                          <div className="rounded-xl border border-[#E8EBEB] overflow-hidden bg-white">
+                                            {merged.map((fare, i) => {
+                                              const isLowest = fare.price === cheapestPrice;
+                                              return (
+                                                <div
+                                                  key={fare.key}
+                                                  className={cn(
+                                                    "flex items-center justify-between px-3 py-2",
+                                                    i > 0 && "border-t border-[#F1F4F4]",
+                                                    fare.isGoWild && "bg-[#ECFDF5]",
+                                                  )}
+                                                >
+                                                  <div className="flex items-center gap-2">
+                                                    {fare.isGoWild && (
+                                                      <HugeiconsIcon icon={Rocket01Icon} size={12} color="#059669" strokeWidth={2.5} />
+                                                    )}
+                                                    <span className={cn("text-[13px] font-semibold", fare.isGoWild ? "text-[#047857]" : "text-[#1A2E2E]")}>
+                                                      {fare.label}
+                                                    </span>
+                                                    {isLowest && merged.length > 1 && (
+                                                      <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[#1E3A5F] text-white">
+                                                        Lowest
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                  <span className={cn("text-[14px] font-bold tabular-nums", fare.isGoWild ? "text-[#047857]" : "text-[#1A2E2E]")}>
+                                                    ${fare.price.toFixed(2)}
+                                                  </span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
+                                    {/* Badges inside expanded details */}
                                    {hasBadges && (
                                      <div className="flex flex-wrap gap-1 px-3 pt-2">
                                        {isGoWild && (
