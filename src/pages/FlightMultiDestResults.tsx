@@ -462,7 +462,7 @@ const FlightMultiDestResults = ({
         </div>
 
         {/* ── Destination cards list ───────────────────────────── */}
-        <div className="flex-1 flex flex-col px-10 py-4 gap-6 relative z-10">
+        <div className="flex-1 flex flex-col px-4 py-4 gap-6 relative z-10">
           {sortedCards.map((card, index) => (
             <DestCardItem
               key={card.destination}
