@@ -34,7 +34,7 @@ import BillingCancel from "./pages/BillingCancel";
 const queryClient = new QueryClient();
 
 const MainApp = () => {
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashDone, setSplashDone] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
