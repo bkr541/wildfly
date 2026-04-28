@@ -337,7 +337,7 @@ const MainApp = () => {
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-[768px] min-h-screen flex flex-col">
-        {!splashDone && <AltSplashScreen onComplete={handleSplashComplete} />}
+        {/* Splash video removed */}
 
         {splashDone && checkingSession && (
           <div className="flex items-center justify-center min-h-screen bg-background" />
