@@ -43,7 +43,16 @@ export function TokenExpirationCard({ isCollapsed = false, onToggle }: Props) {
   }, []);
 
   const expiry = token ? getJWTExpiry(token) : null;
-  const isExpired = expiry ? expiry < new Date() : false;
+  const now = new Date();
+  const isExpired = expiry ? expiry < now : false;
+  const daysUntilExpiry = expiry ? (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) : null;
+  const expiryColor = isExpired
+    ? "#EF4444"
+    : daysUntilExpiry !== null && daysUntilExpiry < 5
+    ? "#EF4444"
+    : daysUntilExpiry !== null && daysUntilExpiry <= 10
+    ? "#B8860B"
+    : "#059669";
 
   const expiryLabel = expiry
     ? expiry.toLocaleDateString("en-US", {
