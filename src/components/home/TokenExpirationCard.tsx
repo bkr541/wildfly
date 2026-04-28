@@ -171,7 +171,7 @@ export function TokenExpirationCard({ isCollapsed = false, onToggle }: Props) {
                     {expiryLabel ? (
                       <p
                         className="text-[12px] font-semibold"
-                        style={{ color: isExpired ? "#EF4444" : "#059669" }}
+                        style={{ color: expiryColor }}
                       >
                         {expiryLabel}
                         {isExpired && " · Expired"}
