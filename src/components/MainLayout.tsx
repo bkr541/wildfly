@@ -486,7 +486,13 @@ const MainLayout = ({
             <AlertDialogDescription asChild>
               <div className="text-center space-y-1">
                 <p className="text-xs text-[#6B7B7B]">The current GoWilder token expires on</p>
-                <p className={`text-sm font-semibold ${tokenExpiry && tokenExpiry < new Date() ? "text-red-500" : "text-[#059669]"}`}>
+                <p className="text-sm font-semibold" style={{ color: (() => {
+                  if (!tokenExpiry) return "#059669";
+                  const days = (tokenExpiry.getTime() - Date.now()) / 86400000;
+                  if (days < 5) return "#EF4444";
+                  if (days <= 10) return "#B8860B";
+                  return "#059669";
+                })() }}>
                   {tokenExpiry
                     ? tokenExpiry.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
                     : "—"}
