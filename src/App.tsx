@@ -34,7 +34,7 @@ import BillingCancel from "./pages/BillingCancel";
 const queryClient = new QueryClient();
 
 const MainApp = () => {
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashDone, setSplashDone] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -337,7 +337,7 @@ const MainApp = () => {
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-[768px] min-h-screen flex flex-col">
-        {!splashDone && <AltSplashScreen onComplete={handleSplashComplete} />}
+        {/* Splash video removed */}
 
         {splashDone && checkingSession && (
           <div className="flex items-center justify-center min-h-screen bg-background" />
