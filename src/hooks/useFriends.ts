@@ -134,9 +134,8 @@ export function useUserSearch(query: string) {
 
       const term = `*${query.trim()}*`;
       const { data, error } = await supabase
-        .from("user_info")
+        .from("user_public_profiles" as any)
         .select("auth_user_id, username, display_name, first_name, last_name, avatar_url, home_city, home_airport")
-        .eq("is_discoverable", true)
         .or(`username.ilike.${term},home_city.ilike.${term}`)
         .neq("auth_user_id", userId ?? "")
         .limit(25);
