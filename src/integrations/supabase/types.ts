@@ -1134,6 +1134,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_public_profiles: {
+        Row: {
+          auth_user_id: string | null
+          avatar_url: string | null
+          display_name: string | null
+          first_name: string | null
+          home_airport: string | null
+          home_city: string | null
+          is_discoverable: boolean | null
+          last_name: string | null
+          username: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          home_airport?: string | null
+          home_city?: string | null
+          is_discoverable?: boolean | null
+          last_name?: string | null
+          username?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          home_airport?: string | null
+          home_city?: string | null
+          is_discoverable?: boolean | null
+          last_name?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_friend_request: { Args: { request_id: string }; Returns: Json }
@@ -1159,6 +1195,19 @@ export type Database = {
             }
             Returns: Json
           }
+      get_friend_profiles: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          auth_user_id: string
+          avatar_url: string
+          display_name: string
+          first_name: string
+          home_airport: string
+          home_city: string
+          last_name: string
+          username: string
+        }[]
+      }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
