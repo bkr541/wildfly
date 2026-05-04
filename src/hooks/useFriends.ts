@@ -94,12 +94,9 @@ export function useFriendRequests() {
       // Fetch profiles for display
       const profileMap: Record<string, { username: string | null; avatar_url: string | null; display_name: string | null }> = {};
       if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("user_info")
-          .select("auth_user_id, username, avatar_url, display_name")
-          .in("auth_user_id", userIds);
+        const { data: profiles } = await supabase.rpc("get_friend_profiles", { _user_ids: userIds });
 
-        (profiles ?? []).forEach((p) => {
+        (profiles ?? []).forEach((p: any) => {
           if (p.auth_user_id) profileMap[p.auth_user_id] = { username: p.username, avatar_url: p.avatar_url, display_name: p.display_name };
         });
       }
@@ -137,15 +134,14 @@ export function useUserSearch(query: string) {
 
       const term = `*${query.trim()}*`;
       const { data, error } = await supabase
-        .from("user_info")
+        .from("user_public_profiles" as any)
         .select("auth_user_id, username, display_name, first_name, last_name, avatar_url, home_city, home_airport")
-        .eq("is_discoverable", true)
         .or(`username.ilike.${term},home_city.ilike.${term}`)
         .neq("auth_user_id", userId ?? "")
         .limit(25);
 
       if (error) throw error;
-      return (data ?? []) as UserSearchResult[];
+      return ((data as unknown) ?? []) as UserSearchResult[];
     },
     enabled: query.trim().length >= 2,
     staleTime: 30_000,
