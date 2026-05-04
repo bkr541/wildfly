@@ -464,6 +464,29 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
           )}
         </div>
       )}
+
+      <AlertDialog open={!!deletingUser} onOpenChange={(o) => !o && !deleting && setDeletingUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingUser && (
+                <>This will permanently delete <span className="font-semibold">{displayName(deletingUser)}</span> and all of their data. This action cannot be undone.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
