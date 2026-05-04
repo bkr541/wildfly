@@ -141,7 +141,7 @@ export function useUserSearch(query: string) {
         .limit(25);
 
       if (error) throw error;
-      return (data ?? []) as UserSearchResult[];
+      return ((data as unknown) ?? []) as UserSearchResult[];
     },
     enabled: query.trim().length >= 2,
     staleTime: 30_000,
