@@ -77,6 +77,38 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDeleteUser = useCallback(async () => {
+    if (!deletingUser?.auth_user_id || deleting) return;
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-delete-user`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ target_user_id: deletingUser.auth_user_id }),
+        }
+      );
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || "Failed to delete user");
+      setUsers((prev) => prev.filter((u) => u.auth_user_id !== deletingUser.auth_user_id));
+      toast.success(`${displayName(deletingUser)} has been deleted`);
+      setDeletingUser(null);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete user");
+    } finally {
+      setDeleting(false);
+    }
+  }, [deletingUser, deleting]);
 
   useEffect(() => {
     (async () => {
