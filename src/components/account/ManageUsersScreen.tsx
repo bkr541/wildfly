@@ -20,6 +20,16 @@ import {
   CheckmarkBadge01Icon,
 } from "@hugeicons/core-free-icons";
 import EditUserScreen from "@/components/account/EditUserScreen";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserRow {
   id: number;
