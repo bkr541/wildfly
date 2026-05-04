@@ -326,13 +326,18 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
-      <div className="flex-1 flex flex-col items-center justify-center z-10 py-10 gap-3">
+      <div className="flex-1 flex flex-col items-center justify-center z-10 py-10">
         <img
-          src="/assets/logo/wflogo2.png"
-          alt="Wildfly Logo"
+          src="/assets/logo/logo_horizontal.png"
+          alt="Logo"
+          className="w-auto object-contain mx-auto p-[6px]"
+          style={{ height: "clamp(90px, 22vw, 140px)" }}
+        />
+        <img
+          src="/assets/logo/tag_noshadow.png"
+          alt="Tag"
           className="w-auto object-contain mx-auto"
-          style={{ height: "clamp(120px, 28vw, 180px)" }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          style={{ height: "clamp(40px, 10vw, 72px)" }}
         />
       </div>
 
