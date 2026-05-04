@@ -20,6 +20,16 @@ import {
   CheckmarkBadge01Icon,
 } from "@hugeicons/core-free-icons";
 import EditUserScreen from "@/components/account/EditUserScreen";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserRow {
   id: number;
@@ -67,6 +77,38 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
   const [filterPlan, setFilterPlan] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDeleteUser = useCallback(async () => {
+    if (!deletingUser?.auth_user_id || deleting) return;
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-delete-user`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ target_user_id: deletingUser.auth_user_id }),
+        }
+      );
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || "Failed to delete user");
+      setUsers((prev) => prev.filter((u) => u.auth_user_id !== deletingUser.auth_user_id));
+      toast.success(`${displayName(deletingUser)} has been deleted`);
+      setDeletingUser(null);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete user");
+    } finally {
+      setDeleting(false);
+    }
+  }, [deletingUser, deleting]);
 
   useEffect(() => {
     (async () => {
@@ -376,8 +418,8 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
                           </span>
                         )}
                         <span
-                          className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50"
-                          onClick={(e) => { e.stopPropagation(); }}
+                          className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50 cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); setDeletingUser(user); }}
                         >
                           <HugeiconsIcon icon={UserRemove01Icon} size={13} color="#EF4444" strokeWidth={1.5} />
                         </span>
@@ -422,6 +464,29 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
           )}
         </div>
       )}
+
+      <AlertDialog open={!!deletingUser} onOpenChange={(o) => !o && !deleting && setDeletingUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingUser && (
+                <>This will permanently delete <span className="font-semibold">{displayName(deletingUser)}</span> and all of their data. This action cannot be undone.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
