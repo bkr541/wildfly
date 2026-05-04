@@ -418,8 +418,8 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
                           </span>
                         )}
                         <span
-                          className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50"
-                          onClick={(e) => { e.stopPropagation(); }}
+                          className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-red-50 cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); setDeletingUser(user); }}
                         >
                           <HugeiconsIcon icon={UserRemove01Icon} size={13} color="#EF4444" strokeWidth={1.5} />
                         </span>
