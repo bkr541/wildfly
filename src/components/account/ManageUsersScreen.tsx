@@ -466,21 +466,31 @@ const ManageUsersScreen = ({ onBack, onTitleChange }: ManageUsersScreenProps) =>
       )}
 
       <AlertDialog open={!!deletingUser} onOpenChange={(o) => !o && !deleting && setDeletingUser(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete user?</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={UserRemove01Icon} size={22} color="#EF4444" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
+              Delete {deletingUser ? displayName(deletingUser) : "User"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
               {deletingUser && (
-                <>This will permanently delete <span className="font-semibold">{displayName(deletingUser)}</span> and all of their data. This action cannot be undone.</>
+                <>This will permanently delete <span className="font-semibold text-[#2E4A4A]">{displayName(deletingUser)}</span> and all of their data. This action cannot be undone.</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
+            <AlertDialogCancel
+              disabled={deleting}
+              className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1"
             >
               {deleting ? "Deleting…" : "Delete"}
             </AlertDialogAction>

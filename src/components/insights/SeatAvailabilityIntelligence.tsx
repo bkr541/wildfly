@@ -30,7 +30,7 @@ const SeatAvailabilityIntelligence = ({ snapshots, airportDict }: Props) => {
         rows={analytics.routesWithLowestSeats}
       />
       <SeatAvailabilityCard
-        title="Airport Seat Averages"
+        title="GoWild Seats Available"
         subtitle="Avg GoWild seats by departure airport"
         icon={Location01Icon}
         variant="airport-average"

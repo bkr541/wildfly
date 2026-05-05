@@ -89,11 +89,6 @@ const SeatAvailabilityCard = (props: Props) => {
             <p className="text-sm text-[#9CA3AF] text-center py-6">{emptyMessage}</p>
           ) : (
             <>
-              {/* Column label */}
-              <div className="flex justify-end mb-2">
-                <span className="text-[10px] text-[#9CA3AF] uppercase tracking-wider">Avg GoWild Seats</span>
-              </div>
-
               <div className="flex flex-col gap-3">
                 {variant === "airport-average"
                   ? (props as AirportCardProps).rows.map((r) => {

@@ -5,7 +5,6 @@ import type { AirportInsightsProps } from "./airportHelpers";
 import TopRoutesCard from "./TopRoutesCard";
 import WorstRoutesCard from "./WorstRoutesCard";
 import MostReliableRouteCard from "./MostReliableRouteCard";
-import MostFrequentGoWildRouteCard from "./MostFrequentGoWildRouteCard";
 
 const GoWildRouteAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsProps) => {
   const filtered = getFilteredSnapshots(snapshots, dateRange);
@@ -16,7 +15,6 @@ const GoWildRouteAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsPr
       <TopRoutesCard routes={analytics.topRoutes} />
       <WorstRoutesCard routes={analytics.worstRoutes} />
       <MostReliableRouteCard data={analytics.mostReliableRoute} />
-      <MostFrequentGoWildRouteCard data={analytics.mostFrequentGoWildRoute} />
     </div>
   );
 };
