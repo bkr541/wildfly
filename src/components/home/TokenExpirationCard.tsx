@@ -66,7 +66,7 @@ export function TokenExpirationCard({ isCollapsed = false, onToggle }: Props) {
     : null;
 
   return (
-    <section className="px-5 pt-0 pb-2 relative z-10">
+    <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Section header */}
       <button
         type="button"

@@ -81,7 +81,7 @@ interface Props {
 export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
 
   return (
-    <section className="px-5 pt-0 pb-2 relative z-10">
+    <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Header */}
       <button type="button" onClick={onToggle} className="w-full flex items-center justify-between mb-1 px-1 group">
         <div className="flex items-center gap-1.5">

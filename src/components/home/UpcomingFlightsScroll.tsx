@@ -83,7 +83,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
   };
 
   return (
-    <section className="px-5 pt-0 pb-2 relative z-10">
+    <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Section header — clickable to toggle */}
       <button
         type="button"
