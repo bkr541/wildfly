@@ -24,6 +24,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
+import GoWildInsightsPage from "./pages/GoWildInsights";
 import FlightExplorerPage from "./pages/FlightExplorer";
 import DesignSystemPage from "./pages/DesignSystemV2";
 import FlightDetails from "./pages/FlightDetails";
@@ -40,7 +41,7 @@ const MainApp = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [accountPending, setAccountPending] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
   /** When true, the flight-results back button returns to flight-multi-results */
@@ -332,7 +333,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights"].includes(currentPage);
 
   return (
     <div className="flex justify-center">
@@ -407,6 +408,7 @@ const MainApp = () => {
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "friends" && <FriendsPage />}
               {currentPage === "hubs" && <HubsPage />}
+              {currentPage === "gowild-insights" && <GoWildInsightsPage />}
               {currentPage === "explorer" && <FlightExplorerPage onNavigate={handleNavigate} />}
               {currentPage === "design-system" && <DesignSystemPage />}
             </MainLayout>

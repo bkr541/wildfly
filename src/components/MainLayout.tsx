@@ -19,6 +19,7 @@ import {
   ResourcesAddIcon,
   SourceCodeIcon,
   Key01Icon,
+  Idea01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -38,6 +39,7 @@ import {
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
+  { icon: Idea01Icon, label: "Insights" },
   { type: "heading", label: "Book" },
   { icon: Airplane01Icon, label: "Flights", indent: true },
   { icon: Location01Icon, label: "Destinations", indent: true },
@@ -51,6 +53,7 @@ const menuItems = [
 
 const pageMap: Record<string, string> = {
   Home: "home",
+  Insights: "gowild-insights",
   Flights: "flights",
   Destinations: "destinations",
   Itinerary: "itinerary",
@@ -344,6 +347,14 @@ const MainLayout = ({
                       <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
                         <span className="text-[22px] font-medium text-[#6B7280]">Frontier</span>
                         <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Hubs</span>
+                      </div>
+                    );
+                  }
+                  if (currentPage === "gowild-insights") {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">GoWild</span>
+                        <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Insights</span>
                       </div>
                     );
                   }
