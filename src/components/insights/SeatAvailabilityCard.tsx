@@ -65,11 +65,11 @@ const SeatAvailabilityCard = (props: Props) => {
       >
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <HugeiconsIcon icon={icon} size={20} color="#059669" strokeWidth={2} />
-            <p className="text-xl font-semibold text-[#059669] uppercase tracking-wider">{title}</p>
+            <HugeiconsIcon icon={icon} size={16} color="#059669" strokeWidth={2} />
+            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">{title}</p>
           </div>
           <div className="flex items-center gap-2">
-            <p className="text-sm text-[#6B7B7B]">{subtitle}</p>
+            <p className="text-xs text-[#6B7B7B]">{subtitle}</p>
             {hasLimitedData && (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">
                 Limited data
@@ -78,7 +78,7 @@ const SeatAvailabilityCard = (props: Props) => {
           </div>
         </div>
         <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
+          <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
 

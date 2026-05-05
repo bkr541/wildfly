@@ -173,13 +173,13 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
       >
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <HugeiconsIcon icon={Analytics01Icon} size={20} color="#059669" strokeWidth={2} />
-            <p className="text-xl font-semibold text-[#059669] uppercase tracking-wider">GoWild Snapshot</p>
+            <HugeiconsIcon icon={Analytics01Icon} size={16} color="#059669" strokeWidth={2} />
+            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">GoWild Snapshot</p>
           </div>
-          <p className="text-sm text-[#6B7B7B]">Live availability across tracked flight legs</p>
+          <p className="text-xs text-[#6B7B7B]">Live availability across tracked flight legs</p>
         </div>
         <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
+          <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
 

@@ -80,7 +80,7 @@ const GoWildInsightsPage = () => {
       {!loading && !error && (
         <>
           <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
-          <GoWildRouteAnalyticsSection snapshots={snapshots} />
+          <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
           <GoWildTimingAnalyticsSection snapshots={snapshots} />
           <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
         </>
