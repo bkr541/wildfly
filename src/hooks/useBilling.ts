@@ -98,16 +98,16 @@ export function useBilling(): BillingState {
   const [planId, setPlanId] = useState("free");
   const [planName, setPlanName] = useState("Free");
   const [planStatus, setPlanStatus] = useState("active");
-  const [monthlyAllowance, setMonthlyAllowance] = useState(20);
+  const [monthlyAllowance, setMonthlyAllowance] = useState(15);
   const [isGold, setIsGold] = useState(false);
 
   // Wallet state
   const [wallet, setWallet] = useState<WalletState>({
     monthlyUsed: 0,
-    monthlyRemaining: 20,
-    monthlyAllowance: 20,
+    monthlyRemaining: 15,
+    monthlyAllowance: 15,
     purchasedBalance: 0,
-    totalCredits: 20,
+    totalCredits: 15,
     isUnlimited: false,
     periodEnd: null,
     periodStart: null,
@@ -166,24 +166,24 @@ export function useBilling(): BillingState {
       // Look up plan name + allowance from catalog
       const matchedPlan = plansRes.data?.find((p) => p.id === currentPlanId);
       const resolvedName = matchedPlan?.name ?? (currentPlanId === "free" ? "Free" : currentPlanId);
-      const resolvedAllowance = matchedPlan?.monthly_allowance_credits ?? 20;
+      const resolvedAllowance = matchedPlan?.monthly_allowance_credits ?? 15;
       const resolvedGold = resolvedAllowance === null;
 
       setPlanName(resolvedName);
-      setMonthlyAllowance(resolvedAllowance ?? 20);
+      setMonthlyAllowance(resolvedAllowance ?? 15);
       setIsGold(resolvedGold);
 
       // ── Resolve wallet ─────────────────────────────────────────────────────
       const w = walletRes.data;
       const used = w?.monthly_used ?? 0;
       const purchased = w?.purchased_balance ?? 0;
-      const remaining = resolvedGold ? Infinity : Math.max(0, (resolvedAllowance ?? 20) - used);
+      const remaining = resolvedGold ? Infinity : Math.max(0, (resolvedAllowance ?? 15) - used);
       const total = resolvedGold ? Infinity : remaining + purchased;
 
       setWallet({
         monthlyUsed: used,
         monthlyRemaining: resolvedGold ? -1 : remaining,
-        monthlyAllowance: resolvedAllowance ?? 20,
+        monthlyAllowance: resolvedAllowance ?? 15,
         purchasedBalance: purchased,
         totalCredits: resolvedGold ? -1 : total,
         isUnlimited: resolvedGold,

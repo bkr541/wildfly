@@ -62,14 +62,19 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
     (p) => p.name.toLowerCase().includes("gold") && p.billingPeriod === "yearly"
   );
 
+  // Pricing display — values come from `plans.features.price_usd` in Supabase.
+  // Fallback values match the current Gold pricing: $12.99/mo, $74.99/yr.
+  // TODO (admin): ensure live Stripe Price IDs in `plans.stripe_price_id` map to:
+  //   - Gold Monthly $12.99
+  //   - Gold Yearly  $74.99
   const goldDisplayPrice =
     billingCycle === "yearly"
       ? goldYearlyPrice
-        ? `$${goldYearlyPrice.features?.price_usd ?? "400"}`
-        : "$400"
+        ? `$${goldYearlyPrice.features?.price_usd ?? "74.99"}`
+        : "$74.99"
       : goldMonthlyPrice
-      ? `$${goldMonthlyPrice.features?.price_usd ?? "40"}`
-      : "$40";
+      ? `$${goldMonthlyPrice.features?.price_usd ?? "12.99"}`
+      : "$12.99";
 
   const isCurrentlyFree = planId === "free" || planName.toLowerCase() === "free";
   const isCurrentlyGold = isGold || planName.toLowerCase().includes("gold");
@@ -151,7 +156,7 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
                   strokeWidth={1.5}
                   className="mr-1.5 mt-0.5 shrink-0"
                 />
-                <span>20 searches / month</span>
+                <span>15 searches / month</span>
               </li>
               <li className="flex items-start">
                 <HugeiconsIcon
