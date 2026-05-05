@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Idea01Icon, RouteIcon, Analytics01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
@@ -41,23 +39,6 @@ const ErrorCard = ({ message }: { message: string }) => (
   </div>
 );
 
-const SectionHeader = ({
-  icon,
-  label,
-  description,
-}: {
-  icon: any;
-  label: string;
-  description: string;
-}) => (
-  <div>
-    <div className="flex items-center gap-1.5 mb-0.5 px-1">
-      <HugeiconsIcon icon={icon} size={13} color="#059669" strokeWidth={2} />
-      <p className="text-xs font-semibold text-[#059669] uppercase tracking-wider">{label}</p>
-    </div>
-    <p className="text-xs text-[#6B7B7B] px-1">{description}</p>
-  </div>
-);
 
 const GoWildInsightsPage = () => {
   const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
@@ -85,12 +66,6 @@ const GoWildInsightsPage = () => {
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
-      <SectionHeader
-        icon={Idea01Icon}
-        label="GoWild Snapshot"
-        description="A live overview of GoWild seat availability across tracked flight legs."
-      />
-
       {loading ? (
         <SkeletonCard />
       ) : error ? (
@@ -101,25 +76,8 @@ const GoWildInsightsPage = () => {
 
       {!loading && !error && (
         <>
-          <SectionHeader
-            icon={RouteIcon}
-            label="Airport Analytics"
-            description="GoWild availability broken down by origin and destination airports."
-          />
           <AirportGoWildInsightsSection snapshots={snapshots} />
-
-          <SectionHeader
-            icon={Analytics01Icon}
-            label="Route Analytics"
-            description="GoWild performance ranked and analysed by individual flight route."
-          />
           <GoWildRouteAnalyticsSection snapshots={snapshots} />
-
-          <SectionHeader
-            icon={Clock01Icon}
-            label="Timing Analytics"
-            description="GoWild availability broken down by day of week and departure time window."
-          />
           <GoWildTimingAnalyticsSection snapshots={snapshots} />
         </>
       )}

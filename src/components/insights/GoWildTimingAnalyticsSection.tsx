@@ -27,8 +27,6 @@ const GoWildTimingAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsP
         title="Worst Days of Week"
         subtitle="Lowest GoWild success rate"
         icon={Calendar01Icon}
-        iconBg="#FEE2E2"
-        iconColor="#EF4444"
         rows={worstDays}
         emptyMessage="Not enough day-of-week data yet."
       />
@@ -43,8 +41,6 @@ const GoWildTimingAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsP
         title="Worst Departure Time Windows"
         subtitle="Lowest GoWild departure success"
         icon={Clock01Icon}
-        iconBg="#FEE2E2"
-        iconColor="#EF4444"
         rows={worstTimes}
         emptyMessage="Not enough departure time data yet."
       />

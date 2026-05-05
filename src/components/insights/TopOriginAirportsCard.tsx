@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Airplane01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Airplane01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import {
   getOriginAirportStats,
   formatPercent,
@@ -37,32 +38,36 @@ interface Props {
 }
 
 const TopOriginAirportsCard = ({ snapshots }: Props) => {
+  const [isExpanded, setIsExpanded] = useState(true);
   const stats = getOriginAirportStats(snapshots);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-[#D1FAE5] flex items-center justify-center flex-shrink-0">
-            <HugeiconsIcon icon={Airplane01Icon} size={18} color="#059669" strokeWidth={1.5} />
+      <div
+        className={`flex items-start justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
+        onClick={() => setIsExpanded((v) => !v)}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <HugeiconsIcon icon={Airplane01Icon} size={20} color="#059669" strokeWidth={2} />
+            <p className="text-xl font-semibold text-[#059669] uppercase tracking-wider">Top Origin Airports</p>
           </div>
-          <div>
-            <h3 className="text-base font-semibold text-[#2E4A4A] leading-tight">
-              Top Origin Airports
-            </h3>
-            <p className="text-xs text-[#6B7B7B]">Highest departure GoWild rate</p>
-          </div>
+          <p className="text-sm text-[#6B7B7B]">Highest departure GoWild rate</p>
         </div>
-        <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
+        <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+          <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
+        </div>
       </div>
 
-      {/* List */}
-      {stats.length === 0 ? (
-        <p className="text-sm text-[#9CA3AF] text-center py-6">No origin airport data yet</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {stats.map((stat) => (
+      {/* Collapsible body */}
+      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          {stats.length === 0 ? (
+            <p className="text-sm text-[#9CA3AF] text-center py-6">No origin airport data yet</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {stats.map((stat) => (
             <div key={stat.code}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -84,8 +89,10 @@ const TopOriginAirportsCard = ({ snapshots }: Props) => {
               </p>
             </div>
           ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

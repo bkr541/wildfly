@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import type { Confidence } from "./airportHelpers";
 import type { TimingRow } from "./timingHelpers";
 
@@ -29,8 +30,6 @@ interface Props {
   title: string;
   subtitle: string;
   icon: any;
-  iconBg?: string;
-  iconColor?: string;
   rows: TimingRow[];
   emptyMessage?: string;
 }
@@ -39,80 +38,85 @@ const RankedInsightCard = ({
   title,
   subtitle,
   icon,
-  iconBg = "#D1FAE5",
-  iconColor = "#059669",
   rows,
   emptyMessage = "Not enough data yet.",
-}: Props) => (
-  <div className="rounded-2xl bg-white p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
-    {/* Header */}
-    <div className="flex items-start justify-between mb-4">
-      <div className="flex items-center gap-3">
-        <div
-          className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: iconBg }}
-        >
-          <HugeiconsIcon icon={icon} size={18} color={iconColor} strokeWidth={1.5} />
-        </div>
+}: Props) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  return (
+    <div className="rounded-2xl bg-white p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
+      {/* Header */}
+      <div
+        className={`flex items-start justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
+        onClick={() => setIsExpanded((v) => !v)}
+      >
         <div>
-          <h3 className="text-base font-semibold text-[#2E4A4A] leading-tight">{title}</h3>
-          <p className="text-xs text-[#6B7B7B]">{subtitle}</p>
+          <div className="flex items-center gap-2 mb-0.5">
+            <HugeiconsIcon icon={icon} size={20} color="#059669" strokeWidth={2} />
+            <p className="text-xl font-semibold text-[#059669] uppercase tracking-wider">{title}</p>
+          </div>
+          <p className="text-sm text-[#6B7B7B]">{subtitle}</p>
+        </div>
+        <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+          <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
-      <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#9CA3AF" strokeWidth={1.5} />
-    </div>
 
-    {/* Rows */}
-    {rows.length === 0 ? (
-      <p className="text-sm text-[#9CA3AF] text-center py-6 flex-1 flex items-center justify-center">
-        {emptyMessage}
-      </p>
-    ) : (
-      <>
-        <div className="flex flex-col gap-3">
-          {rows.map((row) => (
-            <div key={row.label}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm font-semibold text-[#2E4A4A] truncate">{row.label}</span>
-                  <span
-                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${BADGE[row.rating].classes}`}
-                  >
-                    {BADGE[row.rating].label}
-                  </span>
+      {/* Collapsible body */}
+      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          {rows.length === 0 ? (
+            <p className="text-sm text-[#9CA3AF] text-center py-6 flex-1 flex items-center justify-center">
+              {emptyMessage}
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3">
+                {rows.map((row) => (
+                  <div key={row.label}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-semibold text-[#2E4A4A] truncate">{row.label}</span>
+                        <span
+                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${BADGE[row.rating].classes}`}
+                        >
+                          {BADGE[row.rating].label}
+                        </span>
+                      </div>
+                      <span className={`text-sm font-bold ml-2 flex-shrink-0 ${pctColor(row.rating)}`}>
+                        {row.percentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${barColor(row.percentage)}`}
+                        style={{ width: `${row.percentage === 0 ? 2 : Math.min(row.percentage, 100)}%` }}
+                        role="progressbar"
+                        aria-valuenow={row.percentage}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">
+                      {row.successCount} / {row.totalCount} legs
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-4">
+                <span className="text-[10px] text-[#9CA3AF]">Low</span>
+                <div className="flex gap-0.5 flex-1">
+                  {["bg-red-500", "bg-orange-400", "bg-amber-400", "bg-green-300", "bg-green-500"].map((bg, i) => (
+                    <div key={i} className={`h-2 flex-1 rounded-sm ${bg}`} />
+                  ))}
                 </div>
-                <span className={`text-sm font-bold ml-2 flex-shrink-0 ${pctColor(row.rating)}`}>
-                  {row.percentage.toFixed(1)}%
-                </span>
+                <span className="text-[10px] text-[#9CA3AF]">High</span>
               </div>
-              <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${barColor(row.percentage)}`}
-                  style={{ width: `${row.percentage === 0 ? 2 : Math.min(row.percentage, 100)}%` }}
-                  role="progressbar"
-                  aria-valuenow={row.percentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                />
-              </div>
-              <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                {row.successCount} / {row.totalCount} legs
-              </p>
-            </div>
-          ))}
+            </>
+          )}
         </div>
-        <div className="flex items-center gap-2 mt-4">
-          <span className="text-[10px] text-[#9CA3AF]">Low</span>
-          <div className="flex gap-0.5 flex-1">
-            {["bg-red-500", "bg-orange-400", "bg-amber-400", "bg-green-300", "bg-green-500"].map((bg, i) => (
-              <div key={i} className={`h-2 flex-1 rounded-sm ${bg}`} />
-            ))}
-          </div>
-          <span className="text-[10px] text-[#9CA3AF]">High</span>
-        </div>
-      </>
-    )}
-  </div>
-);
+      </div>
+    </div>
+  );
+};
 
 export default RankedInsightCard;
