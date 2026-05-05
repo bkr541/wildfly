@@ -76,15 +76,6 @@ const TopRoutesCard = ({ routes }: Props) => {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-2 mt-4">
-                <span className="text-[10px] text-[#9CA3AF]">Low</span>
-                <div className="flex gap-0.5 flex-1">
-                  {["bg-red-500", "bg-orange-400", "bg-amber-400", "bg-green-300", "bg-green-500"].map((bg, i) => (
-                    <div key={i} className={`h-2 flex-1 rounded-sm ${bg}`} />
-                  ))}
-                </div>
-                <span className="text-[10px] text-[#9CA3AF]">High</span>
-              </div>
             </>
           )}
         </div>

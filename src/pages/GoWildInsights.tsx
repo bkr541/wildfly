@@ -6,6 +6,7 @@ import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyt
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
 import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
+import { useAirportDictionary, type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
@@ -45,6 +46,7 @@ const GoWildInsightsPage = () => {
   const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { dict: airportDict } = useAirportDictionary();
 
   useEffect(() => {
     let cancelled = false;
@@ -77,10 +79,10 @@ const GoWildInsightsPage = () => {
 
       {!loading && !error && (
         <>
-          <AirportGoWildInsightsSection snapshots={snapshots} />
+          <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
           <GoWildRouteAnalyticsSection snapshots={snapshots} />
           <GoWildTimingAnalyticsSection snapshots={snapshots} />
-          <SeatAvailabilityIntelligence snapshots={snapshots} />
+          <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
         </>
       )}
     </div>

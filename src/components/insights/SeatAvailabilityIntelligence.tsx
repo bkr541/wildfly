@@ -3,12 +3,14 @@ import { AnalyticsUpIcon, AnalyticsDownIcon, Location01Icon } from "@hugeicons/c
 import SeatAvailabilityCard from "./SeatAvailabilityCard";
 import { computeSeatAnalytics, type SeatAnalytics } from "./seatHelpers";
 import { type FlightSnapshot } from "./airportHelpers";
+import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 interface Props {
   snapshots: FlightSnapshot[];
+  airportDict?: AirportDict;
 }
 
-const SeatAvailabilityIntelligence = ({ snapshots }: Props) => {
+const SeatAvailabilityIntelligence = ({ snapshots, airportDict }: Props) => {
   const analytics: SeatAnalytics = useMemo(() => computeSeatAnalytics(snapshots), [snapshots]);
 
   return (
@@ -33,6 +35,7 @@ const SeatAvailabilityIntelligence = ({ snapshots }: Props) => {
         icon={Location01Icon}
         variant="airport-average"
         rows={analytics.airportAverages}
+        airportDict={airportDict}
       />
     </div>
   );

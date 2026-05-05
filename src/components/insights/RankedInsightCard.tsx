@@ -1,17 +1,10 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import type { Confidence } from "./airportHelpers";
 import type { TimingRow } from "./timingHelpers";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
-
-const BADGE: Record<Confidence, { label: string; classes: string }> = {
-  high: { label: "High", classes: "bg-green-50 text-green-600" },
-  medium: { label: "Medium", classes: "bg-amber-50 text-amber-600" },
-  low: { label: "Low", classes: "bg-gray-100 text-gray-500" },
-};
 
 function barColor(rate: number): string {
   if (rate <= 20) return "bg-red-500";
@@ -76,11 +69,6 @@ const RankedInsightCard = ({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-sm font-semibold text-[#2E4A4A] truncate">{row.label}</span>
-                        <span
-                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${BADGE[row.rating].classes}`}
-                        >
-                          {BADGE[row.rating].label}
-                        </span>
                       </div>
                       <span className={`text-sm font-bold ml-2 flex-shrink-0 ${pctColor(row.rating)}`}>
                         {row.percentage.toFixed(1)}%
@@ -101,15 +89,6 @@ const RankedInsightCard = ({
                     </p>
                   </div>
                 ))}
-              </div>
-              <div className="flex items-center gap-2 mt-4">
-                <span className="text-[10px] text-[#9CA3AF]">Low</span>
-                <div className="flex gap-0.5 flex-1">
-                  {["bg-red-500", "bg-orange-400", "bg-amber-400", "bg-green-300", "bg-green-500"].map((bg, i) => (
-                    <div key={i} className={`h-2 flex-1 rounded-sm ${bg}`} />
-                  ))}
-                </div>
-                <span className="text-[10px] text-[#9CA3AF]">High</span>
               </div>
             </>
           )}

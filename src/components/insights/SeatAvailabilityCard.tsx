@@ -2,15 +2,10 @@ import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import type { SeatRating, SeatRouteRow, SeatAirportRow } from "./seatHelpers";
+import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
-
-const BADGE: Record<SeatRating, { label: string; classes: string }> = {
-  high:   { label: "High",   classes: "bg-green-50 text-green-600" },
-  medium: { label: "Medium", classes: "bg-amber-50 text-amber-600" },
-  low:    { label: "Low",    classes: "bg-gray-100 text-gray-500"  },
-};
 
 function barColor(rating: SeatRating, variant: string): string {
   if (variant === "lowest-seats") {
@@ -28,12 +23,6 @@ function metricColor(variant: string, rating: SeatRating): string {
   return "text-green-600";
 }
 
-const SeatRatingBadge = ({ rating }: { rating: SeatRating }) => (
-  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${BADGE[rating].classes}`}>
-    {BADGE[rating].label}
-  </span>
-);
-
 type RouteCardProps = {
   title: string;
   subtitle: string;
@@ -50,12 +39,14 @@ type AirportCardProps = {
   variant: "airport-average";
   rows: SeatAirportRow[];
   emptyMessage?: string;
+  airportDict?: AirportDict;
 };
 
 type Props = RouteCardProps | AirportCardProps;
 
 const SeatAvailabilityCard = (props: Props) => {
   const { title, subtitle, icon, variant, emptyMessage = "Not enough seat data yet. Search more GoWild flights to build seat availability insights." } = props;
+  const airportDict = variant === "airport-average" ? ((props as AirportCardProps).airportDict ?? {}) : {};
   const [isExpanded, setIsExpanded] = useState(true);
 
   const maxAvg = useMemo(() => {
@@ -107,12 +98,18 @@ const SeatAvailabilityCard = (props: Props) => {
                 {variant === "airport-average"
                   ? (props as AirportCardProps).rows.map((r) => {
                       const pct = (r.averageSeats / maxAvg) * 100;
+                      const info = airportDict[r.label];
+                      const cityLabel = info?.name ?? null;
                       return (
                         <div key={r.label}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-3xl font-bold text-[#2E4A4A]">{r.label}</span>
-                              <SeatRatingBadge rating={r.rating} />
+                              <div className="flex flex-col leading-none">
+                                <span className="text-3xl font-bold text-[#2E4A4A]">{r.label}</span>
+                                {cityLabel && (
+                                  <span className="text-[11px] text-[#9CA3AF] mt-0.5">{cityLabel}</span>
+                                )}
+                              </div>
                             </div>
                             <span className={`text-sm font-bold ml-2 flex-shrink-0 ${metricColor(variant, r.rating)}`}>
                               {r.averageSeats.toFixed(1)} avg
@@ -144,7 +141,6 @@ const SeatAvailabilityCard = (props: Props) => {
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-xs font-bold text-[#9CA3AF] w-4 flex-shrink-0">{i + 1}</span>
                               <span className="text-sm font-semibold text-[#2E4A4A] truncate">{r.label}</span>
-                              <SeatRatingBadge rating={r.rating} />
                             </div>
                             <span className={`text-sm font-bold ml-2 flex-shrink-0 ${metricColor(variant, r.rating)}`}>
                               {r.averageSeats.toFixed(1)} avg

@@ -5,8 +5,8 @@ import {
   getOriginAirportStats,
   formatPercent,
   type FlightSnapshot,
-  type Confidence,
 } from "./airportHelpers";
+import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
@@ -18,26 +18,13 @@ function barColor(rate: number): string {
   return "bg-emerald-600";
 }
 
-const confidenceConfig: Record<Confidence, { label: string; classes: string }> = {
-  high: { label: "High", classes: "bg-green-50 text-green-600" },
-  medium: { label: "Medium", classes: "bg-amber-50 text-amber-600" },
-  low: { label: "Low", classes: "bg-gray-100 text-gray-500" },
-};
-
-const ConfidenceBadge = ({ confidence }: { confidence: Confidence }) => {
-  const { label, classes } = confidenceConfig[confidence];
-  return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${classes}`}>
-      {label}
-    </span>
-  );
-};
 
 interface Props {
   snapshots: FlightSnapshot[];
+  airportDict?: AirportDict;
 }
 
-const TopOriginAirportsCard = ({ snapshots }: Props) => {
+const TopOriginAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const stats = getOriginAirportStats(snapshots);
 
@@ -67,28 +54,36 @@ const TopOriginAirportsCard = ({ snapshots }: Props) => {
             <p className="text-sm text-[#9CA3AF] text-center py-6">No origin airport data yet</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {stats.map((stat) => (
-            <div key={stat.code}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-3xl font-bold text-[#2E4A4A]">{stat.code}</span>
-                  <ConfidenceBadge confidence={stat.confidence} />
-                </div>
-                <span className="text-3xl font-semibold text-green-600">
-                  {formatPercent(stat.goWildRate)}
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${barColor(stat.goWildRate)}`}
-                  style={{ width: `${Math.min(stat.goWildRate, 100)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                {stat.goWildLegs} / {stat.totalLegs} legs
-              </p>
-            </div>
-          ))}
+              {stats.map((stat) => {
+                const info = airportDict[stat.code];
+                const cityLabel = info?.name ?? null;
+                return (
+                  <div key={stat.code}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex flex-col leading-none">
+                          <span className="text-3xl font-bold text-[#2E4A4A]">{stat.code}</span>
+                          {cityLabel && (
+                            <span className="text-[11px] text-[#9CA3AF] mt-0.5">{cityLabel}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-3xl font-semibold text-green-600">
+                        {formatPercent(stat.goWildRate)}
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${barColor(stat.goWildRate)}`}
+                        style={{ width: `${Math.min(stat.goWildRate, 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">
+                      {stat.goWildLegs} / {stat.totalLegs} legs
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

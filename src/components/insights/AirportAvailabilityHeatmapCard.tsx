@@ -92,18 +92,6 @@ const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
             ))}
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-2 mt-3">
-            <span className="text-[10px] text-[#9CA3AF]">Low</span>
-            <div className="flex gap-0.5 flex-1">
-              {["bg-gray-100", "bg-green-100", "bg-green-200", "bg-green-400", "bg-green-600"].map(
-                (bg, i) => (
-                  <div key={i} className={`h-2 flex-1 rounded-sm ${bg}`} />
-                )
-              )}
-            </div>
-            <span className="text-[10px] text-[#9CA3AF]">High</span>
-          </div>
         </>
       )}
 
