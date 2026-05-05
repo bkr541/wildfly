@@ -12,7 +12,7 @@ const GoWildRouteAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsPr
   const analytics = useMemo(() => computeRouteAnalytics(filtered), [filtered]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <TopRoutesCard routes={analytics.topRoutes} />
       <WorstRoutesCard routes={analytics.worstRoutes} />
       <MostReliableRouteCard data={analytics.mostReliableRoute} />

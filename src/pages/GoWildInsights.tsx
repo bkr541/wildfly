@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Idea01Icon, RouteIcon, Analytics01Icon } from "@hugeicons/core-free-icons";
+import { Idea01Icon, RouteIcon, Analytics01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
+import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 
 const CARD_SHADOW =
@@ -113,6 +114,13 @@ const GoWildInsightsPage = () => {
             description="GoWild performance ranked and analysed by individual flight route."
           />
           <GoWildRouteAnalyticsSection snapshots={snapshots} />
+
+          <SectionHeader
+            icon={Clock01Icon}
+            label="Timing Analytics"
+            description="GoWild availability broken down by day of week and departure time window."
+          />
+          <GoWildTimingAnalyticsSection snapshots={snapshots} />
         </>
       )}
     </div>

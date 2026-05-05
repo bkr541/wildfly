@@ -1,4 +1,6 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Analytics01Icon } from "@hugeicons/core-free-icons";
 
 export type FlightSnapshot = {
   id: string;
@@ -33,11 +35,6 @@ function computeAvgSeats(snapshots: FlightSnapshot[]): number | null {
   return total / qualifying.length;
 }
 
-function formatAvgSeats(avg: number | null): string {
-  if (avg === null) return "--";
-  return avg.toFixed(1);
-}
-
 function computeChange(snapshots: FlightSnapshot[]): number | null {
   const now = Date.now();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
@@ -64,6 +61,87 @@ function computeChange(snapshots: FlightSnapshot[]): number | null {
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
+const DonutChart = ({ rate }: { rate: number | null }) => {
+  const size = 200;
+  const strokeWidth = 17;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.min(Math.max(rate ?? 0, 0), 100);
+  const offset = circumference - (pct / 100) * circumference;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <linearGradient id="gwDonutGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#059669" />
+          <stop offset="100%" stopColor="#6ee7b7" />
+        </linearGradient>
+      </defs>
+      {/* Background track */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill="none"
+        stroke="#F3F4F6"
+        strokeWidth={strokeWidth}
+      />
+      {/* Progress arc */}
+      {pct > 0 && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill="none"
+          stroke="url(#gwDonutGradient)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+      )}
+      {/* Percentage text */}
+      <text
+        x={cx}
+        y={cy - 12}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="32"
+        fontWeight="600"
+        fill="#2E4A4A"
+        fontFamily="inherit"
+      >
+        {formatRate(rate)}
+      </text>
+      <text
+        x={cx}
+        y={cy + 18}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="14"
+        fill="#9CA3AF"
+        fontFamily="inherit"
+      >
+        Avg GoWild
+      </text>
+      <text
+        x={cx}
+        y={cy + 36}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="14"
+        fill="#9CA3AF"
+        fontFamily="inherit"
+      >
+        Availability
+      </text>
+    </svg>
+  );
+};
+
 const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
   const rate = computeAvailabilityRate(snapshots);
   const availableLegs = snapshots.filter((s) => s.has_go_wild).length;
@@ -73,26 +151,10 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
 
   const trendPositive = change !== null && change > 0;
   const trendNegative = change !== null && change < 0;
-  const trendZero = change !== null && change === 0;
 
-  const trendBg = trendPositive
-    ? "bg-green-100"
-    : trendNegative
-    ? "bg-red-100"
-    : "bg-gray-100";
-
-  const trendColor = trendPositive
-    ? "#16a34a"
-    : trendNegative
-    ? "#ef4444"
-    : "#9ca3af";
-
-  const trendTextClass = trendPositive
-    ? "text-green-600"
-    : trendNegative
-    ? "text-red-500"
-    : "text-gray-400";
-
+  const trendBg = trendPositive ? "bg-green-100" : trendNegative ? "bg-red-100" : "bg-gray-100";
+  const trendColor = trendPositive ? "#16a34a" : trendNegative ? "#ef4444" : "#9ca3af";
+  const trendTextClass = trendPositive ? "text-green-600" : trendNegative ? "text-red-500" : "text-gray-400";
   const trendLabel =
     change === null
       ? "Not enough data"
@@ -101,57 +163,72 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
       : `${change > 0 ? "+" : ""}${change.toFixed(1)}% vs last 7 days`;
 
   return (
-    <div
-      className="rounded-2xl bg-white p-5"
-      style={{ boxShadow: CARD_SHADOW }}
-    >
-      {/* Hero block */}
-      <div className="flex flex-col items-start gap-0.5 mb-4">
-        <span className="text-5xl font-semibold text-green-600 leading-none">
-          {formatRate(rate)}
-        </span>
-        <span className="text-sm text-wf-text-muted">
-          of legs have GoWild availability
-        </span>
+    <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
+      {/* Header */}
+      <div className="flex items-start gap-3 mb-4">
+        <div className="h-10 w-10 rounded-full bg-[#D1FAE5] flex items-center justify-center flex-shrink-0">
+          <HugeiconsIcon icon={Analytics01Icon} size={18} color="#059669" strokeWidth={1.5} />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-[#2E4A4A] leading-tight">GoWild Snapshot</h3>
+          <p className="text-xs text-[#6B7B7B]">Live availability across tracked flight legs</p>
+        </div>
+      </div>
+
+      {/* Main row: donut left, stats right — equal halves */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 flex justify-center">
+          <DonutChart rate={rate} />
+        </div>
+
+        {/* Stacked stats */}
+        <div className="flex-1 flex flex-col gap-4 justify-center">
+          {/* Available Legs */}
+          <div>
+            <p className="text-sm text-[#6B7B7B] mb-1">Available Legs</p>
+            <div className="flex items-center gap-3">
+              <span className="text-5xl font-semibold text-green-600 leading-none">
+                {totalLegs === 0 ? "--" : availableLegs}
+              </span>
+              {totalLegs > 0 && (
+                <div className="flex flex-col">
+                  <span className="text-sm text-[#9CA3AF]">of {totalLegs}</span>
+                  <span className="text-sm text-[#9CA3AF]">legs tracked</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100" />
+
+          {/* Avg Seats Available */}
+          <div>
+            <p className="text-sm text-[#6B7B7B] mb-1">Avg Seats Available</p>
+            <div className="flex items-center gap-3">
+              <span className="text-5xl font-semibold text-green-600 leading-none">
+                {avgSeats === null ? "--" : Math.round(avgSeats)}
+              </span>
+              <div className="flex flex-col">
+                <span className="text-sm text-[#9CA3AF]">seats per leg</span>
+                <span className="text-sm text-[#9CA3AF]">on GoWild legs</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Trend row */}
-      <div className="flex items-center gap-2 mt-1">
+      <div className="border-t border-gray-100 mt-4 pt-3 flex items-center gap-2">
         <div
-          className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${trendBg}`}
+          className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${trendBg}`}
         >
           {trendNegative ? (
-            <TrendingDown size={14} color={trendColor} />
+            <TrendingDown size={13} color={trendColor} />
           ) : (
-            <TrendingUp size={14} color={trendColor} />
+            <TrendingUp size={13} color={trendColor} />
           )}
         </div>
-        <span className={`text-sm font-semibold ${trendTextClass}`}>
-          {trendLabel}
-        </span>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-gray-100 my-4" />
-
-      {/* Bottom stats */}
-      <div className="grid grid-cols-2 divide-x divide-gray-100">
-        <div className="flex flex-col items-center py-1 pr-4">
-          <span className="text-sm text-muted-foreground mb-1">Available Legs</span>
-          <span className="text-3xl font-semibold text-green-600">
-            {totalLegs === 0 ? "--" : availableLegs}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {totalLegs === 0 ? "" : `of ${totalLegs}`}
-          </span>
-        </div>
-        <div className="flex flex-col items-center py-1 pl-4">
-          <span className="text-sm text-muted-foreground mb-1">Avg Seats Available</span>
-          <span className="text-3xl font-semibold text-green-600">
-            {formatAvgSeats(avgSeats)}
-          </span>
-          <span className="text-xs text-muted-foreground">seats per leg</span>
-        </div>
+        <span className={`text-sm font-semibold ${trendTextClass}`}>{trendLabel}</span>
       </div>
     </div>
   );

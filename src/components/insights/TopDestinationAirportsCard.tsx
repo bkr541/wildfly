@@ -10,6 +10,13 @@ import {
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
+function barColor(rate: number): string {
+  if (rate <= 40) return "bg-green-100";
+  if (rate <= 60) return "bg-green-300";
+  if (rate <= 80) return "bg-green-500";
+  return "bg-emerald-600";
+}
+
 const confidenceConfig: Record<Confidence, { label: string; classes: string }> = {
   high: { label: "High", classes: "bg-green-50 text-green-600" },
   medium: { label: "Medium", classes: "bg-amber-50 text-amber-600" },
@@ -68,7 +75,7 @@ const TopDestinationAirportsCard = ({ snapshots }: Props) => {
               </div>
               <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-green-500 transition-all"
+                  className={`h-full rounded-full transition-all ${barColor(stat.goWildRate)}`}
                   style={{ width: `${Math.min(stat.goWildRate, 100)}%` }}
                 />
               </div>
