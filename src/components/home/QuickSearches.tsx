@@ -157,10 +157,12 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
         onClick={onToggle}
         className="w-full flex items-center justify-between mb-3 px-1 group"
       >
-        <h2 className="text-[15px] font-black text-[#6B7280] uppercase tracking-widest flex items-center gap-2">
-          <HugeiconsIcon icon={FlashIcon} className="w-4 h-4 text-[#6B7280]" strokeWidth={2} />
-          Quick Searches
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <HugeiconsIcon icon={FlashIcon} size={13} color="#059669" strokeWidth={2} />
+          <h2 className="text-xs font-semibold text-[#059669] uppercase tracking-wider">
+            Quick Searches
+          </h2>
+        </div>
         <motion.div
           animate={{ rotate: isCollapsed ? -90 : 0 }}
           transition={{ duration: 0.22, ease: EASE }}

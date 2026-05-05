@@ -73,12 +73,12 @@ export function TokenExpirationCard({ isCollapsed = false, onToggle }: Props) {
         onClick={onToggle}
         className="w-full flex items-center justify-between mb-1 px-1 group"
       >
-        <h2 className="text-[15px] font-semibold text-[#6B7280] capitalize tracking-widest flex items-center gap-2">
-          <div className="inline-flex items-center justify-center rounded-full border border-[#D5E6E2] bg-[#F6FBFA] p-1.5">
-            <HugeiconsIcon icon={Key01Icon} size={18} color="#059669" strokeWidth={2} />
-          </div>
-          Token Expiration
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <HugeiconsIcon icon={Key01Icon} size={13} color="#059669" strokeWidth={2} />
+          <h2 className="text-xs font-semibold text-[#059669] uppercase tracking-wider">
+            Token Expiration
+          </h2>
+        </div>
         <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
           <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
         </motion.div>
