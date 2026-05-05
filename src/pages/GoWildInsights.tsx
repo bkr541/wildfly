@@ -4,6 +4,7 @@ import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
+import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 
 const CARD_SHADOW =
@@ -79,6 +80,7 @@ const GoWildInsightsPage = () => {
           <AirportGoWildInsightsSection snapshots={snapshots} />
           <GoWildRouteAnalyticsSection snapshots={snapshots} />
           <GoWildTimingAnalyticsSection snapshots={snapshots} />
+          <SeatAvailabilityIntelligence snapshots={snapshots} />
         </>
       )}
     </div>
