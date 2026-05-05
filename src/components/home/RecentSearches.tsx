@@ -123,7 +123,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                 </div>
               ) : (
                 <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
-                <div className="flex gap-3" style={{ padding: "2px 20px 10px", scrollSnapType: "x mandatory" }}>
+                <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
                   {loading
                     ? [1, 2].map((i) => (
                         <div

@@ -159,7 +159,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               </div>
             ) : (
               <div
-                className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide"
+                className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide"
                 style={{ scrollSnapType: "x mandatory" }}
               >
                 {flights.map((flight, i) => (
