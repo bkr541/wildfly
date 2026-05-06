@@ -239,7 +239,6 @@ export default function AdminBulkSearch() {
     abortRef.current = false;
 
     const { data: { user } } = await supabase.auth.getUser();
-
     const { data: airports, error } = await supabase
       .from("airports")
       .select("iata_code, name, locations(country)")
@@ -303,37 +302,36 @@ export default function AdminBulkSearch() {
           { onConflict: "cache_key,reset_bucket" },
         );
 
-        if (user) {
-          const goWildFound = normalized.flights.some(
-            (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
-          );
+        const goWildFound = normalized.flights.some(
+          (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
+        );
 
-          const { data: fsRow } = await (supabase.from("flight_searches") as any)
-            .insert({
-              user_id: user.id,
-              departure_airport: iata_code,
-              arrival_airport: null,
-              departure_date: date,
-              return_date: null,
-              trip_type: "one_way",
-              all_destinations: "Yes",
-              json_body: normalized,
-              request_body: {
-                endpoint: "POST https://getmydata.fly.dev/api/flights/search",
-                headers: { "Content-Type": "application/json" },
-                body: { origin: iata_code, departureDate: date },
-              },
-              credits_cost: 0,
-              arrival_airports_count: 0,
-              gowild_found: goWildFound,
-              flight_results_count: normalized.flights.length,
-            } as any)
-            .select("id")
-            .single();
+        const { data: fsRow } = await (supabase.from("flight_searches") as any)
+          .insert({
+            user_id: user?.id ?? "00000000-0000-0000-0000-000000000000",
+            departure_airport: iata_code,
+            arrival_airport: null,
+            departure_date: date,
+            return_date: null,
+            trip_type: "one_way",
+            all_destinations: "Yes",
+            json_body: normalized,
+            request_body: {
+              endpoint: "POST https://getmydata.fly.dev/api/flights/search",
+              headers: { "Content-Type": "application/json" },
+              body: { origin: iata_code, departureDate: date },
+            },
+            credits_cost: 0,
+            arrival_airports_count: 0,
+            gowild_found: goWildFound,
+            flight_results_count: normalized.flights.length,
+            triggered_by: "admin_bulk_search",
+          } as any)
+          .select("id")
+          .single();
 
-          if (fsRow?.id) {
-            writeFlightSnapshots(fsRow.id, normalized.flights, iata_code).catch(() => {});
-          }
+        if (fsRow?.id) {
+          writeFlightSnapshots(fsRow.id, normalized.flights, iata_code).catch(() => {});
         }
 
         pushResult({
