@@ -54,6 +54,7 @@ const COMPONENT_MAP: Record<
     onToggle: () => void;
     onFlightRemoved?: (flightId: string) => void;
     onWatchedFlightRemoved?: (flightId: string) => void;
+    onSearchRemoved?: (id: string) => void;
     onFlightClick?: (flight: UserFlight) => void;
   }) => JSX.Element | null
 > = {
@@ -88,6 +89,7 @@ const COMPONENT_MAP: Record<
       onNavigate={props.onNavigate}
       isCollapsed={props.isCollapsed}
       onToggle={props.onToggle}
+      onSearchRemoved={props.onSearchRemoved}
     />
   ),
   quick_searches: (props) => (
@@ -220,6 +222,10 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
     setWatchedFlights((prev) => prev.filter((f) => f.id !== flightId));
   }, []);
 
+  const handleSearchRemoved = useCallback((id: string) => {
+    setSearches((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
@@ -236,6 +242,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
           onToggle: () => toggleSection(item.component_name),
           onFlightRemoved: handleFlightRemoved,
           onWatchedFlightRemoved: handleWatchedFlightRemoved,
+          onSearchRemoved: handleSearchRemoved,
           onFlightClick,
         });
       })}

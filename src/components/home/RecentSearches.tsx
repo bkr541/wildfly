@@ -1,11 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ChevronDown, ArrowRight } from "lucide-react";
+import { ChevronDown, ArrowRight, X } from "lucide-react";
 import allDestIcon from "@/assets/all-destinations-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
   Search01Icon,
-  EarthIcon,
   ArrowRight04Icon,
   CircleArrowReload01Icon,
   SunCloud01Icon,
@@ -14,6 +13,7 @@ import {
   Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FlightSearch {
   id: string;
@@ -49,16 +49,13 @@ const TRIP_ICONS: Record<string, IconSvgElement> = {
   multi_day: MapPinpoint01Icon,
 };
 
-/** Extract display code from airport or city string */
 function displayCode(code: string | null): string | null {
   if (!code) return null;
   const cityMatch = code.match(/^CITY:(.+)$/i);
   if (cityMatch) {
     const city = cityMatch[1].trim();
     const words = city.split(/\s+/).filter(Boolean);
-    if (words.length >= 3) {
-      return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
-    }
+    if (words.length >= 3) return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
     return city.slice(0, 3).toUpperCase();
   }
   return code;
@@ -66,9 +63,16 @@ function displayCode(code: string | null): string | null {
 
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
-const HEADER_GREEN = "#2D6A4F";
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
+
+const CARD_STYLE = {
+  background: "rgba(255,255,255,0.82)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  border: "1px solid rgba(255,255,255,0.65)",
+  boxShadow: CARD_SHADOW,
+};
 
 interface Props {
   searches: FlightSearch[];
@@ -76,9 +80,16 @@ interface Props {
   onNavigate?: (page: string, data?: string) => void;
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onSearchRemoved?: (id: string) => void;
 }
 
-export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle }: Props) {
+export function RecentSearches({ searches, loading, onNavigate, isCollapsed = false, onToggle, onSearchRemoved }: Props) {
+
+  const handleRemove = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    await supabase.from("flight_searches").delete().eq("id", id);
+    onSearchRemoved?.(id);
+  };
 
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
@@ -95,7 +106,6 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
         </motion.div>
       </button>
 
-      {/* Collapsible content */}
       <AnimatePresence initial={false}>
         {!isCollapsed && (
           <motion.div
@@ -108,157 +118,128 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
           >
             <div style={{ padding: "2px 0 10px" }}>
               {!loading && searches.length === 0 ? (
-                <div
-                  className="rounded-2xl px-4 py-5 flex items-center gap-3"
-                  style={{
-                    background: "rgba(255,255,255,0.82)",
-                    backdropFilter: "blur(18px)",
-                    WebkitBackdropFilter: "blur(18px)",
-                    border: "1px solid rgba(255,255,255,0.65)",
-                    boxShadow: CARD_SHADOW,
-                  }}
-                >
+                <div className="rounded-2xl px-4 py-5 flex items-center gap-3" style={CARD_STYLE}>
                   <HugeiconsIcon icon={Search01Icon} size={20} color="#9AADAD" strokeWidth={1.5} />
                   <p className="text-sm text-[#9AADAD] font-medium">No recent searches yet</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
-                <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
-                  {loading
-                    ? [1, 2].map((i) => (
-                        <div
-                          key={i}
-                          className="rounded-2xl overflow-hidden flex-shrink-0 w-[220px]"
-                          style={{
-                            background: "rgba(255,255,255,0.95)",
-                            border: "1px solid rgba(255,255,255,0.65)",
-                            boxShadow: CARD_SHADOW,
-                          }}
-                        >
-                          {/* Header skeleton */}
-                          <div className="h-9 animate-pulse" style={{ background: HEADER_GREEN, opacity: 0.35 }} />
-                          {/* Body skeleton */}
-                          <div className="px-4 pt-5 pb-4">
-                            <div className="h-8 w-32 rounded-lg bg-[#e5e7eb] mb-3 mx-auto" />
+                  <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
+                    {loading
+                      ? [1, 2].map((i) => (
+                          <div
+                            key={i}
+                            className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-4 pt-3 pb-4"
+                            style={CARD_STYLE}
+                          >
+                            <div className="h-4 w-28 rounded bg-[#e5e7eb] mb-4" />
+                            <div className="h-8 w-36 rounded-lg bg-[#e5e7eb] mb-4 mx-auto" />
                             <div className="flex gap-2">
                               <div className="h-7 w-20 rounded-full bg-[#e5e7eb]" />
                               <div className="h-7 w-16 rounded-full bg-[#e5e7eb]" />
                             </div>
                           </div>
-                        </div>
-                      ))
-                    : searches.map((s, i) => {
-                        const arrRaw = s.arrival_airport ?? "";
-                        const isAllDest =
-                          s.all_destinations === "Yes" ||
-                          arrRaw === "__ALL__" ||
-                          arrRaw === "-" ||
-                          arrRaw.trim() === "";
-                        const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
-                        const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
-                        const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
-                        const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
+                        ))
+                      : searches.map((s, i) => {
+                          const arrRaw = s.arrival_airport ?? "";
+                          const isAllDest =
+                            s.all_destinations === "Yes" ||
+                            arrRaw === "__ALL__" ||
+                            arrRaw === "-" ||
+                            arrRaw.trim() === "";
+                          const depCode = displayCode(s.departure_airport) ?? s.departure_airport;
+                          const arrCode = isAllDest ? null : displayCode(s.arrival_airport);
+                          const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
+                          const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
 
-                        let formattedDate = s.departure_date;
-                        try {
-                          formattedDate = format(parseISO(s.departure_date), "MMMM d, yyyy");
-                        } catch {
-                          // keep raw string
-                        }
+                          let formattedDate = s.departure_date;
+                          try {
+                            formattedDate = format(parseISO(s.departure_date), "MMM d, yyyy");
+                          } catch {
+                            // keep raw string
+                          }
 
-                        return (
-                          <motion.button
-                            key={s.id}
-                            type="button"
-                            onClick={() => {
-                              const payload = JSON.stringify({
-                                recentSearch: true,
-                                origin: s.departure_airport,
-                                destination: s.arrival_airport,
-                                tripType: s.trip_type,
-                                departureDate: s.departure_date,
-                                returnDate: s.return_date,
-                                allDestinations: s.all_destinations === "Yes",
-                              });
-                              onNavigate?.("flights", payload);
-                            }}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{
-                              opacity: 1,
-                              y: 0,
-                              transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
-                            }}
-                            className="text-left rounded-2xl overflow-hidden flex-shrink-0 w-[185px]"
-                            style={{
-                              scrollSnapAlign: "start",
-                              background: "rgba(255,255,255,0.82)",
-                              backdropFilter: "blur(18px)",
-                              WebkitBackdropFilter: "blur(18px)",
-                              border: "1px solid rgba(255,255,255,0.65)",
-                              boxShadow: CARD_SHADOW,
-                            }}
-                          >
-                            {/* Green date header */}
-                            <div
-                              className="relative flex items-center justify-center gap-1.5 px-4 py-2"
-                              style={{ background: HEADER_GREEN }}
+                          return (
+                            <motion.div
+                              key={s.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{
+                                opacity: 1,
+                                y: 0,
+                                transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
+                              }}
+                              className="relative flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4 cursor-pointer active:scale-[0.98] transition-transform"
+                              style={{ scrollSnapAlign: "start", ...CARD_STYLE }}
+                              onClick={() => {
+                                const payload = JSON.stringify({
+                                  recentSearch: true,
+                                  origin: s.departure_airport,
+                                  destination: s.arrival_airport,
+                                  tripType: s.trip_type,
+                                  departureDate: s.departure_date,
+                                  returnDate: s.return_date,
+                                  allDestinations: s.all_destinations === "Yes",
+                                });
+                                onNavigate?.("flights", payload);
+                              }}
                             >
-                              <HugeiconsIcon icon={Calendar03Icon} size={14} color="white" strokeWidth={2} />
-                              <span className="text-white font-bold text-[13px] leading-none">{formattedDate}</span>
-                              {/* Triangle notch */}
-                              <div
-                                className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[calc(100%-1px)]"
-                                style={{
-                                  width: 0,
-                                  height: 0,
-                                  borderLeft: "9px solid transparent",
-                                  borderRight: "9px solid transparent",
-                                  borderTop: `9px solid ${HEADER_GREEN}`,
-                                }}
-                              />
-                            </div>
+                              {/* Date row */}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-1.5">
+                                  <HugeiconsIcon icon={Calendar03Icon} size={14} color="#6B7280" strokeWidth={2} />
+                                  <span className="text-sm font-medium text-[#6B7280]">{formattedDate}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleRemove(e, s.id)}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+                                >
+                                  <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                                </button>
+                              </div>
 
-                            {/* Card body */}
-                            <div className="px-4 pt-3 pb-3">
                               {/* Route row */}
-                               <div className="flex items-center justify-center gap-2 mb-2">
-                                 <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                   {depCode}
-                                 </span>
-                                 <ArrowRight size={16} strokeWidth={2.5} className="text-[#059669] flex-shrink-0" />
-                                 {isAllDest ? (
-                                   <img src={allDestIcon} alt="All destinations" className="w-[24px] h-[24px] object-contain" />
-                                 ) : (
-                                   <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                     {arrCode ?? "—"}
-                                   </span>
-                                 )}
+                              <div className="flex items-center justify-between gap-1 mb-3">
+                                <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                  {depCode}
+                                </span>
+                                <div className="flex-1 flex items-center px-1">
+                                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                                  <ArrowRight size={16} strokeWidth={2.5} className="text-[#059669] mx-1.5 flex-shrink-0" />
+                                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                                </div>
+                                {isAllDest ? (
+                                  <img src={allDestIcon} alt="All destinations" className="w-[28px] h-[28px] object-contain" />
+                                ) : (
+                                  <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                    {arrCode ?? "—"}
+                                  </span>
+                                )}
                               </div>
 
                               {/* Badges row */}
-                              <div className="flex items-center justify-center gap-1 flex-nowrap">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 {s.gowild_found && (
                                   <span
-                                    className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+                                    className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap"
                                     style={{ background: "#059669", color: "#FFFFFF" }}
                                   >
-                                    <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2.5} />
+                                    <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
                                     GoWild
                                   </span>
                                 )}
                                 <span
-                                  className="inline-flex items-center gap-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "0.5px 6.5px" }}
+                                  className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
                                 >
-                                  <HugeiconsIcon icon={tripIcon} size={10} color="#1D4ED8" strokeWidth={2.5} />
+                                  <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
                                   {tripLabel}
                                 </span>
                               </div>
-                            </div>
-                          </motion.button>
-                        );
-                      })}
-                </div>
+                            </motion.div>
+                          );
+                        })}
+                  </div>
                 </div>
               )}
             </div>
