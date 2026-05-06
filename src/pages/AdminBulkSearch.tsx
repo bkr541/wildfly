@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchFlightSearch } from "@/lib/flightApi";
 import { normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 import { writeFlightSnapshots } from "@/utils/flightSnapshotWriter";
-import { isBlackoutDate } from "@/utils/blackoutdates";
+import { isBlackoutDate } from "@/utils/blackoutDates";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
