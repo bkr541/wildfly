@@ -11,7 +11,7 @@ const GoWildTimingAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsP
 
   const bestDays = useMemo(() => [...dayStats].sort((a, b) => b.percentage - a.percentage), [dayStats]);
   const worstDays = useMemo(() => [...dayStats].sort((a, b) => a.percentage - b.percentage), [dayStats]);
-  const bestTimes = useMemo(() => [...timeStats].sort((a, b) => b.percentage - a.percentage), [timeStats]);
+  const bestTimes = useMemo(() => [...timeStats].sort((a, b) => b.percentage - a.percentage).slice(0, 5), [timeStats]);
   const worstTimes = useMemo(() => [...timeStats].sort((a, b) => a.percentage - b.percentage), [timeStats]);
 
   return (
