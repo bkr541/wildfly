@@ -216,6 +216,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     </div>
                   </motion.div>
                 ))}
+                </div>
               </div>
             )}
             </div>
