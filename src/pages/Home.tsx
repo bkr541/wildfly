@@ -8,6 +8,11 @@ import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
 import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
 import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Module-level flag: only show initial skeleton once per app session (i.e. after login),
+// not when re-mounting from side-menu navigation.
+let initialSkeletonShown = false;
 
 
 interface UserFlight {
@@ -132,6 +137,18 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
   const [searchesLoading, setSearchesLoading] = useState(true);
   const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [showInitialSkeleton, setShowInitialSkeleton] = useState(!initialSkeletonShown);
+
+  useEffect(() => {
+    if (initialSkeletonShown) return;
+    const t = setTimeout(() => {
+      initialSkeletonShown = true;
+      setShowInitialSkeleton(false);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+
 
   // Background-fetch day trips for today + tomorrow on login
   useDayTripAutoFetch();
@@ -225,6 +242,16 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
   const handleSearchRemoved = useCallback((id: string) => {
     setSearches((prev) => prev.filter((s) => s.id !== id));
   }, []);
+
+  if (showInitialSkeleton) {
+    return (
+      <div className="flex flex-col pt-3 px-3 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col pt-3">
