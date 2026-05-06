@@ -152,6 +152,10 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
         return;
       }
 
+      const startOfToday = new Date();
+      startOfToday.setUTCHours(0, 0, 0, 0);
+      const todayCutoff = startOfToday.toISOString();
+
       const [flightsResult, watchedResult, searchesResult] = await Promise.all([
         supabase
           .from("user_flights")
@@ -159,7 +163,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
           .eq("user_id", user.id)
           .eq("status", "Current")
           .eq("type", "going")
-          .gte("departure_time", new Date().toISOString())
+          .gte("departure_time", todayCutoff)
           .order("departure_time", { ascending: true })
           .limit(20),
         supabase
@@ -168,7 +172,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
           .eq("user_id", user.id)
           .eq("status", "Current")
           .eq("type", "alert")
-          .gte("departure_time", new Date().toISOString())
+          .gte("departure_time", todayCutoff)
           .order("departure_time", { ascending: true })
           .limit(20),
         supabase
