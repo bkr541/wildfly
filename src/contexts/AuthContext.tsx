@@ -28,8 +28,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // Keep in sync with auth state changes (reads from memory/storage)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === "SIGNED_IN" && session?.user) {
+        // Fire-and-forget: stamp last_login in UTC. Defer to avoid deadlocks in the auth callback.
+        const uid = session.user.id;
+        setTimeout(() => {
+          supabase
+            .from("user_info")
+            .update({ last_login: new Date().toISOString() })
+            .eq("auth_user_id", uid)
+            .then(() => {});
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
