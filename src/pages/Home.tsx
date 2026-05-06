@@ -8,6 +8,11 @@ import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
 import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
 import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Module-level flag: only show initial skeleton once per app session (i.e. after login),
+// not when re-mounting from side-menu navigation.
+let initialSkeletonShown = false;
 
 
 interface UserFlight {
