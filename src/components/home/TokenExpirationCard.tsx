@@ -134,7 +134,7 @@ export function TokenExpirationCard({ isCollapsed = false, onToggle }: Props) {
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0, transition: { duration: 0.28, ease: EASE } }}
-                  className="rounded-2xl px-4 pt-3 pb-4"
+                  className="rounded-2xl px-3 pt-2 pb-3"
                   style={{
                     background: "rgba(255,255,255,0.92)",
                     backdropFilter: "blur(18px)",

@@ -223,7 +223,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
                       <motion.div
                         key={flight.id}
                         variants={itemVariants}
-                        className="rounded-xl border border-[#e3e6e6] bg-white px-4 pt-3 pb-4"
+                        className="rounded-xl border border-[#e3e6e6] bg-white px-3 pt-2 pb-3"
                       >
                         {/* FIXED HEIGHT CONTAINER: Prevents layout shift when logo loads */}
                         <div className="h-4 flex items-center gap-2 mb-3">
