@@ -54,7 +54,7 @@ const SeatAvailabilityCard = (props: Props) => {
     return Math.max(...props.rows.map((r) => r.averageSeats), 0.1);
   }, [props.rows]);
 
-  const hasLimitedData = variant !== "airport-average" && (props as RouteCardProps).rows.some((r) => r.limitedData);
+  
 
   return (
     <div className="rounded-2xl bg-white p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
@@ -68,14 +68,7 @@ const SeatAvailabilityCard = (props: Props) => {
             <HugeiconsIcon icon={icon} size={16} color="#059669" strokeWidth={2} />
             <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">{title}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-[#6B7B7B]">{subtitle}</p>
-            {hasLimitedData && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">
-                Limited data
-              </span>
-            )}
-          </div>
+          <p className="text-xs text-[#6B7B7B]">{subtitle}</p>
         </div>
         <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
