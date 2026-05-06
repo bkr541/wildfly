@@ -156,7 +156,7 @@ export function AlertsAccordion() {
                     <motion.div
                       key={i}
                       variants={itemVariants}
-                      className="rounded-xl border border-[#e3e6e6] bg-white shadow-sm px-4 py-3 flex items-start gap-3"
+                      className="rounded-xl border border-[#e3e6e6] bg-white shadow-sm px-3 py-2 flex items-start gap-3"
                     >
                       {/* Icon Circle */}
                       <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center mt-0.5">

@@ -220,7 +220,7 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                         boxShadow: "0 6px 24px 0 rgba(0,0,0,0.13), 0 1.5px 5px 0 rgba(0,0,0,0.07)",
                       }}
                     >
-                      <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+                      <div className="px-3 pt-2 pb-1 flex items-center gap-2">
                         <HugeiconsIcon icon={Location01Icon} className="w-3.5 h-3.5 text-white opacity-80" />
                         <span className="text-white font-extrabold text-[13px] tracking-wide uppercase">
                           {loc.city}
@@ -234,8 +234,8 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                           </span>
                         )}
                       </div>
-                      <div className="mx-4 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
-                      <div className="flex gap-2.5 px-4 pb-3.5">
+                      <div className="mx-3 mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />
+                      <div className="flex gap-2.5 px-3 pb-2.5">
                         <button
                           type="button"
                           onClick={() => handleClick(loc, "Today", loc.todayDate)}

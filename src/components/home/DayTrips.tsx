@@ -289,7 +289,7 @@ function DayTripCard({ pair, index, cityNames }: { pair: DayTripPair; index: num
       </div>
 
       {/* Card body */}
-      <div className="px-3 pt-3 pb-3">
+      <div className="px-2 pt-2 pb-2">
         <div className="flex items-stretch gap-1.5">
           <FlightColumn
             label="Outbound"
