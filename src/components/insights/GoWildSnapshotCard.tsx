@@ -187,44 +187,34 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
       <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
       <div className="overflow-hidden">
 
-      {/* Main row: donut left, stats right — equal halves */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1 flex justify-center">
-          <DonutChart rate={rate} />
+      {/* Donut centered */}
+      <div className="flex justify-center">
+        <DonutChart rate={rate} />
+      </div>
+
+      {/* Stats side by side under donut */}
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        {/* Available Legs */}
+        <div>
+          <p className="text-sm text-[#6B7B7B] mb-1">Available Legs</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold text-green-600 leading-none">
+              {totalLegs === 0 ? "--" : availableLegs}
+            </span>
+            {totalLegs > 0 && (
+              <span className="text-sm text-[#9CA3AF]">of {totalLegs} legs</span>
+            )}
+          </div>
         </div>
 
-        {/* Stacked stats */}
-        <div className="flex-1 flex flex-col gap-4 justify-center">
-          {/* Available Legs */}
-          <div>
-            <p className="text-sm text-[#6B7B7B] mb-1">Available Legs</p>
-            <div className="flex items-center gap-3">
-              <span className="text-5xl font-semibold text-green-600 leading-none">
-                {totalLegs === 0 ? "--" : availableLegs}
-              </span>
-              {totalLegs > 0 && (
-                <div className="flex flex-col">
-                  <span className="text-sm text-[#9CA3AF]">of {totalLegs}</span>
-                  <span className="text-sm text-[#9CA3AF]">legs tracked</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-t border-gray-100" />
-
-          {/* Avg Seats Available */}
-          <div>
-            <p className="text-sm text-[#6B7B7B] mb-1">Avg Seats Available</p>
-            <div className="flex items-center gap-3">
-              <span className="text-5xl font-semibold text-green-600 leading-none">
-                {avgSeats === null ? "--" : Math.round(avgSeats)}
-              </span>
-              <div className="flex flex-col">
-                <span className="text-sm text-[#9CA3AF]">seats per leg</span>
-                <span className="text-sm text-[#9CA3AF]">on GoWild legs</span>
-              </div>
-            </div>
+        {/* Avg Seats Available */}
+        <div>
+          <p className="text-sm text-[#6B7B7B] mb-1">Avg Seats Available</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold text-green-600 leading-none">
+              {avgSeats === null ? "--" : Math.round(avgSeats)}
+            </span>
+            <span className="text-sm text-[#9CA3AF]">seats / leg</span>
           </div>
         </div>
       </div>

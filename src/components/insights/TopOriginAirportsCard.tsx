@@ -62,13 +62,13 @@ const TopOriginAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <div className="flex flex-col leading-none">
-                          <span className="text-3xl font-bold text-[#2E4A4A]">{stat.code}</span>
+                          <span className="text-2xl font-bold text-[#2E4A4A]">{stat.code}</span>
                           {cityLabel && (
                             <span className="text-[11px] text-[#9CA3AF] mt-0.5">{cityLabel}</span>
                           )}
                         </div>
                       </div>
-                      <span className="text-3xl font-semibold text-green-600">
+                      <span className="text-2xl font-semibold text-green-600">
                         {formatPercent(stat.goWildRate)}
                       </span>
                     </div>
