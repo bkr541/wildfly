@@ -21,6 +21,7 @@ import FlightMultiDestResults from "./pages/FlightMultiDestResults";
 import DayTripResults from "./pages/DayTripResults";
 import AdminImport from "./pages/AdminImport";
 import AdminBulkSearch from "./pages/AdminBulkSearch";
+import AdminConsole from "./pages/AdminConsole";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
@@ -471,6 +472,7 @@ const App = () => (
         <Routes>
           <Route path="/admin/import" element={<AdminImport />} />
           <Route path="/admin/bulk-search" element={<AdminBulkSearch />} />
+          <Route path="/admin/console" element={<AdminConsole />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel" element={<BillingCancel />} />
