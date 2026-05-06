@@ -31,14 +31,14 @@ const GoWildTimingAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsP
         emptyMessage="Not enough day-of-week data yet."
       />
       <RankedInsightCard
-        title="Best Departure Time Windows"
+        title="Best Departure Window"
         subtitle="Highest GoWild departure success"
         icon={Clock01Icon}
         rows={bestTimes}
         emptyMessage="Not enough departure time data yet."
       />
       <RankedInsightCard
-        title="Worst Departure Time Windows"
+        title="Worst Departure Window"
         subtitle="Lowest GoWild departure success"
         icon={Clock01Icon}
         rows={worstTimes}
