@@ -115,7 +115,7 @@ export function UpcomingFlightsAccordion({ flights, loading }: Props) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left mb-2 group"
+        className="w-full text-left mb-1 group"
       >
         <div className="flex items-center justify-between">
           {/* Primary text bumped way up */}
