@@ -73,7 +73,7 @@ export function AlertsAccordion() {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left mb-2 group"
+        className="w-full text-left mb-1 group"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#2E4A4A] uppercase tracking-widest">
