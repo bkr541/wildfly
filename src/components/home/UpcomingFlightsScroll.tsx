@@ -190,7 +190,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     </button>
 
                     <div className="flex items-center mb-3">
-                      <img src={FRONTIER_LOGO} alt="Frontier" className="h-[18px] w-auto object-contain" loading="eager" />
+                      <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
                     </div>
                     <div className="flex items-center justify-between gap-1 mb-2">
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.departure_airport}</span>
