@@ -1,0 +1,1 @@
+ALTER TABLE public.user_info ADD COLUMN IF NOT EXISTS last_login timestamptz;
