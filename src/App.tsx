@@ -339,7 +339,7 @@ const MainApp = () => {
 
   return (
     <div className="flex justify-center">
-      <div className="w-full max-w-[768px] min-h-screen flex flex-col">
+      <div className="w-full max-w-[1320px] min-h-screen flex flex-col">
         {/* Splash video removed */}
 
         {splashDone && checkingSession && (
