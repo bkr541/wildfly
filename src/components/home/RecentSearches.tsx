@@ -192,9 +192,9 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 <button
                                   type="button"
                                   onClick={(e) => handleRemove(e, s.id)}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+                                  className="flex items-center justify-center transition-opacity hover:opacity-70"
                                 >
-                                  <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                                  <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
                                 </button>
                               </div>
 
