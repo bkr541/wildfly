@@ -243,6 +243,16 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
     setSearches((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  if (showInitialSkeleton) {
+    return (
+      <div className="flex flex-col pt-3 px-3 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col pt-3">
       {homepageComponents.map((item) => {
