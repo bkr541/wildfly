@@ -104,9 +104,6 @@ const MostReliableRouteCard = ({ data, airportDict = {} }: Props) => {
                 </div>
               </div>
 
-              {data.limitedData && (
-                <p className="text-[10px] text-[#9CA3AF] mt-3">Limited sample</p>
-              )}
             </>
           )}
         </div>
