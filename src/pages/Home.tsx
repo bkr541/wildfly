@@ -175,6 +175,7 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
           .from("flight_searches")
           .select("id, departure_airport, arrival_airport, departure_date, return_date, trip_type, all_destinations, search_timestamp, gowild_found")
           .eq("user_id", user.id)
+          .or("triggered_by.is.null,triggered_by.neq.admin_bulk_search")
           .order("search_timestamp", { ascending: false })
           .limit(30),
       ]);
