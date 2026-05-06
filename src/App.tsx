@@ -20,6 +20,7 @@ import FlightDestResults from "./pages/FlightDestResults";
 import FlightMultiDestResults from "./pages/FlightMultiDestResults";
 import DayTripResults from "./pages/DayTripResults";
 import AdminImport from "./pages/AdminImport";
+import AdminBulkSearch from "./pages/AdminBulkSearch";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
@@ -469,6 +470,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/admin/import" element={<AdminImport />} />
+          <Route path="/admin/bulk-search" element={<AdminBulkSearch />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel" element={<BillingCancel />} />
