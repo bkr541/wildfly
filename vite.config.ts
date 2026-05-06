@@ -7,7 +7,7 @@ const cloudEnv = {
   VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || "https://ejgxmkglklyumyycpvgi.supabase.co",
   VITE_SUPABASE_PUBLISHABLE_KEY:
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIiwiZXhwIjoyMDg3MDUwMzkyLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3MTQ3NDM5MiwicmVmIjoiZWpneG1rZ2xrbHl1bXl5Y3B2Z2kifQ.Ouk-mT1uW8_dSTHqYzkix65gL0XLtmlhp6RyfaSJH7A",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqZ3hta2dsa2x5dW15eWNwdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NzQzOTIsImV4cCI6MjA4NzA1MDM5Mn0.Ouk-mT1uW8_dSTHqYzkix65gL0XLtmlhp6RyfaSJH7A",
   VITE_SUPABASE_PROJECT_ID: process.env.VITE_SUPABASE_PROJECT_ID || "ejgxmkglklyumyycpvgi",
 };
 
