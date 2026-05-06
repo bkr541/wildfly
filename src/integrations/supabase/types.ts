@@ -351,7 +351,6 @@ export type Database = {
           request_body: Json | null
           return_date: string | null
           search_timestamp: string
-          triggered_by: string | null
           trip_type: string
           user_id: string
         }
@@ -369,7 +368,6 @@ export type Database = {
           request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
-          triggered_by?: string | null
           trip_type: string
           user_id: string
         }
@@ -387,7 +385,6 @@ export type Database = {
           request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
-          triggered_by?: string | null
           trip_type?: string
           user_id?: string
         }
@@ -916,6 +913,7 @@ export type Database = {
           id: number
           image_file: string
           is_discoverable: boolean
+          last_login: string | null
           last_name: string | null
           mobile_number: string | null
           onboarding_complete: string
@@ -938,6 +936,7 @@ export type Database = {
           id?: number
           image_file: string
           is_discoverable?: boolean
+          last_login?: string | null
           last_name?: string | null
           mobile_number?: string | null
           onboarding_complete: string
@@ -960,6 +959,7 @@ export type Database = {
           id?: number
           image_file?: string
           is_discoverable?: boolean
+          last_login?: string | null
           last_name?: string | null
           mobile_number?: string | null
           onboarding_complete?: string
