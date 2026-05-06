@@ -172,8 +172,8 @@ export function useBilling(): BillingState {
       // Look up plan name + allowance from catalog
       const matchedPlan = plansRes.data?.find((p) => p.id === currentPlanId);
       const resolvedName = matchedPlan?.name ?? (currentPlanId === "free" ? "Free" : currentPlanId);
+      const resolvedGold = matchedPlan ? matchedPlan.monthly_allowance_credits === null : false;
       const resolvedAllowance = matchedPlan?.monthly_allowance_credits ?? 15;
-      const resolvedGold = resolvedAllowance === null;
 
       setPlanName(resolvedName);
       setMonthlyAllowance(resolvedAllowance ?? 15);
