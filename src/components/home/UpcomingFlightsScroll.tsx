@@ -170,7 +170,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       transition: { duration: 0.3, delay: i * 0.08, ease: EASE },
                     }}
                     onClick={() => onFlightClick?.(flight)}
-                    className="relative flex-shrink-0 w-[232px] rounded-2xl pl-2.5 pr-2.5 pt-1.5 pb-2.5 cursor-pointer active:scale-[0.98] transition-transform"
+                    className="relative flex-shrink-0 w-[232px] rounded-2xl px-3 pt-2 pb-3 cursor-pointer active:scale-[0.98] transition-transform"
                     style={{
                       scrollSnapAlign: "start",
                       background: "rgba(255,255,255,0.82)",
