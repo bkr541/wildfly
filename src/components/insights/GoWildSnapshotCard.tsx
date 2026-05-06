@@ -197,12 +197,15 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
         {/* Available Legs */}
         <div>
           <p className="text-sm text-[#6B7B7B] mb-1">Available Legs</p>
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-end gap-2">
             <span className="text-[32px] font-semibold text-green-600 leading-none">
               {totalLegs === 0 ? "--" : availableLegs}
             </span>
             {totalLegs > 0 && (
-              <span className="text-sm text-[#9CA3AF]">of {totalLegs} legs</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm text-[#9CA3AF]">of</span>
+                <span className="text-sm text-[#9CA3AF]">{totalLegs} legs</span>
+              </div>
             )}
           </div>
         </div>
@@ -210,11 +213,14 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
         {/* Avg Seats Available */}
         <div>
           <p className="text-sm text-[#6B7B7B] mb-1">Avg Seats Available</p>
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-end gap-2">
             <span className="text-[32px] font-semibold text-green-600 leading-none">
               {avgSeats === null ? "--" : Math.round(avgSeats)}
             </span>
-            <span className="text-sm text-[#9CA3AF]">seats / leg</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm text-[#9CA3AF]">seats</span>
+              <span className="text-sm text-[#9CA3AF]">/ leg</span>
+            </div>
           </div>
         </div>
       </div>
