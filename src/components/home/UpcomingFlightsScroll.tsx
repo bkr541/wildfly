@@ -158,10 +158,8 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                 </div>
               </div>
             ) : (
-              <div
-                className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide"
-                style={{ scrollSnapType: "x mandatory" }}
-              >
+              <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
+                <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
                 {flights.map((flight, i) => (
                   <motion.div
                     key={flight.id}
@@ -192,7 +190,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     </button>
 
                     <div className="flex items-center mb-3">
-                      <img src={FRONTIER_LOGO} alt="Frontier" className="h-[18px] w-auto object-contain" loading="eager" />
+                      <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
                     </div>
                     <div className="flex items-center justify-between gap-1 mb-2">
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.departure_airport}</span>
@@ -218,6 +216,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                     </div>
                   </motion.div>
                 ))}
+                </div>
               </div>
             )}
             </div>
