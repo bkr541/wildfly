@@ -155,7 +155,7 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between mb-3 px-1 group"
+        className="w-full flex items-center justify-between mb-1 px-1 group"
       >
         <div className="flex items-center gap-1.5">
           <HugeiconsIcon icon={FlashIcon} size={13} color="#059669" strokeWidth={2} />
