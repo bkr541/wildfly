@@ -168,7 +168,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 y: 0,
                                 transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                               }}
-                              className="relative flex-shrink-0 w-[232px] rounded-2xl px-4 pt-3 pb-4 cursor-pointer active:scale-[0.98] transition-transform"
+                              className="relative flex-shrink-0 w-[232px] rounded-2xl pl-2.5 pr-2.5 pt-1.5 pb-2.5 cursor-pointer active:scale-[0.98] transition-transform"
                               style={{ scrollSnapAlign: "start", ...CARD_STYLE }}
                               onClick={() => {
                                 const payload = JSON.stringify({
