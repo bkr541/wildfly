@@ -144,7 +144,7 @@ export function useBilling(): BillingState {
           .maybeSingle(),
         supabase
           .from("user_subscriptions")
-          .select("plan_id, status, current_period_end, cancel_at_period_end")
+          .select("plan_id, status, current_period_end")
           .eq("user_id", userId)
           .maybeSingle(),
         supabase
