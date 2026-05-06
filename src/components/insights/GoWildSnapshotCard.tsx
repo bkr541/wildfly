@@ -203,8 +203,8 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
             </span>
             {totalLegs > 0 && (
               <div className="flex flex-col leading-tight">
-                <span className="text-sm text-[#9CA3AF]">of</span>
-                <span className="text-sm text-[#9CA3AF]">{totalLegs} legs</span>
+                <span className="text-sm text-[#9CA3AF]">of {totalLegs}</span>
+                <span className="text-sm text-[#9CA3AF]">legs</span>
               </div>
             )}
           </div>
