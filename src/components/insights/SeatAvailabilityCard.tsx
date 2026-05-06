@@ -54,7 +54,7 @@ const SeatAvailabilityCard = (props: Props) => {
     return Math.max(...props.rows.map((r) => r.averageSeats), 0.1);
   }, [props.rows]);
 
-  const hasLimitedData = variant !== "airport-average" && (props as RouteCardProps).rows.some((r) => r.limitedData);
+  
 
   return (
     <div className="rounded-2xl bg-white p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
