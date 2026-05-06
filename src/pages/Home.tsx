@@ -136,7 +136,18 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
   const [loading, setLoading] = useState(true);
   const [searchesLoading, setSearchesLoading] = useState(true);
   const [homepageComponents, setHomepageComponents] = useState<HomepageComponent[]>([]);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [showInitialSkeleton, setShowInitialSkeleton] = useState(!initialSkeletonShown);
+
+  useEffect(() => {
+    if (initialSkeletonShown) return;
+    const t = setTimeout(() => {
+      initialSkeletonShown = true;
+      setShowInitialSkeleton(false);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+
 
   // Background-fetch day trips for today + tomorrow on login
   useDayTripAutoFetch();
