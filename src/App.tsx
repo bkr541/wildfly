@@ -31,6 +31,7 @@ import FlightDetails from "./pages/FlightDetails";
 import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
+import BillingPortalReturn from "./pages/BillingPortalReturn";
 
 const queryClient = new QueryClient();
 
@@ -472,6 +473,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel" element={<BillingCancel />} />
+          <Route path="/billing/portal-return" element={<BillingPortalReturn />} />
           <Route path="*" element={<MainApp />} />
         </Routes>
       </BrowserRouter>

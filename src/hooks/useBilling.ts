@@ -61,6 +61,8 @@ export interface BillingState {
   planName: string;
   planStatus: string;
   isGold: boolean;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   // wallet
   wallet: WalletState;
   // catalog
@@ -100,6 +102,8 @@ export function useBilling(): BillingState {
   const [planStatus, setPlanStatus] = useState("active");
   const [monthlyAllowance, setMonthlyAllowance] = useState(15);
   const [isGold, setIsGold] = useState(false);
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
 
   // Wallet state
   const [wallet, setWallet] = useState<WalletState>({
@@ -140,7 +144,7 @@ export function useBilling(): BillingState {
           .maybeSingle(),
         supabase
           .from("user_subscriptions")
-          .select("plan_id, status")
+          .select("plan_id, status, current_period_end, cancel_at_period_end")
           .eq("user_id", userId)
           .maybeSingle(),
         supabase
@@ -162,6 +166,8 @@ export function useBilling(): BillingState {
       const currentStatus = subRes.data?.status ?? "active";
       setPlanId(currentPlanId);
       setPlanStatus(currentStatus);
+      setCurrentPeriodEnd((subRes.data as any)?.current_period_end ?? null);
+      setCancelAtPeriodEnd((subRes.data as any)?.cancel_at_period_end ?? false);
 
       // Look up plan name + allowance from catalog
       const matchedPlan = plansRes.data?.find((p) => p.id === currentPlanId);
@@ -175,7 +181,8 @@ export function useBilling(): BillingState {
 
       // ── Resolve wallet ─────────────────────────────────────────────────────
       const w = walletRes.data;
-      const used = w?.monthly_used ?? 0;
+      const periodExpired = w?.monthly_period_end ? new Date() >= new Date(w.monthly_period_end) : false;
+      const used = periodExpired ? 0 : (w?.monthly_used ?? 0);
       const purchased = w?.purchased_balance ?? 0;
       const remaining = resolvedGold ? Infinity : Math.max(0, (resolvedAllowance ?? 15) - used);
       const total = resolvedGold ? Infinity : remaining + purchased;
@@ -254,6 +261,10 @@ export function useBilling(): BillingState {
           throw new Error(json.error ?? "Failed to start checkout. Please try again.");
         }
 
+        // Snapshot current state so BillingSuccess can detect what changed
+        sessionStorage.setItem("billing_prev_plan", planId);
+        sessionStorage.setItem("billing_prev_credits", String(wallet.purchasedBalance));
+
         // Redirect to Stripe Checkout
         window.location.href = json.url;
       } catch (err: any) {
@@ -262,7 +273,7 @@ export function useBilling(): BillingState {
       }
       // Note: don't setCheckoutLoading(false) on success — the page is navigating away
     },
-    [checkoutLoading]
+    [checkoutLoading, planId, wallet.purchasedBalance]
   );
 
   const handleUpgrade = useCallback(
@@ -291,7 +302,7 @@ export function useBilling(): BillingState {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("You must be signed in.");
 
-      const returnUrl = `${APP_URL}/billing/cancel`;
+      const returnUrl = `${APP_URL}/billing/portal-return`;
 
       const res = await fetch(edgeFunctionUrl("create-customer-portal-session"), {
         method: "POST",
@@ -321,6 +332,8 @@ export function useBilling(): BillingState {
     planName,
     planStatus,
     isGold,
+    currentPeriodEnd,
+    cancelAtPeriodEnd,
     wallet,
     plans,
     creditPacks,

@@ -22,6 +22,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ALLOWED_ORIGINS = [
+  "https://wildfly.app",
+  "https://wildfly.lovable.app",
+];
+
+function isAllowedUrl(url: string): boolean {
+  try {
+    const { origin, protocol } = new URL(url);
+    if (protocol === "http:" && origin.startsWith("http://localhost")) return true;
+    return ALLOWED_ORIGINS.includes(origin);
+  } catch {
+    return false;
+  }
+}
+
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
   apiVersion: "2023-10-16",
   httpClient: Stripe.createFetchHttpClient(),
@@ -90,6 +105,13 @@ serve(async (req) => {
 
   if (!purchaseType || !successUrl || !cancelUrl) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!isAllowedUrl(successUrl) || !isAllowedUrl(cancelUrl)) {
+    return new Response(JSON.stringify({ error: "Invalid redirect URL" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

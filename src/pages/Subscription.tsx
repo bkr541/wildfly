@@ -23,7 +23,10 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
   const {
     planId,
     planName,
+    planStatus,
     isGold,
+    currentPeriodEnd,
+    cancelAtPeriodEnd,
     plans,
     handleUpgrade,
     handleManageBilling,
@@ -32,6 +35,10 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
     loading: billingLoading,
     refetch,
   } = useBilling();
+
+  const periodEndDisplay = currentPeriodEnd
+    ? new Date(currentPeriodEnd).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })
+    : null;
 
   if (showWallet) {
     return (
@@ -79,7 +86,7 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
   const isCurrentlyFree = planId === "free" || planName.toLowerCase() === "free";
   const isCurrentlyGold = isGold || planName.toLowerCase().includes("gold");
 
-  const hasPaidSubscription = isCurrentlyGold;
+  const hasPaidSubscription = isCurrentlyGold || planStatus === "past_due";
 
   const handleUpgradeToGold = async () => {
     // Store current state snapshot for success page comparison
@@ -128,6 +135,23 @@ const SubscriptionPage = ({ onBack, onTitleChange }: SubscriptionPageProps) => {
             Yearly
           </button>
         </div>
+
+        {/* Subscription status banners */}
+        {planStatus === "trialing" && periodEndDisplay && (
+          <div className="w-full max-w-md mb-4 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
+            Your free trial ends on <span className="font-semibold">{periodEndDisplay}</span>. You won't be charged until then.
+          </div>
+        )}
+        {planStatus === "past_due" && (
+          <div className="w-full max-w-md mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+            Your last payment failed. Update your payment method via <span className="font-semibold">Manage Billing</span> to keep Gold access.
+          </div>
+        )}
+        {planStatus === "active" && cancelAtPeriodEnd && periodEndDisplay && (
+          <div className="w-full max-w-md mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+            Your Gold plan will end on <span className="font-semibold">{periodEndDisplay}</span>. You'll move to Free after that.
+          </div>
+        )}
 
         {/* Plan cards */}
         <div className="flex justify-center gap-3 w-full max-w-md mb-5">
