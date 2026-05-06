@@ -351,6 +351,7 @@ export type Database = {
           request_body: Json | null
           return_date: string | null
           search_timestamp: string
+          triggered_by: string | null
           trip_type: string
           user_id: string
         }
@@ -368,6 +369,7 @@ export type Database = {
           request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
+          triggered_by?: string | null
           trip_type: string
           user_id: string
         }
@@ -385,6 +387,7 @@ export type Database = {
           request_body?: Json | null
           return_date?: string | null
           search_timestamp?: string
+          triggered_by?: string | null
           trip_type?: string
           user_id?: string
         }
