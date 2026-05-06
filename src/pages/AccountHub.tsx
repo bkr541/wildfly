@@ -141,10 +141,10 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavi
       }}
     />
   );
-  if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
+  if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} backRef={backRef} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
-  if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} onNavigate={onNavigate} />;
+  if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} onNavigate={onNavigate} backRef={backRef} />;
   if (activeScreen === "manage-users") return <ManageUsersScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
 
   return (

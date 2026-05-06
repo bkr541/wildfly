@@ -389,9 +389,8 @@ const MainApp = () => {
               subScreenIcon={subScreenIcon}
               onSubScreenBack={() => {
                 if (currentPage === "design-system") {
-                  setSubScreenTitle(null);
-                  setSubScreenIcon(null);
                   setCurrentPage("account");
+                  accountDevRef.current?.();
                 } else {
                   accountBackRef.current?.();
                 }

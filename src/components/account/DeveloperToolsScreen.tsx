@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppInput } from "@/components/ui/app-input";
@@ -21,6 +21,7 @@ interface DeveloperToolsScreenProps {
   onBack: () => void;
   onTitleChange?: (title: string | null) => void;
   onNavigate?: (page: string) => void;
+  backRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 const LOG_LEVELS = ["silent", "error", "warn", "info", "debug"] as const;
@@ -48,7 +49,7 @@ function getJWTExpiry(token: string): Date | null {
   }
 }
 
-const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperToolsScreenProps) => {
+const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
@@ -155,6 +156,18 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate }: DeveloperTo
   useEffect(() => {
     onTitleChange?.("Developer Tools");
   }, []);
+
+  useEffect(() => {
+    if (!backRef) return;
+    if (showAnnouncements) {
+      backRef.current = () => {
+        setShowAnnouncements(false);
+        onTitleChange?.("Developer Tools");
+      };
+    } else {
+      backRef.current = onBack ?? null;
+    }
+  }, [showAnnouncements, backRef, onBack, onTitleChange]);
 
   if (showAnnouncements) {
     return (
