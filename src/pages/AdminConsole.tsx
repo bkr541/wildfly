@@ -21,12 +21,20 @@ import {
   UnfoldLessIcon,
   SquareArrowUpDownIcon,
   FilterMailSquareIcon,
+  Analytics01Icon,
 } from "@hugeicons/core-free-icons";
+import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
+import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
+import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
+import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
+import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
+import { type FlightSnapshot } from "@/components/insights/airportHelpers";
+import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "users" | "flights" | "data";
+type View = "dashboard" | "users" | "flights" | "data" | "gowild";
 
 interface UserRow {
   id: number;
@@ -79,10 +87,11 @@ const CARD_STYLE: React.CSSProperties = {
 };
 
 const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
-  { id: "dashboard", label: "Dashboard", icon: ChartRoseIcon },
-  { id: "users",     label: "Users",     icon: UserIcon },
-  { id: "flights",   label: "Flights",   icon: AirplaneTakeOff01Icon },
-  { id: "data",      label: "Data",      icon: DatabaseIcon },
+  { id: "dashboard", label: "Dashboard",      icon: ChartRoseIcon },
+  { id: "users",     label: "Users",          icon: UserIcon },
+  { id: "flights",   label: "Flights",        icon: AirplaneTakeOff01Icon },
+  { id: "data",      label: "Data",           icon: DatabaseIcon },
+  { id: "gowild",    label: "GoWild Insights", icon: Analytics01Icon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1413,6 +1422,61 @@ function DataView() {
   );
 }
 
+// ── GoWild Insights View ──────────────────────────────────────────────────────
+
+function GoWildInsightsView() {
+  const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
+  const { dict: airportDict }     = useAirportDictionary();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase.from("flight_snapshots") as any)
+        .select(
+          "id, flight_search_id, snapshot_at, departure_at, leg_origin_iata, leg_destination_iata, origin_iata, has_go_wild, go_wild_available_seats, go_wild_total, standard_total"
+        )
+        .order("snapshot_at", { ascending: false })
+        .limit(500);
+      if (cancelled) return;
+      if (error) setError(error.message);
+      else setSnapshots(data ?? []);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl p-5 animate-pulse flex flex-col gap-3" style={CARD_STYLE}>
+        <div className="h-5 w-40 rounded-lg bg-[#F0F1F1]" />
+        <div className="h-3 w-56 rounded bg-[#F0F1F1]" />
+        <div className="h-48 w-full rounded-xl bg-[#F0F1F1]" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl p-5" style={CARD_STYLE}>
+        <p className="text-sm font-medium text-red-500">Failed to load GoWild data</p>
+        <p className="text-xs text-[#9CA3AF] mt-1">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <GoWildSnapshotCard snapshots={snapshots as any} />
+      <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
+      <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
+      <GoWildTimingAnalyticsSection snapshots={snapshots} />
+      <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
+    </div>
+  );
+}
+
 // ── Pagination ────────────────────────────────────────────────────────────────
 
 function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (p: number) => void }) {
@@ -1473,10 +1537,11 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
-  dashboard: { title: "Dashboard",  subtitle: "Overview of app activity and health." },
-  users:     { title: "Users",      subtitle: "All registered users and their profile information." },
-  flights:   { title: "Flights",    subtitle: "All flight searches across the platform." },
-  data:      { title: "Data",       subtitle: "Data insights and platform analytics." },
+  dashboard: { title: "Dashboard",       subtitle: "Overview of app activity and health." },
+  users:     { title: "Users",           subtitle: "All registered users and their profile information." },
+  flights:   { title: "Flights",         subtitle: "All flight searches across the platform." },
+  data:      { title: "Data",            subtitle: "Data insights and platform analytics." },
+  gowild:    { title: "GoWild Insights", subtitle: "GoWild seat availability trends and route analytics." },
 };
 
 export default function AdminConsole() {
@@ -1594,6 +1659,7 @@ export default function AdminConsole() {
         {view === "users"   && <UsersView />}
         {view === "flights" && <FlightsView />}
         {view === "data"    && <DataView />}
+        {view === "gowild"  && <GoWildInsightsView />}
         </motion.div>
         </AnimatePresence>
       </div>
