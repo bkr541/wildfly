@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Home01Icon,
+  ChartRoseIcon,
   UserIcon,
   AirplaneTakeOff01Icon,
   ArrowLeft01Icon,
@@ -11,12 +11,20 @@ import {
   Search01Icon,
   Cancel01Icon,
   ArrowDown01Icon,
+  DatabaseIcon,
+  CodeCircleIcon,
+  UserGroupIcon,
+  BookOpen01Icon,
+  Coins01Icon,
+  Settings01Icon,
+  UnfoldMoreIcon,
+  UnfoldLessIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "users" | "flights";
+type View = "dashboard" | "users" | "flights" | "data";
 
 interface UserRow {
   id: number;
@@ -69,9 +77,10 @@ const CARD_STYLE: React.CSSProperties = {
 };
 
 const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
-  { id: "dashboard", label: "Dashboard", icon: Home01Icon },
+  { id: "dashboard", label: "Dashboard", icon: ChartRoseIcon },
   { id: "users",     label: "Users",     icon: UserIcon },
   { id: "flights",   label: "Flights",   icon: AirplaneTakeOff01Icon },
+  { id: "data",      label: "Data",      icon: DatabaseIcon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -189,7 +198,7 @@ function UsersView() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={CARD_STYLE}>
+      <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
         {/* Header */}
         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
           {["User", "Home Location", "Home Airport", "Signup", "Status", "Last Login"].map((h) => (
@@ -202,7 +211,7 @@ function UsersView() {
         ) : pageRows.length === 0 ? (
           <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">No users found.</div>
         ) : (
-          <div className="divide-y divide-[#F0F1F1]">
+          <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
             {pageRows.map((u) => (
               <div key={u.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-3 items-center hover:bg-[#FAFAFA] transition-colors">
                 {/* User */}
@@ -325,7 +334,7 @@ function FlightsView() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={CARD_STYLE}>
+      <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
         {/* Header */}
         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
           {["Route", "Date", "Trip Type", "All Dest", "GoWild", "Results", "Timestamp"].map((h) => (
@@ -338,7 +347,7 @@ function FlightsView() {
         ) : filtered.length === 0 ? (
           <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">No records found.</div>
         ) : (
-          <div className="divide-y divide-[#F0F1F1]">
+          <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
             {filtered.map((f) => {
               const isAdmin = f.triggered_by === "admin_bulk_search";
               return (
@@ -384,6 +393,697 @@ function FlightsView() {
           <Pagination page={page} totalPages={totalPages} onPage={(p) => { setPage(p); }} />
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Data View ─────────────────────────────────────────────────────────────────
+
+interface TableEntry {
+  name: string;
+  views?: string[];
+}
+
+const COLUMN_MAP: Record<string, string[]> = {
+  // Users
+  users: ["id", "email", "first_name", "last_name", "username", "dob", "image_file", "home_location_id", "bio", "onboarding_complete", "auth_user_id", "mobile_number", "display_name", "avatar_url", "home_city", "home_airport", "is_discoverable", "status", "signup_type", "last_login"],
+  user_public_profiles: ["auth_user_id", "username", "display_name", "first_name", "last_name", "avatar_url", "home_city", "home_airport", "is_discoverable"],
+  user_settings: ["user_id", "notifications_enabled", "notify_gowild_availability", "notify_new_routes", "notify_pass_sales", "notify_new_features", "theme_preference", "created_at", "updated_at", "default_departure_to_home", "allow_friend_requests", "show_home_city_to_friends", "show_upcoming_trips_to_friends", "show_activity_feed_to_friends", "show_trip_overlap_alerts"],
+  user_locations: ["id", "user_id", "location_id", "created_at"],
+  user_homepage: ["id", "user_id", "component_name", "order", "status", "created_at", "updated_at"],
+  user_flights: ["id", "user_id", "flight_key", "provider", "provider_offer_id", "origin_iata", "destination_iata", "start_time", "end_time", "trip_type", "airline", "flight_number", "stops", "duration_minutes", "price_total", "currency", "gowild_eligible", "nonstop", "cabin_class", "seats_remaining", "saved_at", "snapshot_json", "snapshot_updated_at"],
+  user_events: ["id", "user_id", "edmtrain_event_id", "start_time", "end_time", "saved_at", "snapshot_json"],
+  user_credit_wallet: ["user_id", "monthly_used", "monthly_period_start", "monthly_period_end", "purchased_balance", "updated_at"],
+  user_favorite_artists: ["user_id", "artist_id"],
+  user_favorite_genres: ["user_id", "genre_id"],
+  user_favorite_locations: ["user_id", "location_id"],
+  user_subscriptions: ["user_id", "plan_id", "status", "stripe_customer_id", "stripe_subscription_id", "stripe_price_id", "current_period_start", "current_period_end", "updated_at", "cancel_at_period_end"],
+  // Flights
+  flight_searches: ["id", "user_id", "search_timestamp", "departure_airport", "arrival_airport", "departure_date", "return_date", "trip_type", "all_destinations", "json_body", "request_body", "gowild_found", "flight_results_count", "triggered_by"],
+  flight_search_cache: ["id", "cache_key", "reset_bucket", "canonical_request", "provider", "status", "payload", "error", "created_at", "updated_at"],
+  gowild_snapshots: ["id", "observed_at", "observed_date", "origin_iata", "destination_iata", "travel_date", "total_flights", "gowild_flights", "nonstop_total", "nonstop_gowild", "gowild_avalseats", "min_gowild_fare", "min_fare", "raw_response"],
+  route_favorites: ["id", "user_id", "origin_iata", "dest_iata", "created_at"],
+  // Social
+  friends: ["id", "user_id", "friend_user_id", "created_at", "source_request_id"],
+  friends_with_profiles: ["user_id", "friend_user_id", "username", "display_name", "avatar_url", "home_city", "home_airport"],
+  friend_requests: ["id", "requester_user_id", "recipient_user_id", "status", "created_at", "responded_at"],
+  pending_friend_requests: ["id", "requester_user_id", "recipient_user_id", "requester_username", "requester_avatar", "created_at"],
+  notifications: ["id", "user_id", "type", "title", "body", "data", "is_read", "created_at"],
+  trip_shares: ["id", "user_flight_id", "owner_user_id", "shared_with_user_id", "status", "created_at"],
+  // Content
+  artists: ["id", "display_name", "edmtrain_id", "normalized_name", "genres", "image_url", "spotify_id"],
+  artist_genres: ["artist_id", "genre_id"],
+  genres: ["id", "genre_name", "parent_genre", "energy", "mood_tags"],
+  announcements: ["id", "title", "body", "cta_label", "cta_url", "image_url", "audience", "priority", "is_published", "publish_at", "expires_at", "created_by", "created_at"],
+  announcement_views: ["id", "announcement_id", "user_id", "seen_at", "dismissed_at"],
+  // Credits
+  credit_packs: ["id", "name", "credits_amount", "stripe_price_id", "price_usd", "is_active", "display_order", "created_at"],
+  credit_transactions: ["id", "user_id", "transaction_type", "source_type", "source_id", "amount", "bucket", "balance_before", "balance_after", "metadata", "created_at"],
+  // System
+  app_config: ["id", "user_id", "config_key", "config_value", "created_at", "updated_at"],
+  developer_allowlist: ["user_id"],
+  developer_settings: ["user_id", "debug_enabled", "show_raw_payload", "log_level", "flags", "created_at", "updated_at", "enabled_debug_components", "logging_enabled", "enabled_component_logging"],
+  locations: ["id", "name", "city", "state", "state_code", "region", "country", "latitude", "longitude", "edmtrain_locationid"],
+  airports: ["id", "name", "iata_code", "icao_code", "latitude", "longitude", "timezone", "location_id", "is_hub"],
+  plans: ["id", "name", "monthly_allowance_credits", "features", "created_at"],
+};
+
+const TABLE_GROUPS: { label: string; icon: any; tables: TableEntry[] }[] = [
+  {
+    label: "Users",
+    icon: UserIcon,
+    tables: [
+      { name: "users", views: ["user_public_profiles"] },
+      { name: "user_settings" },
+      { name: "user_locations" },
+      { name: "user_homepage" },
+      { name: "user_flights" },
+      { name: "user_events" },
+      { name: "user_credit_wallet" },
+      { name: "user_favorite_artists" },
+      { name: "user_favorite_genres" },
+      { name: "user_favorite_locations" },
+      { name: "user_subscriptions" },
+    ],
+  },
+  {
+    label: "Flights",
+    icon: AirplaneTakeOff01Icon,
+    tables: [
+      { name: "flight_searches" },
+      { name: "flight_search_cache" },
+      { name: "gowild_snapshots" },
+      { name: "route_favorites" },
+    ],
+  },
+  {
+    label: "Social",
+    icon: UserGroupIcon,
+    tables: [
+      { name: "friends", views: ["friends_with_profiles"] },
+      { name: "friend_requests", views: ["pending_friend_requests"] },
+      { name: "notifications" },
+      { name: "trip_shares" },
+    ],
+  },
+  {
+    label: "Content",
+    icon: BookOpen01Icon,
+    tables: [
+      { name: "artists" },
+      { name: "artist_genres" },
+      { name: "genres" },
+      { name: "announcements" },
+      { name: "announcement_views" },
+    ],
+  },
+  {
+    label: "Credits",
+    icon: Coins01Icon,
+    tables: [
+      { name: "credit_packs" },
+      { name: "credit_transactions" },
+    ],
+  },
+  {
+    label: "System",
+    icon: Settings01Icon,
+    tables: [
+      { name: "app_config" },
+      { name: "developer_allowlist" },
+      { name: "developer_settings" },
+      { name: "locations" },
+      { name: "airports" },
+      { name: "plans" },
+    ],
+  },
+];
+
+function fmtCell(val: unknown): { text: string; muted: boolean; isJson: boolean } {
+  if (val === null || val === undefined) return { text: "null", muted: true, isJson: false };
+  if (typeof val === "boolean") return { text: String(val), muted: false, isJson: false };
+  if (typeof val === "object") return { text: JSON.stringify(val), muted: false, isJson: true };
+  // Check if the string value is JSON
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if ((trimmed.startsWith("{") || trimmed.startsWith("[")) ) {
+      try { JSON.parse(trimmed); return { text: trimmed.length > 80 ? trimmed.slice(0, 80) + "…" : trimmed, muted: false, isJson: true }; } catch {}
+    }
+  }
+  const str = String(val);
+  return { text: str.length > 80 ? str.slice(0, 80) + "…" : str, muted: false, isJson: false };
+}
+
+// ── JSON popup helpers ────────────────────────────────────────────────────────
+
+function parseJson(val: unknown): unknown {
+  if (typeof val === "string") { try { return JSON.parse(val); } catch {} }
+  return val;
+}
+
+function calcJsonStats(root: unknown) {
+  let nodes = 0, objects = 0, arrays = 0, strings = 0, numbers = 0, booleans = 0, nulls = 0, maxDepth = 0, maxArray = 0;
+  const keyCounts: Record<string, number> = {};
+
+  function walk(v: unknown, depth: number) {
+    nodes++;
+    if (depth > maxDepth) maxDepth = depth;
+    if (v === null) { nulls++; return; }
+    if (typeof v === "boolean") { booleans++; return; }
+    if (typeof v === "number") { numbers++; return; }
+    if (typeof v === "string") { strings++; return; }
+    if (Array.isArray(v)) {
+      arrays++;
+      if (v.length > maxArray) maxArray = v.length;
+      v.forEach((item) => walk(item, depth + 1));
+      return;
+    }
+    if (typeof v === "object") {
+      objects++;
+      Object.entries(v as Record<string, unknown>).forEach(([k, child]) => {
+        keyCounts[k] = (keyCounts[k] ?? 0) + 1;
+        walk(child, depth + 1);
+      });
+    }
+  }
+  walk(root, 0);
+
+  const totalKeys = Object.keys(keyCounts).length;
+  const topKeys = Object.entries(keyCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const valueTypes = [
+    { label: "Objects",  count: objects },
+    { label: "Arrays",   count: arrays },
+    { label: "Strings",  count: strings },
+    { label: "Numbers",  count: numbers },
+    { label: "Booleans", count: booleans },
+    { label: "Nulls",    count: nulls },
+  ];
+  return { nodes, totalKeys, maxDepth, objects, arrays, maxArray, valueTypes, topKeys };
+}
+
+function TreeNode({ keyName, value, depth = 0 }: { keyName?: string; value: unknown; depth?: number }) {
+  const isArr = Array.isArray(value);
+  const isObj = value !== null && typeof value === "object" && !isArr;
+  const isExpandable = isArr || isObj;
+  const [open, setOpen] = useState(depth < 2);
+
+  const entries: [string, unknown][] = isObj
+    ? Object.entries(value as Record<string, unknown>)
+    : isArr
+    ? (value as unknown[]).map((v, i) => [String(i), v])
+    : [];
+
+  const valueNode = () => {
+    if (value === null) return <span className="text-[#9CA3AF] font-mono text-xs">null</span>;
+    if (typeof value === "boolean") return <span className="text-[#F59E0B] font-mono text-xs">{String(value)}</span>;
+    if (typeof value === "number") return <span className="text-[#3B82F6] font-mono text-xs">{String(value)}</span>;
+    if (typeof value === "string") {
+      const display = value.length > 60 ? value.slice(0, 60) + "…" : value;
+      return <span className="text-[#059669] font-mono text-xs">"{display}"</span>;
+    }
+    return null;
+  };
+
+  return (
+    <div>
+      <div
+        className={`flex items-center gap-1 py-0.5 px-1 rounded hover:bg-[#F2F3F3] ${isExpandable ? "cursor-pointer" : ""}`}
+        style={{ paddingLeft: depth * 14 + 4 }}
+        onClick={isExpandable ? () => setOpen((o) => !o) : undefined}
+      >
+        <span className={`w-3 text-[#9CA3AF] text-[10px] flex-shrink-0 transition-transform ${isExpandable ? "" : "opacity-0"} ${isExpandable && !open ? "-rotate-90" : ""}`}>▾</span>
+        {keyName !== undefined && (
+          <span className="text-[#345C5A] font-mono text-xs font-semibold mr-1">{keyName}:</span>
+        )}
+        {isExpandable ? (
+          <span className="text-[#9CA3AF] font-mono text-xs">
+            {isArr ? `[ ${entries.length} ]` : `{ ${entries.length} }`}
+          </span>
+        ) : valueNode()}
+      </div>
+      {isExpandable && open && entries.map(([k, v]) => (
+        <TreeNode key={k} keyName={isArr ? undefined : k} value={v} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
+function JsonPopup({ col, val, onClose }: { col: string; val: unknown; onClose: () => void }) {
+  const [tab, setTab] = useState<"code" | "tree" | "stats">("code");
+  const parsed = parseJson(val);
+
+  let pretty = "";
+  try { pretty = JSON.stringify(parsed, null, 2); } catch { pretty = String(val); }
+
+  const stats = tab === "stats" ? calcJsonStats(parsed) : null;
+  const maxTypeCount = stats ? Math.max(...stats.valueTypes.map((t) => t.count), 1) : 1;
+
+  const TABS: { id: "code" | "tree" | "stats"; label: string }[] = [
+    { id: "code",  label: "Code" },
+    { id: "tree",  label: "Tree View" },
+    { id: "stats", label: "Stats" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div
+        className="relative rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col"
+        style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.6)", height: "75vh" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0F1F1] flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <HugeiconsIcon icon={CodeCircleIcon} size={16} color="#059669" strokeWidth={2} />
+            <span className="text-sm font-bold text-[#1A2E2E] font-mono">{col}</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 px-5 pt-3 pb-0 border-b border-[#F0F1F1] flex-shrink-0">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors border-b-2 -mb-px ${
+                tab === t.id
+                  ? "text-[#059669] border-[#059669] bg-[#F0FDF4]"
+                  : "text-[#9CA3AF] border-transparent hover:text-[#6B7B7B]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="overflow-auto flex-1 p-5">
+          {tab === "code" && (
+            <pre className="text-xs font-mono text-[#1A2E2E] whitespace-pre-wrap break-all leading-relaxed">{pretty}</pre>
+          )}
+
+          {tab === "tree" && (
+            <div className="select-none">
+              <TreeNode value={parsed} depth={0} />
+            </div>
+          )}
+
+          {tab === "stats" && stats && (
+            <div className="flex flex-col gap-4">
+              {/* Stat boxes */}
+              <div className="grid grid-cols-6 gap-2">
+                {[
+                  { label: "NODES",     value: stats.nodes },
+                  { label: "KEYS",      value: stats.totalKeys },
+                  { label: "DEPTH",     value: stats.maxDepth },
+                  { label: "OBJECTS",   value: stats.objects },
+                  { label: "ARRAYS",    value: stats.arrays },
+                  { label: "MAX ARRAY", value: stats.maxArray },
+                ].map(({ label, value }) => (
+                  <div key={label} className="rounded-xl bg-[#F8F9F9] border border-[#F0F1F1] px-3 py-2.5">
+                    <p className="text-[9px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">{label}</p>
+                    <p className="text-lg font-black text-[#1A2E2E]">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Two columns */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Value Types */}
+                <div className="rounded-xl border border-[#F0F1F1] overflow-hidden">
+                  <div className="px-4 py-2.5 bg-[#F8F9F9] border-b border-[#F0F1F1]">
+                    <span className="text-[11px] font-bold text-[#6B7B7B] uppercase tracking-wide">Value Types</span>
+                  </div>
+                  <div className="divide-y divide-[#F0F1F1]">
+                    {stats.valueTypes.map(({ label, count }) => (
+                      <div key={label} className="flex items-center gap-3 px-4 py-2">
+                        <span className="text-xs text-[#2E4A4A] w-16 flex-shrink-0">{label}</span>
+                        <div className="flex-1 h-1.5 bg-[#F0F1F1] rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${(count / maxTypeCount) * 100}%`,
+                              background: "linear-gradient(90deg, #059669, #10b981)",
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-[#6B7B7B] w-8 text-right flex-shrink-0">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top Keys */}
+                <div className="rounded-xl border border-[#F0F1F1] overflow-hidden">
+                  <div className="px-4 py-2.5 bg-[#F8F9F9] border-b border-[#F0F1F1]">
+                    <span className="text-[11px] font-bold text-[#6B7B7B] uppercase tracking-wide">Top Keys</span>
+                  </div>
+                  <div className="divide-y divide-[#F0F1F1]">
+                    {stats.topKeys.map(([key, count]) => (
+                      <div key={key} className="flex items-center justify-between px-4 py-2">
+                        <span className="text-xs font-mono text-[#2E4A4A] truncate">{key}</span>
+                        <span className="text-xs font-semibold text-[#9CA3AF] ml-2 flex-shrink-0">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const ALL_TABLES = [
+  "airports", "announcement_views", "announcements", "app_config", "artist_genres", "artists",
+  "credit_packs", "credit_transactions", "developer_allowlist", "developer_settings",
+  "flight_search_cache", "flight_searches", "friend_requests", "friends", "genres",
+  "gowild_snapshots", "locations", "notifications", "plans", "route_favorites", "trip_shares",
+  "user_credit_wallet", "user_events", "user_favorite_artists", "user_favorite_genres",
+  "user_favorite_locations", "user_flights", "user_homepage", "user_locations", "user_settings",
+  "user_subscriptions", "users",
+];
+
+const ALL_VIEWS = ["friends_with_profiles", "pending_friend_requests", "user_public_profiles"];
+
+function QueryView() {
+  const [tablesOpen, setTablesOpen] = useState(true);
+  const [viewsOpen, setViewsOpen]   = useState(true);
+
+  return (
+    <div className="flex flex-row gap-4 items-start">
+      {/* Left group */}
+      <div className="flex flex-col gap-3 w-1/4 min-w-0 flex-shrink-0">
+        <div className="rounded-2xl p-5" style={CARD_STYLE}>
+          <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-3">Schemas</p>
+          <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
+            {/* Tables section */}
+            <div>
+              <button
+                onClick={() => setTablesOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#F2F3F3] transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <HugeiconsIcon icon={DatabaseIcon} size={16} color="#2E4A4A" strokeWidth={2} className="flex-shrink-0" />
+                  <span className="text-sm font-semibold text-[#2E4A4A]">Tables</span>
+                  <span className="text-[11px] text-[#9CA3AF]">{ALL_TABLES.length}</span>
+                </div>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon} size={13} color="#9CA3AF" strokeWidth={2.5}
+                  className={`flex-shrink-0 transition-transform duration-200 ${tablesOpen ? "" : "-rotate-90"}`}
+                />
+              </button>
+              {tablesOpen && (
+                <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
+                  {ALL_TABLES.map((t) => (
+                    <div key={t} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-[#F2F3F3] transition-colors">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] flex-shrink-0" />
+                      <span className="text-xs font-mono text-[#2E4A4A] truncate">{t}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Views section */}
+            <div>
+              <button
+                onClick={() => setViewsOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#F2F3F3] transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <HugeiconsIcon icon={CodeCircleIcon} size={16} color="#2E4A4A" strokeWidth={2} className="flex-shrink-0" />
+                  <span className="text-sm font-semibold text-[#2E4A4A]">Views</span>
+                  <span className="text-[11px] text-[#9CA3AF]">{ALL_VIEWS.length}</span>
+                </div>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon} size={13} color="#9CA3AF" strokeWidth={2.5}
+                  className={`flex-shrink-0 transition-transform duration-200 ${viewsOpen ? "" : "-rotate-90"}`}
+                />
+              </button>
+              {viewsOpen && (
+                <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
+                  {ALL_VIEWS.map((v) => (
+                    <div key={v} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-[#F2F3F3] transition-colors">
+                      <span className="w-1.5 h-1.5 rounded-sm bg-[#6B7B7B] flex-shrink-0" />
+                      <span className="text-xs font-mono text-[#9CA3AF] truncate">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right group */}
+      <div className="flex flex-col gap-3 flex-1 min-w-0">
+        <div className="rounded-2xl overflow-hidden p-3 flex items-center justify-center" style={{ ...CARD_STYLE, minHeight: 240 }}>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
+              <HugeiconsIcon icon={DatabaseIcon} size={22} color="#059669" strokeWidth={1.5} />
+            </div>
+            <p className="text-base font-bold text-[#2E4A4A]">Query editor coming soon</p>
+            <p className="text-sm text-[#9CA3AF]">Run SQL queries against your tables and views.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DataView() {
+  const [mode, setMode] = useState<"tables" | "query">("tables");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(
+    Object.fromEntries(TABLE_GROUPS.map((g) => [g.label, true]))
+  );
+  const [selected, setSelected]   = useState<string | null>(null);
+  const [rows, setRows]           = useState<Record<string, unknown>[]>([]);
+  const [loadingRows, setLoading] = useState(false);
+  const [jsonPopup, setJsonPopup] = useState<{ col: string; val: unknown } | null>(null);
+
+  const toggle = (label: string) =>
+    setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const columns = selected ? (COLUMN_MAP[selected] ?? []) : [];
+
+  useEffect(() => {
+    if (!selected) return;
+    setRows([]);
+    setLoading(true);
+    supabase
+      .from(selected)
+      .select("*")
+      .limit(200)
+      .then(({ data }) => {
+        setRows((data as Record<string, unknown>[]) ?? []);
+        setLoading(false);
+      });
+  }, [selected]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Mode toggle */}
+      <div className="flex justify-end">
+        <div className="flex items-center bg-white rounded-xl p-1 gap-0.5" style={{ boxShadow: "0 1px 4px 0 rgba(52,92,90,0.08)", border: "1px solid rgba(255,255,255,0.6)" }}>
+          {(["tables", "query"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors capitalize ${
+                mode === m ? "text-white" : "text-[#6B7280] hover:text-[#2E4A4A]"
+              }`}
+              style={mode === m ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+            >
+              {m.charAt(0).toUpperCase() + m.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {mode === "query" && <QueryView />}
+      {mode === "tables" && <div className="flex flex-row gap-4 items-start">
+      {/* Left group — max 25% */}
+      <div className="flex flex-col gap-3 w-1/4 min-w-0 flex-shrink-0">
+        <div className="rounded-2xl p-5" style={CARD_STYLE}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">Tables</p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setExpanded(Object.fromEntries(TABLE_GROUPS.map((g) => [g.label, true])))}
+                title="Expand all"
+                className="w-6 h-6 flex items-center justify-center rounded-md text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#6B7B7B] transition-colors"
+              >
+                <HugeiconsIcon icon={UnfoldMoreIcon} size={13} color="currentColor" strokeWidth={2} />
+              </button>
+              <button
+                onClick={() => setExpanded(Object.fromEntries(TABLE_GROUPS.map((g) => [g.label, false])))}
+                title="Collapse all"
+                className="w-6 h-6 flex items-center justify-center rounded-md text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#6B7B7B] transition-colors"
+              >
+                <HugeiconsIcon icon={UnfoldLessIcon} size={13} color="currentColor" strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
+            {TABLE_GROUPS.map((group) => {
+              const isOpen = expanded[group.label];
+              return (
+                <div key={group.label}>
+                  <button
+                    onClick={() => toggle(group.label)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#F2F3F3] transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <HugeiconsIcon icon={group.icon} size={16} color="#2E4A4A" strokeWidth={2} className="flex-shrink-0" />
+                      <span className="text-sm font-semibold text-[#2E4A4A]">{group.label}</span>
+                    </div>
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={13}
+                      color="#9CA3AF"
+                      strokeWidth={2.5}
+                      className={`flex-shrink-0 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
+                      {group.tables.map((table) => (
+                        <div key={table.name}>
+                          <button
+                            onClick={() => setSelected(table.name)}
+                            className={`w-full flex items-center gap-2 py-1 px-2 rounded-lg transition-colors text-left ${
+                              selected === table.name
+                                ? "bg-[#F0FDF4] text-[#059669]"
+                                : "hover:bg-[#F2F3F3]"
+                            }`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selected === table.name ? "bg-[#059669]" : "bg-[#10B981]"}`} />
+                            <span className="text-xs font-mono truncate text-[#2E4A4A]">{table.name}</span>
+                          </button>
+                          {table.views && (
+                            <div className="flex flex-col gap-0.5 ml-4">
+                              {table.views.map((view) => (
+                                <button
+                                  key={view}
+                                  onClick={() => setSelected(view)}
+                                  className={`w-full flex items-center gap-2 py-1 px-2 rounded-lg transition-colors text-left ${
+                                    selected === view
+                                      ? "bg-[#F0FDF4] text-[#059669]"
+                                      : "hover:bg-[#F2F3F3]"
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-sm flex-shrink-0 ${selected === view ? "bg-[#059669]" : "bg-[#6B7B7B]"}`} />
+                                  <span className="text-xs font-mono truncate text-[#9CA3AF]">{view}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Right group — remaining space */}
+      <div className="flex flex-col gap-3 flex-1 min-w-0">
+        <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
+          {selected ? (
+            <>
+              {/* Table name + stats */}
+              <div className="px-5 py-3 border-b border-[#F0F1F1] bg-[#F8F9F9] flex items-center gap-2">
+                <span className="text-sm font-bold text-[#1A2E2E] font-mono">{selected}</span>
+                <span className="text-xs text-[#9CA3AF] ml-1">{columns.length} columns</span>
+                {!loadingRows && <span className="text-xs text-[#9CA3AF]">· {rows.length} rows</span>}
+              </div>
+              {/* Table */}
+              <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 230px)" }}>
+                {loadingRows ? (
+                  <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">Loading…</div>
+                ) : (
+                  <table className="w-full border-collapse">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-[#F8F9F9] border-b border-[#F0F1F1]">
+                        {columns.map((col) => (
+                          <th
+                            key={col}
+                            className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide whitespace-nowrap font-mono border-r border-[#F0F1F1] last:border-r-0"
+                          >
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F1F1]">
+                      {rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={columns.length} className="px-5 py-8 text-center text-sm text-[#9CA3AF]">
+                            No records found.
+                          </td>
+                        </tr>
+                      ) : rows.map((row, i) => (
+                        <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
+                          {columns.map((col) => {
+                            const { text, muted, isJson } = fmtCell(row[col]);
+                            return (
+                              <td
+                                key={col}
+                                className="px-4 py-2.5 border-r border-[#F0F1F1] last:border-r-0 whitespace-nowrap max-w-[200px] group/cell relative"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-xs font-mono truncate block ${muted ? "text-[#D1D5DB]" : "text-[#1A2E2E]"}`}>
+                                    {text}
+                                  </span>
+                                  {isJson && (
+                                    <button
+                                      onClick={() => setJsonPopup({ col, val: row[col] })}
+                                      className="opacity-0 group-hover/cell:opacity-100 flex-shrink-0 text-[#9CA3AF] hover:text-[#059669] transition-all"
+                                    >
+                                      <HugeiconsIcon icon={CodeCircleIcon} size={14} color="currentColor" strokeWidth={2} />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="p-5 flex items-center justify-center" style={{ minHeight: 240 }}>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
+                  <HugeiconsIcon icon={DatabaseIcon} size={22} color="#059669" strokeWidth={1.5} />
+                </div>
+                <p className="text-base font-bold text-[#2E4A4A]">Select a table</p>
+                <p className="text-sm text-[#9CA3AF]">Click any table or view on the left to inspect its columns.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {jsonPopup && (
+        <JsonPopup col={jsonPopup.col} val={jsonPopup.val} onClose={() => setJsonPopup(null)} />
+      )}
+      </div>}
     </div>
   );
 }
@@ -451,6 +1151,7 @@ const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
   dashboard: { title: "Dashboard",  subtitle: "Overview of app activity and health." },
   users:     { title: "Users",      subtitle: "All registered users and their profile information." },
   flights:   { title: "Flights",    subtitle: "All flight searches across the platform." },
+  data:      { title: "Data",       subtitle: "Data insights and platform analytics." },
 };
 
 export default function AdminConsole() {
@@ -461,7 +1162,7 @@ export default function AdminConsole() {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="h-screen overflow-hidden flex"
       style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
@@ -525,7 +1226,7 @@ export default function AdminConsole() {
       </div>
 
       {/* ── Main content ───────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 p-6 gap-5">
+      <div className="flex-1 flex flex-col min-w-0 p-6 gap-5 overflow-hidden">
         {/* Page header */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -548,7 +1249,7 @@ export default function AdminConsole() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
-          className="flex flex-col gap-4 flex-1"
+          className="flex flex-col gap-4 flex-1 overflow-y-auto pb-6"
         >
         {view === "dashboard" && (
           <div
@@ -557,7 +1258,7 @@ export default function AdminConsole() {
           >
             <div className="flex flex-col items-center gap-2 text-center">
               <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
-                <HugeiconsIcon icon={Home01Icon} size={22} color="#059669" strokeWidth={1.5} />
+                <HugeiconsIcon icon={ChartRoseIcon} size={22} color="#059669" strokeWidth={1.5} />
               </div>
               <p className="text-base font-bold text-[#2E4A4A]">Dashboard coming soon</p>
               <p className="text-sm text-[#9CA3AF]">App metrics and activity will appear here.</p>
@@ -567,6 +1268,7 @@ export default function AdminConsole() {
 
         {view === "users"   && <UsersView />}
         {view === "flights" && <FlightsView />}
+        {view === "data"    && <DataView />}
         </motion.div>
         </AnimatePresence>
       </div>
