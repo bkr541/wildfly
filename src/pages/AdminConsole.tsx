@@ -264,17 +264,29 @@ function FlightsView() {
 
   const fetchPage = async (p: number) => {
     setLoading(true);
-    const from = p * PAGE_SIZE;
-    const to   = from + PAGE_SIZE - 1;
-
-    const { data, count } = await (supabase.from("flight_searches") as any)
-      .select("*", { count: "exact" })
-      .order("search_timestamp", { ascending: false })
-      .range(from, to);
-
-    setFlights((data ?? []) as FlightRow[]);
-    setTotal(count ?? 0);
-    setLoading(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setFlights([]); setTotal(0); return; }
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-list-flight-searches`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ page: p, page_size: PAGE_SIZE }),
+        }
+      );
+      const json = await res.json();
+      setFlights((json?.flights ?? []) as FlightRow[]);
+      setTotal(json?.total ?? 0);
+    } catch (e) {
+      console.error("Failed to load flights", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchPage(page); }, [page]);
