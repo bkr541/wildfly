@@ -19,6 +19,8 @@ import {
   Settings01Icon,
   UnfoldMoreIcon,
   UnfoldLessIcon,
+  SquareArrowUpDownIcon,
+  FilterMailSquareIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -127,11 +129,84 @@ function Avatar({ row }: { row: UserRow }) {
 
 // ── Users Table ───────────────────────────────────────────────────────────────
 
+interface FilterCondition {
+  id: string;
+  field: string;
+  operator: string;
+  value: string;
+}
+
+const USER_FILTER_FIELDS = [
+  { label: "Email",        key: "email" },
+  { label: "First Name",   key: "first_name" },
+  { label: "Last Name",    key: "last_name" },
+  { label: "Username",     key: "username" },
+  { label: "Display Name", key: "display_name" },
+  { label: "Status",       key: "status" },
+  { label: "Signup Type",  key: "signup_type" },
+  { label: "Home City",    key: "home_city" },
+];
+
+const FILTER_OPERATORS = [
+  { label: "contains",         key: "contains" },
+  { label: "does not contain", key: "not_contains" },
+  { label: "equals",           key: "equals" },
+  { label: "not equals",       key: "not_equals" },
+  { label: "starts with",      key: "starts_with" },
+  { label: "ends with",        key: "ends_with" },
+  { label: "is empty",         key: "is_empty" },
+  { label: "is not empty",     key: "is_not_empty" },
+];
+
+const NO_VALUE_OPS = new Set(["is_empty", "is_not_empty"]);
+
+function newCondition(): FilterCondition {
+  return { id: Math.random().toString(36).slice(2), field: "", operator: "", value: "" };
+}
+
+function applyCondition(u: UserRow, cond: FilterCondition): boolean {
+  const raw = (u as Record<string, unknown>)[cond.field];
+  const str = raw == null ? "" : String(raw).toLowerCase();
+  const val = cond.value.toLowerCase();
+  switch (cond.operator) {
+    case "contains":     return str.includes(val);
+    case "not_contains": return !str.includes(val);
+    case "equals":       return str === val;
+    case "not_equals":   return str !== val;
+    case "starts_with":  return str.startsWith(val);
+    case "ends_with":    return str.endsWith(val);
+    case "is_empty":     return str === "";
+    case "is_not_empty": return str !== "";
+    default:             return true;
+  }
+}
+
+interface SortCondition {
+  id: string;
+  field: string;
+  direction: "asc" | "desc" | "";
+}
+
+const SORT_DIRECTIONS = [
+  { label: "Ascending",  key: "asc" },
+  { label: "Descending", key: "desc" },
+];
+
+function newSortCondition(): SortCondition {
+  return { id: Math.random().toString(36).slice(2), field: "", direction: "" };
+}
+
 function UsersView() {
-  const [users, setUsers]       = useState<UserRow[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState("");
-  const [page, setPage]         = useState(0);
+  const [users, setUsers]               = useState<UserRow[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState("");
+  const [page, setPage]                 = useState(0);
+  const [filterOpen, setFilterOpen]     = useState(false);
+  const [conditions, setConditions]     = useState<FilterCondition[]>([newCondition()]);
+  const [appliedConditions, setApplied] = useState<FilterCondition[]>([]);
+  const [sortOpen, setSortOpen]         = useState(false);
+  const [sortConditions, setSortConds]  = useState<SortCondition[]>([newSortCondition()]);
+  const [appliedSorts, setAppliedSorts] = useState<SortCondition[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -163,17 +238,71 @@ function UsersView() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return users;
-    const q = search.toLowerCase();
-    return users.filter((u) =>
-      [u.email, u.first_name, u.last_name, u.username, u.display_name]
-        .some((v) => v?.toLowerCase().includes(q))
-    );
-  }, [users, search]);
+    let result = users;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((u) =>
+        [u.email, u.first_name, u.last_name, u.username, u.display_name]
+          .some((v) => v?.toLowerCase().includes(q))
+      );
+    }
+    for (const cond of appliedConditions) {
+      result = result.filter((u) => applyCondition(u, cond));
+    }
+    if (appliedSorts.length > 0) {
+      result = [...result].sort((a, b) => {
+        for (const s of appliedSorts) {
+          const av = String((a as Record<string, unknown>)[s.field] ?? "").toLowerCase();
+          const bv = String((b as Record<string, unknown>)[s.field] ?? "").toLowerCase();
+          if (av < bv) return s.direction === "asc" ? -1 : 1;
+          if (av > bv) return s.direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return result;
+  }, [users, search, appliedConditions, appliedSorts]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages - 1);
   const pageRows   = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  const canApply = conditions.length > 0 && conditions.every(
+    (c) => c.field && c.operator && (NO_VALUE_OPS.has(c.operator) || c.value.trim())
+  );
+
+  const updateCondition = (id: string, patch: Partial<FilterCondition>) =>
+    setConditions((prev) => prev.map((c) => c.id === id ? { ...c, ...patch } : c));
+
+  const handleApply = () => {
+    setApplied(conditions.filter((c) => c.field && c.operator && (NO_VALUE_OPS.has(c.operator) || c.value.trim())));
+    setFilterOpen(false);
+    setPage(0);
+  };
+
+  const clearAll = () => {
+    setConditions([newCondition()]);
+    setApplied([]);
+    setPage(0);
+  };
+
+  const hasApplied    = appliedConditions.length > 0;
+  const hasAppliedSort = appliedSorts.length > 0;
+
+  const canApplySort = sortConditions.length > 0 && sortConditions.every((s) => s.field && s.direction);
+
+  const handleApplySort = () => {
+    setAppliedSorts(sortConditions.filter((s) => s.field && s.direction));
+    setSortOpen(false);
+    setPage(0);
+  };
+
+  const clearAllSorts = () => {
+    setSortConds([newSortCondition()]);
+    setAppliedSorts([]);
+    setPage(0);
+  };
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -194,14 +323,211 @@ function UsersView() {
             </button>
           )}
         </div>
-        <span className="text-xs text-[#9CA3AF] ml-auto">{filtered.length} users</span>
+        <div className="flex items-center gap-2 ml-auto">
+          <button
+            onClick={() => setSortOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors duration-200"
+            style={hasAppliedSort
+              ? { background: "#345C5A", color: "white" }
+              : sortOpen
+              ? { background: "#F2F3F3", color: "#059669" }
+              : { color: "#9CA3AF" }
+            }
+          >
+            <HugeiconsIcon icon={SquareArrowUpDownIcon} size={17} color="currentColor" strokeWidth={2} />
+            <span className="text-[11px] font-semibold uppercase tracking-wide">Sort</span>
+            {hasAppliedSort && (
+              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center flex-shrink-0 leading-none">
+                {appliedSorts.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setFilterOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors duration-200"
+            style={hasApplied
+              ? { background: "#345C5A", color: "white" }
+              : filterOpen
+              ? { background: "#F2F3F3", color: "#059669" }
+              : { color: "#9CA3AF" }
+            }
+          >
+            <HugeiconsIcon icon={FilterMailSquareIcon} size={17} color="currentColor" strokeWidth={2} />
+            <span className="text-[11px] font-semibold uppercase tracking-wide">Filter</span>
+            {hasApplied && (
+              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center flex-shrink-0 leading-none">
+                {appliedConditions.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Sort panel */}
+      {sortOpen && (
+        <div className="rounded-2xl px-5 py-4 flex flex-col gap-3" style={CARD_STYLE}>
+          <p className="text-xs font-semibold text-[#6B7B7B]">Sort records by</p>
+          <div className="flex flex-col gap-2">
+            {sortConditions.map((s, idx) => (
+              <div key={s.id} className="flex items-center gap-3">
+                <span className="text-xs text-[#9CA3AF] w-10 flex-shrink-0 text-right">
+                  {idx === 0 ? "By" : "Then"}
+                </span>
+                <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
+                  <select
+                    value={s.field}
+                    onChange={(e) => setSortConds((prev) => prev.map((c) => c.id === s.id ? { ...c, field: e.target.value } : c))}
+                    className="app-input"
+                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+                  >
+                    <option value="">Field…</option>
+                    {USER_FILTER_FIELDS.map((f) => (
+                      <option key={f.key} value={f.key}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
+                  <select
+                    value={s.direction}
+                    onChange={(e) => setSortConds((prev) => prev.map((c) => c.id === s.id ? { ...c, direction: e.target.value as "asc" | "desc" } : c))}
+                    className="app-input"
+                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+                    disabled={!s.field}
+                  >
+                    <option value="">Direction…</option>
+                    {SORT_DIRECTIONS.map((d) => (
+                      <option key={d.key} value={d.key}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {sortConditions.length > 1 && (
+                  <button
+                    onClick={() => setSortConds((prev) => prev.filter((c) => c.id !== s.id))}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              onClick={() => setSortConds((prev) => [...prev, newSortCondition()])}
+              className="self-start flex items-center gap-1.5 text-xs font-semibold mt-1 text-[#059669] hover:text-[#047857] transition-colors"
+            >
+              <span className="text-sm leading-none">+</span> Add sort
+            </button>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E8EEEE]">
+            <button
+              onClick={clearAllSorts}
+              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors"
+            >
+              Clear all sorts
+            </button>
+            <button
+              onClick={handleApplySort}
+              disabled={!canApplySort}
+              className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Filter panel */}
+      {filterOpen && (
+        <div className="rounded-2xl px-5 py-4 flex flex-col gap-3" style={CARD_STYLE}>
+          <p className="text-xs font-semibold text-[#6B7B7B]">In this view show records</p>
+          <div className="flex flex-col gap-2">
+            {conditions.map((cond, idx) => (
+              <div key={cond.id} className="flex items-center gap-3">
+                <span className="text-xs text-[#9CA3AF] w-10 flex-shrink-0 text-right">
+                  {idx === 0 ? "Where" : "And"}
+                </span>
+                <div className="app-input-container" style={{ minHeight: 38, width: 140, flexShrink: 0 }}>
+                  <select
+                    value={cond.field}
+                    onChange={(e) => updateCondition(cond.id, { field: e.target.value, operator: "", value: "" })}
+                    className="app-input"
+                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+                  >
+                    <option value="">Field…</option>
+                    {USER_FILTER_FIELDS.map((f) => (
+                      <option key={f.key} value={f.key}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="app-input-container" style={{ minHeight: 38, width: 160, flexShrink: 0 }}>
+                  <select
+                    value={cond.operator}
+                    onChange={(e) => updateCondition(cond.id, { operator: e.target.value, value: "" })}
+                    className="app-input"
+                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+                    disabled={!cond.field}
+                  >
+                    <option value="">Operator…</option>
+                    {FILTER_OPERATORS.map((op) => (
+                      <option key={op.key} value={op.key}>{op.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {!NO_VALUE_OPS.has(cond.operator) && (
+                  <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
+                    <input
+                      type="text"
+                      value={cond.value}
+                      onChange={(e) => updateCondition(cond.id, { value: e.target.value })}
+                      placeholder="Enter value…"
+                      disabled={!cond.operator}
+                      className="app-input disabled:opacity-40"
+                      style={{ fontSize: 13, paddingBlock: "0.3em" }}
+                    />
+                  </div>
+                )}
+                {conditions.length > 1 && (
+                  <button
+                    onClick={() => setConditions((prev) => prev.filter((c) => c.id !== cond.id))}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            ))}
+            {/* Add filter — always below last condition */}
+            <button
+              onClick={() => setConditions((prev) => [...prev, newCondition()])}
+              className="self-start flex items-center gap-1.5 text-xs font-semibold mt-1 text-[#059669] hover:text-[#047857] transition-colors"
+            >
+              <span className="text-sm leading-none">+</span> Add filter
+            </button>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E8EEEE]">
+            <button
+              onClick={clearAll}
+              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors"
+            >
+              Clear all filters
+            </button>
+            <button
+              onClick={handleApply}
+              disabled={!canApply}
+              className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
-          {["User", "Home Location", "Home Airport", "Signup", "Status", "Last Login"].map((h) => (
+        <div className="grid grid-cols-[1.5fr_1.5fr_1fr_0.7fr_0.7fr_0.9fr] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
+          {["User", "Email", "Home Location", "Signup", "Status", "Last Login"].map((h) => (
             <span key={h} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
           ))}
         </div>
@@ -213,7 +539,7 @@ function UsersView() {
         ) : (
           <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
             {pageRows.map((u) => (
-              <div key={u.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-3 items-center hover:bg-[#FAFAFA] transition-colors">
+              <div key={u.id} className="grid grid-cols-[1.5fr_1.5fr_1fr_0.7fr_0.7fr_0.9fr] gap-3 px-5 py-3 items-center hover:bg-[#FAFAFA] transition-colors">
                 {/* User */}
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar row={u} />
@@ -221,10 +547,11 @@ function UsersView() {
                     <p className="text-sm font-semibold text-[#1A2E2E] truncate">
                       {[u.first_name, u.last_name].filter(Boolean).join(" ") || u.display_name || "—"}
                     </p>
-                    <p className="text-xs text-[#9CA3AF] truncate">{u.email}</p>
                     {u.username && <p className="text-[11px] text-[#10B981] truncate">@{u.username}</p>}
                   </div>
                 </div>
+                {/* Email */}
+                <p className="text-xs text-[#9CA3AF] truncate min-w-0">{u.email}</p>
                 {/* Home Location */}
                 <div className="min-w-0">
                   <p className="text-sm text-[#2E4A4A] truncate">{u.locations?.name ?? u.home_city ?? "—"}</p>
@@ -232,8 +559,6 @@ function UsersView() {
                     <p className="text-xs text-[#9CA3AF] truncate">{u.locations.country}</p>
                   )}
                 </div>
-                {/* Home Airport */}
-                <span className="text-sm font-mono font-semibold text-[#345C5A]">{u.home_airport ?? "—"}</span>
                 {/* Signup */}
                 <span className="text-xs text-[#6B7B7B] capitalize">{u.signup_type}</span>
                 {/* Status */}
