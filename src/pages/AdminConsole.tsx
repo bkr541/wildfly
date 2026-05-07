@@ -125,20 +125,32 @@ function UsersView() {
   const [page, setPage]         = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
+    const load = async () => {
       setLoading(true);
-      const { data } = await (supabase.from("user_info") as any)
-        .select(`
-          id, email, first_name, last_name, username, display_name,
-          avatar_url, status, signup_type, last_login, home_airport,
-          home_city, onboarding_complete, is_discoverable, bio, dob, mobile_number,
-          locations(name, city, state, country)
-        `)
-        .order("id");
-      setUsers((data ?? []) as UserRow[]);
-      setLoading(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { setUsers([]); return; }
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/admin-list-users`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          }
+        );
+        const json = await res.json();
+        if (json?.users) setUsers(json.users as UserRow[]);
+      } catch (e) {
+        console.error("Failed to load users", e);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetch();
+    load();
   }, []);
 
   const filtered = useMemo(() => {
