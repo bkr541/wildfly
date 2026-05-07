@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import allDestIcon from "@/assets/all-destinations-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FlashIcon, Calendar03Icon, Sun03Icon, Weekend02Icon } from "@hugeicons/core-free-icons";
+import { FlashIcon, Calendar03Icon, Sun03Icon, Calendar02Icon } from "@hugeicons/core-free-icons";
 
 interface QuickSearchLocation {
   locationId: number;
