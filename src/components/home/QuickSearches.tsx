@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, nextSaturday, isSaturday, isSunday } from "date-fns";
+import { format, nextSaturday, isSaturday, isSunday, addDays } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AirplaneTakeOff01Icon, FlashIcon, Location01Icon } from "@hugeicons/core-free-icons";
+import { FlashIcon, Location01Icon, Calendar03Icon, Luggage01Icon } from "@hugeicons/core-free-icons";
 
 interface QuickSearchLocation {
   locationId: number;
@@ -12,6 +12,7 @@ interface QuickSearchLocation {
   iataCode: string;
   airportCount: number;
   todayDate: string;
+  tomorrowDate: string;
   weekendDate: string;
   isWeekend: boolean;
 }
@@ -21,6 +22,7 @@ function buildLocations(
 ): QuickSearchLocation[] {
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
+  const tomorrowStr = format(addDays(today, 1), "yyyy-MM-dd");
   const saturday = isSaturday(today) ? today : nextSaturday(today);
   const saturdayStr = format(saturday, "yyyy-MM-dd");
   const isWeekend = isSaturday(today) || isSunday(today);
@@ -28,6 +30,7 @@ function buildLocations(
   return rawLocations.map((loc) => ({
     ...loc,
     todayDate: todayStr,
+    tomorrowDate: tomorrowStr,
     weekendDate: saturdayStr,
     isWeekend,
   }));
@@ -172,19 +175,24 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                     ? [1, 2].map((i) => (
                         <div
                           key={i}
-                          className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-4 pt-3 pb-4"
-                          style={CARD_STYLE}
+                          className="rounded-2xl flex-shrink-0 px-4 pt-4 pb-4"
+                          style={{ ...CARD_STYLE, width: 340 }}
                         >
-                          <div className="h-4 w-28 rounded bg-[#e5e7eb] mb-4" />
-                          <div className="h-8 w-36 rounded-lg bg-[#e5e7eb] mb-4 mx-auto" />
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-6 h-6 rounded-full bg-[#e5e7eb]" />
+                            <div className="h-5 w-28 rounded bg-[#e5e7eb]" />
+                          </div>
+                          <div className="h-px bg-[#e5e7eb] mb-3" />
+                          <div className="h-3 w-36 rounded bg-[#e5e7eb] mb-3" />
                           <div className="flex gap-2">
-                            <div className="h-7 w-20 rounded-full bg-[#e5e7eb]" />
-                            <div className="h-7 w-16 rounded-full bg-[#e5e7eb]" />
+                            {[1, 2, 3].map((j) => (
+                              <div key={j} className="flex-1 h-20 rounded-xl bg-[#e5e7eb]" />
+                            ))}
                           </div>
                         </div>
                       ))
                     : locations.map((loc, i) => {
-                        const weekendLabel = loc.isWeekend ? "This Weekend" : "This Weekend";
+                        const showWeekend = loc.todayDate !== loc.weekendDate;
 
                         return (
                           <motion.div
@@ -195,19 +203,19 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                               y: 0,
                               transition: { duration: 0.3, delay: i * 0.07, ease: EASE },
                             }}
-                            className="flex-shrink-0 rounded-2xl overflow-hidden w-[232px]"
-                            style={{ scrollSnapAlign: "start", ...CARD_STYLE }}
+                            className="flex-shrink-0 rounded-2xl"
+                            style={{ scrollSnapAlign: "start", width: 340, ...CARD_STYLE }}
                           >
                             {/* City header */}
-                            <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-2">
-                              <HugeiconsIcon icon={Location01Icon} size={14} color="#059669" strokeWidth={2} />
-                              <span className="text-[#1A2E2E] font-extrabold text-[13px] tracking-wide uppercase">
+                            <div className="px-4 pt-4 pb-3 flex items-center gap-1.5">
+                              <HugeiconsIcon icon={Location01Icon} size={14} color="#6B7280" strokeWidth={2} />
+                              <span className="text-sm font-medium text-[#6B7280]">
                                 {loc.city}
                               </span>
                               {loc.airportCount > 1 && (
                                 <span
-                                  className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
-                                  style={{ background: "rgba(5,150,105,0.10)", color: "#059669" }}
+                                  className="text-[10px] font-bold uppercase tracking-widest rounded-full px-2.5 py-1 ml-0.5"
+                                  style={{ background: "rgba(5,150,105,0.12)", color: "#059669" }}
                                 >
                                   {loc.airportCount} airports
                                 </span>
@@ -215,34 +223,72 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                             </div>
 
                             {/* Divider */}
-                            <div className="mx-3 mb-2" style={{ height: 1, background: "rgba(0,0,0,0.06)" }} />
+                            <div className="mx-4 mb-3" style={{ height: 1, background: "rgba(0,0,0,0.07)" }} />
 
-                            {/* Action pills */}
-                            <div className="flex gap-2 px-3 pb-3">
+                            {/* Choose a departure */}
+                            <p className="px-4 pb-2.5 text-sm text-[#6B7280]">Choose a departure</p>
+
+                            {/* Option cards */}
+                            <div className="px-4 pb-4 flex gap-2">
+                              {/* Today */}
                               <button
                                 type="button"
                                 onClick={() => handleClick(loc, "Today", loc.todayDate)}
-                                className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
-                                style={{ background: "rgba(5,150,105,0.07)" }}
+                                className="flex-1 flex flex-col items-center rounded-xl py-3 gap-2 active:scale-[0.96] transition-transform"
                               >
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-[#9AADAD] mb-0.5">Depart</span>
-                                <span className="text-[#1A2E2E] font-extrabold text-[13px] leading-tight">Today</span>
-                                <span className="text-[10px] font-medium mt-0.5 text-[#6B7280]">
-                                  {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
-                                </span>
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                                  style={{ background: "rgba(5,150,105,0.10)" }}
+                                >
+                                  <HugeiconsIcon icon={Calendar03Icon} size={18} color="#059669" strokeWidth={2} />
+                                </div>
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="text-sm font-bold text-[#1A2E2E]">Today</span>
+                                  <span className="text-[11px] text-[#6B7280]">
+                                    {format(new Date(loc.todayDate + "T12:00:00"), "EEE, MMM d")}
+                                  </span>
+                                </div>
                               </button>
-                              {loc.todayDate !== loc.weekendDate && (
+
+                              {/* Tomorrow */}
+                              <button
+                                type="button"
+                                onClick={() => handleClick(loc, "Tomorrow", loc.tomorrowDate)}
+                                className="flex-1 flex flex-col items-center rounded-xl py-3 gap-2 active:scale-[0.96] transition-transform"
+                              >
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                                  style={{ background: "rgba(5,150,105,0.10)" }}
+                                >
+                                  <HugeiconsIcon icon={Calendar03Icon} size={18} color="#059669" strokeWidth={2} />
+                                </div>
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="text-sm font-bold text-[#1A2E2E]">Tomorrow</span>
+                                  <span className="text-[11px] text-[#6B7280]">
+                                    {format(new Date(loc.tomorrowDate + "T12:00:00"), "EEE, MMM d")}
+                                  </span>
+                                </div>
+                              </button>
+
+                              {/* Weekend */}
+                              {showWeekend && (
                                 <button
                                   type="button"
-                                  onClick={() => handleClick(loc, weekendLabel, loc.weekendDate)}
-                                  className="flex-1 flex flex-col items-start rounded-xl px-3 py-2.5 active:scale-[0.96] transition-transform"
-                                  style={{ background: "rgba(5,150,105,0.07)" }}
+                                  onClick={() => handleClick(loc, "Weekend", loc.weekendDate)}
+                                  className="flex-1 flex flex-col items-center rounded-xl py-3 gap-2 active:scale-[0.96] transition-transform"
                                 >
-                                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#9AADAD] mb-0.5">Depart</span>
-                                  <span className="text-[#1A2E2E] font-extrabold text-[13px] leading-tight">This Weekend</span>
-                                  <span className="text-[10px] font-medium mt-0.5 text-[#6B7280]">
-                                    {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
-                                  </span>
+                                  <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                                    style={{ background: "rgba(5,150,105,0.10)" }}
+                                  >
+                                    <HugeiconsIcon icon={Luggage01Icon} size={18} color="#059669" strokeWidth={2} />
+                                  </div>
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-sm font-bold text-[#1A2E2E]">Weekend</span>
+                                    <span className="text-[11px] text-[#6B7280]">
+                                      {format(new Date(loc.weekendDate + "T12:00:00"), "EEE, MMM d")}
+                                    </span>
+                                  </div>
                                 </button>
                               )}
                             </div>
