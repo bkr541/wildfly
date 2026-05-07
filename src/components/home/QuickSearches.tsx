@@ -224,7 +224,7 @@ export function QuickSearches({ onNavigate, isCollapsed = false, onToggle }: Pro
                             // keep raw
                           }
                           const isWeekendCard = c.label === "This Weekend";
-                          const labelIcon = isWeekendCard ? Weekend02Icon : Sun03Icon;
+                          const labelIcon = isWeekendCard ? Calendar02Icon : Sun03Icon;
 
                           return (
                             <motion.div
