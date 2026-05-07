@@ -1,5 +1,7 @@
-// Run recovery before importing the app. Static imports can execute modules that
-// initialize Lovable Cloud immediately, so cleanup must happen first.
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+
 const recoverFromStaleServiceWorkers = async () => {
   if ("serviceWorker" in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
@@ -12,14 +14,6 @@ const recoverFromStaleServiceWorkers = async () => {
   }
 };
 
-recoverFromStaleServiceWorkers()
-  .catch(() => {})
-  .finally(async () => {
-    const [{ createRoot }, { default: App }] = await Promise.all([
-      import("react-dom/client"),
-      import("./App.tsx"),
-      import("./index.css"),
-    ]);
+void recoverFromStaleServiceWorkers().catch(() => {});
 
-    createRoot(document.getElementById("root")!).render(<App />);
-  });
+createRoot(document.getElementById("root")!).render(<App />);
