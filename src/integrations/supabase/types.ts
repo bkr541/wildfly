@@ -19,6 +19,7 @@ export type Database = {
           iata_code: string
           icao_code: string | null
           id: number
+          is_active: boolean
           is_hub: boolean
           latitude: number | null
           location_id: number | null
@@ -30,6 +31,7 @@ export type Database = {
           iata_code: string
           icao_code?: string | null
           id?: number
+          is_active?: boolean
           is_hub?: boolean
           latitude?: number | null
           location_id?: number | null
@@ -41,6 +43,7 @@ export type Database = {
           iata_code?: string
           icao_code?: string | null
           id?: number
+          is_active?: boolean
           is_hub?: boolean
           latitude?: number | null
           location_id?: number | null
