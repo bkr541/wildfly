@@ -615,6 +615,7 @@ const FlightsPage = ({
       const { data } = await supabase
         .from("airports")
         .select("id, name, iata_code, locations(city, state_code, region)")
+        .eq("is_active", true)
         .order("name");
       if (data) setAirports(data as unknown as Airport[]);
     };

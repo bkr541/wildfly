@@ -11,6 +11,8 @@ import {
   ArrowDown01Icon,
   Search01Icon,
   Refresh01Icon,
+  Analytics01Icon,
+  Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFlightSearch } from "@/lib/flightApi";
@@ -24,6 +26,7 @@ type DestinationInfo = {
   iata: string;
   locationName: string;
   airportName: string;
+  hasGoWild?: boolean;
 };
 
 type OriginResult = {
@@ -33,6 +36,9 @@ type OriginResult = {
   status: "ok" | "retried" | "error";
   attempts?: number;
   errorMessage?: string;
+  goWildFound?: boolean;
+  goWildLegs?: number;
+  totalLegs?: number;
 };
 
 type ResultFilter = "all" | "success" | "failed";
@@ -169,9 +175,11 @@ export default function AdminBulkSearch() {
   const [progress, setProgress]           = useState({ current: 0, total: 0 });
 
   // per-origin collapse
-  const [collapsed, setCollapsed]               = useState<Set<string>>(new Set());
-  // parent group collapse
-  const [allDestCollapsed, setAllDestCollapsed] = useState(false);
+  const [collapsed, setCollapsed]                         = useState<Set<string>>(new Set());
+  // group collapse
+  const [allDestCollapsed, setAllDestCollapsed]           = useState(false);
+  const [conditionsCollapsed, setConditionsCollapsed]     = useState(false);
+  const [breakdownCollapsed, setBreakdownCollapsed]       = useState(false);
 
   // toolbar state
   const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
@@ -184,9 +192,12 @@ export default function AdminBulkSearch() {
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const okCount  = results.filter((r) => r.status !== "error").length;
-  const errCount = results.filter((r) => r.status === "error").length;
-  const pct      = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
-  const hasRun   = progress.total > 0;
+  const errCount       = results.filter((r) => r.status === "error").length;
+  const pct            = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
+  const hasRun         = progress.total > 0;
+  const goWildDepCount = results.filter((r) => r.goWildFound).length;
+  const goWildLegTotal = results.reduce((sum, r) => sum + (r.goWildLegs ?? 0), 0);
+  const totalLegCount  = results.reduce((sum, r) => sum + (r.totalLegs  ?? 0), 0);
 
   const filteredResults = useMemo(() => {
     let list = results.slice();
@@ -242,6 +253,7 @@ export default function AdminBulkSearch() {
     const { data: airports, error } = await supabase
       .from("airports")
       .select("iata_code, name, locations(country)")
+      .eq("is_active", true)
       .order("iata_code");
 
     if (error || !airports?.length) {
@@ -284,7 +296,17 @@ export default function AdminBulkSearch() {
           ),
         ].sort();
 
-        const destinations = await enrichDestinations(destIatas);
+        const goWildDestIatas = new Set(
+          normalized.flights
+            .filter((f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null)
+            .map((f: any) => f.destination ?? f.arrival_airport)
+            .filter(Boolean) as string[]
+        );
+
+        const destinations = (await enrichDestinations(destIatas)).map((d) => ({
+          ...d,
+          hasGoWild: goWildDestIatas.has(d.iata),
+        }));
 
         const cacheKey = await sha256(`${iata_code}|__ALL__|${date}`);
 
@@ -305,6 +327,10 @@ export default function AdminBulkSearch() {
         const goWildFound = normalized.flights.some(
           (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
         );
+        const goWildLegs = normalized.flights.filter(
+          (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
+        ).length;
+        const totalLegs = normalized.flights.length;
 
         const { data: fsRow } = await (supabase.from("flight_searches") as any)
           .insert({
@@ -340,6 +366,9 @@ export default function AdminBulkSearch() {
           destinations,
           status: attempts > 1 ? "retried" : "ok",
           attempts,
+          goWildFound,
+          goWildLegs,
+          totalLegs,
         });
       } catch (err: any) {
         pushResult({
@@ -410,7 +439,26 @@ export default function AdminBulkSearch() {
             boxShadow: "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07)",
           }}
         >
-          <div className="px-5 pt-4 pb-5">
+          <button
+            type="button"
+            onClick={() => setConditionsCollapsed((v) => !v)}
+            className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
+          >
+            <HugeiconsIcon icon={Settings01Icon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Search Conditions</p>
+              <p className="text-xs text-[#6B7B7B]">Configure the date and scope of the bulk run</p>
+            </div>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={16}
+              color="#9CA3AF"
+              strokeWidth={2}
+              className="shrink-0 transition-transform duration-200 mt-0.5"
+              style={{ transform: conditionsCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+            />
+          </button>
+          {!conditionsCollapsed && <div className="px-5 pt-4 pb-5">
             <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">
               Departure Date
             </label>
@@ -504,7 +552,7 @@ export default function AdminBulkSearch() {
                 </button>
               )}
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* Empty state */}
@@ -526,10 +574,41 @@ export default function AdminBulkSearch() {
 
         {/* Stats ring charts */}
         {hasRun && (
-          <div className="rounded-2xl px-6 py-5 flex items-center justify-around" style={cardStyle}>
-            <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
-            <div className="w-px h-20 bg-[#F0F1F1]" />
-            <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
+          <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+            <button
+              type="button"
+              onClick={() => setBreakdownCollapsed((v) => !v)}
+              className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
+            >
+              <HugeiconsIcon icon={Analytics01Icon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Results Breakdown</p>
+                <p className="text-xs text-[#6B7B7B]">Success and failure summary for this bulk run</p>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={16}
+                color="#9CA3AF"
+                strokeWidth={2}
+                className="shrink-0 transition-transform duration-200 mt-0.5"
+                style={{ transform: breakdownCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+              />
+            </button>
+            {!breakdownCollapsed && (
+              <div className="px-6 py-5 flex flex-col gap-5">
+                <div className="flex items-center justify-around">
+                  <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
+                  <div className="w-px h-20 bg-[#F0F1F1]" />
+                  <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
+                </div>
+                <div className="h-px bg-[#F0F1F1]" />
+                <div className="flex items-center justify-around">
+                  <RingChart value={goWildDepCount} total={okCount}       color="#6366f1" label="GoWild Departures" />
+                  <div className="w-px h-20 bg-[#F0F1F1]" />
+                  <RingChart value={goWildLegTotal} total={totalLegCount} color="#f59e0b" label="GoWild Legs" />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -541,22 +620,19 @@ export default function AdminBulkSearch() {
             <button
               type="button"
               onClick={() => setAllDestCollapsed((v) => !v)}
-              className="w-full flex items-center gap-2.5 px-4 py-3.5 text-left border-b border-[#F0F1F1]"
+              className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
             >
-              <div
-                className="h-7 w-7 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-              >
-                <HugeiconsIcon icon={AirportIcon} size={13} color="white" strokeWidth={2} />
+              <HugeiconsIcon icon={AirportIcon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">All Destinations</p>
+                <p className="text-xs text-[#6B7B7B]">Destinations found per origin airport</p>
               </div>
-              <span className="font-bold text-[#2E4A4A] text-sm flex-1">All Destinations</span>
-              <span className="text-xs text-[#9CA3AF] mr-1">{results.length} origins</span>
               <HugeiconsIcon
                 icon={ArrowDown01Icon}
                 size={16}
                 color="#9CA3AF"
                 strokeWidth={2}
-                className="shrink-0 transition-transform duration-200"
+                className="shrink-0 transition-transform duration-200 mt-0.5"
                 style={{ transform: allDestCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
               />
             </button>
@@ -682,7 +758,12 @@ export default function AdminBulkSearch() {
                                         <HugeiconsIcon icon={City01Icon} size={13} color="#059669" strokeWidth={2} className="shrink-0" />
                                         <span className="font-mono font-bold text-[#345C5A] text-sm">{dest.iata}</span>
                                         <span className="text-[#9CA3AF] text-xs">|</span>
-                                        <span className="text-[#2E4A4A] text-sm font-medium truncate">{dest.locationName}</span>
+                                        <span className="text-[#2E4A4A] text-sm font-medium truncate flex-1">{dest.locationName}</span>
+                                        {dest.hasGoWild && (
+                                          <span className="shrink-0 text-[10px] font-bold tracking-wide px-1.5 py-0.5 rounded-full text-white" style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)" }}>
+                                            GoWild
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="flex items-center gap-1.5">
                                         <HugeiconsIcon icon={Airport02Icon} size={13} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
