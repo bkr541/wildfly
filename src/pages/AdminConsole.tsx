@@ -1215,7 +1215,7 @@ function DataView() {
     setRows([]);
     setLoading(true);
     supabase
-      .from(selected)
+      .from(selected as never)
       .select("*")
       .limit(200)
       .then(({ data }) => {
