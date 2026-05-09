@@ -97,20 +97,9 @@ async function searchWithRetry(
   throw new Error("Unreachable");
 }
 
-async function enrichDestinations(iatas: string[]): Promise<DestinationInfo[]> {
-  if (!iatas.length) return [];
-  const { data } = await (supabase.from("airports") as any)
-    .select("iata_code, name, locations(name)")
-    .in("iata_code", iatas);
+type AirportLookup = Record<string, { airportName: string; locationName: string }>;
 
-  const lookup: Record<string, { airportName: string; locationName: string }> = {};
-  for (const row of (data ?? []) as any[]) {
-    lookup[row.iata_code] = {
-      airportName: row.name ?? row.iata_code,
-      locationName: row.locations?.name ?? "",
-    };
-  }
-
+function enrichDestinations(iatas: string[], lookup: AirportLookup): DestinationInfo[] {
   return iatas.map((iata) => ({
     iata,
     airportName: lookup[iata]?.airportName ?? iata,
@@ -252,7 +241,7 @@ export default function AdminBulkSearch() {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: airports, error } = await supabase
       .from("airports")
-      .select("iata_code, name, locations(country)")
+      .select("iata_code, name, locations(country, name)")
       .eq("is_active", true)
       .order("iata_code");
 
@@ -260,6 +249,14 @@ export default function AdminBulkSearch() {
       pushResult({ origin: "—", name: error?.message ?? "No airports found", destinations: [], status: "error" });
       setRunning(false);
       return;
+    }
+
+    const airportLookup: AirportLookup = {};
+    for (const row of airports as any[]) {
+      airportLookup[row.iata_code] = {
+        airportName: row.name ?? row.iata_code,
+        locationName: row.locations?.name ?? "",
+      };
     }
 
     const filtered = domesticOnly
@@ -303,7 +300,7 @@ export default function AdminBulkSearch() {
             .filter(Boolean) as string[]
         );
 
-        const destinations = (await enrichDestinations(destIatas)).map((d) => ({
+        const destinations = enrichDestinations(destIatas, airportLookup).map((d) => ({
           ...d,
           hasGoWild: goWildDestIatas.has(d.iata),
         }));
