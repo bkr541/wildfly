@@ -26,7 +26,6 @@ type DestinationInfo = {
   iata: string;
   locationName: string;
   airportName: string;
-  hasGoWild?: boolean;
 };
 
 type OriginResult = {
@@ -36,9 +35,6 @@ type OriginResult = {
   status: "ok" | "retried" | "error";
   attempts?: number;
   errorMessage?: string;
-  goWildFound?: boolean;
-  goWildLegs?: number;
-  totalLegs?: number;
 };
 
 type ResultFilter = "all" | "success" | "failed";
@@ -181,12 +177,9 @@ export default function AdminBulkSearch() {
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const okCount  = results.filter((r) => r.status !== "error").length;
-  const errCount       = results.filter((r) => r.status === "error").length;
-  const pct            = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
-  const hasRun         = progress.total > 0;
-  const goWildDepCount = results.filter((r) => r.goWildFound).length;
-  const goWildLegTotal = results.reduce((sum, r) => sum + (r.goWildLegs ?? 0), 0);
-  const totalLegCount  = results.reduce((sum, r) => sum + (r.totalLegs  ?? 0), 0);
+  const errCount = results.filter((r) => r.status === "error").length;
+  const pct      = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
+  const hasRun   = progress.total > 0;
 
   const filteredResults = useMemo(() => {
     let list = results.slice();
@@ -293,17 +286,7 @@ export default function AdminBulkSearch() {
           ),
         ].sort();
 
-        const goWildDestIatas = new Set(
-          normalized.flights
-            .filter((f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null)
-            .map((f: any) => f.destination ?? f.arrival_airport)
-            .filter(Boolean) as string[]
-        );
-
-        const destinations = enrichDestinations(destIatas, airportLookup).map((d) => ({
-          ...d,
-          hasGoWild: goWildDestIatas.has(d.iata),
-        }));
+        const destinations = enrichDestinations(destIatas, airportLookup);
 
         const cacheKey = await sha256(`${iata_code}|__ALL__|${date}`);
 
@@ -324,10 +307,6 @@ export default function AdminBulkSearch() {
         const goWildFound = normalized.flights.some(
           (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
         );
-        const goWildLegs = normalized.flights.filter(
-          (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
-        ).length;
-        const totalLegs = normalized.flights.length;
 
         const { data: fsRow } = await (supabase.from("flight_searches") as any)
           .insert({
@@ -363,9 +342,6 @@ export default function AdminBulkSearch() {
           destinations,
           status: attempts > 1 ? "retried" : "ok",
           attempts,
-          goWildFound,
-          goWildLegs,
-          totalLegs,
         });
       } catch (err: any) {
         pushResult({
@@ -592,18 +568,10 @@ export default function AdminBulkSearch() {
               />
             </button>
             {!breakdownCollapsed && (
-              <div className="px-6 py-5 flex flex-col gap-5">
-                <div className="flex items-center justify-around">
-                  <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
-                  <div className="w-px h-20 bg-[#F0F1F1]" />
-                  <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
-                </div>
-                <div className="h-px bg-[#F0F1F1]" />
-                <div className="flex items-center justify-around">
-                  <RingChart value={goWildDepCount} total={okCount}       color="#6366f1" label="GoWild Departures" />
-                  <div className="w-px h-20 bg-[#F0F1F1]" />
-                  <RingChart value={goWildLegTotal} total={totalLegCount} color="#f59e0b" label="GoWild Legs" />
-                </div>
+              <div className="px-6 py-5 flex items-center justify-around">
+                <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
+                <div className="w-px h-20 bg-[#F0F1F1]" />
+                <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
               </div>
             )}
           </div>
@@ -755,12 +723,7 @@ export default function AdminBulkSearch() {
                                         <HugeiconsIcon icon={City01Icon} size={13} color="#059669" strokeWidth={2} className="shrink-0" />
                                         <span className="font-mono font-bold text-[#345C5A] text-sm">{dest.iata}</span>
                                         <span className="text-[#9CA3AF] text-xs">|</span>
-                                        <span className="text-[#2E4A4A] text-sm font-medium truncate flex-1">{dest.locationName}</span>
-                                        {dest.hasGoWild && (
-                                          <span className="shrink-0 text-[10px] font-bold tracking-wide px-1.5 py-0.5 rounded-full text-white" style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)" }}>
-                                            GoWild
-                                          </span>
-                                        )}
+                                        <span className="text-[#2E4A4A] text-sm font-medium truncate">{dest.locationName}</span>
                                       </div>
                                       <div className="flex items-center gap-1.5">
                                         <HugeiconsIcon icon={Airport02Icon} size={13} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
