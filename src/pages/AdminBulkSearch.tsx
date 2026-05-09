@@ -276,7 +276,7 @@ export default function AdminBulkSearch() {
           abortRef,
         );
 
-        const normalized = normalizeAllDestinationsResponse(raw);
+        const normalized = normalizeAllDestinationsResponse(raw, date);
 
         const destIatas = [
           ...new Set(

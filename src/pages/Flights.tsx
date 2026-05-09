@@ -1227,7 +1227,7 @@ const FlightsPage = ({
               } else {
                 const normalizeStart = performance.now();
                 const normalized = searchAll
-                  ? normalizeAllDestinationsResponse(data)
+                  ? normalizeAllDestinationsResponse(data, depFormatted)
                   : normalizeGetMyDataResponse(data, depFormatted);
                 flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, {
                   flights: normalized.flights.length,

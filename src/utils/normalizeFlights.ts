@@ -202,7 +202,13 @@ export function normalizeGetMyDataResponse(raw: any, departureDate?: string): No
  * Input: raw.data.json.flights[] with origin, destination, depart_time, arrive_time,
  *        duration (HH:MM:SS), stops, fares { standard, discount_den, go_wild }.
  */
-export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsResponse {
+function toTimestamp(timeStr: string, date: string): string {
+  if (!timeStr) return "";
+  if (timeStr.includes("T")) return timeStr; // already a full ISO datetime
+  return `${date}T${timeStr}`;
+}
+
+export function normalizeAllDestinationsResponse(raw: any, date?: string): NormalizedFlightsResponse {
   // Support both legacy edge-function shape (raw.data.json.flights) and
   // direct API shape (raw.flights) returned by getmydata.fly.dev /api/flights/search
   const rawFlights: any[] = raw?.data?.json?.flights ?? raw?.flights ?? [];
@@ -245,8 +251,8 @@ export function normalizeAllDestinationsResponse(raw: any): NormalizedFlightsRes
         {
           origin: f.origin ?? "",
           destination: f.destination ?? "",
-          departure_time: f.depart_time ?? "",
-          arrival_time: f.arrive_time ?? "",
+          departure_time: date ? toTimestamp(f.depart_time ?? "", date) : (f.depart_time ?? ""),
+          arrival_time:   date ? toTimestamp(f.arrive_time ?? "", date) : (f.arrive_time ?? ""),
         },
       ],
     };
