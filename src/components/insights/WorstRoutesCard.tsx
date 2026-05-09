@@ -24,17 +24,15 @@ const WorstRoutesCard = ({ routes }: Props) => {
     <div className="rounded-2xl bg-white p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
       {/* Header */}
       <div
-        className={`flex items-start justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
+        className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
         onClick={() => setIsExpanded((v) => !v)}
       >
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <HugeiconsIcon icon={AnalyticsDownIcon} size={16} color="#059669" strokeWidth={2} />
-            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Worst 5 Routes</p>
-          </div>
+        <HugeiconsIcon icon={AnalyticsDownIcon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+        <div className="flex-1 ml-2">
+          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Worst 5 Routes</p>
           <p className="text-xs text-[#6B7B7B]">Lowest GoWild success rate</p>
         </div>
-        <div className={`flex-shrink-0 mt-1 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+        <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>

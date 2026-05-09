@@ -415,9 +415,9 @@ export default function AdminBulkSearch() {
           <button
             type="button"
             onClick={() => setConditionsCollapsed((v) => !v)}
-            className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
+            className="w-full flex items-center gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
           >
-            <HugeiconsIcon icon={Settings01Icon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+            <HugeiconsIcon icon={Settings01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
             <div className="flex-1">
               <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Search Conditions</p>
               <p className="text-xs text-[#6B7B7B]">Configure the date and scope of the bulk run</p>
@@ -452,7 +452,7 @@ export default function AdminBulkSearch() {
             <button
               type="button"
               onClick={() => !running && setDomesticOnly((v) => !v)}
-              className="mt-4 flex items-center justify-between w-full"
+              className="mt-4 flex items-center justify-end gap-3 w-full"
               disabled={running}
             >
               <span className="text-sm font-semibold text-[#2E4A4A]">Domestic Only</span>
@@ -470,29 +470,6 @@ export default function AdminBulkSearch() {
                 />
               </span>
             </button>
-
-            {/* Progress bar */}
-            {hasRun && (
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-[#6B7B7B] mb-1.5">
-                  <span>
-                    {running
-                      ? statusLine || `Processing ${progress.current} / ${progress.total}`
-                      : `Done — ${okCount} succeeded${errCount > 0 ? `, ${errCount} failed` : ""}`}
-                  </span>
-                  <span>{pct}%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-[#E8EEEE] overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${pct}%`,
-                      background: "linear-gradient(90deg, #059669 0%, #10b981 100%)",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Blackout error */}
             {isBlackout && (
@@ -551,9 +528,9 @@ export default function AdminBulkSearch() {
             <button
               type="button"
               onClick={() => setBreakdownCollapsed((v) => !v)}
-              className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
+              className="w-full flex items-center gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
             >
-              <HugeiconsIcon icon={Analytics01Icon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+              <HugeiconsIcon icon={Analytics01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
               <div className="flex-1">
                 <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Results Breakdown</p>
                 <p className="text-xs text-[#6B7B7B]">Success and failure summary for this bulk run</p>
@@ -568,10 +545,31 @@ export default function AdminBulkSearch() {
               />
             </button>
             {!breakdownCollapsed && (
-              <div className="px-6 py-5 flex items-center justify-around">
-                <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
-                <div className="w-px h-20 bg-[#F0F1F1]" />
-                <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
+              <div className="flex flex-col">
+                <div className="px-6 pt-5 pb-5 flex items-center justify-around">
+                  <RingChart value={okCount}  total={progress.total} color="#059669" label="Success" />
+                  <div className="w-px h-20 bg-[#F0F1F1]" />
+                  <RingChart value={errCount} total={progress.total} color="#ef4444" label="Failed"  />
+                </div>
+                <div className="px-6 pb-5">
+                  <div className="flex justify-between text-xs text-[#6B7B7B] mb-1.5">
+                    <span>
+                      {running
+                        ? statusLine || `Processing ${progress.current} / ${progress.total}`
+                        : `Done — ${okCount} succeeded${errCount > 0 ? `, ${errCount} failed` : ""}`}
+                    </span>
+                    <span>{pct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[#E8EEEE] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${pct}%`,
+                        background: "linear-gradient(90deg, #059669 0%, #10b981 100%)",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -585,9 +583,9 @@ export default function AdminBulkSearch() {
             <button
               type="button"
               onClick={() => setAllDestCollapsed((v) => !v)}
-              className="w-full flex items-start gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
+              className="w-full flex items-center gap-2 px-5 py-4 text-left border-b border-[#F0F1F1]"
             >
-              <HugeiconsIcon icon={AirportIcon} size={16} color="#059669" strokeWidth={2} className="shrink-0 mt-0.5" />
+              <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
               <div className="flex-1">
                 <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">All Destinations</p>
                 <p className="text-xs text-[#6B7B7B]">Destinations found per origin airport</p>
@@ -607,18 +605,20 @@ export default function AdminBulkSearch() {
                 {/* Toolbar */}
                 <div className="px-4 pt-3 pb-2 flex flex-col gap-2 border-b border-[#F0F1F1]">
                   {/* Search input */}
-                  <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-lg px-3 h-9">
-                    <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+                  <div className="app-input-container" style={{ minHeight: 44 }}>
+                    <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                      <HugeiconsIcon icon={Search01Icon} size={18} color="currentColor" strokeWidth={2} />
+                    </button>
                     <input
                       type="text"
                       value={resultSearch}
                       onChange={(e) => setResultSearch(e.target.value)}
                       placeholder="Search by IATA or airport name…"
-                      className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
+                      className="app-input"
                     />
                     {resultSearch && (
-                      <button onClick={() => setResultSearch("")} className="shrink-0 text-[#9CA3AF] hover:text-[#6B7B7B]">
-                        <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
+                      <button onClick={() => setResultSearch("")} tabIndex={-1} className="app-input-icon-btn">
+                        <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
                       </button>
                     )}
                   </div>
@@ -626,22 +626,28 @@ export default function AdminBulkSearch() {
                   {/* Filter + Sort row */}
                   <div className="flex items-center gap-2">
                     {/* Filter pills */}
-                    <div className="flex gap-1.5 flex-1">
+                    <div
+                      className="relative rounded-full p-[2px] flex"
+                      style={{
+                        width: 260,
+                        background: "#E8EEEE",
+                        border: "1px solid #D1DADA",
+                      }}
+                    >
+                      <div
+                        className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+                        style={{
+                          background: "#10B981",
+                          width: "calc((100% - 4px) / 3)",
+                          left: `calc(2px + (100% - 4px) * ${["all", "success", "failed"].indexOf(resultFilter)} / 3)`,
+                        }}
+                      />
                       {(["all", "success", "failed"] as ResultFilter[]).map((f) => (
                         <button
                           key={f}
                           onClick={() => setResultFilter(f)}
-                          className="px-2.5 py-1 rounded-full text-xs font-semibold capitalize transition-colors"
-                          style={resultFilter === f
-                            ? {
-                                background: f === "failed"
-                                  ? "linear-gradient(135deg, #fca5a5 0%, #f87171 100%)"
-                                  : "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
-                                color: f === "failed" ? "#991b1b" : "#065F46",
-                                border: `1px solid ${f === "failed" ? "#f87171" : "#6EE7B7"}`,
-                              }
-                            : { background: "#F2F3F3", color: "#9CA3AF", border: "1px solid transparent" }
-                          }
+                          className="flex-1 py-1 text-base font-semibold capitalize rounded-full transition-all duration-300 relative z-10"
+                          style={{ color: resultFilter === f ? "white" : "#9CA3AF" }}
                         >
                           {f}
                         </button>
@@ -649,16 +655,19 @@ export default function AdminBulkSearch() {
                     </div>
 
                     {/* Sort select */}
-                    <select
-                      value={resultSort}
-                      onChange={(e) => setResultSort(e.target.value as ResultSort)}
-                      className="text-xs text-[#6B7B7B] bg-[#F2F3F3] rounded-lg px-2 py-1 border-none outline-none cursor-pointer"
-                    >
-                      <option value="az">A → Z</option>
-                      <option value="za">Z → A</option>
-                      <option value="most">Most destinations</option>
-                      <option value="fewest">Fewest destinations</option>
-                    </select>
+                    <div className="app-input-container ml-auto" style={{ minHeight: 36, width: 172 }}>
+                      <select
+                        value={resultSort}
+                        onChange={(e) => setResultSort(e.target.value as ResultSort)}
+                        className="app-input text-xs cursor-pointer"
+                        style={{ paddingInline: "0.4em" }}
+                      >
+                        <option value="az">A → Z</option>
+                        <option value="za">Z → A</option>
+                        <option value="most">Most destinations</option>
+                        <option value="fewest">Fewest destinations</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
