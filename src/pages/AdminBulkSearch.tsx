@@ -333,7 +333,9 @@ export default function AdminBulkSearch() {
           .single();
 
         if (fsRow?.id) {
-          writeFlightSnapshots(fsRow.id, normalized.flights, iata_code).catch(() => {});
+          writeFlightSnapshots(fsRow.id, normalized.flights, iata_code).catch((e) =>
+            console.warn("[bulk-search] snapshot write failed", iata_code, e),
+          );
         }
 
         pushResult({

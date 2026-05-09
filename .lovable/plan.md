@@ -1,62 +1,79 @@
-## What's happening
+# Fix: Bulk Search Not Writing to `flight_snapshots`
 
-Your servers are healthy — both `https://wildfly.app` and `https://wildfly.lovable.app` return `200 OK` with fresh HTML when I curl them. So the site itself is up.
+## Root cause
 
-The reason your phones won't load anything (even after clearing cookies/site data in the browser UI) is almost certainly a **stuck service worker** from a previous deploy:
+The `/admin/bulk-search` flow runs:
 
-- This project uses `vite-plugin-pwa` with `registerType: "autoUpdate"` and a `NetworkFirst`/cache strategy.
-- A previous build was deployed without the Supabase env vars baked in (that's the `supabaseUrl is required` error you hit earlier in a new tab).
-- Your installed PWA / Safari + Chrome on the phone registered that broken service worker. Once registered, the SW intercepts every navigation and keeps serving the broken cached shell — even after you clear browsing data, because "Clear browsing data" in iOS Safari and Chrome does **not** always unregister service workers, and an installed PWA keeps its own cache bucket.
-- Result: the phone boots the cached broken JS, it throws on `createClient(undefined, ...)`, and you see a blank/white screen or it just doesn't load.
+1. Calls the flight API (returns flights whose timing lives in `rawPayload.segments[].departure_time / arrival_time`).
+2. `normalizeAllDestinationsResponse(raw, date)` builds each flight's `legs` array from top-level `f.depart_time` / `f.arrive_time` — **fields the API never returns at the top level**. So every leg ends up with:
 
-This won't fix itself by re-publishing — the broken SW on each device decides what to load before any new build is fetched.
+   ```json
+   { "origin": "BWI", "destination": "BQN", "departure_time": "", "arrival_time": "" }
+   ```
 
-## The fix
+   (Confirmed by inspecting `flight_search_cache.payload->'flights'->0`.)
 
-Two parts:
+3. `writeFlightSnapshots(...)` iterates legs and explicitly skips any leg missing `departure_time` or `arrival_time` (it can't satisfy the `NOT NULL` columns `departure_at` / `arrival_at`):
 
-### 1. Ship a kill-switch service worker (recovery)
+   ```ts
+   if (!leg.departure_time || !leg.arrival_time) return;
+   ```
 
-Add a tiny static `public/sw.js` that:
-- Takes control immediately (`skipWaiting` + `clients.claim`)
-- Deletes every cache
-- Force-navigates open clients to a fresh URL
-- Unregisters itself
+4. Result: 0 rows inserted for every search. The error is also swallowed by the `.catch(() => {})` on the call site, hiding the failure. DB confirms `snaps = 0` for every `triggered_by='admin_bulk_search'` row.
 
-Because `vite-plugin-pwa` registers at `/sw.js`, devices currently running the old SW will check that URL on next visit, see the new one, install it, and self-clean. After that, the next reload loads the live site normally.
+## Fix
 
-The Lovable proxy already serves `/sw.js` with `Cache-Control: no-cache`, so the new file propagates fast.
+Make the bulk-search normalizer produce real per-segment legs from `rawPayload.segments`, matching the shape the snapshot writer expects.
 
-### 2. Remove `vite-plugin-pwa` (or guard it properly)
+### `src/utils/normalizeFlights.ts` — `normalizeAllDestinationsResponse`
 
-Two options — I'd like you to pick:
+Replace the synthetic single-leg block with one leg per segment:
 
-- **A. Remove PWA entirely.** You keep installability (Add to Home Screen still works because of your manifest meta tags in `index.html`), but no service worker, no offline page, no caching layer that can ever brick the app again. This is what Lovable recommends by default.
-- **B. Keep PWA but make it safe.** Disable SW in dev, deny-list iframes/preview hosts so it never registers in the Lovable editor, switch HTML to `NetworkFirst` (already partially the case), and keep the kill-switch around for a release cycle.
+```ts
+const segments = Array.isArray(f.rawPayload?.segments) ? f.rawPayload.segments : [];
 
-Either way, we ship the kill-switch first so existing devices recover.
+const legs = segments.length > 0
+  ? segments.map((s: any) => ({
+      origin: s.departure_airport ?? "",
+      destination: s.arrival_airport ?? "",
+      departure_time: s.departure_time ?? "",   // already full ISO
+      arrival_time:   s.arrival_time   ?? "",
+    }))
+  : [{
+      origin: f.origin ?? "",
+      destination: f.destination ?? "",
+      departure_time: date ? toTimestamp(f.depart_time ?? "", date) : (f.depart_time ?? ""),
+      arrival_time:   date ? toTimestamp(f.arrive_time ?? "", date) : (f.arrive_time ?? ""),
+    }];
+```
 
-## What you'll need to do on each device once
+This keeps the existing fallback for any future payload shape that does have top-level times, but the real path now uses the segment timestamps.
 
-After the fix is published:
+### `src/pages/AdminBulkSearch.tsx` — surface failures
 
-- **iOS Safari (browser tab):** Visit `https://wildfly.app` once. The new SW activates and reloads the page clean.
-- **Installed PWA on home screen:** Open it once — same thing, it'll reload itself. If it still shows blank after one open, delete the home-screen icon and re-add from Safari (this nukes the install-time cache).
-- **Chrome on Android/iOS:** Same — one visit triggers the cleanup.
+Replace the silent swallow so future regressions are visible (logged, not thrown):
 
-## Files I'd touch
+```ts
+writeFlightSnapshots(fsRow.id, normalized.flights, iata_code)
+  .catch((e) => console.warn("[bulk-search] snapshot write failed", iata_code, e));
+```
 
-- `public/sw.js` (new) — kill-switch worker
-- `public/service-worker.js` (new, same contents) — belt-and-braces for any device that registered under the alternate path
-- `src/main.tsx` — remove `registerSW` call (Option A) or guard it against iframe/preview hosts (Option B)
-- `vite.config.ts` — remove `VitePWA` plugin (Option A) or harden it (Option B)
-- `package.json` — remove `vite-plugin-pwa` dep (Option A only)
+## Verification
 
-## Question for you
+1. Run `/admin/bulk-search` for one date.
+2. Query:
+   ```sql
+   select fs.id, fs.flight_results_count,
+          (select count(*) from flight_snapshots s where s.flight_search_id = fs.id) as snaps
+   from flight_searches fs
+   where fs.triggered_by = 'admin_bulk_search'
+   order by fs.search_timestamp desc limit 5;
+   ```
+   Expect `snaps > 0` (one row per flight leg).
+3. Spot-check a snapshot row's `departure_at` / `arrival_at` are populated.
 
-Which option do you want?
+## Out of scope
 
-- **A — Remove PWA** (simplest, safest, recommended)
-- **B — Keep PWA, harden it**
-
-I'll ship the kill-switch either way; the choice only changes what happens going forward.
+- No schema changes.
+- No RLS changes (existing insert policy already permits owner of the parent `flight_searches` row).
+- Single-destination search path is unaffected (uses a different normalizer).
