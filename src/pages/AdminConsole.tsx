@@ -174,7 +174,7 @@ function newCondition(): FilterCondition {
 }
 
 function applyCondition(u: UserRow, cond: FilterCondition): boolean {
-  const raw = (u as Record<string, unknown>)[cond.field];
+  const raw = (u as unknown as Record<string, unknown>)[cond.field];
   const str = raw == null ? "" : String(raw).toLowerCase();
   const val = cond.value.toLowerCase();
   switch (cond.operator) {
@@ -261,8 +261,8 @@ function UsersView() {
     if (appliedSorts.length > 0) {
       result = [...result].sort((a, b) => {
         for (const s of appliedSorts) {
-          const av = String((a as Record<string, unknown>)[s.field] ?? "").toLowerCase();
-          const bv = String((b as Record<string, unknown>)[s.field] ?? "").toLowerCase();
+          const av = String((a as unknown as Record<string, unknown>)[s.field] ?? "").toLowerCase();
+          const bv = String((b as unknown as Record<string, unknown>)[s.field] ?? "").toLowerCase();
           if (av < bv) return s.direction === "asc" ? -1 : 1;
           if (av > bv) return s.direction === "asc" ? 1 : -1;
         }
