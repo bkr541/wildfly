@@ -247,14 +247,21 @@ export function normalizeAllDestinationsResponse(raw: any, date?: string): Norma
         discount_den: discountDen,
         standard: standard,
       },
-      legs: [
-        {
-          origin: f.origin ?? "",
-          destination: f.destination ?? "",
-          departure_time: date ? toTimestamp(f.depart_time ?? "", date) : (f.depart_time ?? ""),
-          arrival_time:   date ? toTimestamp(f.arrive_time ?? "", date) : (f.arrive_time ?? ""),
-        },
-      ],
+      legs: (Array.isArray(f.rawPayload?.segments) && f.rawPayload.segments.length > 0)
+        ? f.rawPayload.segments.map((s: any) => ({
+            origin: s.departure_airport ?? "",
+            destination: s.arrival_airport ?? "",
+            departure_time: s.departure_time ?? "",
+            arrival_time:   s.arrival_time ?? "",
+          }))
+        : [
+            {
+              origin: f.origin ?? "",
+              destination: f.destination ?? "",
+              departure_time: date ? toTimestamp(f.depart_time ?? "", date) : (f.depart_time ?? ""),
+              arrival_time:   date ? toTimestamp(f.arrive_time ?? "", date) : (f.arrive_time ?? ""),
+            },
+          ],
     };
   });
 
