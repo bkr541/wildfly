@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Medal01Icon, ArrowDown01Icon, Calendar01Icon } from "@hugeicons/core-free-icons";
+import { Medal01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { TrendingUp } from "lucide-react";
 import { type ReliableRoute } from "./routeHelpers";
 import { type AirportDict } from "@/hooks/useAirportDictionary";
@@ -26,7 +26,6 @@ const MostReliableRouteCard = ({ data, airportDict = {} }: Props) => {
 
   const origin = data?.route.split(" → ")[0] ?? "";
   const dest = data?.route.split(" → ")[1] ?? "";
-  const dayLabel = data ? (data.snapshotCount === 1 ? "1 day" : `${data.snapshotCount} days`) : "--";
   const originLabel = origin ? airportLabel(origin, airportDict) : null;
   const destLabel = dest ? airportLabel(dest, airportDict) : null;
 
@@ -77,7 +76,7 @@ const MostReliableRouteCard = ({ data, airportDict = {} }: Props) => {
               </div>
 
               {/* Stat boxes */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {/* Consistency score */}
                 <div className="bg-green-50 rounded-xl px-3 py-2.5 flex flex-col">
                   <p className="text-[9px] font-semibold text-green-700 uppercase tracking-wider mb-1">Consistency Score</p>
@@ -92,13 +91,6 @@ const MostReliableRouteCard = ({ data, airportDict = {} }: Props) => {
                   <TrendingUp size={14} color="#059669" />
                   <p className="text-base font-bold text-[#2E4A4A] leading-none">±{data.variance.toFixed(1)}%</p>
                   <p className="text-[10px] text-[#9CA3AF]">variance</p>
-                </div>
-
-                {/* Snapshot days */}
-                <div className="border border-gray-100 rounded-xl px-3 py-2.5 flex flex-col items-center justify-center gap-0.5">
-                  <HugeiconsIcon icon={Calendar01Icon} size={14} color="#059669" strokeWidth={1.5} />
-                  <p className="text-base font-bold text-[#2E4A4A] leading-none">{dayLabel}</p>
-                  <p className="text-[10px] text-[#9CA3AF]">tracked</p>
                 </div>
               </div>
 

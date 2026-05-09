@@ -22,11 +22,6 @@ function computeAvailabilityRate(snapshots: FlightSnapshot[]): number | null {
   return (snapshots.filter((s) => s.has_go_wild).length / snapshots.length) * 100;
 }
 
-function formatRate(rate: number | null): string {
-  if (rate === null) return "--";
-  return rate.toFixed(1) + "%";
-}
-
 function computeAvgSeats(snapshots: FlightSnapshot[]): number | null {
   const qualifying = snapshots.filter(
     (s) => s.has_go_wild && s.go_wild_available_seats !== null
@@ -62,41 +57,44 @@ function computeChange(snapshots: FlightSnapshot[]): number | null {
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
-const DonutChart = ({ rate }: { rate: number | null }) => {
-  const size = 200;
-  const strokeWidth = 17;
+const DonutChart = ({
+  displayValue,
+  pct,
+  label1,
+  label2,
+  gradientId,
+}: {
+  displayValue: string;
+  pct: number;
+  label1: string;
+  label2: string;
+  gradientId: string;
+}) => {
+  const size = 152;
+  const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const pct = Math.min(Math.max(rate ?? 0, 0), 100);
-  const offset = circumference - (pct / 100) * circumference;
+  const clampedPct = Math.min(Math.max(pct, 0), 100);
+  const offset = circumference - (clampedPct / 100) * circumference;
   const cx = size / 2;
   const cy = size / 2;
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
-        <linearGradient id="gwDonutGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#059669" />
           <stop offset="100%" stopColor="#6ee7b7" />
         </linearGradient>
       </defs>
-      {/* Background track */}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={radius}
-        fill="none"
-        stroke="#F3F4F6"
-        strokeWidth={strokeWidth}
-      />
-      {/* Progress arc */}
-      {pct > 0 && (
+      <circle cx={cx} cy={cy} r={radius} fill="none" stroke="#F3F4F6" strokeWidth={strokeWidth} />
+      {clampedPct > 0 && (
         <circle
           cx={cx}
           cy={cy}
           r={radius}
           fill="none"
-          stroke="url(#gwDonutGradient)"
+          stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -104,40 +102,39 @@ const DonutChart = ({ rate }: { rate: number | null }) => {
           transform={`rotate(-90 ${cx} ${cy})`}
         />
       )}
-      {/* Percentage text */}
       <text
         x={cx}
-        y={cy - 12}
+        y={cy - 10}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="32"
+        fontSize="24"
         fontWeight="600"
         fill="#2E4A4A"
         fontFamily="inherit"
       >
-        {formatRate(rate)}
+        {displayValue}
       </text>
       <text
         x={cx}
-        y={cy + 18}
+        y={cy + 14}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="14"
+        fontSize="11"
         fill="#9CA3AF"
         fontFamily="inherit"
       >
-        Avg GoWild
+        {label1}
       </text>
       <text
         x={cx}
-        y={cy + 36}
+        y={cy + 28}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="14"
+        fontSize="11"
         fill="#9CA3AF"
         fontFamily="inherit"
       >
-        Availability
+        {label2}
       </text>
     </svg>
   );
@@ -146,8 +143,6 @@ const DonutChart = ({ rate }: { rate: number | null }) => {
 const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const rate = computeAvailabilityRate(snapshots);
-  const availableLegs = snapshots.filter((s) => s.has_go_wild).length;
-  const totalLegs = snapshots.length;
   const avgSeats = computeAvgSeats(snapshots);
   const change = computeChange(snapshots);
 
@@ -163,6 +158,8 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
       : change === 0
       ? "No change vs last 7 days"
       : `${change > 0 ? "+" : ""}${change.toFixed(1)}% vs last 7 days`;
+
+  const seatsPct = avgSeats === null ? 0 : Math.min((avgSeats / 30) * 100, 100);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
@@ -183,61 +180,41 @@ const GoWildSnapshotCard = ({ snapshots }: GoWildSnapshotCardProps) => {
 
       {/* Collapsible body */}
       <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-      <div className="overflow-hidden">
+        <div className="overflow-hidden">
 
-      {/* Donut centered */}
-      <div className="flex justify-center">
-        <DonutChart rate={rate} />
-      </div>
-
-      {/* Stats side by side under donut */}
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        {/* Available Legs */}
-        <div>
-          <p className="text-sm text-[#6B7B7B] mb-1">Available Legs</p>
-          <div className="flex items-end gap-2">
-            <span className="text-[32px] font-semibold text-green-600 leading-none">
-              {totalLegs === 0 ? "--" : availableLegs}
-            </span>
-            {totalLegs > 0 && (
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm text-[#9CA3AF]">of {totalLegs}</span>
-                <span className="text-sm text-[#9CA3AF]">legs</span>
-              </div>
-            )}
+          {/* Two donuts side by side */}
+          <div className="flex justify-around items-center">
+            <DonutChart
+              displayValue={rate === null ? "--" : rate.toFixed(1) + "%"}
+              pct={rate ?? 0}
+              label1="Avg GoWild"
+              label2="Availability"
+              gradientId="gwDonutGradient"
+            />
+            <DonutChart
+              displayValue={avgSeats === null ? "--" : String(Math.round(avgSeats))}
+              pct={seatsPct}
+              label1="Avg Seats"
+              label2="Available"
+              gradientId="gwSeatsGradient"
+            />
           </div>
-        </div>
 
-        {/* Avg Seats Available */}
-        <div>
-          <p className="text-sm text-[#6B7B7B] mb-1">Avg Seats Available</p>
-          <div className="flex items-end gap-2">
-            <span className="text-[32px] font-semibold text-green-600 leading-none">
-              {avgSeats === null ? "--" : Math.round(avgSeats)}
-            </span>
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm text-[#9CA3AF]">seats</span>
-              <span className="text-sm text-[#9CA3AF]">/ leg</span>
+          {/* Trend row */}
+          <div className="border-t border-gray-100 mt-4 pt-3 flex items-center gap-2">
+            <div
+              className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${trendBg}`}
+            >
+              {trendNegative ? (
+                <TrendingDown size={13} color={trendColor} />
+              ) : (
+                <TrendingUp size={13} color={trendColor} />
+              )}
             </div>
+            <span className={`text-sm font-semibold ${trendTextClass}`}>{trendLabel}</span>
           </div>
-        </div>
-      </div>
 
-      {/* Trend row */}
-      <div className="border-t border-gray-100 mt-4 pt-3 flex items-center gap-2">
-        <div
-          className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${trendBg}`}
-        >
-          {trendNegative ? (
-            <TrendingDown size={13} color={trendColor} />
-          ) : (
-            <TrendingUp size={13} color={trendColor} />
-          )}
         </div>
-        <span className={`text-sm font-semibold ${trendTextClass}`}>{trendLabel}</span>
-      </div>
-
-      </div>
       </div>
     </div>
   );

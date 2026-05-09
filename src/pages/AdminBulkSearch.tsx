@@ -5,7 +5,6 @@ import {
   AirplaneTakeOff01Icon,
   CalendarCheckOut02Icon,
   AirportIcon,
-  Airport02Icon,
   City01Icon,
   Cancel01Icon,
   ArrowDown01Icon,
@@ -159,8 +158,8 @@ export default function AdminBulkSearch() {
   const [results, setResults]             = useState<OriginResult[]>([]);
   const [progress, setProgress]           = useState({ current: 0, total: 0 });
 
-  // per-origin collapse
-  const [collapsed, setCollapsed]                         = useState<Set<string>>(new Set());
+  // per-origin expand (default collapsed — empty set = all collapsed)
+  const [expanded, setExpanded]                           = useState<Set<string>>(new Set());
   // group collapse
   const [allDestCollapsed, setAllDestCollapsed]           = useState(false);
   const [conditionsCollapsed, setConditionsCollapsed]     = useState(false);
@@ -206,7 +205,7 @@ export default function AdminBulkSearch() {
   const pushResult = (r: OriginResult) => setResults((prev) => [...prev, r]);
 
   const toggleCollapse = (origin: string) =>
-    setCollapsed((prev) => {
+    setExpanded((prev) => {
       const next = new Set(prev);
       next.has(origin) ? next.delete(origin) : next.add(origin);
       return next;
@@ -215,7 +214,7 @@ export default function AdminBulkSearch() {
   const handleStartNew = () => {
     setResults([]);
     setProgress({ current: 0, total: 0 });
-    setCollapsed(new Set());
+    setExpanded(new Set());
     setAllDestCollapsed(false);
     setStatusLine("");
     setResultFilter("all");
@@ -226,7 +225,7 @@ export default function AdminBulkSearch() {
   const runBulkSearch = async () => {
     setRunning(true);
     setResults([]);
-    setCollapsed(new Set());
+    setExpanded(new Set());
     setStatusLine("");
     setProgress({ current: 0, total: 0 });
     abortRef.current = false;
@@ -671,6 +670,17 @@ export default function AdminBulkSearch() {
                       </select>
                     </div>
                   </div>
+
+                  {/* Collapse All row */}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(new Set())}
+                      className="text-xs font-semibold text-[#9CA3AF] hover:text-[#059669] transition-colors"
+                    >
+                      Collapse All
+                    </button>
+                  </div>
                 </div>
 
                 {/* Origin rows */}
@@ -679,43 +689,35 @@ export default function AdminBulkSearch() {
                     <p className="px-4 py-6 text-center text-sm text-[#9CA3AF]">No results match your filter.</p>
                   ) : (
                     filteredResults.map((r) => {
-                      const isCollapsed = collapsed.has(r.origin);
+                      const isCollapsed = !expanded.has(r.origin);
                       const isError     = r.status === "error";
+                      const originColor = isError ? "#ef4444" : "#059669";
                       return (
                         <div key={r.origin} style={{ background: isError ? "rgba(254,242,242,0.6)" : undefined }}>
                           {/* Origin header */}
                           <button
                             type="button"
                             onClick={() => toggleCollapse(r.origin)}
-                            className="w-full flex items-center gap-2.5 px-4 py-3 text-left"
+                            className="w-full flex items-center px-4 py-3 text-left"
                           >
-                            <div
-                              className="h-7 w-7 rounded-full flex items-center justify-center shrink-0"
-                              style={{
-                                background: isError
-                                  ? "linear-gradient(135deg, #fca5a5 0%, #f87171 100%)"
-                                  : "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-                              }}
-                            >
-                              <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={13} color="white" strokeWidth={2} />
+                            <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={28} color={originColor} strokeWidth={1.5} className="shrink-0" />
+                            <div className="flex-1 ml-2 min-w-0">
+                              <p className="text-base font-semibold uppercase tracking-wider leading-tight" style={{ color: originColor }}>{r.origin}</p>
+                              <p className="text-xs text-[#6B7B7B] truncate">
+                                {isError
+                                  ? r.errorMessage ?? "Error"
+                                  : r.status === "retried"
+                                    ? `${r.name} · ${r.destinations.length} dest. (${r.attempts} tries)`
+                                    : `${r.name} · ${r.destinations.length} destinations`
+                                }
+                              </p>
                             </div>
-                            <span className="font-bold text-[#345C5A] text-base shrink-0">{r.origin}</span>
-                            <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
-                            <span className="text-[#6B7B7B] text-sm truncate flex-1">{r.name}</span>
-                            <span className="text-xs font-semibold shrink-0 mr-1">
-                              {isError
-                                ? <span className="text-[#ef4444]">✗ Error</span>
-                                : r.status === "retried"
-                                  ? <span className="text-[#d97706]">{r.destinations.length} dest. ({r.attempts} tries)</span>
-                                  : <span className="text-[#059669]">{r.destinations.length} destinations</span>
-                              }
-                            </span>
                             <HugeiconsIcon
                               icon={ArrowDown01Icon}
-                              size={16}
+                              size={14}
                               color="#9CA3AF"
-                              strokeWidth={2}
-                              className="shrink-0 transition-transform duration-200"
+                              strokeWidth={1.5}
+                              className="shrink-0 transition-transform duration-200 ml-2"
                               style={{ transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
                             />
                           </button>
@@ -723,22 +725,19 @@ export default function AdminBulkSearch() {
                           {/* Destination list */}
                           {!isCollapsed && (
                             <>
-                              {isError && r.errorMessage && (
-                                <p className="text-xs text-[#ef4444] px-4 pb-3">{r.errorMessage}</p>
-                              )}
                               {r.destinations.length > 0 && (
                                 <div className="border-t border-[#F0F1F1] divide-y divide-[#F0F1F1]">
                                   {r.destinations.map((dest) => (
-                                    <div key={dest.iata} className="px-4 py-2.5 pl-14">
-                                      <div className="flex items-center gap-1.5 mb-0.5">
-                                        <HugeiconsIcon icon={City01Icon} size={13} color="#059669" strokeWidth={2} className="shrink-0" />
-                                        <span className="font-mono font-bold text-[#345C5A] text-sm">{dest.iata}</span>
-                                        <span className="text-[#9CA3AF] text-xs">|</span>
-                                        <span className="text-[#2E4A4A] text-sm font-medium truncate">{dest.locationName}</span>
-                                      </div>
-                                      <div className="flex items-center gap-1.5">
-                                        <HugeiconsIcon icon={Airport02Icon} size={13} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-                                        <span className="text-[#6B7B7B] text-xs truncate">{dest.airportName}</span>
+                                    <div key={dest.iata} className="flex items-center px-4 py-2.5 pl-14">
+                                      <HugeiconsIcon icon={City01Icon} size={20} color="#059669" strokeWidth={1.5} className="shrink-0" />
+                                      <div className="flex-1 ml-2 min-w-0">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                          <span className="text-base font-bold text-[#2E4A4A] uppercase tracking-wider shrink-0">{dest.iata}</span>
+                                          {dest.locationName && <span className="text-sm text-[#6B7B7B] font-normal truncate">{dest.locationName}</span>}
+                                        </div>
+                                        {dest.airportName && dest.airportName !== dest.iata && (
+                                          <p className="text-xs text-[#9CA3AF] truncate">{dest.airportName}</p>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
