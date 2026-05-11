@@ -47,7 +47,7 @@ const AdminGate = ({ children }: { children: ReactNode }) => {
   }
 
   if (!user) {
-    return <AuthPage onAuthSuccess={() => { /* re-render via auth state */ }} />;
+    return <AuthPage onSignIn={() => { /* re-render via auth state */ }} />;
   }
 
   if (!isAdmin) {
