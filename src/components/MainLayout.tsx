@@ -21,6 +21,8 @@ import {
   SourceCodeIcon,
   Key01Icon,
   Idea01Icon,
+  GlobalSearchIcon,
+  ConsoleIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
