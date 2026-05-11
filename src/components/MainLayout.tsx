@@ -107,6 +107,7 @@ const MainLayout = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
