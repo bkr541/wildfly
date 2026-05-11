@@ -1,4 +1,5 @@
 import { useState, type ReactNode, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -20,6 +21,8 @@ import {
   SourceCodeIcon,
   Key01Icon,
   Idea01Icon,
+  GlobalSearchIcon,
+  ConsoleIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -104,6 +107,7 @@ const MainLayout = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -393,6 +397,22 @@ const MainLayout = ({
 
               {currentPage === "account" && isDeveloper && !subScreenTitle && (
                 <div className="flex items-center gap-0.5 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/bulk-search")}
+                    aria-label="Bulk search"
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={GlobalSearchIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/console")}
+                    aria-label="Admin console"
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={ConsoleIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
                   <button
                     type="button"
                     onClick={onAccountManageUsersPress}
