@@ -399,6 +399,22 @@ const MainLayout = ({
                 <div className="flex items-center gap-0.5 ml-auto">
                   <button
                     type="button"
+                    onClick={() => navigate("/admin/bulk-search")}
+                    aria-label="Bulk search"
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={GlobalSearchIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/console")}
+                    aria-label="Admin console"
+                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
+                  >
+                    <HugeiconsIcon icon={ConsoleIcon} size={22} color="currentColor" strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={onAccountManageUsersPress}
                     className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                   >
