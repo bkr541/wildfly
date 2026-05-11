@@ -34,6 +34,7 @@ import ResetPasswordPage from "./pages/ResetPassword";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
 import BillingPortalReturn from "./pages/BillingPortalReturn";
+import AdminGate from "./components/AdminGate";
 
 const queryClient = new QueryClient();
 
