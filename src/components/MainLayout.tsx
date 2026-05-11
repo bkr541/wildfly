@@ -1,4 +1,5 @@
 import { useState, type ReactNode, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
