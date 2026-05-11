@@ -472,8 +472,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/admin/import" element={<AdminImport />} />
-          <Route path="/admin/bulk-search" element={<AdminBulkSearch />} />
-          <Route path="/admin/console" element={<AdminConsole />} />
+          <Route path="/admin/bulk-search" element={<AdminGate><AdminBulkSearch /></AdminGate>} />
+          <Route path="/admin/console" element={<AdminGate><AdminConsole /></AdminGate>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel" element={<BillingCancel />} />
