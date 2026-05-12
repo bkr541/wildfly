@@ -36,14 +36,52 @@ type OriginResult = {
   errorMessage?: string;
 };
 
-type ResultFilter = "all" | "success" | "failed";
-type ResultSort   = "az" | "za" | "most" | "fewest";
+type ResultFilter   = "all" | "success" | "failed";
+type ResultSort     = "az" | "za" | "most" | "fewest";
+type TimezoneGroup  = "ET" | "CT" | "MT" | "PT";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const DELAY_MS       = 750;
-const MAX_RETRIES    = 3;
+const DELAY_MS        = 750;
+const MAX_RETRIES     = 3;
 const BACKOFF_BASE_MS = 5000;
+
+const TIMEZONE_GROUPS: Record<TimezoneGroup, string[]> = {
+  ET: [
+    "America/New_York", "America/Detroit",
+    "America/Indiana/Indianapolis", "America/Indiana/Marengo",
+    "America/Indiana/Petersburg", "America/Indiana/Vevay",
+    "America/Indiana/Vincennes", "America/Indiana/Winamac",
+    "America/Kentucky/Louisville", "America/Kentucky/Monticello",
+    "America/Toronto", "America/Nassau", "America/Port-au-Prince",
+    "America/Jamaica", "America/Cancun", "America/Panama",
+  ],
+  CT: [
+    "America/Chicago", "America/Indiana/Knox", "America/Indiana/Tell_City",
+    "America/Menominee", "America/North_Dakota/Center",
+    "America/North_Dakota/New_Salem", "America/North_Dakota/Beulah",
+    "America/Winnipeg", "America/Mexico_City", "America/Monterrey",
+    "America/Merida", "America/Matamoros", "America/Tegucigalpa",
+    "America/Belize", "America/Costa_Rica", "America/El_Salvador",
+    "America/Guatemala", "America/Managua",
+  ],
+  MT: [
+    "America/Denver", "America/Boise", "America/Phoenix",
+    "America/Ojinaga", "America/Chihuahua", "America/Mazatlan",
+  ],
+  PT: [
+    "America/Los_Angeles", "America/Vancouver", "America/Tijuana",
+    "America/Anchorage", "America/Juneau", "America/Sitka",
+    "America/Nome", "Pacific/Honolulu",
+  ],
+};
+
+const TIMEZONE_LABELS: Record<TimezoneGroup, { abbr: string; name: string; offset: string }> = {
+  ET: { abbr: "ET",  name: "Eastern",  offset: "UTC−5/4" },
+  CT: { abbr: "CT",  name: "Central",  offset: "UTC−6/5" },
+  MT: { abbr: "MT",  name: "Mountain", offset: "UTC−7/6" },
+  PT: { abbr: "PT",  name: "Pacific",  offset: "UTC−8/7" },
+};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -151,9 +189,11 @@ function RingChart({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminBulkSearch() {
-  const [date, setDate]                   = useState(format(new Date(), "yyyy-MM-dd"));
-  const [domesticOnly, setDomesticOnly]   = useState(false);
-  const [running, setRunning]             = useState(false);
+  const [date, setDate]                     = useState(format(new Date(), "yyyy-MM-dd"));
+  const [domesticOnly, setDomesticOnly]     = useState(false);
+  const [optimizeByTz, setOptimizeByTz]     = useState(true);
+  const [selectedTz, setSelectedTz]         = useState<TimezoneGroup | null>(null);
+  const [running, setRunning]               = useState(false);
   const [statusLine, setStatusLine]       = useState("");
   const [results, setResults]             = useState<OriginResult[]>([]);
   const [progress, setProgress]           = useState({ current: 0, total: 0 });
@@ -233,7 +273,7 @@ export default function AdminBulkSearch() {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: airports, error } = await supabase
       .from("airports")
-      .select("iata_code, name, locations(country, name)")
+      .select("iata_code, name, timezone, locations(country, name)")
       .eq("is_active", true)
       .order("iata_code");
 
@@ -251,9 +291,14 @@ export default function AdminBulkSearch() {
       };
     }
 
-    const filtered = domesticOnly
-      ? (airports as any[]).filter((a) => (a.locations as any)?.country === "United States of America")
-      : (airports as any[]);
+    let filtered = airports as any[];
+    if (domesticOnly) {
+      filtered = filtered.filter((a) => (a.locations as any)?.country === "United States of America");
+    }
+    if (optimizeByTz && selectedTz) {
+      const tzSet = new Set(TIMEZONE_GROUPS[selectedTz]);
+      filtered = filtered.filter((a) => tzSet.has(a.timezone));
+    }
 
     setProgress({ current: 0, total: filtered.length });
     const bucket = resetBucket(date);
@@ -449,11 +494,34 @@ export default function AdminBulkSearch() {
               />
             </div>
 
+            {/* Optimize by Timezone toggle */}
+            <button
+              type="button"
+              onClick={() => !running && setOptimizeByTz((v) => !v)}
+              className="mt-4 flex items-center justify-end gap-3 w-full"
+              disabled={running}
+            >
+              <span className="text-sm font-semibold text-[#2E4A4A]">Optimize by Timezone</span>
+              <span
+                className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200"
+                style={{
+                  background: optimizeByTz
+                    ? "linear-gradient(90deg, #059669 0%, #10b981 100%)"
+                    : "#D1D5DB",
+                }}
+              >
+                <span
+                  className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 m-0.5"
+                  style={{ transform: optimizeByTz ? "translateX(20px)" : "translateX(0)" }}
+                />
+              </span>
+            </button>
+
             {/* Domestic Only toggle */}
             <button
               type="button"
               onClick={() => !running && setDomesticOnly((v) => !v)}
-              className="mt-4 flex items-center justify-end gap-3 w-full"
+              className="mt-3 flex items-center justify-end gap-3 w-full"
               disabled={running}
             >
               <span className="text-sm font-semibold text-[#2E4A4A]">Domestic Only</span>
@@ -472,6 +540,50 @@ export default function AdminBulkSearch() {
               </span>
             </button>
 
+            {/* Timezone picker */}
+            {optimizeByTz && (
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                {(["ET", "CT", "MT", "PT"] as TimezoneGroup[]).map((tz) => {
+                  const { abbr, name, offset } = TIMEZONE_LABELS[tz];
+                  const isSelected = selectedTz === tz;
+                  return (
+                    <button
+                      key={tz}
+                      type="button"
+                      disabled={running}
+                      onClick={() => setSelectedTz((prev) => prev === tz ? null : tz)}
+                      className="flex flex-col items-center py-2.5 px-1 rounded-xl transition-all duration-200 disabled:opacity-50"
+                      style={{
+                        background: isSelected
+                          ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                          : "#F0F4F4",
+                        border: isSelected ? "1.5px solid #059669" : "1.5px solid #E0E9E9",
+                      }}
+                    >
+                      <span
+                        className="text-base font-black tracking-widest"
+                        style={{ color: isSelected ? "white" : "#2E4A4A" }}
+                      >
+                        {abbr}
+                      </span>
+                      <span
+                        className="text-[10px] font-semibold mt-0.5"
+                        style={{ color: isSelected ? "rgba(255,255,255,0.85)" : "#6B7B7B" }}
+                      >
+                        {name}
+                      </span>
+                      <span
+                        className="text-[9px] mt-0.5"
+                        style={{ color: isSelected ? "rgba(255,255,255,0.65)" : "#9CA3AF" }}
+                      >
+                        {offset}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Blackout error */}
             {isBlackout && (
               <p className="mt-3 text-xs font-semibold text-[#ef4444]">
@@ -484,7 +596,7 @@ export default function AdminBulkSearch() {
               {!running ? (
                 <button
                   onClick={runBulkSearch}
-                  disabled={isBlackout}
+                  disabled={isBlackout || (optimizeByTz && !selectedTz)}
                   className="w-full h-12 rounded-full font-bold text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-90 active:opacity-75 disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: "linear-gradient(90deg, #059669 0%, #10b981 100%)" }}
                 >
