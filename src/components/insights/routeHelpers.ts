@@ -1,5 +1,4 @@
-import { isGoWild, normalizeAirport } from "./airportHelpers";
-import type { FlightSnapshot } from "./airportHelpers";
+import type { Itinerary, LimitedDataMeta } from "./insightTypes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -8,49 +7,61 @@ export type RouteStat = {
   origin: string;
   destination: string;
   goWildRate: number;
+  totalItineraries: number;
+  goWildItineraries: number;
+  avgSeats: number | null;
+  directShare: number; // 0..1
+  // back-compat aliases
   totalLegs: number;
   goWildLegs: number;
+};
+
+export type RouteStatsResult = LimitedDataMeta & {
+  rows: RouteStat[];
 };
 
 export type ReliableRoute = {
   route: string;
   origin: string;
   destination: string;
-  consistencyScore: number;
+  reliabilityScore: number; // 0..100 normalized for UI
+  rawReliabilityScore: number;
   goWildRate: number;
-  variance: number;
-  snapshotCount: number;
+  variance: number; // ± percentage points
+  snapshotDays: number;
+  sampleSize: number;
   limitedData: boolean;
+  // back-compat for existing card UI
+  consistencyScore: number;
+  snapshotCount: number;
 };
 
 export type FrequentRoute = {
   route: string;
   origin: string;
   destination: string;
-  goWildMatches: number;
-  snapshotCount: number;
+  goWildItineraries: number;
+  totalItineraries: number;
   currentRate: number;
   trend: "up" | "down" | "stable";
+  // back-compat
+  goWildMatches: number;
+  snapshotCount: number;
 };
 
 export type RouteAnalytics = {
-  topRoutes: RouteStat[];
-  worstRoutes: RouteStat[];
+  topRoutes: RouteStatsResult;
+  worstRoutes: RouteStatsResult;
   mostReliableRoute: ReliableRoute | null;
   mostFrequentGoWildRoute: FrequentRoute | null;
 };
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
-function getRouteKey(s: FlightSnapshot): string | null {
-  const origin = normalizeAirport(s.leg_origin_iata) ?? normalizeAirport(s.origin_iata);
-  const destination = normalizeAirport(s.leg_destination_iata);
-  if (!origin || !destination) return null;
-  return `${origin} → ${destination}`;
-}
+const ROUTE_THRESHOLD = 30;
+const RELIABILITY_MIN_DAYS = 7;
+const TARGET_RESULTS = 5;
 
 function snapshotDay(snapshot_at: string): string {
-  return snapshot_at.slice(0, 10); // "YYYY-MM-DD"
+  return snapshot_at.slice(0, 10);
 }
 
 function variance(values: number[]): number {
@@ -59,161 +70,198 @@ function variance(values: number[]): number {
   return values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
 }
 
-// ─── Route grouping ───────────────────────────────────────────────────────────
+// ─── Route grouping (itinerary-level) ───────────────────────────────────────
 
 type RouteEntry = {
   origin: string;
   destination: string;
   total: number;
   goWild: number;
-  // map of snapshot day → { total, goWild }
+  seats: number[];
+  directCount: number;
   byDay: Map<string, { total: number; goWild: number }>;
 };
 
-function buildRouteMap(snapshots: FlightSnapshot[]): Map<string, RouteEntry> {
+function buildRouteMap(itineraries: Itinerary[]): Map<string, RouteEntry> {
   const map = new Map<string, RouteEntry>();
 
-  for (const s of snapshots) {
-    const key = getRouteKey(s);
-    if (!key) continue;
-    const origin = normalizeAirport(s.leg_origin_iata) ?? normalizeAirport(s.origin_iata) ?? "";
-    const destination = normalizeAirport(s.leg_destination_iata) ?? "";
-
+  for (const it of itineraries) {
+    const key = it.routeLabel;
     if (!map.has(key)) {
-      map.set(key, { origin, destination, total: 0, goWild: 0, byDay: new Map() });
+      map.set(key, {
+        origin: it.origin,
+        destination: it.destination,
+        total: 0,
+        goWild: 0,
+        seats: [],
+        directCount: 0,
+        byDay: new Map(),
+      });
     }
     const e = map.get(key)!;
     e.total++;
-    const gw = isGoWild(s.has_go_wild);
-    if (gw) e.goWild++;
+    if (it.isDirect) e.directCount++;
+    if (it.isGoWildAvailable) {
+      e.goWild++;
+      if (it.availableSeats > 0) e.seats.push(it.availableSeats);
+    }
 
-    const day = snapshotDay(s.snapshot_at);
+    const day = snapshotDay(it.snapshotAt);
     if (!e.byDay.has(day)) e.byDay.set(day, { total: 0, goWild: 0 });
     const d = e.byDay.get(day)!;
     d.total++;
-    if (gw) d.goWild++;
+    if (it.isGoWildAvailable) d.goWild++;
   }
 
   return map;
 }
 
-// ─── Exported computation functions ──────────────────────────────────────────
+function entryToRouteStat(route: string, e: RouteEntry): RouteStat {
+  return {
+    route,
+    origin: e.origin,
+    destination: e.destination,
+    totalItineraries: e.total,
+    goWildItineraries: e.goWild,
+    goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
+    avgSeats:
+      e.seats.length > 0 ? e.seats.reduce((a, b) => a + b, 0) / e.seats.length : null,
+    directShare: e.total > 0 ? e.directCount / e.total : 0,
+    totalLegs: e.total,
+    goWildLegs: e.goWild,
+  };
+}
 
-export function computeRouteAnalytics(snapshots: FlightSnapshot[]): RouteAnalytics {
-  const map = buildRouteMap(snapshots);
+// ─── Public API ──────────────────────────────────────────────────────────────
 
-  const allStats: (RouteStat & { entry: RouteEntry })[] = Array.from(map.entries()).map(
-    ([route, e]) => ({
-      route,
-      origin: e.origin,
-      destination: e.destination,
-      totalLegs: e.total,
-      goWildLegs: e.goWild,
-      goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
-      entry: e,
-    })
+export function computeRouteAnalytics(itineraries: Itinerary[]): RouteAnalytics {
+  const map = buildRouteMap(itineraries);
+  const allWithEntry: { stat: RouteStat; entry: RouteEntry }[] = Array.from(map.entries()).map(
+    ([route, e]) => ({ stat: entryToRouteStat(route, e), entry: e })
   );
 
-  // Minimum sample filter — fall back to showing all if not enough qualify
-  const qualified = allStats.filter((s) => s.totalLegs >= 3);
-  const pool = qualified.length >= 1 ? qualified : allStats;
+  const all = allWithEntry.map((x) => x.stat);
 
-  // Top 5 — highest GoWild rate
-  const topRoutes: RouteStat[] = pool
-    .slice()
-    .sort((a, b) => b.goWildRate - a.goWildRate || b.goWildLegs - a.goWildLegs)
-    .slice(0, 5)
-    .map(({ route, origin, destination, goWildRate, totalLegs, goWildLegs }) => ({
-      route,
-      origin,
-      destination,
-      goWildRate,
-      totalLegs,
-      goWildLegs,
-    }));
+  const topSort = (a: RouteStat, b: RouteStat) =>
+    b.goWildRate - a.goWildRate ||
+    b.goWildItineraries - a.goWildItineraries ||
+    b.totalItineraries - a.totalItineraries;
 
-  // Worst 5 — lowest GoWild rate (must have at least 1 leg so we don't surface zero-data routes unfairly)
-  const worstRoutes: RouteStat[] = pool
-    .slice()
-    .sort((a, b) => a.goWildRate - b.goWildRate || b.totalLegs - a.totalLegs)
-    .slice(0, 5)
-    .map(({ route, origin, destination, goWildRate, totalLegs, goWildLegs }) => ({
-      route,
-      origin,
-      destination,
-      goWildRate,
-      totalLegs,
-      goWildLegs,
-    }));
+  const worstSort = (a: RouteStat, b: RouteStat) =>
+    a.goWildRate - b.goWildRate ||
+    b.totalItineraries - a.totalItineraries;
 
-  // Most Reliable — lowest variance across snapshot days (min 3 days preferred)
+  const qualified = all.filter((s) => s.totalItineraries >= ROUTE_THRESHOLD);
+
+  const buildResult = (sortFn: (a: RouteStat, b: RouteStat) => number): RouteStatsResult => {
+    if (qualified.length >= TARGET_RESULTS) {
+      return {
+        rows: qualified.slice().sort(sortFn).slice(0, TARGET_RESULTS),
+        limitedData: false,
+        qualifiedCount: qualified.length,
+        threshold: ROUTE_THRESHOLD,
+      };
+    }
+    return {
+      rows: all
+        .filter((s) => s.totalItineraries >= 3)
+        .slice()
+        .sort(sortFn)
+        .slice(0, TARGET_RESULTS),
+      limitedData: true,
+      qualifiedCount: qualified.length,
+      threshold: ROUTE_THRESHOLD,
+    };
+  };
+
+  const topRoutes = buildResult(topSort);
+  const worstRoutes = buildResult(worstSort);
+
+  // ─── Most Reliable Route ────────────────────────────────────────────────
   let mostReliableRoute: ReliableRoute | null = null;
   {
-    const candidates = allStats
-      .filter((s) => s.entry.byDay.size >= 1)
-      .map((s) => {
-        const dailyRates = Array.from(s.entry.byDay.values()).map((d) =>
-          d.total > 0 ? d.goWild / d.total : 0
-        );
-        const v = variance(dailyRates);
-        const limitedData = s.entry.byDay.size < 3;
-        // Consistency score: 0 variance → 100, 1.0 variance → 0
-        const consistencyScore = Math.round(Math.max(0, (1 - Math.sqrt(v)) * 100));
-        return { s, v, dailyRates, limitedData, consistencyScore };
-      })
-      .sort((a, b) => a.v - b.v || b.s.goWildLegs - a.s.goWildLegs);
+    type Cand = { x: { stat: RouteStat; entry: RouteEntry }; score: number; v: number; days: number };
+    const candidates: Cand[] = allWithEntry.map((x) => {
+      const dailyRates = Array.from(x.entry.byDay.values()).map((d) =>
+        d.total > 0 ? d.goWild / d.total : 0
+      );
+      const avg = dailyRates.length > 0
+        ? dailyRates.reduce((a, b) => a + b, 0) / dailyRates.length
+        : 0;
+      const v = variance(dailyRates);
+      const sample = x.entry.total;
+      const score = avg * Math.log10(sample + 1);
+      return { x, score, v, days: x.entry.byDay.size };
+    });
 
-    if (candidates.length > 0) {
-      const { s, v, limitedData, consistencyScore } = candidates[0];
+    const qualifiedReliable = candidates.filter(
+      (c) => c.days >= RELIABILITY_MIN_DAYS && c.x.entry.total >= ROUTE_THRESHOLD
+    );
+
+    const pool = qualifiedReliable.length > 0 ? qualifiedReliable : candidates;
+    const limitedReliable = qualifiedReliable.length === 0;
+
+    pool.sort((a, b) => b.score - a.score || a.v - b.v);
+
+    const top = pool[0];
+    if (top) {
+      const stat = top.x.stat;
+      const stdev = Math.sqrt(top.v);
+      // For UI: project rawScore (up to ~ log10(N+1)) to a 0..100 consistency display.
+      const consistency = Math.round(Math.max(0, Math.min(100, (1 - stdev) * 100)));
       mostReliableRoute = {
-        route: s.route,
-        origin: s.origin,
-        destination: s.destination,
-        consistencyScore,
-        goWildRate: s.goWildRate,
-        variance: Math.round(Math.sqrt(v) * 1000) / 10, // as ± percentage, 1 decimal
-        snapshotCount: s.entry.byDay.size,
-        limitedData,
+        route: stat.route,
+        origin: stat.origin,
+        destination: stat.destination,
+        reliabilityScore: Math.round(top.score * 100) / 100,
+        rawReliabilityScore: top.score,
+        goWildRate: stat.goWildRate,
+        variance: Math.round(stdev * 1000) / 10,
+        snapshotDays: top.days,
+        sampleSize: top.x.entry.total,
+        limitedData: limitedReliable,
+        // back-compat aliases for the existing card UI
+        consistencyScore: consistency,
+        snapshotCount: top.days,
       };
     }
   }
 
-  // Most Frequent GoWild — highest raw GoWild match count
+  // ─── Most Frequent GoWild Route ─────────────────────────────────────────
   let mostFrequentGoWildRoute: FrequentRoute | null = null;
   {
-    const sorted = allStats.slice().sort((a, b) => b.goWildLegs - a.goWildLegs);
-    if (sorted.length > 0) {
-      const top = sorted[0];
-      // Trend: compare last 7 days vs previous 7 days for that route
+    const sorted = allWithEntry
+      .slice()
+      .sort((a, b) => b.stat.goWildItineraries - a.stat.goWildItineraries);
+    const top = sorted[0];
+    if (top && top.stat.goWildItineraries > 0) {
+      // Compare current 7d window vs prior 7d on this route
       const now = Date.now();
       const day7 = 7 * 24 * 60 * 60 * 1000;
-      let currentPeriodGW = 0, currentPeriodTotal = 0;
-      let prevPeriodGW = 0, prevPeriodTotal = 0;
-
-      for (const s of snapshots) {
-        if (getRouteKey(s) !== top.route) continue;
-        const age = now - new Date(s.snapshot_at).getTime();
-        const gw = isGoWild(s.has_go_wild) ? 1 : 0;
-        if (age >= 0 && age < day7) { currentPeriodGW += gw; currentPeriodTotal++; }
-        else if (age >= day7 && age < 2 * day7) { prevPeriodGW += gw; prevPeriodTotal++; }
+      let curGW = 0, curT = 0, prevGW = 0, prevT = 0;
+      for (const it of itineraries) {
+        if (it.routeLabel !== top.stat.route) continue;
+        const age = now - new Date(it.snapshotAt).getTime();
+        const gw = it.isGoWildAvailable ? 1 : 0;
+        if (age >= 0 && age < day7) { curGW += gw; curT++; }
+        else if (age >= day7 && age < 2 * day7) { prevGW += gw; prevT++; }
       }
-
       let trend: "up" | "down" | "stable" = "stable";
-      if (currentPeriodTotal > 0 && prevPeriodTotal > 0) {
-        const diff =
-          currentPeriodGW / currentPeriodTotal - prevPeriodGW / prevPeriodTotal;
+      if (curT > 0 && prevT > 0) {
+        const diff = curGW / curT - prevGW / prevT;
         if (diff > 0.05) trend = "up";
         else if (diff < -0.05) trend = "down";
       }
-
       mostFrequentGoWildRoute = {
-        route: top.route,
-        origin: top.origin,
-        destination: top.destination,
-        goWildMatches: top.goWildLegs,
-        snapshotCount: top.entry.byDay.size,
-        currentRate: top.goWildRate,
+        route: top.stat.route,
+        origin: top.stat.origin,
+        destination: top.stat.destination,
+        goWildItineraries: top.stat.goWildItineraries,
+        totalItineraries: top.stat.totalItineraries,
+        currentRate: top.stat.goWildRate,
         trend,
+        goWildMatches: top.stat.goWildItineraries,
+        snapshotCount: top.entry.byDay.size,
       };
     }
   }
