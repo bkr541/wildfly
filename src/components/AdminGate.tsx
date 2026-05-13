@@ -15,43 +15,48 @@ import AuthPage from "@/components/AuthPage";
  */
 const AdminGate = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
-  const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const userId = user?.id;
+  // checkState: 'idle' before we've verified, 'admin' once verified, 'denied' if not admin.
+  // We deliberately do NOT flip back to a loading placeholder on subsequent
+  // auth events (e.g. TOKEN_REFRESHED) — that would unmount children mid-task.
+  const [checkState, setCheckState] = useState<"idle" | "admin" | "denied">("idle");
 
   useEffect(() => {
     let active = true;
     if (loading) return;
-    if (!user) {
-      setChecking(false);
-      setIsAdmin(false);
+    if (!userId) {
+      setCheckState("idle");
       return;
     }
-    setChecking(true);
+    // Only verify once per signed-in user id.
     supabase
       .from("developer_allowlist")
       .select("user_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        setIsAdmin(!!data);
-        setChecking(false);
+        setCheckState(data ? "admin" : "denied");
       });
     return () => {
       active = false;
     };
-  }, [user, loading]);
+  }, [userId, loading]);
 
-  if (loading || (user && checking)) {
+  if (loading) {
     return <div className="min-h-screen" />;
   }
 
-  if (!user) {
+  if (!userId) {
     return <AuthPage onSignIn={() => { /* re-render via auth state */ }} />;
   }
 
-  if (!isAdmin) {
+  if (checkState === "denied") {
     return <Navigate to="/" replace />;
+  }
+
+  if (checkState === "idle") {
+    return <div className="min-h-screen" />;
   }
 
   return <>{children}</>;

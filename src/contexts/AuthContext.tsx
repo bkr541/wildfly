@@ -27,9 +27,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    // Keep in sync with auth state changes (reads from memory/storage)
+    // Keep in sync with auth state changes (reads from memory/storage).
+    // IMPORTANT: only swap the user object when the identity actually changes.
+    // TOKEN_REFRESHED / USER_UPDATED fire frequently and would otherwise
+    // produce a new `user` reference on every refresh, causing any consumer
+    // with `[user]` in a useEffect dep array (e.g. AdminGate) to re-run and
+    // potentially unmount its children mid-operation.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+      const nextUser = session?.user ?? null;
+      setUser((prev) => {
+        if (prev?.id === nextUser?.id) return prev;
+        return nextUser;
+      });
       if (event === "SIGNED_IN" && session?.user) {
         // Fire-and-forget: stamp last_login in UTC. Defer to avoid deadlocks in the auth callback.
         const uid = session.user.id;
