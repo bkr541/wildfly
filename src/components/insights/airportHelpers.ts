@@ -1,3 +1,8 @@
+// Itinerary-level airport stats. Used by Top Origin / Top Destination cards.
+import type { Itinerary, LimitedDataMeta } from "./insightTypes";
+
+// Re-export legacy leg-level types so existing imports keep working.
+// These are kept for the (leg-level) availability heatmap card.
 export type FlightSnapshot = {
   id: string;
   flight_search_id?: string | null;
@@ -24,12 +29,19 @@ export type Confidence = "high" | "medium" | "low";
 
 export type AirportStat = {
   code: string;
-  totalLegs: number;
-  goWildLegs: number;
+  totalItineraries: number;
+  goWildItineraries: number;
   goWildRate: number;
   avgSeats: number | null;
-  avgSavings: number | null;
   confidence: Confidence;
+  // Back-compat aliases (some legacy components still read these)
+  totalLegs: number;
+  goWildLegs: number;
+  avgSavings: number | null;
+};
+
+export type AirportStatsResult = LimitedDataMeta & {
+  rows: AirportStat[];
 };
 
 export type HeatmapCell = {
@@ -44,6 +56,8 @@ export type HeatmapRow = {
 };
 
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const ORIGIN_DEST_THRESHOLD = 30;
+const TARGET_RESULTS = 5;
 
 export function isGoWild(value: boolean | string | number | null | undefined): boolean {
   if (value === true || value === 1) return true;
@@ -72,9 +86,9 @@ export function getFilteredSnapshots(snapshots: FlightSnapshot[], dateRange?: Da
   return snapshots.filter((s) => inDateRange(s.snapshot_at, dateRange));
 }
 
-export function getAirportConfidence(totalLegs: number): Confidence {
-  if (totalLegs >= 20) return "high";
-  if (totalLegs >= 8) return "medium";
+export function getAirportConfidence(total: number): Confidence {
+  if (total >= 30) return "high";
+  if (total >= 10) return "medium";
   return "low";
 }
 
@@ -86,57 +100,86 @@ export function getWeekdayFromDeparture(departure_at: string | null | undefined)
   if (!departure_at) return null;
   const d = new Date(departure_at);
   if (isNaN(d.getTime())) return null;
-  const day = d.getDay(); // 0=Sun … 6=Sat
-  return day === 0 ? 6 : day - 1; // Mon=0 … Sun=6
+  const day = d.getDay();
+  return day === 0 ? 6 : day - 1;
 }
 
-function buildAirportStats(
-  snapshots: FlightSnapshot[],
-  getCode: (s: FlightSnapshot) => string | null
-): AirportStat[] {
-  type Entry = { total: number; goWild: number; seats: number[]; savings: number[] };
+// ─── Itinerary-level airport calculations ────────────────────────────────────
+
+function buildAirportStatsFromItineraries(
+  itineraries: Itinerary[],
+  pick: (it: Itinerary) => string
+): AirportStatsResult {
+  type Entry = { total: number; goWild: number; seats: number[] };
   const map = new Map<string, Entry>();
 
-  for (const s of snapshots) {
-    const code = getCode(s);
+  for (const it of itineraries) {
+    const code = pick(it);
     if (!code) continue;
-    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, seats: [], savings: [] });
+    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, seats: [] });
     const e = map.get(code)!;
     e.total++;
-    if (isGoWild(s.has_go_wild)) {
+    if (it.isGoWildAvailable) {
       e.goWild++;
-      if (s.go_wild_available_seats != null) e.seats.push(s.go_wild_available_seats);
-      if (s.standard_total != null && s.go_wild_total != null)
-        e.savings.push(s.standard_total - s.go_wild_total);
+      if (it.availableSeats > 0) e.seats.push(it.availableSeats);
     }
   }
 
-  return Array.from(map.entries())
-    .map(([code, d]): AirportStat => ({
-      code,
-      totalLegs: d.total,
-      goWildLegs: d.goWild,
-      goWildRate: d.total > 0 ? (d.goWild / d.total) * 100 : 0,
-      avgSeats: d.seats.length > 0 ? d.seats.reduce((a, b) => a + b, 0) / d.seats.length : null,
-      avgSavings: d.savings.length > 0 ? d.savings.reduce((a, b) => a + b, 0) / d.savings.length : null,
-      confidence: getAirportConfidence(d.total),
-    }))
-    .filter((s) => s.totalLegs >= 3)
-    .sort((a, b) => b.goWildRate - a.goWildRate || b.goWildLegs - a.goWildLegs || b.totalLegs - a.totalLegs)
-    .slice(0, 5);
+  const all: AirportStat[] = Array.from(map.entries()).map(([code, d]) => ({
+    code,
+    totalItineraries: d.total,
+    goWildItineraries: d.goWild,
+    goWildRate: d.total > 0 ? (d.goWild / d.total) * 100 : 0,
+    avgSeats:
+      d.seats.length > 0 ? d.seats.reduce((a, b) => a + b, 0) / d.seats.length : null,
+    confidence: getAirportConfidence(d.total),
+    // back-compat aliases
+    totalLegs: d.total,
+    goWildLegs: d.goWild,
+    avgSavings: null,
+  }));
+
+  const sortFn = (a: AirportStat, b: AirportStat) =>
+    b.goWildRate - a.goWildRate ||
+    b.goWildItineraries - a.goWildItineraries ||
+    b.totalItineraries - a.totalItineraries;
+
+  const qualified = all.filter((s) => s.totalItineraries >= ORIGIN_DEST_THRESHOLD);
+
+  if (qualified.length >= TARGET_RESULTS) {
+    return {
+      rows: qualified.sort(sortFn).slice(0, TARGET_RESULTS),
+      limitedData: false,
+      qualifiedCount: qualified.length,
+      threshold: ORIGIN_DEST_THRESHOLD,
+    };
+  }
+
+  // Fallback: not enough qualified — show best available, flag limited data.
+  return {
+    rows: all
+      .filter((s) => s.totalItineraries >= 3)
+      .sort(sortFn)
+      .slice(0, TARGET_RESULTS),
+    limitedData: true,
+    qualifiedCount: qualified.length,
+    threshold: ORIGIN_DEST_THRESHOLD,
+  };
 }
 
-export function getOriginAirportStats(snapshots: FlightSnapshot[]): AirportStat[] {
-  return buildAirportStats(snapshots, (s) =>
-    normalizeAirport(s.leg_origin_iata) ?? normalizeAirport(s.origin_iata)
-  );
+export function getOriginAirportStatsFromItineraries(
+  itineraries: Itinerary[]
+): AirportStatsResult {
+  return buildAirportStatsFromItineraries(itineraries, (it) => it.origin);
 }
 
-export function getDestinationAirportStats(snapshots: FlightSnapshot[]): AirportStat[] {
-  return buildAirportStats(snapshots, (s) =>
-    normalizeAirport(s.leg_destination_iata) ?? normalizeAirport(s.destination_iata)
-  );
+export function getDestinationAirportStatsFromItineraries(
+  itineraries: Itinerary[]
+): AirportStatsResult {
+  return buildAirportStatsFromItineraries(itineraries, (it) => it.destination);
 }
+
+// ─── Legacy leg-level heatmap (kept for the operational availability heatmap) ─
 
 export function getHeatmapData(snapshots: FlightSnapshot[]): HeatmapRow[] {
   type AirportEntry = { total: number; cells: { total: number; goWild: number }[] };
