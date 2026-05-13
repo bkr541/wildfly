@@ -12,6 +12,7 @@ import {
   Refresh01Icon,
   Analytics01Icon,
   Settings01Icon,
+  Alert01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFlightSearch } from "@/lib/flightApi";
@@ -204,6 +205,7 @@ export default function AdminBulkSearch() {
   const [allDestCollapsed, setAllDestCollapsed]           = useState(false);
   const [conditionsCollapsed, setConditionsCollapsed]     = useState(false);
   const [breakdownCollapsed, setBreakdownCollapsed]       = useState(false);
+  const [failedCollapsed, setFailedCollapsed]             = useState(false);
 
   // toolbar state
   const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
@@ -683,6 +685,44 @@ export default function AdminBulkSearch() {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Failed Searches group */}
+        {errCount > 0 && (
+          <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+            <button
+              type="button"
+              onClick={() => setFailedCollapsed((v) => !v)}
+              className="w-full flex items-center gap-2 px-5 py-4 text-left border-b border-[#FEE2E2]"
+            >
+              <HugeiconsIcon icon={Alert01Icon} size={28} color="#ef4444" strokeWidth={1.5} className="shrink-0" />
+              <div className="flex-1">
+                <p className="text-base font-semibold text-[#ef4444] uppercase tracking-wider">Failed Searches</p>
+                <p className="text-xs text-[#6B7B7B]">{errCount} airport{errCount !== 1 ? "s" : ""} could not be searched</p>
+              </div>
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={16}
+                color="#9CA3AF"
+                strokeWidth={2}
+                className="shrink-0 transition-transform duration-200 mt-0.5"
+                style={{ transform: failedCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+              />
+            </button>
+            {!failedCollapsed && (
+              <div className="divide-y divide-[#FEE2E2]">
+                {results.filter((r) => r.status === "error").map((r) => (
+                  <div key={r.origin} className="flex items-center px-5 py-3" style={{ background: "rgba(254,242,242,0.5)" }}>
+                    <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={28} color="#ef4444" strokeWidth={1.5} className="shrink-0" />
+                    <div className="flex-1 ml-2 min-w-0">
+                      <p className="text-base font-semibold uppercase tracking-wider leading-tight text-[#ef4444]">{r.origin}</p>
+                      <p className="text-xs text-[#6B7B7B] truncate">{r.name}{r.errorMessage ? ` · ${r.errorMessage}` : ""}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
