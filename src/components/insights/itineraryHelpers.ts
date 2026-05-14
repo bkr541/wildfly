@@ -207,3 +207,122 @@ export function getOriginItineraryStats(itineraries: Itinerary[]): AirportStatsR
 export function getDestinationItineraryStats(itineraries: Itinerary[]): AirportStatsResult {
   return applyThreshold(buildAirportItineraryStats(itineraries, (i) => i.destination));
 }
+
+// ─── Route-level itinerary analytics ─────────────────────────────────────────
+
+export type ItineraryRouteStat = {
+  route: string;
+  routeKey: string;
+  origin: string;
+  destination: string;
+  totalItineraries: number;
+  goWildItineraries: number;
+  goWildRate: number; // 0-100
+  avgSeats: number | null;
+  directCount: number;
+  connectingCount: number;
+};
+
+export type RouteStatsResult = {
+  routes: ItineraryRouteStat[];
+  limited: boolean;
+};
+
+export const ROUTE_MIN_ITINERARIES = 30;
+
+function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[] {
+  type Entry = {
+    origin: string;
+    destination: string;
+    routeLabel: string;
+    total: number;
+    goWild: number;
+    seats: number[];
+    direct: number;
+    connecting: number;
+  };
+  const map = new Map<string, Entry>();
+
+  for (const it of itineraries) {
+    const key = it.routeKey;
+    if (!key || !it.origin || !it.destination) continue;
+    if (!map.has(key)) {
+      map.set(key, {
+        origin: it.origin,
+        destination: it.destination,
+        routeLabel: it.routeLabel,
+        total: 0,
+        goWild: 0,
+        seats: [],
+        direct: 0,
+        connecting: 0,
+      });
+    }
+    const e = map.get(key)!;
+    e.total++;
+    if (it.legs.length <= 1) e.direct++;
+    else e.connecting++;
+    if (it.isGoWildAvailable) {
+      e.goWild++;
+      e.seats.push(it.availableSeats);
+    }
+  }
+
+  return Array.from(map.entries()).map(([routeKey, e]) => ({
+    route: e.routeLabel,
+    routeKey,
+    origin: e.origin,
+    destination: e.destination,
+    totalItineraries: e.total,
+    goWildItineraries: e.goWild,
+    goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
+    avgSeats: avgOrNull(e.seats),
+    directCount: e.direct,
+    connectingCount: e.connecting,
+  }));
+}
+
+function applyRouteThreshold(
+  all: ItineraryRouteStat[],
+  comparator: (a: ItineraryRouteStat, b: ItineraryRouteStat) => number
+): RouteStatsResult {
+  const sortedAll = [...all].sort(comparator);
+  const qualified = sortedAll.filter((r) => r.totalItineraries >= ROUTE_MIN_ITINERARIES);
+  if (qualified.length >= MIN_QUALIFIED_RESULTS) {
+    return { routes: qualified.slice(0, TOP_N), limited: false };
+  }
+  return { routes: sortedAll.slice(0, TOP_N), limited: true };
+}
+
+export function getTopItineraryRoutes(itineraries: Itinerary[]): RouteStatsResult {
+  return applyRouteThreshold(
+    buildItineraryRouteStats(itineraries),
+    (a, b) =>
+      b.goWildRate - a.goWildRate ||
+      b.goWildItineraries - a.goWildItineraries ||
+      b.totalItineraries - a.totalItineraries
+  );
+}
+
+export function getWorstItineraryRoutes(itineraries: Itinerary[]): RouteStatsResult {
+  return applyRouteThreshold(
+    buildItineraryRouteStats(itineraries),
+    (a, b) =>
+      a.goWildRate - b.goWildRate ||
+      b.totalItineraries - a.totalItineraries
+  );
+}
+
+export function getMostFrequentGoWildItineraryRoute(
+  itineraries: Itinerary[]
+): ItineraryRouteStat | null {
+  const stats = buildItineraryRouteStats(itineraries).filter((r) => r.goWildItineraries > 0);
+  if (stats.length === 0) return null;
+  stats.sort(
+    (a, b) =>
+      b.goWildItineraries - a.goWildItineraries ||
+      b.goWildRate - a.goWildRate ||
+      b.totalItineraries - a.totalItineraries
+  );
+  return stats[0];
+}
