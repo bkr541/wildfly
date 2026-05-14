@@ -2,10 +2,11 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Location01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import {
-  getDestinationAirportStats,
-  formatPercent,
-  type FlightSnapshot,
-} from "./airportHelpers";
+  getDestinationItineraryStats,
+  type ItineraryAirportStat,
+} from "./itineraryHelpers";
+import type { Itinerary } from "./insightTypes";
+import { formatPercent } from "./airportHelpers";
 import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
@@ -18,41 +19,45 @@ function barColor(rate: number): string {
   return "bg-emerald-600";
 }
 
-
 interface Props {
-  snapshots: FlightSnapshot[];
+  itineraries: Itinerary[];
   airportDict?: AirportDict;
 }
 
-const TopDestinationAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
+const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const stats = getDestinationAirportStats(snapshots);
+  const { stats, limited } = getDestinationItineraryStats(itineraries);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
-      {/* Header */}
       <div
         className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
         onClick={() => setIsExpanded((v) => !v)}
       >
         <HugeiconsIcon icon={Location01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
         <div className="flex-1 ml-2">
-          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Destination Airports</p>
-          <p className="text-xs text-[#6B7B7B]">Highest arrival GoWild rate</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Destination Airports</p>
+            {limited && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                Limited data
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-[#6B7B7B]">Highest arrival GoWild rate (itinerary-level)</p>
         </div>
         <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
 
-      {/* Collapsible body */}
       <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
           {stats.length === 0 ? (
             <p className="text-sm text-[#9CA3AF] text-center py-6">No destination airport data yet</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {stats.map((stat) => {
+              {stats.map((stat: ItineraryAirportStat) => {
                 const info = airportDict[stat.code];
                 const cityLabel = info?.name ?? null;
                 return (
@@ -77,11 +82,15 @@ const TopDestinationAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
                       />
                     </div>
                     <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                      {stat.goWildLegs} / {stat.totalLegs} legs
+                      {stat.goWildItineraries} / {stat.totalItineraries} itineraries
+                      {stat.avgSeats !== null && ` · avg ${Math.round(stat.avgSeats)} seats`}
                     </p>
                   </div>
                 );
               })}
+              <p className="text-[11px] text-[#9CA3AF] mt-1 leading-snug">
+                Connecting itineraries count as GoWild-available only when every leg is GoWild-available. Seat availability uses the lowest seat count across the itinerary.
+              </p>
             </div>
           )}
         </div>

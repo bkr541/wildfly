@@ -24,6 +24,7 @@ import {
   Analytics01Icon,
 } from "@hugeicons/core-free-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
+import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
@@ -1468,7 +1469,7 @@ function GoWildInsightsView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <GoWildSnapshotCard snapshots={snapshots as any} />
+      <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} />
       <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
       <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
       <GoWildTimingAnalyticsSection snapshots={snapshots} />

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Airplane01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import {
-  getOriginAirportStats,
-  formatPercent,
-  type FlightSnapshot,
-} from "./airportHelpers";
+  getOriginItineraryStats,
+  type ItineraryAirportStat,
+} from "./itineraryHelpers";
+import type { Itinerary } from "./insightTypes";
+import { formatPercent } from "./airportHelpers";
 import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
@@ -18,41 +19,45 @@ function barColor(rate: number): string {
   return "bg-emerald-600";
 }
 
-
 interface Props {
-  snapshots: FlightSnapshot[];
+  itineraries: Itinerary[];
   airportDict?: AirportDict;
 }
 
-const TopOriginAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
+const TopOriginAirportsCard = ({ itineraries, airportDict = {} }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const stats = getOriginAirportStats(snapshots);
+  const { stats, limited } = getOriginItineraryStats(itineraries);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
-      {/* Header */}
       <div
         className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
         onClick={() => setIsExpanded((v) => !v)}
       >
         <HugeiconsIcon icon={Airplane01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
         <div className="flex-1 ml-2">
-          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Origin Airports</p>
-          <p className="text-xs text-[#6B7B7B]">Highest departure GoWild rate</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Origin Airports</p>
+            {limited && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                Limited data
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-[#6B7B7B]">Highest departure GoWild rate (itinerary-level)</p>
         </div>
         <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
 
-      {/* Collapsible body */}
       <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
           {stats.length === 0 ? (
             <p className="text-sm text-[#9CA3AF] text-center py-6">No origin airport data yet</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {stats.map((stat) => {
+              {stats.map((stat: ItineraryAirportStat) => {
                 const info = airportDict[stat.code];
                 const cityLabel = info?.name ?? null;
                 return (
@@ -77,11 +82,15 @@ const TopOriginAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
                       />
                     </div>
                     <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                      {stat.goWildLegs} / {stat.totalLegs} legs
+                      {stat.goWildItineraries} / {stat.totalItineraries} itineraries
+                      {stat.avgSeats !== null && ` · avg ${Math.round(stat.avgSeats)} seats`}
                     </p>
                   </div>
                 );
               })}
+              <p className="text-[11px] text-[#9CA3AF] mt-1 leading-snug">
+                Connecting itineraries count as GoWild-available only when every leg is GoWild-available. Seat availability uses the lowest seat count across the itinerary.
+              </p>
             </div>
           )}
         </div>
