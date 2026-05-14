@@ -83,6 +83,16 @@ const GoWildInsightsPage = () => {
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
+      <div
+        className="rounded-2xl bg-white px-4 py-3 text-xs leading-relaxed text-gray-600"
+        style={{ boxShadow: CARD_SHADOW }}
+      >
+        Insights are calculated from itinerary-level results in the selected period.
+        Connecting itineraries count as GoWild-available only when every leg is
+        GoWild-available. Seat availability uses the lowest seat count across the
+        itinerary.
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {PERIODS.map((p) => (
           <button
