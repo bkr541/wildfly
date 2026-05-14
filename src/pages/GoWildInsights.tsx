@@ -13,7 +13,7 @@ const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
 const SELECT_FIELDS =
-  "id, source_itinerary_id, leg_index, origin_iata, destination_iata, leg_origin_iata, leg_destination_iata, departure_at, arrival_at, snapshot_at, has_go_wild, go_wild_available_seats, go_wild_total, standard_total, flight_search_id";
+  "id, source_itinerary_id, leg_index, origin_iata, leg_origin_iata, leg_destination_iata, departure_at, arrival_at, snapshot_at, has_go_wild, go_wild_available_seats, go_wild_total, standard_total, flight_search_id";
 
 type PeriodKey = "24h" | "7d" | "30d" | "all";
 
