@@ -24,6 +24,7 @@ import {
   Analytics01Icon,
 } from "@hugeicons/core-free-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
+import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
