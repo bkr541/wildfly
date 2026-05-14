@@ -1,7 +1,12 @@
 import { useMemo } from "react";
 import { AnalyticsUpIcon, AnalyticsDownIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import SeatAvailabilityCard from "./SeatAvailabilityCard";
-import { computeSeatAnalytics, type SeatAnalytics } from "./seatHelpers";
+import {
+  groupLegsIntoItineraries,
+  getMostSeatsItineraryRoutes,
+  getLowestSeatsItineraryRoutes,
+  getSeatItineraryAirportStats,
+} from "./itineraryHelpers";
 import { type FlightSnapshot } from "./airportHelpers";
 import { type AirportDict } from "@/hooks/useAirportDictionary";
 
@@ -11,30 +16,35 @@ interface Props {
 }
 
 const SeatAvailabilityIntelligence = ({ snapshots, airportDict }: Props) => {
-  const analytics: SeatAnalytics = useMemo(() => computeSeatAnalytics(snapshots), [snapshots]);
+  const itineraries = useMemo(() => groupLegsIntoItineraries(snapshots as any), [snapshots]);
+  const most = useMemo(() => getMostSeatsItineraryRoutes(itineraries), [itineraries]);
+  const lowest = useMemo(() => getLowestSeatsItineraryRoutes(itineraries), [itineraries]);
+  const airportStats = useMemo(() => getSeatItineraryAirportStats(itineraries), [itineraries]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SeatAvailabilityCard
         title="Most Seats Available"
-        subtitle="Routes with highest avg GoWild seats"
+        subtitle="Routes with highest avg GoWild itinerary seats in the selected period"
         icon={AnalyticsUpIcon}
         variant="most-seats"
-        rows={analytics.routesWithMostSeats}
+        rows={most.stats}
+        limited={most.limited}
       />
       <SeatAvailabilityCard
         title="Lowest Seat Availability"
-        subtitle="Routes with fewest avg GoWild seats"
+        subtitle="Routes with fewest avg GoWild itinerary seats in the selected period"
         icon={AnalyticsDownIcon}
         variant="lowest-seats"
-        rows={analytics.routesWithLowestSeats}
+        rows={lowest.stats}
+        limited={lowest.limited}
       />
       <SeatAvailabilityCard
         title="GoWild Seats Available"
-        subtitle="Avg GoWild seats by departure airport"
+        subtitle="Avg GoWild itinerary seats by departure airport"
         icon={Location01Icon}
         variant="airport-average"
-        rows={analytics.airportAverages}
+        rows={airportStats}
         airportDict={airportDict}
       />
     </div>

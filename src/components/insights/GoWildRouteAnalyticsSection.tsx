@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { computeRouteAnalytics } from "./routeHelpers";
 import {
   groupLegsIntoItineraries,
   getTopItineraryRoutes,
   getWorstItineraryRoutes,
   getMostFrequentGoWildItineraryRoute,
+  getMostReliableItineraryRoute,
 } from "./itineraryHelpers";
 import { getFilteredSnapshots } from "./airportHelpers";
 import type { AirportInsightsProps } from "./airportHelpers";
@@ -25,15 +25,14 @@ const GoWildRouteAnalyticsSection = ({ snapshots, dateRange, airportDict }: Prop
     () => getMostFrequentGoWildItineraryRoute(itineraries),
     [itineraries]
   );
-  // Reliability still uses leg-level analytics (untouched per spec).
-  const legAnalytics = useMemo(() => computeRouteAnalytics(filtered), [filtered]);
+  const reliable = useMemo(() => getMostReliableItineraryRoute(itineraries), [itineraries]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <TopRoutesCard routes={top.routes} limited={top.limited} />
       <WorstRoutesCard routes={worst.routes} limited={worst.limited} />
       <MostFrequentGoWildRouteCard data={mostFrequent} />
-      <MostReliableRouteCard data={legAnalytics.mostReliableRoute} airportDict={airportDict} />
+      <MostReliableRouteCard data={reliable} airportDict={airportDict} />
     </div>
   );
 };
