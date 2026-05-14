@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Airplane01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import { formatPercent, type AirportStat, type AirportStatsResult } from "./airportHelpers";
+import {
+  getOriginAirportStats,
+  formatPercent,
+  type FlightSnapshot,
+} from "./airportHelpers";
 import { type AirportDict } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
@@ -14,56 +18,66 @@ function barColor(rate: number): string {
   return "bg-emerald-600";
 }
 
+
 interface Props {
-  result?: AirportStatsResult;
+  snapshots: FlightSnapshot[];
   airportDict?: AirportDict;
 }
 
-const TopOriginAirportsCard = ({ result, airportDict = {} }: Props) => {
+const TopOriginAirportsCard = ({ snapshots, airportDict = {} }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const stats: AirportStat[] = result?.rows ?? [];
-  const limited = result?.limitedData ?? false;
+  const stats = getOriginAirportStats(snapshots);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
-      <div className={`flex items-center justify-between cursor-pointer ${isExpanded ? "mb-4" : ""}`}
-        onClick={() => setIsExpanded((v) => !v)}>
-        <HugeiconsIcon icon={Airplane01Icon} size={28} color="#059669" strokeWidth={1.5} />
+      {/* Header */}
+      <div
+        className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
+        onClick={() => setIsExpanded((v) => !v)}
+      >
+        <HugeiconsIcon icon={Airplane01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
         <div className="flex-1 ml-2">
-          <div className="flex items-center gap-2">
-            <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Origin Airports</p>
-            {limited && <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Limited data</span>}
-          </div>
-          <p className="text-xs text-[#6B7B7B]">By itinerary GoWild rate (≥{result?.threshold ?? 30} itineraries)</p>
+          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Origin Airports</p>
+          <p className="text-xs text-[#6B7B7B]">Highest departure GoWild rate</p>
         </div>
-        <div className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+        <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
         </div>
       </div>
-      <div className={`grid transition-all duration-300 ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+
+      {/* Collapsible body */}
+      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
           {stats.length === 0 ? (
             <p className="text-sm text-[#9CA3AF] text-center py-6">No origin airport data yet</p>
           ) : (
             <div className="flex flex-col gap-3">
               {stats.map((stat) => {
-                const cityLabel = airportDict[stat.code]?.name ?? null;
+                const info = airportDict[stat.code];
+                const cityLabel = info?.name ?? null;
                 return (
                   <div key={stat.code}>
                     <div className="flex items-center justify-between">
-                      <div className="flex flex-col leading-none">
-                        <span className="text-2xl font-bold text-[#2E4A4A]">{stat.code}</span>
-                        {cityLabel && <span className="text-[11px] text-[#9CA3AF] mt-0.5">{cityLabel}</span>}
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex flex-col leading-none">
+                          <span className="text-2xl font-bold text-[#2E4A4A]">{stat.code}</span>
+                          {cityLabel && (
+                            <span className="text-[11px] text-[#9CA3AF] mt-0.5">{cityLabel}</span>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-2xl font-semibold text-green-600">{formatPercent(stat.goWildRate)}</span>
+                      <span className="text-2xl font-semibold text-green-600">
+                        {formatPercent(stat.goWildRate)}
+                      </span>
                     </div>
                     <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                      <div className={`h-full rounded-full ${barColor(stat.goWildRate)}`}
-                        style={{ width: `${Math.min(stat.goWildRate, 100)}%` }} />
+                      <div
+                        className={`h-full rounded-full transition-all ${barColor(stat.goWildRate)}`}
+                        style={{ width: `${Math.min(stat.goWildRate, 100)}%` }}
+                      />
                     </div>
                     <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                      {stat.goWildItineraries} / {stat.totalItineraries} itineraries
-                      {stat.avgSeats !== null ? ` · avg ${stat.avgSeats.toFixed(1)} seats` : ""}
+                      {stat.goWildLegs} / {stat.totalLegs} legs
                     </p>
                   </div>
                 );

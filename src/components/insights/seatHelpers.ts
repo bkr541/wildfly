@@ -1,4 +1,4 @@
-import type { Itinerary, LimitedDataMeta } from "./insightTypes";
+import { isGoWild, normalizeAirport, type FlightSnapshot } from "./airportHelpers";
 
 export type SeatRating = "high" | "medium" | "low";
 
@@ -7,12 +7,8 @@ export type SeatRouteRow = {
   rating: SeatRating;
   averageSeats: number;
   totalAvailableSeats: number;
-  goWildItineraryCount: number;
-  maxSeatsSeen: number;
-  totalItineraries: number;
-  goWildRate: number;
-  // back-compat
   goWildLegCount: number;
+  maxSeatsSeen: number;
   limitedData: boolean;
 };
 
@@ -21,21 +17,15 @@ export type SeatAirportRow = {
   rating: SeatRating;
   averageSeats: number;
   totalAvailableSeats: number;
-  goWildItineraryCount: number;
-  routeCount: number;
-  // back-compat
   goWildLegCount: number;
+  routeCount: number;
 };
 
 export type SeatAnalytics = {
   routesWithMostSeats: SeatRouteRow[];
   routesWithLowestSeats: SeatRouteRow[];
   airportAverages: SeatAirportRow[];
-  meta: LimitedDataMeta;
 };
-
-const SEAT_THRESHOLD = 10; // GoWild itineraries per route
-const TARGET_RESULTS = 5;
 
 export function getSeatRating(avg: number): SeatRating {
   if (avg >= 5) return "high";
@@ -43,103 +33,74 @@ export function getSeatRating(avg: number): SeatRating {
   return "low";
 }
 
-export function computeSeatAnalytics(itineraries: Itinerary[]): SeatAnalytics {
-  type RouteEntry = {
-    seats: number[];
-    total: number;
-    max: number;
-    totalItineraries: number;
-    goWild: number;
-  };
-  type AirportEntry = { seats: number[]; total: number; routes: Set<string>; goWild: number };
+export function computeSeatAnalytics(snapshots: FlightSnapshot[]): SeatAnalytics {
+  type RouteEntry = { total: number; count: number; max: number };
+  type AirportEntry = { total: number; count: number; routes: Set<string> };
 
   const routeMap = new Map<string, RouteEntry>();
   const airportMap = new Map<string, AirportEntry>();
 
-  for (const it of itineraries) {
-    const routeKey = it.routeLabel;
-    if (!routeMap.has(routeKey)) {
-      routeMap.set(routeKey, { seats: [], total: 0, max: 0, totalItineraries: 0, goWild: 0 });
-    }
-    const re = routeMap.get(routeKey)!;
-    re.totalItineraries++;
-    if (it.isGoWildAvailable && it.availableSeats > 0) {
-      re.seats.push(it.availableSeats);
-      re.total += it.availableSeats;
-      re.max = Math.max(re.max, it.availableSeats);
-      re.goWild++;
-    }
+  for (const s of snapshots) {
+    if (!isGoWild(s.has_go_wild)) continue;
+    if (s.go_wild_available_seats == null || s.go_wild_available_seats <= 0) continue;
 
-    if (!airportMap.has(it.origin))
-      airportMap.set(it.origin, { seats: [], total: 0, routes: new Set(), goWild: 0 });
-    const ae = airportMap.get(it.origin)!;
-    if (it.isGoWildAvailable && it.availableSeats > 0) {
-      ae.seats.push(it.availableSeats);
-      ae.total += it.availableSeats;
-      ae.routes.add(routeKey);
-      ae.goWild++;
-    }
+    const origin = normalizeAirport(s.leg_origin_iata);
+    const dest = normalizeAirport(s.leg_destination_iata);
+    if (!origin || !dest) continue;
+
+    const routeKey = `${origin} → ${dest}`;
+    const seats = s.go_wild_available_seats;
+
+    if (!routeMap.has(routeKey)) routeMap.set(routeKey, { total: 0, count: 0, max: 0 });
+    const re = routeMap.get(routeKey)!;
+    re.total += seats;
+    re.count++;
+    re.max = Math.max(re.max, seats);
+
+    if (!airportMap.has(origin)) airportMap.set(origin, { total: 0, count: 0, routes: new Set() });
+    const ae = airportMap.get(origin)!;
+    ae.total += seats;
+    ae.count++;
+    ae.routes.add(routeKey);
   }
 
-  const allRoutes: SeatRouteRow[] = Array.from(routeMap.entries()).map(([k, e]) => {
-    const avg = e.seats.length > 0 ? e.total / e.seats.length : 0;
+  const toRouteRow = (key: string, e: RouteEntry): SeatRouteRow => {
+    const avg = e.total / e.count;
     return {
-      label: k,
+      label: key,
       rating: getSeatRating(avg),
       averageSeats: avg,
       totalAvailableSeats: e.total,
-      goWildItineraryCount: e.goWild,
+      goWildLegCount: e.count,
       maxSeatsSeen: e.max,
-      totalItineraries: e.totalItineraries,
-      goWildRate: e.totalItineraries > 0 ? (e.goWild / e.totalItineraries) * 100 : 0,
-      goWildLegCount: e.goWild,
-      limitedData: e.goWild < SEAT_THRESHOLD,
+      limitedData: e.count < 2,
     };
-  });
+  };
 
-  const qualified = allRoutes.filter((r) => r.goWildItineraryCount >= SEAT_THRESHOLD);
-  const limited = qualified.length < TARGET_RESULTS;
-  const pool = limited
-    ? allRoutes.filter((r) => r.goWildItineraryCount >= 1)
-    : qualified;
+  const allRoutes = Array.from(routeMap.entries()).map(([k, v]) => toRouteRow(k, v));
 
-  const sortMost = (a: SeatRouteRow, b: SeatRouteRow) =>
-    b.averageSeats - a.averageSeats ||
-    b.goWildItineraryCount - a.goWildItineraryCount ||
-    b.goWildRate - a.goWildRate;
+  const routesWithMostSeats = [...allRoutes]
+    .sort((a, b) => b.averageSeats - a.averageSeats || b.totalAvailableSeats - a.totalAvailableSeats)
+    .slice(0, 5);
 
-  const sortLowest = (a: SeatRouteRow, b: SeatRouteRow) =>
-    a.averageSeats - b.averageSeats ||
-    b.goWildItineraryCount - a.goWildItineraryCount;
+  const routesWithLowestSeats = [...allRoutes]
+    .sort((a, b) => a.averageSeats - b.averageSeats || b.goWildLegCount - a.goWildLegCount)
+    .slice(0, 5);
 
-  const routesWithMostSeats = pool.slice().sort(sortMost).slice(0, TARGET_RESULTS);
-  const routesWithLowestSeats = pool.slice().sort(sortLowest).slice(0, TARGET_RESULTS);
-
-  const airportAverages: SeatAirportRow[] = Array.from(airportMap.entries())
-    .filter(([, e]) => e.seats.length > 0)
-    .map(([airport, e]) => {
-      const avg = e.total / e.seats.length;
+  const airportAverages = Array.from(airportMap.entries())
+    .map(([airport, e]): SeatAirportRow => {
+      const avg = e.total / e.count;
       return {
         label: airport,
         rating: getSeatRating(avg),
         averageSeats: avg,
         totalAvailableSeats: e.total,
-        goWildItineraryCount: e.goWild,
+        goWildLegCount: e.count,
         routeCount: e.routes.size,
-        goWildLegCount: e.goWild,
       };
     })
-    .sort((a, b) => b.averageSeats - a.averageSeats || b.goWildItineraryCount - a.goWildItineraryCount)
-    .slice(0, TARGET_RESULTS);
+    .sort((a, b) => b.averageSeats - a.averageSeats || b.goWildLegCount - a.goWildLegCount)
+    .slice(0, 5);
 
-  return {
-    routesWithMostSeats,
-    routesWithLowestSeats,
-    airportAverages,
-    meta: {
-      limitedData: limited,
-      qualifiedCount: qualified.length,
-      threshold: SEAT_THRESHOLD,
-    },
-  };
+  return { routesWithMostSeats, routesWithLowestSeats, airportAverages };
 }
