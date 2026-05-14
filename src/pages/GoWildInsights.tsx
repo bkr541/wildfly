@@ -6,6 +6,7 @@ import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyt
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
 import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
+import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 
 const CARD_SHADOW =
