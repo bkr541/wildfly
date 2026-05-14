@@ -1,5 +1,21 @@
 import type { FlightLegRow, Itinerary } from "./insightTypes";
 
+export type ItineraryAirportStat = {
+  code: string;
+  totalItineraries: number;
+  goWildItineraries: number;
+  goWildRate: number; // 0-100
+  avgSeats: number | null;
+};
+
+export type ItinerarySnapshotMetrics = {
+  totalItineraries: number;
+  goWildItineraries: number;
+  availabilityRate: number | null; // 0-100
+  avgSeats: number | null;
+  trend: number | null; // current rate - previous rate, percentage points
+};
+
 function isGoWild(value: FlightLegRow["has_go_wild"]): boolean {
   if (value === true || value === 1) return true;
   if (typeof value === "string") {
