@@ -1,48 +1,69 @@
 import { useMemo } from "react";
 import { Calendar01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
-import { getDayOfWeekStats, getTimeWindowStats } from "./timingHelpers";
+import {
+  groupLegsIntoItineraries,
+  getDayOfWeekItineraryStats,
+  getTimeWindowItineraryStats,
+} from "./itineraryHelpers";
 import { getFilteredSnapshots, type AirportInsightsProps } from "./airportHelpers";
 import RankedInsightCard from "./RankedInsightCard";
 
 const GoWildTimingAnalyticsSection = ({ snapshots, dateRange }: AirportInsightsProps) => {
   const filtered = getFilteredSnapshots(snapshots, dateRange);
-  const dayStats = useMemo(() => getDayOfWeekStats(filtered), [filtered]);
-  const timeStats = useMemo(() => getTimeWindowStats(filtered), [filtered]);
+  const itineraries = useMemo(() => groupLegsIntoItineraries(filtered as any), [filtered]);
+  const dayStats = useMemo(() => getDayOfWeekItineraryStats(itineraries), [itineraries]);
+  const timeStats = useMemo(() => getTimeWindowItineraryStats(itineraries), [itineraries]);
 
-  const bestDays = useMemo(() => [...dayStats].sort((a, b) => b.percentage - a.percentage), [dayStats]);
-  const worstDays = useMemo(() => [...dayStats].sort((a, b) => a.percentage - b.percentage), [dayStats]);
-  const bestTimes = useMemo(() => [...timeStats].sort((a, b) => b.percentage - a.percentage).slice(0, 5), [timeStats]);
-  const worstTimes = useMemo(() => [...timeStats].sort((a, b) => a.percentage - b.percentage).slice(0, 5), [timeStats]);
+  const bestDays = useMemo(
+    () => [...dayStats.rows].sort((a, b) => b.goWildRate - a.goWildRate),
+    [dayStats]
+  );
+  const worstDays = useMemo(
+    () => [...dayStats.rows].sort((a, b) => a.goWildRate - b.goWildRate),
+    [dayStats]
+  );
+  const bestTimes = useMemo(
+    () => [...timeStats.rows].sort((a, b) => b.goWildRate - a.goWildRate).slice(0, 5),
+    [timeStats]
+  );
+  const worstTimes = useMemo(
+    () => [...timeStats.rows].sort((a, b) => a.goWildRate - b.goWildRate).slice(0, 5),
+    [timeStats]
+  );
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <RankedInsightCard
         title="Best Days of Week"
-        subtitle="Highest GoWild success rate"
+        subtitle="Highest GoWild itinerary rate in the selected period"
         icon={Calendar01Icon}
         rows={bestDays}
-        emptyMessage="Not enough day-of-week data yet."
+        limited={dayStats.limited}
+        emptyMessage="Not enough day-of-week itinerary data yet."
       />
       <RankedInsightCard
         title="Worst Days of Week"
-        subtitle="Lowest GoWild success rate"
+        subtitle="Lowest GoWild itinerary rate in the selected period"
         icon={Calendar01Icon}
         rows={worstDays}
-        emptyMessage="Not enough day-of-week data yet."
+        limited={dayStats.limited}
+        emptyMessage="Not enough day-of-week itinerary data yet."
       />
       <RankedInsightCard
         title="Best Departure Window"
-        subtitle="Highest GoWild departure success"
+        subtitle="Highest GoWild itinerary rate by 2-hour window"
         icon={Clock01Icon}
         rows={bestTimes}
-        emptyMessage="Not enough departure time data yet."
+        limited={timeStats.limited}
+        emptyMessage="Not enough departure time itinerary data yet."
       />
       <RankedInsightCard
         title="Worst Departure Window"
-        subtitle="Lowest GoWild departure success"
+        subtitle="Lowest GoWild itinerary rate by 2-hour window"
         icon={Clock01Icon}
         rows={worstTimes}
-        emptyMessage="Not enough departure time data yet."
+        limited={timeStats.limited}
+        emptyMessage="Not enough departure time itinerary data yet."
       />
     </div>
   );
