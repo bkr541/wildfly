@@ -1468,7 +1468,7 @@ function GoWildInsightsView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <GoWildSnapshotCard snapshots={snapshots as any} />
+      <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} />
       <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
       <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
       <GoWildTimingAnalyticsSection snapshots={snapshots} />

@@ -110,7 +110,7 @@ const GoWildInsightsPage = () => {
       ) : error ? (
         <ErrorCard message={error} />
       ) : (
-        <GoWildSnapshotCard snapshots={snapshots as any} />
+        <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} />
       )}
 
       {!loading && !error && (
