@@ -15,6 +15,7 @@ export type FlightLegRow = {
   go_wild_available_seats?: number | null;
   go_wild_total?: number | null;
   standard_total?: number | null;
+  stops?: number | null;
 };
 
 export type Itinerary = {
