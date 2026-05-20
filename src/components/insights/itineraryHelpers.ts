@@ -260,8 +260,11 @@ function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[
     }
     const e = map.get(key)!;
     e.total++;
-    if (it.legs.length <= 1) e.direct++;
-    else e.connecting++;
+    const isConnecting =
+      (typeof it.legs[0]?.stops === "number" && (it.legs[0].stops ?? 0) > 0) ||
+      it.legs.length > 1;
+    if (isConnecting) e.connecting++;
+    else e.direct++;
     if (it.isGoWildAvailable) {
       e.goWild++;
       e.seats.push(it.availableSeats);

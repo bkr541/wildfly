@@ -4,7 +4,10 @@
  * Maps normalized NormalizedFlight[] → flight_snapshots rows and bulk-inserts
  * them non-blockingly after a flight_searches record is created.
  *
- * One row per flight leg is inserted so analytics can run per-segment queries.
+ * ONE ROW PER ITINERARY (regardless of nonstop or connecting). Fare data is
+ * itinerary-level and is NOT duplicated per leg. Detailed per-segment data
+ * lives in flight_searches.json_body and in the raw payload cache; this table
+ * is for snapshot-level analytics only.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +15,25 @@ import { getLogger } from "@/lib/logger";
 
 const log = getLogger("SnapshotWriter");
 
+const cleanNum = (v: any): number | null => {
+  if (v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+const cleanInt = (v: any): number | null => {
+  if (v == null) return null;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : null;
+};
+
+/** Pull a fare value, checking snake_case then camelCase. */
+const fareField = (fare: any, snake: string, camel: string): any => {
+  if (!fare) return null;
+  return fare[snake] ?? fare[camel] ?? null;
+};
+
 /**
- * Build snapshot rows from normalized flights and insert them.
- *
- * @param flightSearchId  UUID of the just-created flight_searches row
- * @param normalizedFlights  flights array from normalizeGetMyDataResponse / normalizeAllDestinationsResponse
- * @param originIata  itinerary departure airport (top-level search origin)
+ * Build snapshot rows (one per itinerary) from normalized flights and insert them.
  */
 export async function writeFlightSnapshots(
   flightSearchId: string,
@@ -30,117 +46,105 @@ export async function writeFlightSnapshots(
   const rows: Record<string, unknown>[] = [];
 
   for (const f of normalizedFlights) {
-    // ── Resolve legs ──────────────────────────────────────────────────────────
-    // normalizeGetMyDataResponse builds legs from rawPayload.segments.
-    // normalizeAllDestinationsResponse builds a single synthetic leg.
     const legs: Array<{
       origin: string;
       destination: string;
       departure_time: string;
       arrival_time: string;
-    }> = Array.isArray(f.legs) && f.legs.length > 0 ? f.legs : [];
+    }> = Array.isArray(f.legs) ? f.legs : [];
 
-    if (legs.length === 0) {
-      // Fallback: synthesise a single leg from top-level fields
-      legs.push({
-        origin: f.origin ?? f.departure_airport ?? originIata,
-        destination: f.destination ?? f.arrival_airport ?? "",
-        departure_time: f.departureTime ?? f.depart_time ?? "",
-        arrival_time: f.arrivalTime ?? f.arrive_time ?? "",
-      });
-    }
+    const firstLeg = legs[0];
+    const lastLeg = legs[legs.length - 1];
+
+    // ── Itinerary identity ───────────────────────────────────────────────────
+    const itineraryOrigin =
+      firstLeg?.origin || f.origin || f.departure_airport || originIata;
+    const itineraryDest =
+      lastLeg?.destination || f.destination || f.arrival_airport || "";
+
+    const departureAt =
+      firstLeg?.departure_time || f.departureTime || f.depart_time || "";
+    const arrivalAt =
+      lastLeg?.arrival_time || f.arrivalTime || f.arrive_time || "";
+
+    // Skip itineraries with no usable times (NOT NULL columns).
+    if (!departureAt || !arrivalAt) continue;
+
+    const stops =
+      cleanInt(f.stops) ?? Math.max(0, legs.length - 1);
+    const flightType =
+      f.flightType ?? f.flight_type ?? (stops > 0 ? "Connect" : "NonStop");
+
+    const itineraryId: string =
+      f.id?.toString() ??
+      f.itinerary_id?.toString() ??
+      [itineraryOrigin, itineraryDest, departureAt].join("|");
 
     // ── Itinerary-level fare data (from rawPayload.fares) ────────────────────
     const rp = f.rawPayload ?? {};
     const rpFares = rp.fares ?? {};
-
-    const cleanNum = (v: any): number | null => {
-      if (v == null) return null;
-      const n = Number(v);
-      return Number.isFinite(n) && n >= 0 ? n : null;
-    };
-    const cleanInt = (v: any): number | null => {
-      if (v == null) return null;
-      const n = parseInt(v, 10);
-      return Number.isFinite(n) ? n : null;
-    };
-
-    // Go Wild
     const gwFare = rpFares.go_wild ?? {};
-    const hasgw = gwFare.total != null || f.fares?.go_wild != null;
-
-    // Standard
     const stFare = rpFares.standard ?? {};
-
-    // Discount Den
     const ddFare = rpFares.discount_den ?? {};
-
-    // Miles
     const miFare = rpFares.miles ?? {};
 
-    // ── Itinerary context ────────────────────────────────────────────────────
-    const itineraryId: string =
-      f.id?.toString() ??
-      f.itinerary_id?.toString() ??
-      // synthesise a stable id if none provided
-      [f.origin ?? originIata, f.destination, f.departureTime ?? f.depart_time].join("|");
+    const gwTotal = cleanNum(gwFare.total ?? f.fares?.go_wild);
+    const hasGoWild = gwTotal != null;
 
-    // ── One row per leg ──────────────────────────────────────────────────────
-    legs.forEach((leg, idx) => {
-      // Skip legs with missing times — can't satisfy NOT NULL constraint
-      if (!leg.departure_time || !leg.arrival_time) return;
+    rows.push({
+      flight_search_id: flightSearchId,
+      snapshot_at: snapshotAt,
 
-      rows.push({
-        flight_search_id: flightSearchId,
-        snapshot_at: snapshotAt,
+      // itinerary identity
+      source_itinerary_id: itineraryId,
+      airline: f.airline ?? f.carrier ?? null,
+      origin_iata: itineraryOrigin,
+      display_cabin: f.cabin ?? f.displayCabin ?? null,
+      display_price: cleanNum(f.price ?? f.display_price),
+      currency: f.currency ?? "USD",
+      notes: f.notes ?? null,
 
-        // itinerary identity
-        source_itinerary_id: itineraryId,
-        airline: f.airline ?? f.carrier ?? null,
-        origin_iata: originIata,
-        display_cabin: f.cabin ?? f.displayCabin ?? null,
-        display_price: cleanNum(f.price ?? f.display_price),
-        currency: f.currency ?? "USD",
-        notes: f.notes ?? null,
+      // trip context (itinerary-level)
+      flight_type: flightType,
+      stops,
+      total_duration_display: f.total_duration ?? f.duration ?? null,
 
-        // trip context
-        flight_type: f.flightType ?? f.flight_type ?? (f.stops === 0 ? "NonStop" : "Connect"),
-        stops: cleanInt(f.stops),
-        total_duration_display: f.total_duration ?? f.duration ?? null,
+      // legacy leg columns retained — populated with itinerary-level values
+      leg_index: 1,
+      flight_number:
+        f.flightNumber ??
+        f.flight_number ??
+        `${f.airline ?? "XX"}1`,
+      leg_origin_iata: itineraryOrigin,
+      leg_destination_iata: itineraryDest,
+      leg_route: `${itineraryOrigin}-${itineraryDest}`,
+      departure_at: departureAt,
+      arrival_at: arrivalAt,
 
-        // leg grain
-        leg_index: idx + 1,
-        flight_number: f.flightNumber ?? f.flight_number ?? `${f.airline ?? "XX"}${idx + 1}`,
-        leg_origin_iata: leg.origin,
-        leg_destination_iata: leg.destination,
-        departure_at: leg.departure_time,
-        arrival_at: leg.arrival_time,
+      // Go Wild (itinerary-level)
+      has_go_wild: hasGoWild,
+      go_wild_available_seats: cleanInt(fareField(gwFare, "available_seats", "availableSeats")),
+      go_wild_fare_status: cleanInt(fareField(gwFare, "fare_status", "fareStatus")),
+      go_wild_total: gwTotal,
+      go_wild_loyalty_points: cleanInt(fareField(gwFare, "loyalty_points", "loyaltyPoints")),
 
-        // Go Wild
-        has_go_wild: hasgw,
-        go_wild_available_seats: cleanInt(gwFare.availableSeats ?? gwFare.available_seats),
-        go_wild_fare_status: cleanInt(gwFare.fareStatus ?? gwFare.fare_status),
-        go_wild_total: cleanNum(gwFare.total ?? f.fares?.go_wild),
-        go_wild_loyalty_points: cleanInt(gwFare.loyaltyPoints ?? gwFare.loyalty_points),
+      // Standard (itinerary-level)
+      standard_available_seats: cleanInt(fareField(stFare, "available_seats", "availableSeats")),
+      standard_fare_status: cleanInt(fareField(stFare, "fare_status", "fareStatus")),
+      standard_total: cleanNum(stFare.total ?? f.fares?.standard),
+      standard_loyalty_points: cleanInt(fareField(stFare, "loyalty_points", "loyaltyPoints")),
 
-        // Standard
-        standard_available_seats: cleanInt(stFare.availableSeats ?? stFare.available_seats),
-        standard_fare_status: cleanInt(stFare.fareStatus ?? stFare.fare_status),
-        standard_total: cleanNum(stFare.total ?? f.fares?.standard),
-        standard_loyalty_points: cleanInt(stFare.loyaltyPoints ?? stFare.loyalty_points),
+      // Discount Den (itinerary-level)
+      discount_den_available_seats: cleanInt(fareField(ddFare, "available_seats", "availableSeats")),
+      discount_den_fare_status: cleanInt(fareField(ddFare, "fare_status", "fareStatus")),
+      discount_den_total: cleanNum(ddFare.total ?? f.fares?.discount_den),
+      discount_den_loyalty_points: cleanInt(fareField(ddFare, "loyalty_points", "loyaltyPoints")),
 
-        // Discount Den
-        discount_den_available_seats: cleanInt(ddFare.availableSeats ?? ddFare.available_seats),
-        discount_den_fare_status: cleanInt(ddFare.fareStatus ?? ddFare.fare_status),
-        discount_den_total: cleanNum(ddFare.total ?? f.fares?.discount_den),
-        discount_den_loyalty_points: cleanInt(ddFare.loyaltyPoints ?? ddFare.loyalty_points),
-
-        // Miles
-        miles_available_seats: cleanInt(miFare.availableSeats ?? miFare.available_seats),
-        miles_fare_status: cleanInt(miFare.fareStatus ?? miFare.fare_status),
-        miles_total: cleanNum(miFare.total ?? f.fares?.miles),
-        miles_loyalty_points: cleanInt(miFare.loyaltyPoints ?? miFare.loyalty_points),
-      });
+      // Miles (itinerary-level)
+      miles_available_seats: cleanInt(fareField(miFare, "available_seats", "availableSeats")),
+      miles_fare_status: cleanInt(fareField(miFare, "fare_status", "fareStatus")),
+      miles_total: cleanNum(miFare.total ?? f.fares?.miles),
+      miles_loyalty_points: cleanInt(fareField(miFare, "loyalty_points", "loyaltyPoints")),
     });
   }
 
