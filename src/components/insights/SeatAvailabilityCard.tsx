@@ -46,7 +46,7 @@ type AirportCardProps = {
 type Props = RouteCardProps | AirportCardProps;
 
 const HELPER_TEXT =
-  "Seat availability uses the lowest seat count across the itinerary's legs. Connecting itineraries count as GoWild-available only when every leg is GoWild-available.";
+  "Avg GoWild seats per itinerary is calculated across every complete itinerary opportunity in the period. Fully GoWild-available itineraries contribute the lowest available seat count across their legs; itineraries that are not fully GoWild-available contribute 0. Connecting itineraries count once.";
 
 const SeatAvailabilityCard = (props: Props) => {
   const {
@@ -112,7 +112,7 @@ const SeatAvailabilityCard = (props: Props) => {
                             </div>
                           </div>
                           <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
-                            {r.avgSeats.toFixed(1)} avg
+                            {r.avgSeats.toFixed(1)} avg / itin
                           </span>
                         </div>
                         <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
@@ -122,7 +122,7 @@ const SeatAvailabilityCard = (props: Props) => {
                           />
                         </div>
                         <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                          {r.goWildItineraries} / {r.totalItineraries} itineraries
+                          {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
                           {r.routeCount > 1 ? ` · ${r.routeCount} routes` : ""}
                         </p>
                       </div>
@@ -138,7 +138,7 @@ const SeatAvailabilityCard = (props: Props) => {
                             <span className="text-sm font-semibold text-[#2E4A4A] truncate">{r.route}</span>
                           </div>
                           <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
-                            {r.avgSeats.toFixed(1)} avg
+                            {r.avgSeats.toFixed(1)} avg / itin
                           </span>
                         </div>
                         <div className="mt-1 ml-6 h-1.5 rounded-full bg-gray-100 overflow-hidden">
@@ -148,7 +148,7 @@ const SeatAvailabilityCard = (props: Props) => {
                           />
                         </div>
                         <p className="text-[11px] text-[#9CA3AF] mt-0.5 ml-6">
-                          {r.goWildItineraries} / {r.totalItineraries} itineraries · max {r.maxSeats} · total {r.totalSeats} seats
+                          {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries · max {r.maxSeats} GoWild seats · total {r.totalSeats} GoWild seats observed
                         </p>
                       </div>
                     );
