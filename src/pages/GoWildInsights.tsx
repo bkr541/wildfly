@@ -105,23 +105,27 @@ const GoWildInsightsPage = () => {
               `Aborted after ${HARD_SAFETY_PAGE_LIMIT} pages (${all.length} rows). Possible pagination issue — analytics not shown to avoid misleading partial data.`,
             );
           }
-          const from = page * PAGE_SIZE;
-          const to = from + PAGE_SIZE - 1;
+          const offset = page * PAGE_SIZE;
 
-          let q = (supabase.from("flight_snapshots") as any)
-            .select(SELECT_FIELDS)
-            .order("snapshot_at", { ascending: false })
-            .order("id", { ascending: false })
-            .range(from, to);
-          if (sinceIso) q = q.gte("snapshot_at", sinceIso);
-
-          const { data, error: pageError } = await q;
+          // Read sanitized platform-wide analytics rows. The RPC enforces auth,
+          // returns sanitized fields only, never exposes user_id or raw
+          // flight_search_id, and remaps source_itinerary_id to a derived
+          // globally unique analytics observation key.
+          const { data, error: pageError } = await (supabase.rpc as any)(
+            "get_global_gowild_insight_snapshots",
+            {
+              p_since: sinceIso,
+              p_limit: PAGE_SIZE,
+              p_offset: offset,
+            },
+          );
           if (cancelled) return;
           if (pageError) {
             throw new Error(
               `Page ${page + 1} failed: ${pageError.message}. Analytics cannot be considered complete.`,
             );
           }
+
 
           const rows = (data ?? []) as FlightSnapshot[];
           // Defensive dedupe by id (guards against any overlap between pages).
