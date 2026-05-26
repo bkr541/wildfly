@@ -3,6 +3,9 @@ import {
   groupLegsIntoItineraries,
   computeGoWildSnapshotMetrics,
   getItineraryHeatmapData,
+  getMostSeatsItineraryRoutes,
+  getLowestSeatsItineraryRoutes,
+  getSeatItineraryAirportStats,
 } from "@/components/insights/itineraryHelpers";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
