@@ -53,10 +53,19 @@ const GoWildInsightsPage = () => {
   const [period, setPeriod] = useState<PeriodKey>("7d");
   const { dict: airportDict } = useAirportDictionary();
 
-  const sinceIso = useMemo(() => {
+  // Current-period cutoff (used to scope analytics for the other cards).
+  const currentSinceIso = useMemo(() => {
     const p = PERIODS.find((x) => x.key === period)!;
     if (p.hours === null) return null;
     return new Date(Date.now() - p.hours * 3600 * 1000).toISOString();
+  }, [period]);
+
+  // Fetch cutoff — double the window so the Snapshot card has the prior
+  // equal-length period available for the trend comparison. "All time" stays null.
+  const sinceIso = useMemo(() => {
+    const p = PERIODS.find((x) => x.key === period)!;
+    if (p.hours === null) return null;
+    return new Date(Date.now() - p.hours * 2 * 3600 * 1000).toISOString();
   }, [period]);
 
   useEffect(() => {
