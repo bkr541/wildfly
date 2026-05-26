@@ -53,10 +53,19 @@ const GoWildInsightsPage = () => {
   const [period, setPeriod] = useState<PeriodKey>("7d");
   const { dict: airportDict } = useAirportDictionary();
 
-  const sinceIso = useMemo(() => {
+  // Current-period cutoff (used to scope analytics for the other cards).
+  const currentSinceIso = useMemo(() => {
     const p = PERIODS.find((x) => x.key === period)!;
     if (p.hours === null) return null;
     return new Date(Date.now() - p.hours * 3600 * 1000).toISOString();
+  }, [period]);
+
+  // Fetch cutoff — double the window so the Snapshot card has the prior
+  // equal-length period available for the trend comparison. "All time" stays null.
+  const sinceIso = useMemo(() => {
+    const p = PERIODS.find((x) => x.key === period)!;
+    if (p.hours === null) return null;
+    return new Date(Date.now() - p.hours * 2 * 3600 * 1000).toISOString();
   }, [period]);
 
   useEffect(() => {
@@ -124,6 +133,18 @@ const GoWildInsightsPage = () => {
     };
   }, [sinceIso, period]);
 
+  // Snapshots scoped to the currently selected period (excluding the
+  // prior-comparison window). Used for every card except GoWildSnapshotCard,
+  // which needs the extended set to compute its prior-period trend.
+  const currentSnapshots = useMemo<FlightSnapshot[]>(() => {
+    if (!currentSinceIso) return snapshots;
+    const cutoff = new Date(currentSinceIso).getTime();
+    return snapshots.filter((s) => {
+      const t = new Date(s.snapshot_at).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }, [snapshots, currentSinceIso]);
+
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
       <div
@@ -157,15 +178,18 @@ const GoWildInsightsPage = () => {
       ) : error ? (
         <ErrorCard message={error} />
       ) : (
-        <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} />
+        <GoWildSnapshotCard
+          itineraries={groupLegsIntoItineraries(currentSnapshots as any)}
+          period={period}
+        />
       )}
 
       {!loading && !error && (
         <>
-          <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
-          <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
-          <GoWildTimingAnalyticsSection snapshots={snapshots} />
-          <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
+          <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
+          <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
         </>
       )}
     </div>
