@@ -655,8 +655,6 @@ describe("airport & route supporting avg seats (all-itinerary denominator)", () 
     const items: Itinerary[] = [
       ...repeat(15, () => seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: true, availableSeats: 3 })),
       ...repeat(35, () => seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: false })),
-      // padding qualified routes to avoid limited
-      ...repeat(5, (i) => Array.from({ length: 30 }, () => seatItin({ origin: `O${i}`, destination: `D${i}`, routeKey: `O${i}-D${i}`, routeLabel: `O${i} → D${i}`, isGoWildAvailable: true, availableSeats: 1 }))).flat(),
     ];
     const { routes } = getTopItineraryRoutes(items);
     const denLas = routes.find((r) => r.routeKey === "DEN-LAS")!;
