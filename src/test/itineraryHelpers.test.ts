@@ -7,6 +7,10 @@ import {
   getLowestSeatsItineraryRoutes,
   getSeatItineraryAirportStats,
   getMostFrequentGoWildItineraryRoute,
+  getOriginItineraryStats,
+  getDestinationItineraryStats,
+  getTopItineraryRoutes,
+  getWorstItineraryRoutes,
 } from "@/components/insights/itineraryHelpers";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
@@ -611,5 +615,66 @@ describe("getMostFrequentGoWildItineraryRoute", () => {
     const rows = buildRoute("AAA", "BBB", "none", 0, 5);
     const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
     expect(result).toBeNull();
+  });
+});
+
+describe("airport & route supporting avg seats (all-itinerary denominator)", () => {
+  it("Case A: DEN origin — avg uses total itineraries (15/20 = 0.75)", () => {
+    const items: Itinerary[] = [
+      seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: true, availableSeats: 3 }),
+      seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: true, availableSeats: 2 }),
+      seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: true, availableSeats: 4 }),
+      seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: true, availableSeats: 1 }),
+      seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: true, availableSeats: 5 }),
+      ...repeat(15, () => seatItin({ origin: "DEN", routeKey: "DEN-XXX", routeLabel: "DEN → XXX", destination: "XXX", isGoWildAvailable: false })),
+    ];
+    const { stats } = getOriginItineraryStats(items);
+    const den = stats.find((s) => s.code === "DEN")!;
+    expect(den.totalItineraries).toBe(20);
+    expect(den.goWildItineraries).toBe(5);
+    expect(den.goWildRate).toBeCloseTo(25, 5);
+    expect(den.totalGoWildAvailableSeats).toBe(15);
+    expect(den.avgGoWildSeatsPerItinerary).toBeCloseTo(0.75, 5);
+  });
+
+  it("Case B: LAS destination — avg uses arriving itineraries (30/50 = 0.6)", () => {
+    const items: Itinerary[] = [
+      ...repeat(10, (i) => seatItin({ origin: "XXX", destination: "LAS", routeKey: "XXX-LAS", routeLabel: "XXX → LAS", isGoWildAvailable: true, availableSeats: 3 })),
+      ...repeat(40, () => seatItin({ origin: "XXX", destination: "LAS", routeKey: "XXX-LAS", routeLabel: "XXX → LAS", isGoWildAvailable: false })),
+    ];
+    const { stats } = getDestinationItineraryStats(items);
+    const las = stats.find((s) => s.code === "LAS")!;
+    expect(las.totalItineraries).toBe(50);
+    expect(las.goWildItineraries).toBe(10);
+    expect(las.goWildRate).toBeCloseTo(20, 5);
+    expect(las.totalGoWildAvailableSeats).toBe(30);
+    expect(las.avgGoWildSeatsPerItinerary).toBeCloseTo(0.6, 5);
+  });
+
+  it("Case C: Top route DEN→LAS — avg uses all route itineraries (45/50 = 0.9)", () => {
+    const items: Itinerary[] = [
+      ...repeat(15, () => seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: true, availableSeats: 3 })),
+      ...repeat(35, () => seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: false })),
+    ];
+    const { routes } = getTopItineraryRoutes(items);
+    const denLas = routes.find((r) => r.routeKey === "DEN-LAS")!;
+    expect(denLas).toBeDefined();
+    expect(denLas.totalItineraries).toBe(50);
+    expect(denLas.goWildItineraries).toBe(15);
+    expect(denLas.goWildRate).toBeCloseTo(30, 5);
+    expect(denLas.totalGoWildAvailableSeats).toBe(45);
+    expect(denLas.avgGoWildSeatsPerItinerary).toBeCloseTo(0.9, 5);
+  });
+
+  it("Case D: Worst route ATL→ORD with 0 GoWild — 0% rate and 0 avg", () => {
+    const items: Itinerary[] = [
+      ...repeat(40, () => seatItin({ origin: "ATL", destination: "ORD", routeKey: "ATL-ORD", routeLabel: "ATL → ORD", isGoWildAvailable: false })),
+    ];
+    const { routes } = getWorstItineraryRoutes(items);
+    const r = routes.find((x) => x.routeKey === "ATL-ORD")!;
+    expect(r).toBeDefined();
+    expect(r.goWildRate).toBe(0);
+    expect(r.avgGoWildSeatsPerItinerary).toBe(0);
+    expect(r.totalGoWildAvailableSeats).toBe(0);
   });
 });

@@ -5,7 +5,8 @@ export type ItineraryAirportStat = {
   totalItineraries: number;
   goWildItineraries: number;
   goWildRate: number; // 0-100
-  avgSeats: number | null;
+  totalGoWildAvailableSeats: number;
+  avgGoWildSeatsPerItinerary: number;
 };
 
 export type ItinerarySnapshotMetrics = {
@@ -152,19 +153,20 @@ function buildAirportItineraryStats(
   itineraries: Itinerary[],
   pick: (i: Itinerary) => string
 ): ItineraryAirportStat[] {
-  type Entry = { total: number; goWild: number; seats: number[] };
+  type Entry = { total: number; goWild: number; totalSeats: number };
   const map = new Map<string, Entry>();
 
   for (const it of itineraries) {
     const code = pick(it);
     if (!code) continue;
-    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, seats: [] });
+    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, totalSeats: 0 });
     const e = map.get(code)!;
     e.total++;
     if (it.isGoWildAvailable) {
       e.goWild++;
-      e.seats.push(it.availableSeats);
+      e.totalSeats += it.availableSeats || 0;
     }
+    // Non-GoWild itineraries contribute 0 seats by design.
   }
 
   return Array.from(map.entries())
@@ -173,7 +175,8 @@ function buildAirportItineraryStats(
       totalItineraries: d.total,
       goWildItineraries: d.goWild,
       goWildRate: d.total > 0 ? (d.goWild / d.total) * 100 : 0,
-      avgSeats: avgOrNull(d.seats),
+      totalGoWildAvailableSeats: d.totalSeats,
+      avgGoWildSeatsPerItinerary: d.total > 0 ? d.totalSeats / d.total : 0,
     }))
     .sort(
       (a, b) =>
@@ -218,7 +221,8 @@ export type ItineraryRouteStat = {
   totalItineraries: number;
   goWildItineraries: number;
   goWildRate: number; // 0-100
-  avgSeats: number | null;
+  totalGoWildAvailableSeats: number;
+  avgGoWildSeatsPerItinerary: number;
   directCount: number;
   connectingCount: number;
 };
@@ -237,7 +241,7 @@ function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[
     routeLabel: string;
     total: number;
     goWild: number;
-    seats: number[];
+    totalSeats: number;
     direct: number;
     connecting: number;
   };
@@ -253,7 +257,7 @@ function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[
         routeLabel: it.routeLabel,
         total: 0,
         goWild: 0,
-        seats: [],
+        totalSeats: 0,
         direct: 0,
         connecting: 0,
       });
@@ -267,8 +271,9 @@ function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[
     else e.direct++;
     if (it.isGoWildAvailable) {
       e.goWild++;
-      e.seats.push(it.availableSeats);
+      e.totalSeats += it.availableSeats || 0;
     }
+    // Non-GoWild itineraries contribute 0 seats by design.
   }
 
   return Array.from(map.entries()).map(([routeKey, e]) => ({
@@ -279,7 +284,8 @@ function buildItineraryRouteStats(itineraries: Itinerary[]): ItineraryRouteStat[
     totalItineraries: e.total,
     goWildItineraries: e.goWild,
     goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
-    avgSeats: avgOrNull(e.seats),
+    totalGoWildAvailableSeats: e.totalSeats,
+    avgGoWildSeatsPerItinerary: e.total > 0 ? e.totalSeats / e.total : 0,
     directCount: e.direct,
     connectingCount: e.connecting,
   }));

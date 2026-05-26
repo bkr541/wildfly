@@ -69,8 +69,8 @@ const WorstRoutesCard = ({ routes, limited = false }: Props) => {
                     />
                   </div>
                   <p className="text-[11px] text-[#9CA3AF] mt-0.5 ml-6">
-                    {r.goWildItineraries} / {r.totalItineraries} itineraries
-                    {r.avgSeats !== null && ` · avg ${Math.round(r.avgSeats)} seats`}
+                    {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
+                    {` · avg ${r.avgGoWildSeatsPerItinerary.toFixed(2)} GoWild seats / itinerary`}
                   </p>
                 </div>
               ))}

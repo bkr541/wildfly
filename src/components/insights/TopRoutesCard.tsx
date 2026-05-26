@@ -69,9 +69,9 @@ const TopRoutesCard = ({ routes, limited = false }: Props) => {
                     />
                   </div>
                   <p className="text-[11px] text-[#9CA3AF] mt-0.5 ml-6">
-                    {r.goWildItineraries} / {r.totalItineraries} itineraries
+                    {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
                     {r.connectingCount > 0 && ` · ${r.directCount} direct, ${r.connectingCount} connecting`}
-                    {r.avgSeats !== null && ` · avg ${Math.round(r.avgSeats)} seats`}
+                    {` · avg ${r.avgGoWildSeatsPerItinerary.toFixed(2)} GoWild seats / itinerary`}
                   </p>
                 </div>
               ))}
