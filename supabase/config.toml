@@ -6,3 +6,10 @@ verify_jwt = false
 
 [functions.create-customer-portal-session]
 verify_jwt = false
+
+[functions.scheduled-bulk-search]
+verify_jwt = false
+
+[functions.scheduled-bulk-search-dispatcher]
+verify_jwt = false
+
