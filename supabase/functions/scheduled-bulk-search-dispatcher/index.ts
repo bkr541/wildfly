@@ -48,14 +48,21 @@ Deno.serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-  // Gate: caller must present the service-role key as Bearer
+  // Gate: caller must present the configured shared secret as Bearer
   const auth = req.headers.get("Authorization") ?? "";
-  if (!auth.startsWith("Bearer ") || auth.slice(7) !== SERVICE_ROLE) {
+  const presented = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const { data: secretRow } = await admin
+    .from("app_config").select("config_value")
+    .eq("config_key", "scheduled_job_secret").limit(1).maybeSingle();
+  const sharedSecret = secretRow?.config_value ?? "";
+  if (!sharedSecret || presented !== sharedSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
 
   const { hour, minute, date: easternToday } = easternHour();
 
