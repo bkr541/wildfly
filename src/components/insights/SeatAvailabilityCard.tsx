@@ -46,7 +46,7 @@ type AirportCardProps = {
 type Props = RouteCardProps | AirportCardProps;
 
 const HELPER_TEXT =
-  "Seat availability uses the lowest seat count across the itinerary's legs. Connecting itineraries count as GoWild-available only when every leg is GoWild-available.";
+  "Avg GoWild seats per itinerary is calculated across every complete itinerary opportunity in the period. Fully GoWild-available itineraries contribute the lowest available seat count across their legs; itineraries that are not fully GoWild-available contribute 0. Connecting itineraries count once.";
 
 const SeatAvailabilityCard = (props: Props) => {
   const {
