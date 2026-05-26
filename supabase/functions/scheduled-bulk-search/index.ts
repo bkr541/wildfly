@@ -298,7 +298,8 @@ Deno.serve(async (req) => {
   const targetDate = body.date ?? tomorrowEastern();
   const startedAt = new Date();
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+  // admin client created above for the auth check
+
 
   // Pre-flight: gowilder token from app_config (mirrors flight-proxy behavior)
   let token = GOWILDER;
