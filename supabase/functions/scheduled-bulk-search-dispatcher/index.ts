@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
   }
 
   const targetDate = tomorrowEastern(easternToday);
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+  // admin client created above
+
 
   // Idempotency: skip if we already have a non-skipped log row for this slot
   // in the last 2 hours
