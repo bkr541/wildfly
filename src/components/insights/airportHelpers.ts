@@ -32,18 +32,7 @@ export type AirportStat = {
   confidence: Confidence;
 };
 
-export type HeatmapCell = {
-  totalLegs: number;
-  goWildLegs: number;
-  goWildRate: number;
-} | null;
 
-export type HeatmapRow = {
-  airport: string;
-  cells: HeatmapCell[];
-};
-
-export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 export function isGoWild(value: boolean | string | number | null | undefined): boolean {
   if (value === true || value === 1) return true;
