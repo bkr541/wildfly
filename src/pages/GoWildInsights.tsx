@@ -12,8 +12,14 @@ import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
-const SELECT_FIELDS =
-  "id, source_itinerary_id, leg_index, origin_iata, leg_origin_iata, leg_destination_iata, departure_at, arrival_at, snapshot_at, has_go_wild, go_wild_available_seats, go_wild_total, standard_total, stops, flight_search_id";
+
+// NOTE: GoWild Insights is a PLATFORM-WIDE analytics dashboard. Every signed-in
+// user sees the same metrics for the same period. To avoid widening direct
+// access to raw flight_snapshots (which stays scoped to the searching user),
+// we read sanitized global data via the SECURITY DEFINER RPC
+// `get_global_gowild_insight_snapshots`. The RPC returns a derived
+// `source_itinerary_id` value that is globally unique per (search, itinerary)
+// observation so identical upstream ids from separate searches never merge.
 
 type PeriodKey = "24h" | "7d" | "30d" | "all";
 
@@ -24,14 +30,14 @@ const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
   { key: "all", label: "All time", hours: null },
 ];
 
-// Supabase per-request response ceiling. We page through the full matching
-// result set using deterministic ordering (snapshot_at DESC, id DESC) so
-// rows are neither duplicated nor skipped between pages.
+// Pagination ceiling per request. The RPC paginates the full matching set;
+// we keep fetching until a page returns fewer than PAGE_SIZE rows.
 const PAGE_SIZE = 1000;
 // Defensive absolute safety valve to prevent a runaway loop in pathological
 // cases (e.g. ordering bug). If we ever hit this we surface a VISIBLE error
 // instead of silently rendering partial analytics. 5000 pages = 5M rows.
 const HARD_SAFETY_PAGE_LIMIT = 5000;
+
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
@@ -99,23 +105,27 @@ const GoWildInsightsPage = () => {
               `Aborted after ${HARD_SAFETY_PAGE_LIMIT} pages (${all.length} rows). Possible pagination issue — analytics not shown to avoid misleading partial data.`,
             );
           }
-          const from = page * PAGE_SIZE;
-          const to = from + PAGE_SIZE - 1;
+          const offset = page * PAGE_SIZE;
 
-          let q = (supabase.from("flight_snapshots") as any)
-            .select(SELECT_FIELDS)
-            .order("snapshot_at", { ascending: false })
-            .order("id", { ascending: false })
-            .range(from, to);
-          if (sinceIso) q = q.gte("snapshot_at", sinceIso);
-
-          const { data, error: pageError } = await q;
+          // Read sanitized platform-wide analytics rows. The RPC enforces auth,
+          // returns sanitized fields only, never exposes user_id or raw
+          // flight_search_id, and remaps source_itinerary_id to a derived
+          // globally unique analytics observation key.
+          const { data, error: pageError } = await (supabase.rpc as any)(
+            "get_global_gowild_insight_snapshots",
+            {
+              p_since: sinceIso,
+              p_limit: PAGE_SIZE,
+              p_offset: offset,
+            },
+          );
           if (cancelled) return;
           if (pageError) {
             throw new Error(
               `Page ${page + 1} failed: ${pageError.message}. Analytics cannot be considered complete.`,
             );
           }
+
 
           const rows = (data ?? []) as FlightSnapshot[];
           // Defensive dedupe by id (guards against any overlap between pages).
