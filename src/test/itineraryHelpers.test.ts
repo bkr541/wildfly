@@ -678,3 +678,123 @@ describe("airport & route supporting avg seats (all-itinerary denominator)", () 
     expect(r.totalGoWildAvailableSeats).toBe(0);
   });
 });
+
+// ─── Platform-wide global analytics behavior ─────────────────────────────────
+//
+// GoWild Insights now reads sanitized rows from the SECURITY DEFINER RPC
+// `get_global_gowild_insight_snapshots`, which aliases the derived
+// `flight_search_id::text || ':' || source_itinerary_id` value as
+// `source_itinerary_id`. These tests model that contract by passing already-
+// derived analytics observation keys into the existing client helpers and
+// verifying that observations from separate searches stay distinct and that
+// metrics aggregate platform-wide as expected.
+describe("global analytics observation keys", () => {
+  it("includes itinerary observations from multiple searches (50% availability)", () => {
+    // search A (some user) -> 1 GoWild-available itinerary
+    // search B (different user) -> 1 non-GoWild itinerary
+    const rows: FlightLegRow[] = [
+      baseLeg({
+        id: "rA",
+        source_itinerary_id: "search-A:ABC123",
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "LAS",
+        has_go_wild: true,
+        go_wild_available_seats: 5,
+      }),
+      baseLeg({
+        id: "rB",
+        source_itinerary_id: "search-B:XYZ789",
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "LAS",
+        has_go_wild: false,
+      }),
+    ];
+    const itins = groupLegsIntoItineraries(rows);
+    expect(itins).toHaveLength(2);
+    const avail = itins.filter((i) => i.isGoWildAvailable).length;
+    expect(avail / itins.length).toBe(0.5);
+  });
+
+  it("does NOT merge identical raw itinerary ids observed in different searches", () => {
+    // Raw upstream id "ABC123" appears in two separate searches. The RPC
+    // would return them as "search-A:ABC123" and "search-B:ABC123", so the
+    // helper must treat them as two distinct observations.
+    const rows: FlightLegRow[] = [
+      baseLeg({
+        id: "r1",
+        source_itinerary_id: "search-A:ABC123",
+        leg_origin_iata: "AUS",
+        leg_destination_iata: "ORD",
+        has_go_wild: true,
+        go_wild_available_seats: 8,
+      }),
+      baseLeg({
+        id: "r2",
+        source_itinerary_id: "search-B:ABC123",
+        leg_origin_iata: "AUS",
+        leg_destination_iata: "ORD",
+        has_go_wild: false,
+      }),
+    ];
+    const itins = groupLegsIntoItineraries(rows);
+    expect(itins).toHaveLength(2);
+    const ids = new Set(itins.map((i) => i.itineraryId));
+    expect(ids.has("search-A:ABC123")).toBe(true);
+    expect(ids.has("search-B:ABC123")).toBe(true);
+    const availabilityPct =
+      (itins.filter((i) => i.isGoWildAvailable).length / itins.length) * 100;
+    expect(availabilityPct).toBe(50);
+  });
+
+  it("connecting itinerary rule still holds with derived global keys", () => {
+    // Two-leg connecting itinerary: leg 1 GoWild, leg 2 not -> NOT available.
+    const rows: FlightLegRow[] = [
+      baseLeg({
+        id: "leg1",
+        source_itinerary_id: "search-C:CONN1",
+        leg_index: 0,
+        leg_origin_iata: "AUS",
+        leg_destination_iata: "DEN",
+        has_go_wild: true,
+        go_wild_available_seats: 10,
+      }),
+      baseLeg({
+        id: "leg2",
+        source_itinerary_id: "search-C:CONN1",
+        leg_index: 1,
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "ORD",
+        has_go_wild: false,
+      }),
+    ];
+    const [itin] = groupLegsIntoItineraries(rows);
+    expect(itin.legs).toHaveLength(2);
+    expect(itin.isGoWildAvailable).toBe(false);
+
+    // Fully GoWild connecting itinerary uses bottleneck seat count.
+    const rows2: FlightLegRow[] = [
+      baseLeg({
+        id: "leg3",
+        source_itinerary_id: "search-D:CONN2",
+        leg_index: 0,
+        leg_origin_iata: "AUS",
+        leg_destination_iata: "DEN",
+        has_go_wild: true,
+        go_wild_available_seats: 9,
+      }),
+      baseLeg({
+        id: "leg4",
+        source_itinerary_id: "search-D:CONN2",
+        leg_index: 1,
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "ORD",
+        has_go_wild: true,
+        go_wild_available_seats: 3,
+      }),
+    ];
+    const [itin2] = groupLegsIntoItineraries(rows2);
+    expect(itin2.isGoWildAvailable).toBe(true);
+    expect(itin2.availableSeats).toBe(3);
+  });
+});
+
