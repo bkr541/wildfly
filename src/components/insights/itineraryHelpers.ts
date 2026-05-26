@@ -5,7 +5,8 @@ export type ItineraryAirportStat = {
   totalItineraries: number;
   goWildItineraries: number;
   goWildRate: number; // 0-100
-  avgSeats: number | null;
+  totalGoWildAvailableSeats: number;
+  avgGoWildSeatsPerItinerary: number;
 };
 
 export type ItinerarySnapshotMetrics = {
