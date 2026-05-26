@@ -15,6 +15,14 @@ const CARD_SHADOW =
 const SELECT_FIELDS =
   "id, source_itinerary_id, leg_index, origin_iata, leg_origin_iata, leg_destination_iata, departure_at, arrival_at, snapshot_at, has_go_wild, go_wild_available_seats, go_wild_total, standard_total, stops, flight_search_id";
 
+// NOTE: GoWild Insights is a PLATFORM-WIDE analytics dashboard. Every signed-in
+// user sees the same metrics for the same period. To avoid widening direct
+// access to raw flight_snapshots (which stays scoped to the searching user),
+// we read sanitized global data via the SECURITY DEFINER RPC
+// `get_global_gowild_insight_snapshots`. The RPC returns a derived
+// `source_itinerary_id` value that is globally unique per (search, itinerary)
+// observation so identical upstream ids from separate searches never merge.
+
 type PeriodKey = "24h" | "7d" | "30d" | "all";
 
 const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
@@ -24,14 +32,14 @@ const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
   { key: "all", label: "All time", hours: null },
 ];
 
-// Supabase per-request response ceiling. We page through the full matching
-// result set using deterministic ordering (snapshot_at DESC, id DESC) so
-// rows are neither duplicated nor skipped between pages.
+// Pagination ceiling per request. The RPC paginates the full matching set;
+// we keep fetching until a page returns fewer than PAGE_SIZE rows.
 const PAGE_SIZE = 1000;
 // Defensive absolute safety valve to prevent a runaway loop in pathological
 // cases (e.g. ordering bug). If we ever hit this we surface a VISIBLE error
 // instead of silently rendering partial analytics. 5000 pages = 5M rows.
 const HARD_SAFETY_PAGE_LIMIT = 5000;
+
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
