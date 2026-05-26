@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
-import type { FlightLegRow } from "@/components/insights/insightTypes";
+import {
+  groupLegsIntoItineraries,
+  computeGoWildSnapshotMetrics,
+} from "@/components/insights/itineraryHelpers";
+import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
 const baseLeg = (overrides: Partial<FlightLegRow>): FlightLegRow => ({
   id: Math.random().toString(),
