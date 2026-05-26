@@ -95,3 +95,111 @@ describe("groupLegsIntoItineraries", () => {
     expect(it.routeKey).toBe("AUS-ORD");
   });
 });
+
+// ── computeGoWildSnapshotMetrics ────────────────────────────────────────────
+
+const NOW = new Date("2026-05-27T12:00:00Z").getTime();
+
+const makeItin = (overrides: Partial<Itinerary>): Itinerary => ({
+  itineraryId: Math.random().toString(),
+  legs: [],
+  origin: "AAA",
+  destination: "BBB",
+  routeKey: "AAA-BBB",
+  routeLabel: "AAA → BBB",
+  departureAt: null,
+  arrivalAt: null,
+  snapshotAt: new Date(NOW - 60 * 60 * 1000).toISOString(), // 1h ago by default
+  isGoWildAvailable: false,
+  availableSeats: 0,
+  totalGoWildPrice: null,
+  totalStandardPrice: null,
+  ...overrides,
+});
+
+describe("computeGoWildSnapshotMetrics", () => {
+  it("Case A: availability and average seats across all itineraries", () => {
+    const items = [
+      makeItin({ isGoWildAvailable: true,  availableSeats: 4 }),
+      makeItin({ isGoWildAvailable: true,  availableSeats: 2 }),
+      makeItin({ isGoWildAvailable: false, availableSeats: 0 }),
+      makeItin({ isGoWildAvailable: false, availableSeats: 0 }),
+    ];
+    const m = computeGoWildSnapshotMetrics(items, "7d", NOW);
+    expect(m.totalItineraries).toBe(4);
+    expect(m.goWildAvailableItineraries).toBe(2);
+    expect(m.goWildAvailabilityRate).toBeCloseTo(50.0, 5);
+    expect(m.totalGoWildAvailableSeats).toBe(6);
+    expect(m.avgGoWildSeatsPerItinerary).toBeCloseTo(1.5, 5);
+  });
+
+  it("Case B: connecting itinerary bottleneck seats via groupLegsIntoItineraries", () => {
+    const rows: FlightLegRow[] = [
+      baseLeg({
+        source_itinerary_id: "BX",
+        leg_index: 0,
+        leg_origin_iata: "ATL",
+        leg_destination_iata: "DEN",
+        has_go_wild: true,
+        go_wild_available_seats: 5,
+        snapshot_at: new Date(NOW - 60 * 60 * 1000).toISOString(),
+      }),
+      baseLeg({
+        source_itinerary_id: "BX",
+        leg_index: 1,
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "LAS",
+        has_go_wild: true,
+        go_wild_available_seats: 2,
+        snapshot_at: new Date(NOW - 60 * 60 * 1000).toISOString(),
+      }),
+      baseLeg({
+        source_itinerary_id: "BY",
+        leg_index: 0,
+        leg_origin_iata: "ATL",
+        leg_destination_iata: "LAS",
+        has_go_wild: false,
+        go_wild_available_seats: 0,
+        snapshot_at: new Date(NOW - 60 * 60 * 1000).toISOString(),
+      }),
+    ];
+    const itineraries = groupLegsIntoItineraries(rows);
+    const m = computeGoWildSnapshotMetrics(itineraries, "7d", NOW);
+    expect(m.totalItineraries).toBe(2);
+    expect(m.goWildAvailableItineraries).toBe(1);
+    expect(m.goWildAvailabilityRate).toBeCloseTo(50.0, 5);
+    expect(m.totalGoWildAvailableSeats).toBe(2);
+    expect(m.avgGoWildSeatsPerItinerary).toBeCloseTo(1.0, 5);
+  });
+
+  it("Case C: trend = current − prior in percentage points", () => {
+    const currentTs = new Date(NOW - 1 * 24 * 60 * 60 * 1000).toISOString();
+    const priorTs   = new Date(NOW - 8 * 24 * 60 * 60 * 1000).toISOString();
+    const items: Itinerary[] = [];
+    // Current: 10 GoWild / 40 total = 25%
+    for (let i = 0; i < 10; i++) items.push(makeItin({ snapshotAt: currentTs, isGoWildAvailable: true, availableSeats: 1 }));
+    for (let i = 0; i < 30; i++) items.push(makeItin({ snapshotAt: currentTs, isGoWildAvailable: false }));
+    // Prior: 6 GoWild / 40 total = 15%
+    for (let i = 0; i < 6;  i++) items.push(makeItin({ snapshotAt: priorTs, isGoWildAvailable: true, availableSeats: 1 }));
+    for (let i = 0; i < 34; i++) items.push(makeItin({ snapshotAt: priorTs, isGoWildAvailable: false }));
+
+    const m = computeGoWildSnapshotMetrics(items, "7d", NOW);
+    expect(m.totalItineraries).toBe(40);
+    expect(m.goWildAvailableItineraries).toBe(10);
+    expect(m.goWildAvailabilityRate).toBeCloseTo(25.0, 5);
+    expect(m.trendPercentagePoints).not.toBeNull();
+    expect(m.trendPercentagePoints!).toBeCloseTo(10.0, 5);
+    expect(m.trendDirection).toBe("up");
+  });
+
+  it("Case D: no prior data → trendDirection = 'unavailable'", () => {
+    const items = [
+      makeItin({ snapshotAt: new Date(NOW - 2 * 60 * 60 * 1000).toISOString(), isGoWildAvailable: true, availableSeats: 3 }),
+      makeItin({ snapshotAt: new Date(NOW - 3 * 60 * 60 * 1000).toISOString(), isGoWildAvailable: false }),
+    ];
+    const m = computeGoWildSnapshotMetrics(items, "24h", NOW);
+    expect(m.totalItineraries).toBe(2);
+    expect(m.trendPercentagePoints).toBeNull();
+    expect(m.trendDirection).toBe("unavailable");
+  });
+});
