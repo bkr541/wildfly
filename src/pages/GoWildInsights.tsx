@@ -179,9 +179,14 @@ const GoWildInsightsPage = () => {
         <ErrorCard message={error} />
       ) : (
         <GoWildSnapshotCard
-          itineraries={groupLegsIntoItineraries(currentSnapshots as any)}
+          // Pass the FULL fetched dataset (current + prior equal-length window).
+          // computeGoWildSnapshotMetrics filters by snapshotAt internally so
+          // headline metrics & chart stay scoped to the current period while
+          // the trend delta has prior-period itineraries to compare against.
+          itineraries={groupLegsIntoItineraries(snapshots as any)}
           period={period}
         />
+
       )}
 
       {!loading && !error && (
