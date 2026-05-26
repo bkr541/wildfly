@@ -1268,6 +1268,25 @@ export type Database = {
           username: string
         }[]
       }
+      get_global_gowild_insight_snapshots: {
+        Args: { p_limit?: number; p_offset?: number; p_since?: string }
+        Returns: {
+          arrival_at: string
+          departure_at: string
+          go_wild_available_seats: number
+          go_wild_total: number
+          has_go_wild: boolean
+          id: string
+          leg_destination_iata: string
+          leg_index: number
+          leg_origin_iata: string
+          origin_iata: string
+          snapshot_at: string
+          source_itinerary_id: string
+          standard_total: number
+          stops: number
+        }[]
+      }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
