@@ -82,8 +82,8 @@ const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) =>
                       />
                     </div>
                     <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                      {stat.goWildItineraries} / {stat.totalItineraries} itineraries
-                      {stat.avgSeats !== null && ` · avg ${Math.round(stat.avgSeats)} seats`}
+                      {stat.goWildItineraries} GoWild / {stat.totalItineraries} total itineraries
+                      {` · avg ${stat.avgGoWildSeatsPerItinerary.toFixed(2)} GoWild seats / itinerary`}
                     </p>
                   </div>
                 );
