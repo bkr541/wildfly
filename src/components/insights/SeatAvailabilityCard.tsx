@@ -122,7 +122,7 @@ const SeatAvailabilityCard = (props: Props) => {
                           />
                         </div>
                         <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                          {r.goWildItineraries} / {r.totalItineraries} itineraries
+                          {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
                           {r.routeCount > 1 ? ` · ${r.routeCount} routes` : ""}
                         </p>
                       </div>
