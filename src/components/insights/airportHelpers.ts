@@ -32,18 +32,7 @@ export type AirportStat = {
   confidence: Confidence;
 };
 
-export type HeatmapCell = {
-  totalLegs: number;
-  goWildLegs: number;
-  goWildRate: number;
-} | null;
 
-export type HeatmapRow = {
-  airport: string;
-  cells: HeatmapCell[];
-};
-
-export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 export function isGoWild(value: boolean | string | number | null | undefined): boolean {
   if (value === true || value === 1) return true;
@@ -138,33 +127,3 @@ export function getDestinationAirportStats(snapshots: FlightSnapshot[]): Airport
   );
 }
 
-export function getHeatmapData(snapshots: FlightSnapshot[]): HeatmapRow[] {
-  type AirportEntry = { total: number; cells: { total: number; goWild: number }[] };
-  const map = new Map<string, AirportEntry>();
-
-  for (const s of snapshots) {
-    const dayIdx = getWeekdayFromDeparture(s.departure_at);
-    if (dayIdx === null) continue;
-    const code = normalizeAirport(s.leg_origin_iata) ?? normalizeAirport(s.origin_iata);
-    if (!code) continue;
-    if (!map.has(code))
-      map.set(code, { total: 0, cells: Array.from({ length: 7 }, () => ({ total: 0, goWild: 0 })) });
-    const e = map.get(code)!;
-    e.total++;
-    e.cells[dayIdx].total++;
-    if (isGoWild(s.has_go_wild)) e.cells[dayIdx].goWild++;
-  }
-
-  return Array.from(map.entries())
-    .filter(([, d]) => d.cells.some((c) => c.total > 0))
-    .sort((a, b) => b[1].total - a[1].total)
-    .slice(0, 5)
-    .map(([airport, data]) => ({
-      airport,
-      cells: data.cells.map((c) =>
-        c.total === 0
-          ? null
-          : { totalLegs: c.total, goWildLegs: c.goWild, goWildRate: (c.goWild / c.total) * 100 }
-      ),
-    }));
-}

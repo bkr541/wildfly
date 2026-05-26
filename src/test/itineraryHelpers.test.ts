@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   groupLegsIntoItineraries,
   computeGoWildSnapshotMetrics,
+  getItineraryHeatmapData,
 } from "@/components/insights/itineraryHelpers";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
@@ -201,5 +202,96 @@ describe("computeGoWildSnapshotMetrics", () => {
     expect(m.totalItineraries).toBe(2);
     expect(m.trendPercentagePoints).toBeNull();
     expect(m.trendDirection).toBe("unavailable");
+});
+
+// ─── Availability heatmap (itinerary-level) ────────────────────────────────
+
+// 2026-01-02 is a Friday (UTC), 2026-01-05 is a Monday, 2026-01-06 is a Tuesday.
+const FRIDAY = "2026-01-02T15:00:00Z";
+const MONDAY = "2026-01-05T15:00:00Z";
+
+function itinLegs(
+  id: string,
+  legs: Array<{ origin: string; destination: string; goWild: boolean; departure: string }>,
+): FlightLegRow[] {
+  return legs.map((l, idx) =>
+    baseLeg({
+      id: `${id}-${idx}`,
+      source_itinerary_id: id,
+      leg_index: idx,
+      leg_origin_iata: l.origin,
+      leg_destination_iata: l.destination,
+      has_go_wild: l.goWild,
+      departure_at: l.departure,
+      go_wild_available_seats: l.goWild ? 5 : null,
+    }),
+  );
+}
+
+describe("getItineraryHeatmapData", () => {
+  it("Case A: connecting itinerary counts once in ATL/Friday", () => {
+    const rows = [
+      ...itinLegs("A", [
+        { origin: "ATL", destination: "DEN", goWild: true, departure: FRIDAY },
+        { origin: "DEN", destination: "LAS", goWild: true, departure: FRIDAY },
+      ]),
+      ...itinLegs("B", [
+        { origin: "ATL", destination: "LAS", goWild: false, departure: FRIDAY },
+      ]),
+    ];
+    const itins = groupLegsIntoItineraries(rows);
+    const heatmap = getItineraryHeatmapData(itins);
+    const atl = heatmap.find((r) => r.airport === "ATL")!;
+    expect(atl).toBeDefined();
+    expect(atl.totalItineraries).toBe(2);
+    const friCell = atl.cells[4]; // Fri = index 4
+    expect(friCell).not.toBeNull();
+    expect(friCell!.totalItineraries).toBe(2);
+    expect(friCell!.goWildItineraries).toBe(1);
+    expect(friCell!.goWildRate).toBeCloseTo(50);
   });
+
+  it("Case B: zero-success Monday vs empty Tuesday for DEN", () => {
+    const rows = [
+      ...itinLegs("D1", [
+        { origin: "DEN", destination: "PHX", goWild: false, departure: MONDAY },
+      ]),
+      ...itinLegs("D2", [
+        { origin: "DEN", destination: "SLC", goWild: false, departure: MONDAY },
+      ]),
+    ];
+    const heatmap = getItineraryHeatmapData(groupLegsIntoItineraries(rows));
+    const den = heatmap.find((r) => r.airport === "DEN")!;
+    const monCell = den.cells[0];
+    const tueCell = den.cells[1];
+    expect(monCell).not.toBeNull();
+    expect(monCell!.totalItineraries).toBe(2);
+    expect(monCell!.goWildItineraries).toBe(0);
+    expect(monCell!.goWildRate).toBe(0);
+    expect(tueCell).toBeNull();
+  });
+
+  it("Case C: busiest origins ranked by itinerary count, not raw legs", () => {
+    const rows = [
+      // 1 connecting ATL itinerary with 3 legs
+      ...itinLegs("AT", [
+        { origin: "ATL", destination: "DFW", goWild: false, departure: FRIDAY },
+        { origin: "DFW", destination: "DEN", goWild: false, departure: FRIDAY },
+        { origin: "DEN", destination: "LAS", goWild: false, departure: FRIDAY },
+      ]),
+      // 2 direct DEN itineraries
+      ...itinLegs("D1", [
+        { origin: "DEN", destination: "SEA", goWild: true, departure: FRIDAY },
+      ]),
+      ...itinLegs("D2", [
+        { origin: "DEN", destination: "PHX", goWild: false, departure: FRIDAY },
+      ]),
+    ];
+    const heatmap = getItineraryHeatmapData(groupLegsIntoItineraries(rows));
+    expect(heatmap[0].airport).toBe("DEN");
+    expect(heatmap[0].totalItineraries).toBe(2);
+    const atl = heatmap.find((r) => r.airport === "ATL")!;
+    expect(atl.totalItineraries).toBe(1);
+  });
+});
 });

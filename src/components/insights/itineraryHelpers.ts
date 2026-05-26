@@ -826,3 +826,82 @@ export function computeGoWildSnapshotMetrics(
     trendData,
   };
 }
+
+// ─── Origin × Weekday availability heatmap (itinerary-level) ────────────────
+
+export type ItineraryHeatmapCell = {
+  totalItineraries: number;
+  goWildItineraries: number;
+  goWildRate: number; // 0-100
+} | null;
+
+export type ItineraryHeatmapRow = {
+  airport: string;
+  totalItineraries: number;
+  cells: ItineraryHeatmapCell[]; // length 7, Mon..Sun
+};
+
+export const HEATMAP_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+/** 0=Mon … 6=Sun, or null if unparsable. */
+export function getItineraryWeekdayIndex(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const day = d.getUTCDay(); // 0=Sun … 6=Sat
+  return day === 0 ? 6 : day - 1;
+}
+
+/**
+ * Builds an origin × weekday heatmap from complete itineraries.
+ * Each itinerary contributes exactly one observation based on its first-leg
+ * origin and first-leg departure weekday. The top 5 origins by total
+ * itinerary volume are returned.
+ */
+export function getItineraryHeatmapData(itineraries: Itinerary[]): ItineraryHeatmapRow[] {
+  type AirportEntry = {
+    total: number;
+    cells: { total: number; goWild: number }[];
+  };
+  const map = new Map<string, AirportEntry>();
+
+  for (const it of itineraries) {
+    const first = it.legs[0];
+    if (!first) continue;
+    const dayIdx = getItineraryWeekdayIndex(first.departure_at);
+    if (dayIdx === null) continue;
+    const code = (first.leg_origin_iata ?? first.origin_iata ?? it.origin ?? "")
+      .trim()
+      .toUpperCase();
+    if (!code) continue;
+
+    if (!map.has(code)) {
+      map.set(code, {
+        total: 0,
+        cells: Array.from({ length: 7 }, () => ({ total: 0, goWild: 0 })),
+      });
+    }
+    const e = map.get(code)!;
+    e.total++;
+    e.cells[dayIdx].total++;
+    if (it.isGoWildAvailable) e.cells[dayIdx].goWild++;
+  }
+
+  return Array.from(map.entries())
+    .filter(([, d]) => d.total > 0)
+    .sort((a, b) => b[1].total - a[1].total)
+    .slice(0, 5)
+    .map(([airport, data]) => ({
+      airport,
+      totalItineraries: data.total,
+      cells: data.cells.map((c) =>
+        c.total === 0
+          ? null
+          : {
+              totalItineraries: c.total,
+              goWildItineraries: c.goWild,
+              goWildRate: (c.goWild / c.total) * 100,
+            }
+      ),
+    }));
+}
