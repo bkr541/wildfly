@@ -25,7 +25,7 @@ const SeatAvailabilityIntelligence = ({ snapshots, airportDict }: Props) => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SeatAvailabilityCard
         title="Most Seats Available"
-        subtitle="Routes with highest avg GoWild itinerary seats in the selected period"
+        subtitle="Routes with highest avg GoWild seats per itinerary opportunity"
         icon={AnalyticsUpIcon}
         variant="most-seats"
         rows={most.stats}
@@ -33,15 +33,16 @@ const SeatAvailabilityIntelligence = ({ snapshots, airportDict }: Props) => {
       />
       <SeatAvailabilityCard
         title="Lowest Seat Availability"
-        subtitle="Routes with fewest avg GoWild itinerary seats in the selected period"
+        subtitle="Routes with some GoWild availability but low avg seats per itinerary"
         icon={AnalyticsDownIcon}
         variant="lowest-seats"
         rows={lowest.stats}
         limited={lowest.limited}
+        emptyMessage="No routes with observed GoWild seat availability in this period."
       />
       <SeatAvailabilityCard
         title="GoWild Seats Available"
-        subtitle="Avg GoWild itinerary seats by departure airport"
+        subtitle="Avg GoWild seats per itinerary by departure airport"
         icon={Location01Icon}
         variant="airport-average"
         rows={airportStats}
