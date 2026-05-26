@@ -18,7 +18,7 @@ const AirportGoWildInsightsSection = ({ snapshots, dateRange, airportDict }: Pro
         <TopOriginAirportsCard itineraries={itineraries} airportDict={airportDict} />
         <TopDestinationAirportsCard itineraries={itineraries} airportDict={airportDict} />
       </div>
-      <AirportAvailabilityHeatmapCard snapshots={filtered} />
+      <AirportAvailabilityHeatmapCard itineraries={itineraries} />
     </div>
   );
 };
