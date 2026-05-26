@@ -168,6 +168,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_search_job_logs: {
+        Row: {
+          airports_failed: number
+          airports_succeeded: number
+          airports_total: number
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          gowild_found_count: number
+          id: string
+          started_at: string
+          status: string
+          target_date: string
+          timezone_group: string
+          triggered_by: string
+        }
+        Insert: {
+          airports_failed?: number
+          airports_succeeded?: number
+          airports_total?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          gowild_found_count?: number
+          id?: string
+          started_at?: string
+          status: string
+          target_date: string
+          timezone_group: string
+          triggered_by?: string
+        }
+        Update: {
+          airports_failed?: number
+          airports_succeeded?: number
+          airports_total?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          gowild_found_count?: number
+          id?: string
+          started_at?: string
+          status?: string
+          target_date?: string
+          timezone_group?: string
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       credit_packs: {
         Row: {
           created_at: string
