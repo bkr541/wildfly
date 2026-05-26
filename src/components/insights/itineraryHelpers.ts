@@ -633,3 +633,196 @@ export function getTimeWindowItineraryStats(itineraries: Itinerary[]): TimingRes
   }));
   return applyTimingThreshold(rows);
 }
+
+// ─── GoWild Snapshot card metrics (itinerary-level) ─────────────────────────
+//
+// All metrics use complete itineraries as the denominator. A connecting itinerary
+// counts ONCE; its GoWild seat contribution is the bottleneck across its legs
+// (already represented by `availableSeats` on the Itinerary), and non-GoWild
+// itineraries contribute 0 seats. Buckets are keyed by `snapshotAt` (the most
+// recent leg snapshot in the itinerary) — chosen because the dashboard measures
+// recorded availability over time.
+
+export type GoWildSnapshotPeriod = "24h" | "7d" | "30d" | "all";
+
+export type GoWildSnapshotTrendBucket = {
+  bucketKey: string;
+  bucketLabel: string;
+  totalItineraries: number;
+  goWildAvailableItineraries: number;
+  goWildAvailabilityRate: number | null; // null when bucket empty → gap in chart
+};
+
+export type GoWildSnapshotMetrics = {
+  totalItineraries: number;
+  goWildAvailableItineraries: number;
+  goWildAvailabilityRate: number; // 0–100, 0 when total=0
+  totalGoWildAvailableSeats: number;
+  avgGoWildSeatsPerItinerary: number;
+  trendPercentagePoints: number | null;
+  trendDirection: "up" | "down" | "flat" | "unavailable";
+  trendData: GoWildSnapshotTrendBucket[];
+};
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+function periodWindowMs(period: GoWildSnapshotPeriod): number | null {
+  switch (period) {
+    case "24h": return 24 * HOUR_MS;
+    case "7d":  return 7 * DAY_MS;
+    case "30d": return 30 * DAY_MS;
+    case "all": return null;
+  }
+}
+
+function pad2(n: number): string { return n < 10 ? `0${n}` : `${n}`; }
+
+function formatHourLabel(d: Date): string {
+  const h = d.getHours();
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12} ${period}`;
+}
+
+function formatDayLabel(d: Date): string {
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function snapshotMs(it: Itinerary): number | null {
+  const t = new Date(it.snapshotAt).getTime();
+  return isNaN(t) ? null : t;
+}
+
+function computeCoreMetrics(items: Itinerary[]) {
+  const total = items.length;
+  const goWild = items.filter((i) => i.isGoWildAvailable);
+  const goWildCount = goWild.length;
+  const rate = total > 0 ? (goWildCount / total) * 100 : 0;
+  const totalSeats = items.reduce(
+    (acc, it) => acc + (it.isGoWildAvailable ? (it.availableSeats || 0) : 0),
+    0,
+  );
+  const avgSeats = total > 0 ? totalSeats / total : 0;
+  return { total, goWildCount, rate, totalSeats, avgSeats };
+}
+
+type BucketShape = {
+  size: "hour" | "day" | "week";
+  windowStart: number;
+  windowEnd: number;
+};
+
+function bucketShapeFor(period: GoWildSnapshotPeriod, items: Itinerary[], now: number): BucketShape {
+  if (period === "24h") return { size: "hour", windowStart: now - 24 * HOUR_MS, windowEnd: now };
+  if (period === "7d")  return { size: "day",  windowStart: now - 7 * DAY_MS,   windowEnd: now };
+  if (period === "30d") return { size: "day",  windowStart: now - 30 * DAY_MS,  windowEnd: now };
+  let min = now;
+  for (const it of items) {
+    const t = snapshotMs(it);
+    if (t !== null && t < min) min = t;
+  }
+  return { size: "week", windowStart: min, windowEnd: now };
+}
+
+function bucketKeyAndLabel(d: Date, size: BucketShape["size"]): { key: string; label: string } {
+  if (size === "hour") {
+    const k = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}`;
+    return { key: k, label: formatHourLabel(d) };
+  }
+  if (size === "day") {
+    const k = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    return { key: k, label: formatDayLabel(d) };
+  }
+  const day = d.getDay();
+  const diff = (day + 6) % 7;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - diff);
+  monday.setHours(0, 0, 0, 0);
+  const k = `${monday.getFullYear()}-W-${pad2(monday.getMonth() + 1)}-${pad2(monday.getDate())}`;
+  return { key: k, label: formatDayLabel(monday) };
+}
+
+function buildTrendBuckets(items: Itinerary[], shape: BucketShape): GoWildSnapshotTrendBucket[] {
+  type Acc = { key: string; label: string; total: number; goWild: number };
+  const map = new Map<string, Acc>();
+  for (const it of items) {
+    const t = snapshotMs(it);
+    if (t === null || t < shape.windowStart || t > shape.windowEnd) continue;
+    const d = new Date(t);
+    if (shape.size === "hour") d.setMinutes(0, 0, 0);
+    else d.setHours(0, 0, 0, 0);
+    const { key, label } = bucketKeyAndLabel(d, shape.size);
+    if (!map.has(key)) map.set(key, { key, label, total: 0, goWild: 0 });
+    const e = map.get(key)!;
+    e.total++;
+    if (it.isGoWildAvailable) e.goWild++;
+  }
+  return Array.from(map.values())
+    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+    .map((e) => ({
+      bucketKey: e.key,
+      bucketLabel: e.label,
+      totalItineraries: e.total,
+      goWildAvailableItineraries: e.goWild,
+      goWildAvailabilityRate: e.total > 0 ? (e.goWild / e.total) * 100 : null,
+    }));
+}
+
+/**
+ * Computes the GoWild Snapshot card metrics for the selected period.
+ *
+ * `itineraries` must include items spanning AT LEAST the current period AND the
+ * immediately preceding equal-length period — the helper splits them by
+ * `snapshotAt`. Totals and seat averages use only the current window; the trend
+ * delta is (current rate − prior rate) in percentage points. For period "all",
+ * no prior comparison is computed and `trendDirection` is "unavailable".
+ */
+export function computeGoWildSnapshotMetrics(
+  itineraries: Itinerary[],
+  period: GoWildSnapshotPeriod,
+  nowMs: number = Date.now(),
+): GoWildSnapshotMetrics {
+  const windowMs = periodWindowMs(period);
+
+  let current: Itinerary[];
+  let prior: Itinerary[] = [];
+  if (windowMs === null) {
+    current = itineraries;
+  } else {
+    current = [];
+    for (const it of itineraries) {
+      const t = snapshotMs(it);
+      if (t === null) continue;
+      const age = nowMs - t;
+      if (age >= 0 && age < windowMs) current.push(it);
+      else if (age >= windowMs && age < 2 * windowMs) prior.push(it);
+    }
+  }
+
+  const core = computeCoreMetrics(current);
+
+  let trendPercentagePoints: number | null = null;
+  let trendDirection: GoWildSnapshotMetrics["trendDirection"] = "unavailable";
+  if (windowMs !== null && current.length > 0 && prior.length > 0) {
+    const priorCore = computeCoreMetrics(prior);
+    trendPercentagePoints = core.rate - priorCore.rate;
+    if (Math.abs(trendPercentagePoints) < 0.05) trendDirection = "flat";
+    else if (trendPercentagePoints > 0) trendDirection = "up";
+    else trendDirection = "down";
+  }
+
+  const shape = bucketShapeFor(period, current, nowMs);
+  const trendData = buildTrendBuckets(current, shape);
+
+  return {
+    totalItineraries: core.total,
+    goWildAvailableItineraries: core.goWildCount,
+    goWildAvailabilityRate: core.rate,
+    totalGoWildAvailableSeats: core.totalSeats,
+    avgGoWildSeatsPerItinerary: core.avgSeats,
+    trendPercentagePoints,
+    trendDirection,
+    trendData,
+  };
+}
