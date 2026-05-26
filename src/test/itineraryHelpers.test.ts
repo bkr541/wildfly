@@ -6,6 +6,7 @@ import {
   getMostSeatsItineraryRoutes,
   getLowestSeatsItineraryRoutes,
   getSeatItineraryAirportStats,
+  getMostFrequentGoWildItineraryRoute,
 } from "@/components/insights/itineraryHelpers";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
