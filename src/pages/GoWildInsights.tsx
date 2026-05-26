@@ -24,10 +24,14 @@ const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
   { key: "all", label: "All time", hours: null },
 ];
 
-// Supabase per-request response ceiling. We page through the full result set.
+// Supabase per-request response ceiling. We page through the full matching
+// result set using deterministic ordering (snapshot_at DESC, id DESC) so
+// rows are neither duplicated nor skipped between pages.
 const PAGE_SIZE = 1000;
-// Defensive ceiling to avoid a runaway loop (= 200k rows).
-const MAX_PAGES = 200;
+// Defensive absolute safety valve to prevent a runaway loop in pathological
+// cases (e.g. ordering bug). If we ever hit this we surface a VISIBLE error
+// instead of silently rendering partial analytics. 5000 pages = 5M rows.
+const HARD_SAFETY_PAGE_LIMIT = 5000;
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
@@ -41,8 +45,14 @@ const SkeletonCard = () => (
 
 const ErrorCard = ({ message }: { message: string }) => (
   <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
-    <p className="text-sm text-red-500 font-medium">Failed to load data</p>
-    <p className="text-xs text-gray-400 mt-1">{message}</p>
+    <p className="text-sm text-red-500 font-medium">
+      Unable to load complete analytics
+    </p>
+    <p className="text-xs text-gray-600 mt-1">{message}</p>
+    <p className="text-xs text-gray-500 mt-2">
+      Metrics are hidden because the full dataset for the selected period could
+      not be retrieved. Partial results are not shown to avoid misleading totals.
+    </p>
   </div>
 );
 
@@ -76,9 +86,19 @@ const GoWildInsightsPage = () => {
 
     (async () => {
       const all: FlightSnapshot[] = [];
+      const seenIds = new Set<string>();
       try {
-        for (let page = 0; page < MAX_PAGES; page++) {
+        let page = 0;
+        // Unbounded pagination: continue until a page returns < PAGE_SIZE rows.
+        // No artificial ceiling — if anything goes catastrophically wrong, the
+        // hard safety valve throws and the UI shows a visible error.
+        while (true) {
           if (cancelled) return;
+          if (page >= HARD_SAFETY_PAGE_LIMIT) {
+            throw new Error(
+              `Aborted after ${HARD_SAFETY_PAGE_LIMIT} pages (${all.length} rows). Possible pagination issue — analytics not shown to avoid misleading partial data.`,
+            );
+          }
           const from = page * PAGE_SIZE;
           const to = from + PAGE_SIZE - 1;
 
@@ -89,23 +109,24 @@ const GoWildInsightsPage = () => {
             .range(from, to);
           if (sinceIso) q = q.gte("snapshot_at", sinceIso);
 
-          const { data, error } = await q;
+          const { data, error: pageError } = await q;
           if (cancelled) return;
-          if (error) {
-            setError(error.message);
-            setLoading(false);
-            return;
+          if (pageError) {
+            throw new Error(
+              `Page ${page + 1} failed: ${pageError.message}. Analytics cannot be considered complete.`,
+            );
           }
 
           const rows = (data ?? []) as FlightSnapshot[];
-          all.push(...rows);
-          if (rows.length < PAGE_SIZE) break;
-
-          if (page === MAX_PAGES - 1) {
-            console.warn(
-              `[GoWildInsights] Hit MAX_PAGES=${MAX_PAGES} (${all.length} rows). Data may be truncated.`,
-            );
+          // Defensive dedupe by id (guards against any overlap between pages).
+          for (const r of rows) {
+            if (!seenIds.has(r.id)) {
+              seenIds.add(r.id);
+              all.push(r);
+            }
           }
+          if (rows.length < PAGE_SIZE) break;
+          page += 1;
         }
 
         if (cancelled) return;
@@ -114,15 +135,15 @@ const GoWildInsightsPage = () => {
 
         try {
           const itins = groupLegsIntoItineraries(all as any);
-          const uniqueIds = new Set(all.map((r) => r.id)).size;
           console.info(
-            `[GoWildInsights] period=${period} rows=${all.length} uniqueIds=${uniqueIds} itineraries=${itins.length}`,
+            `[GoWildInsights] period=${period} rows=${all.length} uniqueIds=${seenIds.size} itineraries=${itins.length}`,
           );
         } catch {
           /* logging only */
         }
       } catch (e: any) {
         if (cancelled) return;
+        setSnapshots([]);
         setError(e?.message ?? "Unknown error loading snapshots");
         setLoading(false);
       }
