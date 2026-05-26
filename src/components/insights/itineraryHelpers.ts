@@ -352,6 +352,21 @@ export type SeatRouteResult = {
   limited: boolean;
 };
 
+/**
+ * Route-level seat stats with itinerary-based denominator.
+ *
+ * For every complete itinerary on a route:
+ * - If fully GoWild-available, it contributes its bottleneck seat count
+ *   (already stored on `it.availableSeats`, computed as min across legs).
+ * - Otherwise it contributes 0.
+ *
+ * avgSeats   = totalGoWildAvailableSeats / totalItineraries
+ * totalSeats = sum of GoWild seat contributions across all itineraries
+ * maxSeats   = highest bottleneck seat count among GoWild-available itineraries only
+ *
+ * Null seat values on GoWild-available itineraries are treated as 0,
+ * matching the shared itinerary grouping rule in groupLegsIntoItineraries.
+ */
 function buildSeatItineraryRouteStats(itineraries: Itinerary[]): SeatItineraryRouteStat[] {
   type Entry = {
     origin: string;
@@ -359,7 +374,8 @@ function buildSeatItineraryRouteStats(itineraries: Itinerary[]): SeatItineraryRo
     routeLabel: string;
     total: number;
     goWild: number;
-    seats: number[];
+    totalSeats: number;
+    maxSeats: number;
   };
   const map = new Map<string, Entry>();
 
@@ -372,35 +388,33 @@ function buildSeatItineraryRouteStats(itineraries: Itinerary[]): SeatItineraryRo
         routeLabel: it.routeLabel,
         total: 0,
         goWild: 0,
-        seats: [],
+        totalSeats: 0,
+        maxSeats: 0,
       });
     }
     const e = map.get(it.routeKey)!;
     e.total++;
     if (it.isGoWildAvailable) {
       e.goWild++;
-      // availableSeats already represents the min across legs — do NOT average across legs.
-      e.seats.push(it.availableSeats);
+      const seats = it.availableSeats || 0;
+      e.totalSeats += seats;
+      if (seats > e.maxSeats) e.maxSeats = seats;
     }
+    // Non-GoWild itineraries contribute 0 to totalSeats by design.
   }
 
-  return Array.from(map.entries()).map(([routeKey, e]) => {
-    const totalSeats = e.seats.reduce((a, b) => a + b, 0);
-    const avgSeats = e.seats.length > 0 ? totalSeats / e.seats.length : 0;
-    const maxSeats = e.seats.length > 0 ? Math.max(...e.seats) : 0;
-    return {
-      routeKey,
-      route: e.routeLabel,
-      origin: e.origin,
-      destination: e.destination,
-      totalItineraries: e.total,
-      goWildItineraries: e.goWild,
-      goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
-      avgSeats,
-      maxSeats,
-      totalSeats,
-    };
-  });
+  return Array.from(map.entries()).map(([routeKey, e]) => ({
+    routeKey,
+    route: e.routeLabel,
+    origin: e.origin,
+    destination: e.destination,
+    totalItineraries: e.total,
+    goWildItineraries: e.goWild,
+    goWildRate: e.total > 0 ? (e.goWild / e.total) * 100 : 0,
+    avgSeats: e.total > 0 ? e.totalSeats / e.total : 0,
+    maxSeats: e.maxSeats,
+    totalSeats: e.totalSeats,
+  }));
 }
 
 function applySeatThreshold(
@@ -408,7 +422,8 @@ function applySeatThreshold(
   comparator: (a: SeatItineraryRouteStat, b: SeatItineraryRouteStat) => number
 ): SeatRouteResult {
   const sorted = [...all].sort(comparator);
-  const qualified = sorted.filter((r) => r.goWildItineraries >= SEATS_MIN_GOWILD);
+  // Threshold is based on total itineraries (opportunities), not successful ones.
+  const qualified = sorted.filter((r) => r.totalItineraries >= ROUTE_MIN_ITINERARIES);
   if (qualified.length >= MIN_QUALIFIED_RESULTS) {
     return { stats: qualified.slice(0, TOP_N), limited: false };
   }
@@ -421,17 +436,25 @@ export function getMostSeatsItineraryRoutes(itineraries: Itinerary[]): SeatRoute
     (a, b) =>
       b.avgSeats - a.avgSeats ||
       b.goWildItineraries - a.goWildItineraries ||
-      b.goWildRate - a.goWildRate
+      b.totalItineraries - a.totalItineraries
   );
 }
 
+/**
+ * Lowest Seat Availability ranking.
+ * Excludes routes with zero GoWild-successful itineraries — a route with no
+ * observed GoWild availability should not be presented as "low seat availability".
+ */
 export function getLowestSeatsItineraryRoutes(itineraries: Itinerary[]): SeatRouteResult {
+  const eligible = buildSeatItineraryRouteStats(itineraries).filter(
+    (r) => r.goWildItineraries > 0
+  );
   return applySeatThreshold(
-    buildSeatItineraryRouteStats(itineraries),
+    eligible,
     (a, b) =>
       a.avgSeats - b.avgSeats ||
-      b.goWildItineraries - a.goWildItineraries ||
-      a.goWildRate - b.goWildRate
+      b.totalItineraries - a.totalItineraries ||
+      a.goWildItineraries - b.goWildItineraries
   );
 }
 
@@ -444,19 +467,32 @@ export type SeatItineraryAirportStat = {
   routeCount: number;
 };
 
+/**
+ * Origin-airport seat stats with itinerary-based denominator.
+ * Each complete itinerary is counted once under its first-leg origin airport.
+ * Non-GoWild itineraries contribute 0 GoWild seats. routeCount is computed
+ * across all complete itineraries originating at the airport.
+ * Airports with zero GoWild observations are excluded — they should not
+ * outrank airports with real seat availability.
+ */
 export function getSeatItineraryAirportStats(itineraries: Itinerary[]): SeatItineraryAirportStat[] {
-  type Entry = { total: number; goWild: number; seats: number[]; routes: Set<string> };
+  type Entry = {
+    total: number;
+    goWild: number;
+    totalSeats: number;
+    routes: Set<string>;
+  };
   const map = new Map<string, Entry>();
   for (const it of itineraries) {
     const code = it.origin;
     if (!code) continue;
-    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, seats: [], routes: new Set() });
+    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, totalSeats: 0, routes: new Set() });
     const e = map.get(code)!;
     e.total++;
     if (it.routeKey) e.routes.add(it.routeKey);
     if (it.isGoWildAvailable) {
       e.goWild++;
-      e.seats.push(it.availableSeats);
+      e.totalSeats += it.availableSeats || 0;
     }
   }
   return Array.from(map.entries())
@@ -464,12 +500,17 @@ export function getSeatItineraryAirportStats(itineraries: Itinerary[]): SeatItin
       code,
       totalItineraries: e.total,
       goWildItineraries: e.goWild,
-      avgSeats: e.seats.length > 0 ? e.seats.reduce((a, b) => a + b, 0) / e.seats.length : 0,
-      totalSeats: e.seats.reduce((a, b) => a + b, 0),
+      avgSeats: e.total > 0 ? e.totalSeats / e.total : 0,
+      totalSeats: e.totalSeats,
       routeCount: e.routes.size,
     }))
     .filter((r) => r.goWildItineraries > 0)
-    .sort((a, b) => b.avgSeats - a.avgSeats || b.goWildItineraries - a.goWildItineraries)
+    .sort(
+      (a, b) =>
+        b.avgSeats - a.avgSeats ||
+        b.goWildItineraries - a.goWildItineraries ||
+        b.totalItineraries - a.totalItineraries
+    )
     .slice(0, 5);
 }
 
