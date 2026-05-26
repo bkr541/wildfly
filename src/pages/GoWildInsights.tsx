@@ -24,8 +24,10 @@ const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
   { key: "all", label: "All time", hours: null },
 ];
 
-// Hard safety cap to protect the browser; UI explains when it kicks in.
-const HARD_ROW_CAP = 5000;
+// Supabase per-request response ceiling. We page through the full result set.
+const PAGE_SIZE = 1000;
+// Defensive ceiling to avoid a runaway loop (= 200k rows).
+const MAX_PAGES = 200;
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
@@ -61,25 +63,66 @@ const GoWildInsightsPage = () => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    (async () => {
-      let query = (supabase.from("flight_snapshots") as any)
-        .select(SELECT_FIELDS)
-        .order("snapshot_at", { ascending: false })
-        .limit(HARD_ROW_CAP);
-      if (sinceIso) query = query.gte("snapshot_at", sinceIso);
+    setSnapshots([]);
 
-      const { data, error } = await query;
-      if (cancelled) return;
-      if (error) setError(error.message);
-      else setSnapshots(data ?? []);
-      setLoading(false);
+    (async () => {
+      const all: FlightSnapshot[] = [];
+      try {
+        for (let page = 0; page < MAX_PAGES; page++) {
+          if (cancelled) return;
+          const from = page * PAGE_SIZE;
+          const to = from + PAGE_SIZE - 1;
+
+          let q = (supabase.from("flight_snapshots") as any)
+            .select(SELECT_FIELDS)
+            .order("snapshot_at", { ascending: false })
+            .order("id", { ascending: false })
+            .range(from, to);
+          if (sinceIso) q = q.gte("snapshot_at", sinceIso);
+
+          const { data, error } = await q;
+          if (cancelled) return;
+          if (error) {
+            setError(error.message);
+            setLoading(false);
+            return;
+          }
+
+          const rows = (data ?? []) as FlightSnapshot[];
+          all.push(...rows);
+          if (rows.length < PAGE_SIZE) break;
+
+          if (page === MAX_PAGES - 1) {
+            console.warn(
+              `[GoWildInsights] Hit MAX_PAGES=${MAX_PAGES} (${all.length} rows). Data may be truncated.`,
+            );
+          }
+        }
+
+        if (cancelled) return;
+        setSnapshots(all);
+        setLoading(false);
+
+        try {
+          const itins = groupLegsIntoItineraries(all as any);
+          const uniqueIds = new Set(all.map((r) => r.id)).size;
+          console.info(
+            `[GoWildInsights] period=${period} rows=${all.length} uniqueIds=${uniqueIds} itineraries=${itins.length}`,
+          );
+        } catch {
+          /* logging only */
+        }
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(e?.message ?? "Unknown error loading snapshots");
+        setLoading(false);
+      }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [sinceIso]);
-
-  const capReached = snapshots.length >= HARD_ROW_CAP;
+  }, [sinceIso, period]);
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
@@ -108,12 +151,6 @@ const GoWildInsightsPage = () => {
           </button>
         ))}
       </div>
-
-      {capReached && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-          Showing the most recent {HARD_ROW_CAP.toLocaleString()} snapshots in this period for performance. Narrow the period for complete coverage.
-        </div>
-      )}
 
       {loading ? (
         <SkeletonCard />
