@@ -316,19 +316,41 @@ export function getWorstItineraryRoutes(itineraries: Itinerary[]): RouteStatsRes
   );
 }
 
+export type MostFrequentGoWildResult = {
+  route: ItineraryRouteStat;
+  limited: boolean;
+} | null;
+
+/**
+ * Selects the route with the highest GoWild frequency rate across ALL complete
+ * itinerary opportunities for that route. Raw GoWild count is a tie-breaker
+ * only, never the primary ranking metric.
+ *
+ * Sample qualification uses total itinerary count (>= ROUTE_MIN_ITINERARIES)
+ * so a 1/1 = 100% fluke route can never outrank a high-volume route. If no
+ * route qualifies, fall back to the best low-volume route and flag the result
+ * as `limited` so the UI can show a Limited data state.
+ */
 export function getMostFrequentGoWildItineraryRoute(
   itineraries: Itinerary[]
-): ItineraryRouteStat | null {
-  const stats = buildItineraryRouteStats(itineraries).filter((r) => r.goWildItineraries > 0);
-  if (stats.length === 0) return null;
-  stats.sort(
-    (a, b) =>
-      b.goWildItineraries - a.goWildItineraries ||
-      b.goWildRate - a.goWildRate ||
-      b.totalItineraries - a.totalItineraries
-  );
-  return stats[0];
+): MostFrequentGoWildResult {
+  const all = buildItineraryRouteStats(itineraries).filter((r) => r.goWildItineraries > 0);
+  if (all.length === 0) return null;
+
+  const byRate = (a: ItineraryRouteStat, b: ItineraryRouteStat) =>
+    b.goWildRate - a.goWildRate ||
+    b.goWildItineraries - a.goWildItineraries ||
+    b.totalItineraries - a.totalItineraries;
+
+  const qualified = all.filter((r) => r.totalItineraries >= ROUTE_MIN_ITINERARIES);
+  if (qualified.length > 0) {
+    qualified.sort(byRate);
+    return { route: qualified[0], limited: false };
+  }
+  const sorted = [...all].sort(byRate);
+  return { route: sorted[0], limited: true };
 }
+
 
 // ─── Seat availability (itinerary-level) ─────────────────────────────────────
 
