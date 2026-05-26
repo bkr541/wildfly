@@ -112,7 +112,7 @@ const SeatAvailabilityCard = (props: Props) => {
                             </div>
                           </div>
                           <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
-                            {r.avgSeats.toFixed(1)} avg
+                            {r.avgSeats.toFixed(1)} avg / itin
                           </span>
                         </div>
                         <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
