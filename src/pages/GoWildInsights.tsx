@@ -166,15 +166,18 @@ const GoWildInsightsPage = () => {
       ) : error ? (
         <ErrorCard message={error} />
       ) : (
-        <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} />
+        <GoWildSnapshotCard
+          itineraries={groupLegsIntoItineraries(currentSnapshots as any)}
+          period={period}
+        />
       )}
 
       {!loading && !error && (
         <>
-          <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
-          <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
-          <GoWildTimingAnalyticsSection snapshots={snapshots} />
-          <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
+          <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
+          <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
         </>
       )}
     </div>
