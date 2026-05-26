@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GridViewIcon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import { getHeatmapData, WEEKDAYS, type FlightSnapshot, type HeatmapCell } from "./airportHelpers";
+import {
+  getItineraryHeatmapData,
+  HEATMAP_WEEKDAYS,
+  type ItineraryHeatmapCell,
+} from "./itineraryHelpers";
+import type { Itinerary } from "./insightTypes";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
-function getCellStyle(cell: HeatmapCell): { bg: string; text: string; dim: boolean } {
+function getCellStyle(cell: ItineraryHeatmapCell): { bg: string; text: string; dim: boolean } {
   if (!cell) return { bg: "bg-gray-100", text: "", dim: false };
-  const { goWildRate, totalLegs } = cell;
-  const dim = totalLegs < 2;
+  const { goWildRate, totalItineraries } = cell;
+  const dim = totalItineraries < 2;
   if (goWildRate >= 75) return { bg: "bg-green-600", text: "text-white", dim };
   if (goWildRate >= 50) return { bg: "bg-green-400", text: "text-white", dim };
   if (goWildRate >= 25) return { bg: "bg-green-200", text: "text-green-800", dim };
@@ -18,12 +23,12 @@ function getCellStyle(cell: HeatmapCell): { bg: string; text: string; dim: boole
 }
 
 interface Props {
-  snapshots: FlightSnapshot[];
+  itineraries: Itinerary[];
 }
 
-const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
+const AirportAvailabilityHeatmapCard = ({ itineraries }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const rows = getHeatmapData(snapshots);
+  const rows = getItineraryHeatmapData(itineraries);
 
   return (
     <div className="rounded-2xl bg-white p-5" style={{ boxShadow: CARD_SHADOW }}>
@@ -35,7 +40,7 @@ const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
         <HugeiconsIcon icon={GridViewIcon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
         <div className="flex-1 ml-2">
           <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Availability Heatmap</p>
-          <p className="text-xs text-[#6B7B7B]">GoWild rate by origin &amp; weekday</p>
+          <p className="text-xs text-[#6B7B7B]">GoWild rate by origin &amp; weekday (itineraries)</p>
         </div>
         <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
@@ -46,7 +51,6 @@ const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
       <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
 
-      {/* Heatmap */}
       {rows.length === 0 ? (
         <p className="text-sm text-[#9CA3AF] text-center py-6">No heatmap data yet</p>
       ) : (
@@ -54,7 +58,7 @@ const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
           {/* Day header row */}
           <div className="grid grid-cols-[36px_repeat(7,1fr)] gap-0.5 mb-1">
             <div />
-            {WEEKDAYS.map((day) => (
+            {HEATMAP_WEEKDAYS.map((day) => (
               <div
                 key={day}
                 className="text-center text-[10px] font-semibold text-[#6B7B7B]"
@@ -73,12 +77,17 @@ const AirportAvailabilityHeatmapCard = ({ snapshots }: Props) => {
                 </div>
                 {row.cells.map((cell, i) => {
                   const { bg, text, dim } = getCellStyle(cell);
+                  const day = HEATMAP_WEEKDAYS[i];
+                  const tooltip = cell
+                    ? `${row.airport} · ${day}\n${cell.goWildRate.toFixed(1)}% GoWild availability\n${cell.goWildItineraries} GoWild / ${cell.totalItineraries} total itineraries`
+                    : `${row.airport} · ${day}\nNo itinerary data`;
                   return (
                     <div
                       key={i}
+                      title={tooltip}
                       className={`h-7 rounded flex items-center justify-center ${bg} ${dim ? "opacity-50" : ""}`}
                     >
-                      {cell && cell.totalLegs >= 2 && (
+                      {cell && cell.totalItineraries >= 2 && (
                         <span className={`text-[9px] font-semibold leading-none ${text}`}>
                           {Math.round(cell.goWildRate)}
                         </span>
