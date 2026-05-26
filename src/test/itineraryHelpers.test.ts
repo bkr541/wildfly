@@ -421,3 +421,106 @@ describe("seat availability — origin airport (itinerary denominator)", () => {
     expect(stats.find((s) => s.code === "ATL")).toBeDefined();
   });
 });
+
+// ─── GoWild Snapshot page-wiring (raw rows → group → compute) ───────────────
+//
+// Mirrors what GoWildInsights.tsx does: fetch raw flight_snapshots spanning
+// current + prior windows, group into itineraries, then call
+// computeGoWildSnapshotMetrics. Catches the regression where the page
+// pre-filters to the current period and starves the trend comparison.
+
+const WIRE_NOW = new Date("2026-05-27T12:00:00Z").getTime();
+
+function rawLeg(
+  itinId: string,
+  snapshotAt: string,
+  goWild: boolean,
+  seats: number | null = null,
+): FlightLegRow {
+  return baseLeg({
+    id: `${itinId}-leg`,
+    source_itinerary_id: itinId,
+    leg_index: 0,
+    leg_origin_iata: "DEN",
+    leg_destination_iata: "LAS",
+    departure_at: snapshotAt,
+    arrival_at: snapshotAt,
+    snapshot_at: snapshotAt,
+    has_go_wild: goWild,
+    go_wild_available_seats: seats,
+  });
+}
+
+function buildRawDataset(): FlightLegRow[] {
+  const currentTs = new Date(WIRE_NOW - 1 * 24 * 60 * 60 * 1000).toISOString(); // 1d ago
+  const priorTs   = new Date(WIRE_NOW - 8 * 24 * 60 * 60 * 1000).toISOString(); // 8d ago
+  const rows: FlightLegRow[] = [];
+  // Current 7d: 10 GoWild / 40 total = 25%
+  for (let i = 0; i < 10; i++) rows.push(rawLeg(`cur-gw-${i}`,   currentTs, true,  3));
+  for (let i = 0; i < 30; i++) rows.push(rawLeg(`cur-no-${i}`,   currentTs, false));
+  // Prior 7d: 6 GoWild / 40 total = 15%
+  for (let i = 0; i < 6;  i++) rows.push(rawLeg(`prior-gw-${i}`, priorTs,   true,  2));
+  for (let i = 0; i < 34; i++) rows.push(rawLeg(`prior-no-${i}`, priorTs,   false));
+  return rows;
+}
+
+describe("GoWildSnapshotCard page wiring", () => {
+  it("Case A: full dataset → headline scoped to current period AND trend computed", () => {
+    const raw = buildRawDataset();
+    // Correct page wiring: group the FULL fetched dataset.
+    const itins = groupLegsIntoItineraries(raw);
+    const m = computeGoWildSnapshotMetrics(itins, "7d", WIRE_NOW);
+
+    // Headline reflects only the current 7d window (not the doubled fetch).
+    expect(m.totalItineraries).toBe(40);
+    expect(m.goWildAvailableItineraries).toBe(10);
+    expect(m.goWildAvailabilityRate).toBeCloseTo(25.0, 5);
+
+    // Prior 7d data is now visible to the helper → real trend, not "unavailable".
+    expect(m.trendDirection).toBe("up");
+    expect(m.trendPercentagePoints).not.toBeNull();
+    expect(m.trendPercentagePoints!).toBeCloseTo(10.0, 5);
+  });
+
+  it("Case B: chart trend buckets only contain current-period snapshot timestamps", () => {
+    const raw = buildRawDataset();
+    const itins = groupLegsIntoItineraries(raw);
+    const m = computeGoWildSnapshotMetrics(itins, "7d", WIRE_NOW);
+    const windowStart = WIRE_NOW - 7 * 24 * 60 * 60 * 1000;
+    for (const bucket of m.trendData) {
+      // Bucket keys are local-day strings; allow one day of slack for TZ.
+      const t = new Date(bucket.bucketKey + "T00:00:00Z").getTime();
+      expect(isNaN(t)).toBe(false);
+      expect(t).toBeGreaterThanOrEqual(windowStart - 24 * 60 * 60 * 1000);
+      expect(t).toBeLessThanOrEqual(WIRE_NOW);
+    }
+  });
+
+  it("Case C: broken page wiring (pre-filter to current) regresses to no-prior-data", () => {
+    // This is the bug the fix prevents: if the page pre-filters raw rows to the
+    // current window before grouping, the helper never sees prior itineraries.
+    const raw = buildRawDataset();
+    const currentCutoff = WIRE_NOW - 7 * 24 * 60 * 60 * 1000;
+    const currentOnly = raw.filter((r) => new Date(r.snapshot_at).getTime() >= currentCutoff);
+    const itins = groupLegsIntoItineraries(currentOnly);
+    const m = computeGoWildSnapshotMetrics(itins, "7d", WIRE_NOW);
+    expect(m.totalItineraries).toBe(40);
+    expect(m.trendPercentagePoints).toBeNull();
+    expect(m.trendDirection).toBe("unavailable");
+  });
+
+  it("Case D: true missing prior data → neutral state, current metrics still render", () => {
+    const currentTs = new Date(WIRE_NOW - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const raw: FlightLegRow[] = [
+      rawLeg("only-gw", currentTs, true, 4),
+      rawLeg("only-no", currentTs, false),
+    ];
+    const itins = groupLegsIntoItineraries(raw);
+    const m = computeGoWildSnapshotMetrics(itins, "7d", WIRE_NOW);
+    expect(m.totalItineraries).toBe(2);
+    expect(m.goWildAvailableItineraries).toBe(1);
+    expect(m.goWildAvailabilityRate).toBeCloseTo(50.0, 5);
+    expect(m.trendPercentagePoints).toBeNull();
+    expect(m.trendDirection).toBe("unavailable");
+  });
+});
