@@ -35,8 +35,14 @@ function pickDestination(leg: FlightLegRow): string {
 }
 
 /**
- * Groups raw flight leg rows into itinerary objects keyed by source_itinerary_id.
- * Legs without a source_itinerary_id are skipped.
+ * Groups raw flight leg rows into itinerary objects keyed by
+ * `source_itinerary_id`.
+ *
+ * For GoWild Insights this field is the derived analytics observation key
+ * returned by `get_global_gowild_insight_snapshots` (effectively
+ * `flight_search_id:source_itinerary_id`), so identical raw itinerary ids
+ * from separate platform-wide searches remain distinct observations and are
+ * never merged. Legs without a key are skipped.
  */
 export function groupLegsIntoItineraries(rows: FlightLegRow[]): Itinerary[] {
   const groups = new Map<string, FlightLegRow[]>();
