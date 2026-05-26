@@ -133,6 +133,18 @@ const GoWildInsightsPage = () => {
     };
   }, [sinceIso, period]);
 
+  // Snapshots scoped to the currently selected period (excluding the
+  // prior-comparison window). Used for every card except GoWildSnapshotCard,
+  // which needs the extended set to compute its prior-period trend.
+  const currentSnapshots = useMemo<FlightSnapshot[]>(() => {
+    if (!currentSinceIso) return snapshots;
+    const cutoff = new Date(currentSinceIso).getTime();
+    return snapshots.filter((s) => {
+      const t = new Date(s.snapshot_at).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }, [snapshots, currentSinceIso]);
+
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
       <div
