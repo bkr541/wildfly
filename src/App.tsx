@@ -35,6 +35,7 @@ import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
 import BillingPortalReturn from "./pages/BillingPortalReturn";
 import AdminGate from "./components/AdminGate";
+import PreviewPage from "./pages/Preview";
 
 const queryClient = new QueryClient();
 
@@ -475,6 +476,7 @@ const App = () => (
           <Route path="/admin/bulk-search" element={<AdminGate><AdminBulkSearch /></AdminGate>} />
           <Route path="/admin/console" element={<AdminGate><AdminConsole /></AdminGate>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/preview" element={<PreviewPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel" element={<BillingCancel />} />
           <Route path="/billing/portal-return" element={<BillingPortalReturn />} />
