@@ -1,79 +1,74 @@
-# Fix: Bulk Search Not Writing to `flight_snapshots`
+## Goal
 
-## Root cause
+Run the existing `/admin/bulk-search` (Domestic Only ON, Optimize By Timezone ON, date = tomorrow) automatically every day, once per US timezone, at the moment each region releases GoWild passes:
 
-The `/admin/bulk-search` flow runs:
+| Timezone group | Eastern wall-clock trigger |
+|---|---|
+| ET | 12:02 AM |
+| CT | 01:02 AM |
+| MT | 02:02 AM |
+| PT | 03:02 AM |
 
-1. Calls the flight API (returns flights whose timing lives in `rawPayload.segments[].departure_time / arrival_time`).
-2. `normalizeAllDestinationsResponse(raw, date)` builds each flight's `legs` array from top-level `f.depart_time` / `f.arrive_time` — **fields the API never returns at the top level**. So every leg ends up with:
+Log every run (success or failure) so you can audit it.
 
-   ```json
-   { "origin": "BWI", "destination": "BQN", "departure_time": "", "arrival_time": "" }
-   ```
+## Approach
 
-   (Confirmed by inspecting `flight_search_cache.payload->'flights'->0`.)
+Three pieces:
 
-3. `writeFlightSnapshots(...)` iterates legs and explicitly skips any leg missing `departure_time` or `arrival_time` (it can't satisfy the `NOT NULL` columns `departure_at` / `arrival_at`):
+1. **New edge function** `scheduled-bulk-search` (Deno, runs server-side with the service-role key). It ports the bulk-search loop from `src/pages/AdminBulkSearch.tsx` so it doesn't need a browser session. Accepts `{ timezone: "ET" | "CT" | "MT" | "PT" }` in the body, then:
+   - Computes "tomorrow" in America/New_York (handles DST).
+   - Loads `airports` filtered to `is_active = true`, `locations.country = 'United States of America'`, and `timezone IN (group)`.
+   - For each airport: calls `flight-proxy` (`/search`), normalizes via the same logic as `normalizeAllDestinationsResponse`, upserts `flight_search_cache`, inserts `flight_searches` (with `triggered_by = 'scheduled_bulk_search'` and a synthetic system user id), and writes itinerary-level rows to `flight_snapshots`.
+   - Same 750 ms inter-airport delay, exponential backoff on 429, max 3 retries.
+   - Writes a single row to a new `bulk_search_job_logs` table at the end (status `success` or `failed`, with counts + duration + error message).
 
-   ```ts
-   if (!leg.departure_time || !leg.arrival_time) return;
-   ```
+   Because we already call this only from `pg_cron` (server side), we keep `verify_jwt = false` for this function and gate it with a shared-secret header (`x-job-secret`) that the cron job passes; the function rejects anything without the matching secret. This keeps the public endpoint safe.
 
-4. Result: 0 rows inserted for every search. The error is also swallowed by the `.catch(() => {})` on the call site, hiding the failure. DB confirms `snaps = 0` for every `triggered_by='admin_bulk_search'` row.
+2. **New table** `bulk_search_job_logs` for the audit trail:
 
-## Fix
+   | column | purpose |
+   |---|---|
+   | `id` uuid pk | |
+   | `timezone_group` text | `ET` / `CT` / `MT` / `PT` |
+   | `target_date` date | the next-day date searched |
+   | `status` text | `success` / `failed` / `partial` |
+   | `airports_total` int | how many airports were in the batch |
+   | `airports_succeeded` int | |
+   | `airports_failed` int | |
+   | `gowild_found_count` int | |
+   | `duration_ms` int | wall time |
+   | `error_message` text | populated on hard failure |
+   | `started_at`, `finished_at` timestamptz | |
+   | `created_at` timestamptz default now() | |
 
-Make the bulk-search normalizer produce real per-segment legs from `rawPayload.segments`, matching the shape the snapshot writer expects.
+   RLS: only the developer allowlist can `SELECT`; no public insert/update/delete (writes happen via service role inside the edge function).
 
-### `src/utils/normalizeFlights.ts` — `normalizeAllDestinationsResponse`
+3. **Cron schedule** via `pg_cron` + `pg_net`. Because `pg_cron` schedules in UTC, a single fixed UTC time would drift across DST. The clean fix: schedule **one dispatcher job every 5 minutes** that calls a tiny dispatcher edge function (`scheduled-bulk-search-dispatcher`). The dispatcher reads the current time in `America/New_York` and, if it's within the matching window (`00:02`, `01:02`, `02:02`, `03:02`), invokes `scheduled-bulk-search` with the right `timezone` group. This handles DST automatically and avoids 8 separate cron entries.
 
-Replace the synthetic single-leg block with one leg per segment:
+   To prevent duplicate runs if the dispatcher fires twice inside the same minute, the dispatcher first checks `bulk_search_job_logs` for an existing row with the same `target_date` + `timezone_group` started in the last hour and skips if found.
 
-```ts
-const segments = Array.isArray(f.rawPayload?.segments) ? f.rawPayload.segments : [];
+## File-level changes
 
-const legs = segments.length > 0
-  ? segments.map((s: any) => ({
-      origin: s.departure_airport ?? "",
-      destination: s.arrival_airport ?? "",
-      departure_time: s.departure_time ?? "",   // already full ISO
-      arrival_time:   s.arrival_time   ?? "",
-    }))
-  : [{
-      origin: f.origin ?? "",
-      destination: f.destination ?? "",
-      departure_time: date ? toTimestamp(f.depart_time ?? "", date) : (f.depart_time ?? ""),
-      arrival_time:   date ? toTimestamp(f.arrive_time ?? "", date) : (f.arrive_time ?? ""),
-    }];
-```
+**New**
+- `supabase/functions/scheduled-bulk-search/index.ts` — main batch runner (ported from `AdminBulkSearch.tsx` + `flightSnapshotWriter.ts`, adapted for Deno + service-role client).
+- `supabase/functions/scheduled-bulk-search-dispatcher/index.ts` — lightweight 5-minute trigger, idempotent.
+- Migration: create `bulk_search_job_logs` table + RLS policies.
+- Insert (separate, non-migration): the two `cron.schedule(...)` rows (dispatcher every 5 min) and the `app_config` row `scheduled_bulk_search_secret` storing the shared-secret header.
 
-This keeps the existing fallback for any future payload shape that does have top-level times, but the real path now uses the segment timestamps.
+**Edited**
+- `supabase/config.toml` — add `[functions.scheduled-bulk-search]` and `[functions.scheduled-bulk-search-dispatcher]` blocks with `verify_jwt = false` (gated by `x-job-secret` instead).
 
-### `src/pages/AdminBulkSearch.tsx` — surface failures
+**Not edited**
+- `src/pages/AdminBulkSearch.tsx` — manual UI stays exactly as-is.
+- `flight_snapshots` / `flight_searches` schemas — unchanged.
 
-Replace the silent swallow so future regressions are visible (logged, not thrown):
+## Open questions before I implement
 
-```ts
-writeFlightSnapshots(fsRow.id, normalized.flights, iata_code)
-  .catch((e) => console.warn("[bulk-search] snapshot write failed", iata_code, e));
-```
+1. **System user id for `flight_searches.user_id`**: the table requires `user_id NOT NULL` and RLS allows insert only when `auth.uid() = user_id`. The edge function will use the service-role client (which bypasses RLS), but the row still needs *some* uuid. Options:
+   - (a) Reuse your developer/admin uuid (e.g., the test account) so these searches show up under your account.
+   - (b) Use a dedicated synthetic uuid like `00000000-0000-0000-0000-000000000001` to clearly mark "system / scheduled job" rows.
+   Which do you prefer? Default if unspecified: **(b)**, since it keeps your personal Recent Searches clean.
 
-## Verification
+2. **Run windows for the four groups**: the spec says ET runs at 00:02, CT at 01:02, etc. — all expressed as Eastern wall-clock. This means CT/MT/PT trigger one/two/three Eastern hours after midnight Eastern, which is exactly midnight Central/Mountain/Pacific. Confirming this is what you want (vs. each group firing at midnight of its *own* zone, which would also be 4 different Eastern times but only if you wanted to ignore DST drift between zones — it works out the same in practice).
 
-1. Run `/admin/bulk-search` for one date.
-2. Query:
-   ```sql
-   select fs.id, fs.flight_results_count,
-          (select count(*) from flight_snapshots s where s.flight_search_id = fs.id) as snaps
-   from flight_searches fs
-   where fs.triggered_by = 'admin_bulk_search'
-   order by fs.search_timestamp desc limit 5;
-   ```
-   Expect `snaps > 0` (one row per flight leg).
-3. Spot-check a snapshot row's `departure_at` / `arrival_at` are populated.
-
-## Out of scope
-
-- No schema changes.
-- No RLS changes (existing insert policy already permits owner of the parent `flight_searches` row).
-- Single-destination search path is unaffected (uses a different normalizer).
+If both defaults are fine, I'll proceed.
