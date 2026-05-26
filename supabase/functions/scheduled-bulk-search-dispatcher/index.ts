@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       const r = await fetch(url, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${SERVICE_ROLE}`,
+          "Authorization": `Bearer ${sharedSecret}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ timezone: tz, date: targetDate }),
