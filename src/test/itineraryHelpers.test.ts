@@ -525,3 +525,91 @@ describe("GoWildSnapshotCard page wiring", () => {
     expect(m.trendDirection).toBe("unavailable");
   });
 });
+
+// ─── Most Frequent GoWild (rate-based ranking) ──────────────────────────────
+
+function routeLegs(
+  itinId: string,
+  origin: string,
+  destination: string,
+  goWild: boolean,
+): FlightLegRow[] {
+  return [
+    baseLeg({
+      id: `${itinId}-leg`,
+      source_itinerary_id: itinId,
+      leg_index: 0,
+      leg_origin_iata: origin,
+      leg_destination_iata: destination,
+      has_go_wild: goWild,
+      go_wild_available_seats: goWild ? 3 : null,
+    }),
+  ];
+}
+
+function buildRoute(
+  origin: string,
+  destination: string,
+  prefix: string,
+  goWildCount: number,
+  totalCount: number,
+): FlightLegRow[] {
+  const rows: FlightLegRow[] = [];
+  for (let i = 0; i < goWildCount; i++) {
+    rows.push(...routeLegs(`${prefix}-gw-${i}`, origin, destination, true));
+  }
+  for (let i = 0; i < totalCount - goWildCount; i++) {
+    rows.push(...routeLegs(`${prefix}-no-${i}`, origin, destination, false));
+  }
+  return rows;
+}
+
+describe("getMostFrequentGoWildItineraryRoute", () => {
+  it("Case A: higher rate beats higher raw GoWild count", () => {
+    const rows = [
+      ...buildRoute("DEN", "LAS", "A", 42, 110), // 38.2%
+      ...buildRoute("ATL", "MCO", "B", 30, 40),  // 75.0%
+    ];
+    const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
+    expect(result).not.toBeNull();
+    expect(result!.limited).toBe(false);
+    expect(result!.route.routeKey).toBe("ATL-MCO");
+  });
+
+  it("Case B: tied rate broken by higher raw GoWild count", () => {
+    const rows = [
+      ...buildRoute("DEN", "LAS", "A", 30, 60), // 50%, 30 matches
+      ...buildRoute("ATL", "MCO", "B", 20, 40), // 50%, 20 matches
+    ];
+    const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
+    expect(result!.route.routeKey).toBe("DEN-LAS");
+    expect(result!.limited).toBe(false);
+  });
+
+  it("Case C: 1/1=100% low-volume route cannot beat a qualified route", () => {
+    const rows = [
+      ...buildRoute("XXX", "YYY", "tiny", 1, 1),  // 100% but below threshold
+      ...buildRoute("ATL", "MCO", "qual", 20, 40), // 50%, qualified
+    ];
+    const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
+    expect(result!.route.routeKey).toBe("ATL-MCO");
+    expect(result!.limited).toBe(false);
+  });
+
+  it("Case D: no qualified routes → falls back and flags Limited data", () => {
+    const rows = [
+      ...buildRoute("AAA", "BBB", "a", 4, 8),  // 50%
+      ...buildRoute("CCC", "DDD", "b", 2, 10), // 20%
+    ];
+    const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
+    expect(result).not.toBeNull();
+    expect(result!.limited).toBe(true);
+    expect(result!.route.routeKey).toBe("AAA-BBB");
+  });
+
+  it("returns null when no route has any GoWild itineraries", () => {
+    const rows = buildRoute("AAA", "BBB", "none", 0, 5);
+    const result = getMostFrequentGoWildItineraryRoute(groupLegsIntoItineraries(rows));
+    expect(result).toBeNull();
+  });
+});
