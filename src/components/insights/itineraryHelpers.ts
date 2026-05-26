@@ -153,19 +153,20 @@ function buildAirportItineraryStats(
   itineraries: Itinerary[],
   pick: (i: Itinerary) => string
 ): ItineraryAirportStat[] {
-  type Entry = { total: number; goWild: number; seats: number[] };
+  type Entry = { total: number; goWild: number; totalSeats: number };
   const map = new Map<string, Entry>();
 
   for (const it of itineraries) {
     const code = pick(it);
     if (!code) continue;
-    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, seats: [] });
+    if (!map.has(code)) map.set(code, { total: 0, goWild: 0, totalSeats: 0 });
     const e = map.get(code)!;
     e.total++;
     if (it.isGoWildAvailable) {
       e.goWild++;
-      e.seats.push(it.availableSeats);
+      e.totalSeats += it.availableSeats || 0;
     }
+    // Non-GoWild itineraries contribute 0 seats by design.
   }
 
   return Array.from(map.entries())
@@ -174,7 +175,8 @@ function buildAirportItineraryStats(
       totalItineraries: d.total,
       goWildItineraries: d.goWild,
       goWildRate: d.total > 0 ? (d.goWild / d.total) * 100 : 0,
-      avgSeats: avgOrNull(d.seats),
+      totalGoWildAvailableSeats: d.totalSeats,
+      avgGoWildSeatsPerItinerary: d.total > 0 ? d.totalSeats / d.total : 0,
     }))
     .sort(
       (a, b) =>
