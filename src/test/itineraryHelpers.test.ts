@@ -298,3 +298,126 @@ describe("getItineraryHeatmapData", () => {
   });
 });
 });
+
+// ─── Seat availability (route + airport, itinerary-based denominator) ──────
+
+function seatItin(overrides: Partial<Itinerary>): Itinerary {
+  return {
+    itineraryId: Math.random().toString(),
+    legs: [],
+    origin: "AAA",
+    destination: "BBB",
+    routeKey: "AAA-BBB",
+    routeLabel: "AAA → BBB",
+    departureAt: null,
+    arrivalAt: null,
+    snapshotAt: "2026-05-27T00:00:00Z",
+    isGoWildAvailable: false,
+    availableSeats: 0,
+    totalGoWildPrice: null,
+    totalStandardPrice: null,
+    ...overrides,
+  };
+}
+
+function repeat<T>(n: number, factory: (i: number) => T): T[] {
+  return Array.from({ length: n }, (_, i) => factory(i));
+}
+
+describe("seat availability — route-level (itinerary denominator)", () => {
+  it("Case A: DEN→LAS — avg uses ALL itineraries, not only successful ones", () => {
+    const items: Itinerary[] = [
+      seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: true,  availableSeats: 4 }),
+      seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: true,  availableSeats: 2 }),
+      seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: false }),
+      seatItin({ origin: "DEN", destination: "LAS", routeKey: "DEN-LAS", routeLabel: "DEN → LAS", isGoWildAvailable: false }),
+    ];
+    const { stats } = getMostSeatsItineraryRoutes(items);
+    const r = stats.find((s) => s.routeKey === "DEN-LAS")!;
+    expect(r.totalItineraries).toBe(4);
+    expect(r.goWildItineraries).toBe(2);
+    expect(r.totalSeats).toBe(6);
+    expect(r.avgSeats).toBeCloseTo(1.5, 5);
+    expect(r.maxSeats).toBe(4);
+  });
+
+  it("Case B: connecting ATL→DEN→LAS uses bottleneck seats and counts once", () => {
+    const rows: FlightLegRow[] = [
+      baseLeg({
+        source_itinerary_id: "X",
+        leg_index: 0,
+        leg_origin_iata: "ATL",
+        leg_destination_iata: "DEN",
+        has_go_wild: true,
+        go_wild_available_seats: 5,
+      }),
+      baseLeg({
+        source_itinerary_id: "X",
+        leg_index: 1,
+        leg_origin_iata: "DEN",
+        leg_destination_iata: "LAS",
+        has_go_wild: true,
+        go_wild_available_seats: 2,
+      }),
+      baseLeg({
+        source_itinerary_id: "Y",
+        leg_index: 0,
+        leg_origin_iata: "ATL",
+        leg_destination_iata: "LAS",
+        has_go_wild: false,
+        go_wild_available_seats: null,
+      }),
+    ];
+    const itineraries = groupLegsIntoItineraries(rows);
+    const { stats } = getMostSeatsItineraryRoutes(itineraries);
+    const r = stats.find((s) => s.routeKey === "ATL-LAS")!;
+    expect(r.totalItineraries).toBe(2);
+    expect(r.goWildItineraries).toBe(1);
+    expect(r.totalSeats).toBe(2);
+    expect(r.avgSeats).toBeCloseTo(1.0, 5);
+  });
+
+  it("Case C: Lowest Seat Availability excludes routes with zero GoWild successes", () => {
+    const items: Itinerary[] = [
+      ...repeat(10, () => seatItin({ origin: "AAA", destination: "BBB", routeKey: "AAA-BBB", routeLabel: "AAA → BBB", isGoWildAvailable: false })),
+      ...repeat(9, () => seatItin({ origin: "CCC", destination: "DDD", routeKey: "CCC-DDD", routeLabel: "CCC → DDD", isGoWildAvailable: false })),
+      seatItin({ origin: "CCC", destination: "DDD", routeKey: "CCC-DDD", routeLabel: "CCC → DDD", isGoWildAvailable: true, availableSeats: 1 }),
+    ];
+    const { stats } = getLowestSeatsItineraryRoutes(items);
+    expect(stats.find((s) => s.routeKey === "AAA-BBB")).toBeUndefined();
+    const b = stats.find((s) => s.routeKey === "CCC-DDD")!;
+    expect(b).toBeDefined();
+    expect(b.totalItineraries).toBe(10);
+    expect(b.goWildItineraries).toBe(1);
+    expect(b.avgSeats).toBeCloseTo(0.1, 5);
+  });
+});
+
+describe("seat availability — origin airport (itinerary denominator)", () => {
+  it("Case D: ATL avg seats = totalGoWildSeats / totalItineraries", () => {
+    const items: Itinerary[] = [
+      seatItin({ origin: "ATL", isGoWildAvailable: true, availableSeats: 2 }),
+      seatItin({ origin: "ATL", isGoWildAvailable: true, availableSeats: 3 }),
+      seatItin({ origin: "ATL", isGoWildAvailable: true, availableSeats: 1 }),
+      seatItin({ origin: "ATL", isGoWildAvailable: true, availableSeats: 4 }),
+      ...repeat(16, () => seatItin({ origin: "ATL", isGoWildAvailable: false })),
+    ];
+    const stats = getSeatItineraryAirportStats(items);
+    const atl = stats.find((s) => s.code === "ATL")!;
+    expect(atl).toBeDefined();
+    expect(atl.totalItineraries).toBe(20);
+    expect(atl.goWildItineraries).toBe(4);
+    expect(atl.totalSeats).toBe(10);
+    expect(atl.avgSeats).toBeCloseTo(0.5, 5);
+  });
+
+  it("Case E: airport with zero GoWild observations is excluded", () => {
+    const items: Itinerary[] = [
+      ...repeat(5, () => seatItin({ origin: "ZZZ", isGoWildAvailable: false })),
+      seatItin({ origin: "ATL", isGoWildAvailable: true, availableSeats: 2 }),
+    ];
+    const stats = getSeatItineraryAirportStats(items);
+    expect(stats.find((s) => s.code === "ZZZ")).toBeUndefined();
+    expect(stats.find((s) => s.code === "ATL")).toBeDefined();
+  });
+});
