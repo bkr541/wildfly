@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   groupLegsIntoItineraries,
   computeGoWildSnapshotMetrics,
+  getItineraryHeatmapData,
 } from "@/components/insights/itineraryHelpers";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
