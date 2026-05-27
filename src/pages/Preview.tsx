@@ -419,9 +419,32 @@ const PreviewPage = () => {
             </button>
           </div>
         </div>
+
+        {/* Blackout Dates group */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07)",
+          }}
+        >
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-[#F0F1F1]">
+            <HugeiconsIcon icon={CalendarRemove02Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+            <div className="flex-1">
+              <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Blackout Dates</p>
+              <p className="text-xs text-[#6B7B7B]">GoWild Blackout Dates Calendar</p>
+            </div>
+          </div>
+          <BlackoutCalendar />
+        </div>
       </div>
     </div>
   );
 };
 
 export default PreviewPage;
+
