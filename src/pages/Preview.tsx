@@ -8,7 +8,12 @@ import {
   Location04Icon,
   Cancel01Icon,
   AddCircleIcon,
+  CalendarRemove02Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
+import { isBlackoutDate } from "@/utils/blackoutDates";
+
 import { supabase } from "@/integrations/supabase/client";
 import { BottomSheet } from "@/components/BottomSheet";
 import { cn } from "@/lib/utils";
