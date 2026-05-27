@@ -117,7 +117,7 @@ export async function writeFlightSnapshots(
         `${f.airline ?? "XX"}1`,
       leg_origin_iata: itineraryOrigin,
       leg_destination_iata: itineraryDest,
-      leg_route: `${itineraryOrigin}-${itineraryDest}`,
+      // leg_route is a GENERATED ALWAYS column — do not insert.
       departure_at: departureAt,
       arrival_at: arrivalAt,
 
