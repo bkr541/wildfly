@@ -11,6 +11,8 @@ import {
   CalendarRemove02Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
+  ArrowDown01Icon,
+  Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 
@@ -22,11 +24,49 @@ interface Airport {
   id: number;
   name: string;
   iata_code: string;
+  location_id?: number | null;
   locations?: {
     city: string;
     state_code: string;
     region: string;
   };
+}
+
+async function sha256(input: string): Promise<string> {
+  const buf = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+interface FlightSearchExample {
+  id: string;
+  departure_airport: string;
+  arrival_airport: string;
+  departure_date: string;
+  trip_type: string | null;
+  gowild_found: boolean | null;
+}
+
+function formatTime(iso: string): string {
+  if (!iso) return "";
+  const m = iso.match(/T(\d{2}):(\d{2})/);
+  if (!m) return iso;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${min} ${ampm}`;
+}
+
+function formatDateLabel(date: string): string {
+  try {
+    const d = new Date(`${date}T00:00:00`);
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+  } catch {
+    return date;
+  }
 }
 
 /* ── Airport Search Sheet (single-select, public) ──────────── */
