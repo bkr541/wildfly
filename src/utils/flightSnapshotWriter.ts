@@ -4,10 +4,9 @@
  * Maps normalized NormalizedFlight[] → flight_snapshots rows and bulk-inserts
  * them non-blockingly after a flight_searches record is created.
  *
- * ONE ROW PER ITINERARY (regardless of nonstop or connecting). Fare data is
- * itinerary-level and is NOT duplicated per leg. Detailed per-segment data
- * lives in flight_searches.json_body and in the raw payload cache; this table
- * is for snapshot-level analytics only.
+ * ONE ROW PER ITINERARY (regardless of nonstop or connecting). Each row carries
+ * a stable_itinerary_key derived from the real-world itinerary identity so the
+ * same flight can be tracked across separate provider searches.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -26,24 +25,87 @@ const cleanInt = (v: any): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-/** Pull a fare value, checking snake_case then camelCase. */
 const fareField = (fare: any, snake: string, camel: string): any => {
   if (!fare) return null;
   return fare[snake] ?? fare[camel] ?? null;
 };
 
+/** Normalize a datetime to a stable ISO string suitable for an identity key. */
+function normIso(s: any): string {
+  if (!s) return "?";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return String(s);
+  return d.toISOString().slice(0, 19);
+}
+
+const up = (v: any) => (v ? String(v).toUpperCase() : "?");
+const tok = (v: any) => (v == null || v === "" ? "?" : String(v));
+
+/**
+ * Build a stable identity key for a real-world itinerary.
+ * Nonstop: ORIGIN|DEST|CARRIER|FLIGHTNO|DEPARTURE|ARRIVAL
+ * Connecting: segments joined with '>'.
+ */
+export function buildStableItineraryKey(f: any): string | null {
+  const segments: any[] = Array.isArray(f?.rawPayload?.segments)
+    ? f.rawPayload.segments
+    : [];
+  const topCarrier = f?.airline ?? f?.carrier ?? null;
+  const topNum = f?.flightNumber ?? f?.flight_number ?? null;
+
+  if (segments.length > 1) {
+    const parts = segments.map((s: any) => {
+      const o = up(s.departure_airport ?? s.origin);
+      const d = up(s.arrival_airport ?? s.destination);
+      const c = up(s.airline ?? s.carrier ?? topCarrier);
+      const n = tok(s.flight_number ?? s.flightNumber ?? "");
+      const dep = normIso(s.departure_time);
+      const arr = normIso(s.arrival_time);
+      if (o === "?" || d === "?" || dep === "?" || arr === "?") return null;
+      return `${o}|${d}|${c}|${n}|${dep}|${arr}`;
+    });
+    if (parts.some((p) => p === null)) return null;
+    return parts.join(">");
+  }
+
+  // Nonstop (or unknown segments fallback)
+  const legs: any[] = Array.isArray(f?.legs) ? f.legs : [];
+  const first = segments[0] ?? legs[0];
+  const last = segments[segments.length - 1] ?? legs[legs.length - 1];
+  const o = up(first?.departure_airport ?? first?.origin ?? f?.origin);
+  const d = up(last?.arrival_airport ?? last?.destination ?? f?.destination);
+  const dep = normIso(first?.departure_time ?? f?.departureTime ?? f?.depart_time);
+  const arr = normIso(last?.arrival_time ?? f?.arrivalTime ?? f?.arrive_time);
+  if (o === "?" || d === "?" || dep === "?" || arr === "?") return null;
+  return `${o}|${d}|${up(topCarrier)}|${tok(topNum)}|${dep}|${arr}`;
+}
+
+export type ResultSource =
+  | "live_api"
+  | "scheduled_bulk_search"
+  | "admin_bulk_search"
+  | "cache_hit";
+
+export type WriteSnapshotsResult = {
+  inserted: number;
+  stableKeys: string[];
+};
+
 /**
  * Build snapshot rows (one per itinerary) from normalized flights and insert them.
+ * Returns the stable_itinerary_keys observed so callers can trigger the
+ * "disappeared itinerary" tracker.
  */
 export async function writeFlightSnapshots(
   flightSearchId: string,
   normalizedFlights: any[],
   originIata: string,
-): Promise<void> {
-  if (!normalizedFlights?.length) return;
+): Promise<WriteSnapshotsResult> {
+  if (!normalizedFlights?.length) return { inserted: 0, stableKeys: [] };
 
   const snapshotAt = new Date().toISOString();
   const rows: Record<string, unknown>[] = [];
+  const stableKeys = new Set<string>();
 
   for (const f of normalizedFlights) {
     const legs: Array<{
@@ -56,7 +118,6 @@ export async function writeFlightSnapshots(
     const firstLeg = legs[0];
     const lastLeg = legs[legs.length - 1];
 
-    // ── Itinerary identity ───────────────────────────────────────────────────
     const itineraryOrigin =
       firstLeg?.origin || f.origin || f.departure_airport || originIata;
     const itineraryDest =
@@ -67,11 +128,9 @@ export async function writeFlightSnapshots(
     const arrivalAt =
       lastLeg?.arrival_time || f.arrivalTime || f.arrive_time || "";
 
-    // Skip itineraries with no usable times (NOT NULL columns).
     if (!departureAt || !arrivalAt) continue;
 
-    const stops =
-      cleanInt(f.stops) ?? Math.max(0, legs.length - 1);
+    const stops = cleanInt(f.stops) ?? Math.max(0, legs.length - 1);
     const flightType =
       f.flightType ?? f.flight_type ?? (stops > 0 ? "Connect" : "NonStop");
 
@@ -80,7 +139,6 @@ export async function writeFlightSnapshots(
       f.itinerary_id?.toString() ??
       [itineraryOrigin, itineraryDest, departureAt].join("|");
 
-    // ── Itinerary-level fare data (from rawPayload.fares) ────────────────────
     const rp = f.rawPayload ?? {};
     const rpFares = rp.fares ?? {};
     const gwFare = rpFares.go_wild ?? {};
@@ -89,13 +147,18 @@ export async function writeFlightSnapshots(
     const miFare = rpFares.miles ?? {};
 
     const gwTotal = cleanNum(gwFare.total ?? f.fares?.go_wild);
+    const gwSeats = cleanInt(fareField(gwFare, "available_seats", "availableSeats"));
     const hasGoWild = gwTotal != null;
+    const availability_status: string =
+      hasGoWild ? "returned" : "no_gowild_fare";
+
+    const stableKey = buildStableItineraryKey(f);
+    if (stableKey) stableKeys.add(stableKey);
 
     rows.push({
       flight_search_id: flightSearchId,
       snapshot_at: snapshotAt,
 
-      // itinerary identity
       source_itinerary_id: itineraryId,
       airline: f.airline ?? f.carrier ?? null,
       origin_iata: itineraryOrigin,
@@ -104,43 +167,38 @@ export async function writeFlightSnapshots(
       currency: f.currency ?? "USD",
       notes: f.notes ?? null,
 
-      // trip context (itinerary-level)
       flight_type: flightType,
       stops,
       total_duration_display: f.total_duration ?? f.duration ?? null,
 
-      // legacy leg columns retained — populated with itinerary-level values
       leg_index: 1,
       flight_number:
-        f.flightNumber ??
-        f.flight_number ??
-        `${f.airline ?? "XX"}1`,
+        f.flightNumber ?? f.flight_number ?? `${f.airline ?? "XX"}1`,
       leg_origin_iata: itineraryOrigin,
       leg_destination_iata: itineraryDest,
-      // leg_route is a GENERATED ALWAYS column — do not insert.
       departure_at: departureAt,
       arrival_at: arrivalAt,
 
-      // Go Wild (itinerary-level)
+      // identity + status (new)
+      stable_itinerary_key: stableKey,
+      availability_status,
+
       has_go_wild: hasGoWild,
-      go_wild_available_seats: cleanInt(fareField(gwFare, "available_seats", "availableSeats")),
+      go_wild_available_seats: hasGoWild ? gwSeats : 0,
       go_wild_fare_status: cleanInt(fareField(gwFare, "fare_status", "fareStatus")),
       go_wild_total: gwTotal,
       go_wild_loyalty_points: cleanInt(fareField(gwFare, "loyalty_points", "loyaltyPoints")),
 
-      // Standard (itinerary-level)
       standard_available_seats: cleanInt(fareField(stFare, "available_seats", "availableSeats")),
       standard_fare_status: cleanInt(fareField(stFare, "fare_status", "fareStatus")),
       standard_total: cleanNum(stFare.total ?? f.fares?.standard),
       standard_loyalty_points: cleanInt(fareField(stFare, "loyalty_points", "loyaltyPoints")),
 
-      // Discount Den (itinerary-level)
       discount_den_available_seats: cleanInt(fareField(ddFare, "available_seats", "availableSeats")),
       discount_den_fare_status: cleanInt(fareField(ddFare, "fare_status", "fareStatus")),
       discount_den_total: cleanNum(ddFare.total ?? f.fares?.discount_den),
       discount_den_loyalty_points: cleanInt(fareField(ddFare, "loyalty_points", "loyaltyPoints")),
 
-      // Miles (itinerary-level)
       miles_available_seats: cleanInt(fareField(miFare, "available_seats", "availableSeats")),
       miles_fare_status: cleanInt(fareField(miFare, "fare_status", "fareStatus")),
       miles_total: cleanNum(miFare.total ?? f.fares?.miles),
@@ -150,11 +208,11 @@ export async function writeFlightSnapshots(
 
   if (rows.length === 0) {
     log.debug("writeFlightSnapshots: no rows to insert", { flightSearchId });
-    return;
+    return { inserted: 0, stableKeys: [] };
   }
 
-  // Insert in batches of 100 to stay well under Supabase row limits
   const BATCH = 100;
+  let inserted = 0;
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH);
     const { error } = await (supabase.from("flight_snapshots") as any).insert(batch);
@@ -163,8 +221,45 @@ export async function writeFlightSnapshots(
         batchStart: i,
         error: error.message,
       });
+    } else {
+      inserted += batch.length;
     }
   }
 
-  log.info("writeFlightSnapshots complete", { flightSearchId, rows: rows.length });
+  log.info("writeFlightSnapshots complete", { flightSearchId, rows: inserted });
+  return { inserted, stableKeys: Array.from(stableKeys) };
+}
+
+/**
+ * After a fresh provider search, mark previously-available GoWild itineraries
+ * that are absent from the new returned set as 'not_returned'.
+ * Scope guard: only for the same origin + (specific destination OR all) + travel date.
+ */
+export async function markDisappearedGoWildObservations(args: {
+  flightSearchId: string;
+  originIata: string;
+  destinationIata: string | null; // null when all-destinations
+  travelDate: string;             // YYYY-MM-DD
+  returnedStableKeys: string[];
+}): Promise<number> {
+  try {
+    const { data, error } = await (supabase.rpc as any)(
+      "mark_disappeared_gowild_observations",
+      {
+        p_flight_search_id: args.flightSearchId,
+        p_origin_iata: args.originIata,
+        p_destination_iata: args.destinationIata,
+        p_travel_date: args.travelDate,
+        p_returned_stable_keys: args.returnedStableKeys,
+      },
+    );
+    if (error) {
+      log.warn("mark_disappeared_gowild_observations failed", { error: error.message });
+      return 0;
+    }
+    return (data as number) ?? 0;
+  } catch (e: any) {
+    log.warn("mark_disappeared_gowild_observations threw", { error: e?.message });
+    return 0;
+  }
 }

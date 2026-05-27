@@ -30,7 +30,7 @@ import { format, startOfDay, getYear, getMonth, getDaysInMonth } from "date-fns"
 import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 import { isBlackoutDate } from "@/utils/blackoutDates";
-import { writeFlightSnapshots } from "@/utils/flightSnapshotWriter";
+import { writeFlightSnapshots, markDisappearedGoWildObservations } from "@/utils/flightSnapshotWriter";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
@@ -1115,7 +1115,8 @@ const FlightsPage = ({
                 cacheLog.info("Cache HIT", { dep: originCode, arr: cacheDest });
                 await new Promise((r) => setTimeout(r, 2000));
 
-                // Log to flight_searches + write snapshots
+                // Log to flight_searches as cache_hit. Do NOT write flight_snapshots
+                // because cached data is not a fresh provider observation.
                 try {
                   const {
                     data: { user },
@@ -1127,7 +1128,7 @@ const FlightsPage = ({
                         f.fares?.go_wild != null ||
                         f.rawPayload?.fares?.go_wild?.total != null,
                     );
-                    const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
+                    await (supabase.from("flight_searches") as any).insert({
                       user_id: user.id,
                       departure_airport: originCode,
                       arrival_airport: searchAll ? null : destinationCode,
@@ -1140,13 +1141,10 @@ const FlightsPage = ({
                       arrival_airports_count: arrivalAirportsCount,
                       gowild_found: cachedGoWild,
                       flight_results_count: cachedFlights.length,
-                    } as any).select("id").single();
-                    // Write flight_snapshots non-blockingly
-                    if (fsRow?.id) {
-                      writeFlightSnapshots(fsRow.id, cachedFlights, originCode).catch(
-                        (e) => flightLog.warn("snapshot write failed (cache-hit)", e),
-                      );
-                    }
+                      result_source: "cache_hit",
+                      // Use the original provider observation time, not when the user opened the cache.
+                      provider_observed_at: (cached as any).updated_at ?? null,
+                    } as any);
                   }
                 } catch (logErr) {
                   flightLog.warn("Flight search log failed (non-blocking)", logErr);
@@ -1301,6 +1299,7 @@ const FlightsPage = ({
                         f.fares?.go_wild != null ||
                         f.rawPayload?.fares?.go_wild?.total != null,
                     );
+                    const providerObservedAt = new Date().toISOString();
                     const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
                       user_id: user.id,
                       departure_airport: originCode,
@@ -1315,12 +1314,22 @@ const FlightsPage = ({
                       arrival_airports_count: arrivalAirportsCount,
                       gowild_found: goWildFound,
                       flight_results_count: normalized.flights.length,
+                      result_source: "live_api",
+                      provider_observed_at: providerObservedAt,
                     } as any).select("id").single();
-                    // Write flight_snapshots non-blockingly
+                    // Write flight_snapshots non-blockingly, then track disappeared itineraries.
                     if (fsRow?.id) {
-                      writeFlightSnapshots(fsRow.id, normalized.flights, originCode).catch(
-                        (e) => flightLog.warn("snapshot write failed (live-api)", e),
-                      );
+                      writeFlightSnapshots(fsRow.id, normalized.flights, originCode)
+                        .then(({ stableKeys }) => {
+                          return markDisappearedGoWildObservations({
+                            flightSearchId: fsRow.id,
+                            originIata: originCode,
+                            destinationIata: searchAll ? null : (destinationCode ?? null),
+                            travelDate: depFormatted,
+                            returnedStableKeys: stableKeys,
+                          });
+                        })
+                        .catch((e) => flightLog.warn("snapshot/disappearance write failed (live-api)", e));
                     }
                   }
                 } catch (logErr) {

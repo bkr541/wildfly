@@ -402,7 +402,9 @@ export type Database = {
           gowild_found: boolean | null
           id: string
           json_body: Json | null
+          provider_observed_at: string | null
           request_body: Json | null
+          result_source: string | null
           return_date: string | null
           search_timestamp: string
           triggered_by: string | null
@@ -420,7 +422,9 @@ export type Database = {
           gowild_found?: boolean | null
           id?: string
           json_body?: Json | null
+          provider_observed_at?: string | null
           request_body?: Json | null
+          result_source?: string | null
           return_date?: string | null
           search_timestamp?: string
           triggered_by?: string | null
@@ -438,7 +442,9 @@ export type Database = {
           gowild_found?: boolean | null
           id?: string
           json_body?: Json | null
+          provider_observed_at?: string | null
           request_body?: Json | null
+          result_source?: string | null
           return_date?: string | null
           search_timestamp?: string
           triggered_by?: string | null
@@ -451,6 +457,7 @@ export type Database = {
         Row: {
           airline: string | null
           arrival_at: string
+          availability_status: string
           currency: string | null
           departure_at: string
           discount_den_available_seats: number | null
@@ -480,6 +487,7 @@ export type Database = {
           origin_iata: string
           snapshot_at: string
           source_itinerary_id: string
+          stable_itinerary_key: string | null
           standard_available_seats: number | null
           standard_fare_status: number | null
           standard_loyalty_points: number | null
@@ -491,6 +499,7 @@ export type Database = {
         Insert: {
           airline?: string | null
           arrival_at: string
+          availability_status?: string
           currency?: string | null
           departure_at: string
           discount_den_available_seats?: number | null
@@ -520,6 +529,7 @@ export type Database = {
           origin_iata: string
           snapshot_at?: string
           source_itinerary_id: string
+          stable_itinerary_key?: string | null
           standard_available_seats?: number | null
           standard_fare_status?: number | null
           standard_loyalty_points?: number | null
@@ -531,6 +541,7 @@ export type Database = {
         Update: {
           airline?: string | null
           arrival_at?: string
+          availability_status?: string
           currency?: string | null
           departure_at?: string
           discount_den_available_seats?: number | null
@@ -560,6 +571,7 @@ export type Database = {
           origin_iata?: string
           snapshot_at?: string
           source_itinerary_id?: string
+          stable_itinerary_key?: string | null
           standard_available_seats?: number | null
           standard_fare_status?: number | null
           standard_loyalty_points?: number | null
@@ -1287,7 +1299,63 @@ export type Database = {
           stops: number
         }[]
       }
+      get_route_gowild_inventory_calendar: {
+        Args: {
+          p_destination_iata: string
+          p_end_date: string
+          p_origin_iata: string
+          p_start_date: string
+        }
+        Returns: {
+          available_flights_now: number
+          available_seats_now: number
+          has_current_gowild_availability: boolean
+          has_observation: boolean
+          last_provider_observed_at: string
+          lowest_gowild_fare_now: number
+          lowest_standard_fare_now: number
+          original_available_flights: number
+          original_available_seats: number
+          seat_change: number
+          travel_date: string
+        }[]
+      }
+      get_route_gowild_inventory_day_details: {
+        Args: {
+          p_destination_iata: string
+          p_origin_iata: string
+          p_travel_date: string
+        }
+        Returns: {
+          airline: string
+          arrival_at: string
+          current_gowild_fare: number
+          current_seats: number
+          current_standard_fare: number
+          departure_at: string
+          first_observed_at: string
+          first_seats: number
+          flight_number: string
+          is_currently_available: boolean
+          latest_availability_status: string
+          latest_observed_at: string
+          seat_change: number
+          stable_itinerary_key: string
+          stops: number
+          total_duration_display: string
+        }[]
+      }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
+      mark_disappeared_gowild_observations: {
+        Args: {
+          p_destination_iata: string
+          p_flight_search_id: string
+          p_origin_iata: string
+          p_returned_stable_keys: string[]
+          p_travel_date: string
+        }
+        Returns: number
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }

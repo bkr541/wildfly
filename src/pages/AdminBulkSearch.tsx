@@ -377,6 +377,8 @@ export default function AdminBulkSearch() {
             gowild_found: goWildFound,
             flight_results_count: normalized.flights.length,
             triggered_by: "admin_bulk_search",
+            result_source: "admin_bulk_search",
+            provider_observed_at: new Date().toISOString(),
           } as any)
           .select("id")
           .single();
