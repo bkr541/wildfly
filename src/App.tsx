@@ -61,6 +61,15 @@ const MainApp = () => {
   const accountDevRef = useRef<(() => void) | null>(null);
   const accountManageUsersRef = useRef<(() => void) | null>(null);
 
+  // Restore page from sessionStorage when returning from external routes
+  useEffect(() => {
+    const saved = sessionStorage.getItem("wf_returnPage");
+    if (saved) {
+      setCurrentPage(saved as any);
+      sessionStorage.removeItem("wf_returnPage");
+    }
+  }, []);
+
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
   useEffect(() => {
