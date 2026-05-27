@@ -206,7 +206,97 @@ function AirportSearchSheet({
   );
 }
 
-/* ── Public Preview Page ───────────────────────────────────── */
+/* ── Blackout Dates Calendar ───────────────────────────────── */
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+
+function BlackoutCalendar() {
+  const today = new Date();
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const prev = () => {
+    if (month === 0) { setMonth(11); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+  };
+  const next = () => {
+    if (month === 11) { setMonth(0); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+  };
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="px-5 pt-4 pb-5">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={prev}
+          className="h-9 w-9 rounded-full flex items-center justify-center text-[#345C5A] hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors"
+          aria-label="Previous month"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="currentColor" strokeWidth={2} />
+        </button>
+        <div className="text-base font-bold text-[#2E4A4A]">
+          {MONTH_NAMES[month]} {year}
+        </div>
+        <button
+          type="button"
+          onClick={next}
+          className="h-9 w-9 rounded-full flex items-center justify-center text-[#345C5A] hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors"
+          aria-label="Next month"
+        >
+          <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="currentColor" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {WEEKDAYS.map((d, i) => (
+          <div key={i} className="text-center text-xs font-bold text-[#9CA3AF] uppercase py-1">{d}</div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (d === null) return <div key={i} className="aspect-square" />;
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const blackout = isBlackoutDate(dateStr);
+          const isToday = dateStr === todayStr;
+          return (
+            <div key={i} className="aspect-square flex items-center justify-center">
+              <div
+                className={cn(
+                  "h-9 w-9 flex items-center justify-center rounded-full text-sm font-medium transition-colors",
+                  blackout && "bg-black text-white",
+                  !blackout && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
+                  !blackout && !isToday && "text-[#2E4A4A]",
+                )}
+              >
+                {d}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#F0F1F1]">
+        <div className="h-3 w-3 rounded-full bg-black" />
+        <span className="text-xs text-[#6B7B7B] font-medium">GoWild blackout date</span>
+      </div>
+    </div>
+  );
+}
+
+
 const PreviewPage = () => {
   const [airports, setAirports] = useState<Airport[]>([]);
   const [selected, setSelected] = useState<Airport | null>(null);
