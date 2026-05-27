@@ -342,29 +342,77 @@ const PreviewPage = () => {
   const [selected, setSelected] = useState<Airport | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [examples, setExamples] = useState<FlightSearchExample[] | null>(null);
+  const [loadingExamples, setLoadingExamples] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [payloads, setPayloads] = useState<Record<string, { status: "loading" | "ready" | "empty"; flights?: any[] }>>({});
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("id, name, iata_code, locations(city, state_code, region)")
+        .select("id, name, iata_code, location_id, locations(city, state_code, region)")
         .eq("is_active", true)
         .order("name");
       if (data) setAirports(data as unknown as Airport[]);
     })();
   }, []);
 
+  const airportMap = useMemo(() => {
+    const m: Record<string, Airport> = {};
+    for (const a of airports) m[a.iata_code] = a;
+    return m;
+  }, [airports]);
+
   const displayValue = selected
     ? `${selected.iata_code} | ${selected.locations?.city ?? selected.name}`
     : "";
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     if (!selected) {
       setError("Please select an airport to preview flights.");
       return;
     }
     setError(null);
-    // On success: no-op for now.
+    setExpandedId(null);
+    setLoadingExamples(true);
+    setExamples(null);
+    const { data } = await supabase
+      .from("flight_searches")
+      .select("id, departure_airport, arrival_airport, departure_date, trip_type, gowild_found")
+      .eq("departure_airport", selected.iata_code)
+      .not("arrival_airport", "is", null)
+      .order("search_timestamp", { ascending: false })
+      .limit(50);
+    const rows = (data ?? []).filter(
+      (r: any) => r.arrival_airport && !r.arrival_airport.startsWith("CITY:"),
+    ) as FlightSearchExample[];
+    for (let i = rows.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+    setExamples(rows.slice(0, 5));
+    setLoadingExamples(false);
+  };
+
+  const handleExpand = async (ex: FlightSearchExample) => {
+    if (expandedId === ex.id) { setExpandedId(null); return; }
+    setExpandedId(ex.id);
+    if (payloads[ex.id]) return;
+    setPayloads((p) => ({ ...p, [ex.id]: { status: "loading" } }));
+    const cacheKey = await sha256(`${ex.departure_airport}|${ex.arrival_airport}|${ex.departure_date}`);
+    const { data } = await (supabase.from("flight_search_cache") as any)
+      .select("payload")
+      .eq("cache_key", cacheKey)
+      .eq("status", "ready")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const flights: any[] = data?.payload?.flights ?? [];
+    setPayloads((p) => ({
+      ...p,
+      [ex.id]: { status: flights.length > 0 ? "ready" : "empty", flights },
+    }));
   };
 
   return (
