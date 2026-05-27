@@ -1549,6 +1549,7 @@ const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
 export default function AdminConsole() {
   const [view, setView]               = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
 
   const { title, subtitle } = VIEW_TITLES[view];
 
@@ -1574,17 +1575,28 @@ export default function AdminConsole() {
               Console
             </span>
           )}
-          <button
-            onClick={() => setSidebarOpen((v) => !v)}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] transition-colors flex-shrink-0 ${!sidebarOpen ? "mx-auto" : ""}`}
-          >
-            <HugeiconsIcon
-              icon={sidebarOpen ? ArrowLeft01Icon : ArrowRight01Icon}
-              size={15}
-              color="currentColor"
-              strokeWidth={2.5}
-            />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+              aria-label="Back"
+              title="Back to app"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={15} color="currentColor" strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => setSidebarOpen((v) => !v)}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] transition-colors flex-shrink-0 ${!sidebarOpen ? "mx-auto" : ""}`}
+            >
+              <HugeiconsIcon
+                icon={sidebarOpen ? ArrowLeft01Icon : ArrowRight01Icon}
+                size={15}
+                color="currentColor"
+                strokeWidth={2.5}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Nav */}
