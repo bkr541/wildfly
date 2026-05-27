@@ -202,7 +202,7 @@ function buildSnapshotRows(flightSearchId: string, flights: any[], originIata: s
       leg_index: 1,
       flight_number: f.flightNumber ?? f.flight_number ?? `${f.airline ?? "XX"}1`,
       leg_origin_iata: itinOrigin, leg_destination_iata: itinDest,
-      leg_route: `${itinOrigin}-${itinDest}`,
+      // leg_route is a GENERATED ALWAYS column — do not insert.
       departure_at: depAt, arrival_at: arrAt,
       has_go_wild: gwTotal != null,
       go_wild_available_seats: cleanInt(fareField(gw, "available_seats", "availableSeats")),
