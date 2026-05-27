@@ -500,13 +500,215 @@ const PreviewPage = () => {
             <button
               type="button"
               onClick={handlePreview}
-              className="mt-5 w-full h-12 rounded-full font-bold text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-90 active:opacity-75"
+              disabled={loadingExamples}
+              className="mt-5 w-full h-12 rounded-full font-bold text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-90 active:opacity-75 disabled:opacity-60"
               style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
             >
-              Preview Flights
+              {loadingExamples ? "Loading…" : "Preview Flights"}
             </button>
+
+            {examples && examples.length === 0 && (
+              <p className="text-sm text-[#6B7B7B] mt-5 text-center">
+                No example searches found for {selected?.iata_code}.
+              </p>
+            )}
+
+            {examples && examples.length > 0 && (
+              <div className="mt-5 flex flex-col gap-3">
+                <p className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider ml-1">
+                  Example Searches
+                </p>
+                {examples.map((ex) => {
+                  const destAirport = airportMap[ex.arrival_airport];
+                  const destCity = destAirport?.locations?.city ?? ex.arrival_airport;
+                  const destState = destAirport?.locations?.state_code ?? "";
+                  const bgImage = destAirport?.location_id
+                    ? `/assets/locations/${destAirport.location_id}_background.png`
+                    : null;
+                  const isOpen = expandedId === ex.id;
+                  const isGoWild = ex.gowild_found === true;
+                  const payload = payloads[ex.id];
+                  return (
+                    <div
+                      key={ex.id}
+                      className="rounded-2xl overflow-hidden bg-white transition-all"
+                      style={{
+                        boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)",
+                        border: isGoWild ? "2px solid #FFD700" : "1px solid #E8EBEB",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleExpand(ex)}
+                        className="block w-full text-left"
+                      >
+                        {/* City photo header */}
+                        <div className="relative h-[120px] overflow-hidden bg-[#C8D5D5]">
+                          {bgImage ? (
+                            <img
+                              src={bgImage}
+                              alt={destCity}
+                              className="w-full h-full object-cover absolute inset-0"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full"
+                              style={{ background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)", opacity: 0.6 }}
+                            />
+                          )}
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.22) 40%, rgba(255,255,255,0.62) 72%, rgba(255,255,255,0.92) 100%)",
+                            }}
+                          />
+                          {/* IATA | City, State */}
+                          <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-center gap-0">
+                            <span
+                              className="text-[34px] font-black leading-none"
+                              style={{
+                                color: isGoWild ? "#047857" : "#0F2040",
+                                textShadow: "0 1px 3px rgba(255,255,255,0.6)",
+                              }}
+                            >
+                              {ex.arrival_airport}
+                            </span>
+                            <span
+                              className="font-bold text-[20px] leading-none"
+                              style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)", margin: "0 6px" }}
+                            >
+                              |
+                            </span>
+                            <span
+                              className="uppercase tracking-wide font-semibold text-[15px] leading-none"
+                              style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
+                            >
+                              {destCity}
+                              {destState && destState !== "None" && <span>{", "}{destState}</span>}
+                            </span>
+                          </div>
+                          {/* GoWild badge */}
+                          {isGoWild && (
+                            <div
+                              className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-xl px-2.5 py-1 bg-[#059669]"
+                              style={{ border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+                            >
+                              <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2} />
+                              <span className="text-[10px] font-bold leading-none text-white">GoWild</span>
+                            </div>
+                          )}
+                          {/* Chevron */}
+                          <div
+                            className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center bg-white/85 transition-transform"
+                            style={{
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                            }}
+                          >
+                            <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#345C5A" strokeWidth={2.5} />
+                          </div>
+                        </div>
+
+                        {/* Sub-row */}
+                        <div className="px-4 py-2 flex items-center justify-between border-t border-[#F0F1F1]">
+                          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#345C5A]">
+                            <span>{ex.departure_airport}</span>
+                            <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={13} color="#6B7B7B" strokeWidth={2} />
+                            <span>{ex.arrival_airport}</span>
+                          </div>
+                          <span className="text-[11px] font-medium text-[#6B7B7B]">
+                            {formatDateLabel(ex.departure_date)}
+                          </span>
+                        </div>
+                      </button>
+
+                      {/* Expanded: flights from cache */}
+                      {isOpen && (
+                        <div className="border-t border-[#F0F1F1] bg-[#F8FAFA] px-3 py-3">
+                          {!payload || payload.status === "loading" ? (
+                            <p className="text-xs text-[#6B7B7B] text-center py-4">Loading cached flights…</p>
+                          ) : payload.status === "empty" ? (
+                            <p className="text-xs text-[#6B7B7B] text-center py-4">
+                              No cached results for this search.
+                            </p>
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              {payload.flights!.slice(0, 8).map((f: any, i: number) => {
+                                const depLeg = f.legs?.[0];
+                                const arrLeg = f.legs?.[f.legs.length - 1];
+                                const isGW = (f.fares?.go_wild ?? f.rawPayload?.fares?.go_wild?.total) != null;
+                                const cheapest = [f.fares?.basic, f.fares?.economy, f.fares?.premium]
+                                  .filter((v): v is number => v != null)
+                                  .sort((a, b) => a - b)[0];
+                                return (
+                                  <div
+                                    key={i}
+                                    className={cn(
+                                      "rounded-xl bg-white px-3 py-2.5",
+                                      isGW ? "border border-[#059669]" : "border border-[#E8EBEB]",
+                                    )}
+                                    style={{ boxShadow: "0 2px 8px 0 rgba(53,92,90,0.06)" }}
+                                  >
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[11px] font-semibold text-[#6B7B7B]">
+                                          {f.flightNumber ?? f.airline ?? "Frontier"}
+                                        </span>
+                                        {isGW && (
+                                          <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-4 text-[9px] font-bold text-white bg-[#059669]">
+                                            <HugeiconsIcon icon={Rocket01Icon} size={9} color="#FFFFFF" strokeWidth={2.5} />
+                                            GoWild
+                                          </span>
+                                        )}
+                                      </div>
+                                      {cheapest != null && (
+                                        <span className="text-[14px] font-black text-[#1A2E2E] tabular-nums">
+                                          ${cheapest.toFixed(0)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                                      <div className="text-left">
+                                        <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
+                                          {formatTime(depLeg?.departure_time ?? "")}
+                                        </div>
+                                        <div className="text-[10px] font-semibold text-[#6B7B7B]">
+                                          {depLeg?.origin}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col items-center text-[10px] text-[#9CA3AF] font-medium">
+                                        <div className="w-12 h-px bg-[#C8D5D5] mb-1" />
+                                        <span>{f.total_duration || "—"}</span>
+                                        <span className="mt-0.5">
+                                          {(f.legs?.length ?? 1) === 1 ? "Nonstop" : `${(f.legs?.length ?? 1) - 1} stop`}
+                                        </span>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
+                                          {formatTime(arrLeg?.arrival_time ?? "")}
+                                        </div>
+                                        <div className="text-[10px] font-semibold text-[#6B7B7B]">
+                                          {arrLeg?.destination}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
+
 
         {/* Blackout Dates group */}
         <div
