@@ -388,6 +388,8 @@ Deno.serve(async (req) => {
           gowild_found: goWildFound,
           flight_results_count: normalized.flights.length,
           triggered_by: "scheduled_bulk_search",
+          result_source: "scheduled_bulk_search",
+          provider_observed_at: new Date().toISOString(),
         }).select("id").single();
 
         if (fsRow?.id) {

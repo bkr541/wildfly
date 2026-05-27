@@ -142,6 +142,8 @@ async function fetchIfMissing(
       },
       gowild_found: goWildFound,
       flight_results_count: (json?.dayTrips ?? json?.flights ?? []).length,
+      result_source: "live_api",
+      provider_observed_at: new Date().toISOString(),
     });
   } catch {
     // If API call fails, mark cache entry as error
