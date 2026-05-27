@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -8,6 +9,7 @@ import {
   City01Icon,
   Cancel01Icon,
   ArrowDown01Icon,
+  ArrowLeft01Icon,
   Search01Icon,
   Refresh01Icon,
   Analytics01Icon,
@@ -190,6 +192,7 @@ function RingChart({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminBulkSearch() {
+  const navigate = useNavigate();
   const [date, setDate]                     = useState(format(new Date(), "yyyy-MM-dd"));
   const [domesticOnly, setDomesticOnly]     = useState(false);
   const [optimizeByTz, setOptimizeByTz]     = useState(true);
@@ -427,14 +430,24 @@ export default function AdminBulkSearch() {
 
         {/* Header */}
         <div className="px-1 mb-2 flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-baseline gap-1.5 select-none">
-              <span className="text-[22px] font-medium text-[#6B7280]">Bulk</span>
-              <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Search</span>
+          <div className="flex items-start gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="mt-1 w-8 h-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
+              aria-label="Back"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="currentColor" strokeWidth={2.5} />
+            </button>
+            <div>
+              <div className="flex items-baseline gap-1.5 select-none">
+                <span className="text-[22px] font-medium text-[#6B7280]">Bulk</span>
+                <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Search</span>
+              </div>
+              <p className="text-sm text-[#6B7B7B] mt-0.5">
+                Take a snapshot of all destinations from all airports.
+              </p>
             </div>
-            <p className="text-sm text-[#6B7B7B] mt-0.5">
-              Take a snapshot of all destinations from all airports.
-            </p>
           </div>
 
           {hasRun && !running && (
