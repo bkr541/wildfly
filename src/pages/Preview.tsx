@@ -246,7 +246,7 @@ function BlackoutCalendar() {
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="currentColor" strokeWidth={2} />
         </button>
-        <div className="text-base font-bold text-[#2E4A4A]">
+        <div className="text-base font-bold text-[#2E4A4A] text-center w-[170px] tabular-nums shrink-0">
           {MONTH_NAMES[month]} {year}
         </div>
         <button
