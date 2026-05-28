@@ -5,6 +5,7 @@ import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildIns
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
 import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
+import RouteAvailabilityCalendarCard from "@/components/insights/RouteAvailabilityCalendarCard";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
@@ -224,6 +225,7 @@ const GoWildInsightsPage = () => {
         <>
           <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
           <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
           <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
           <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
         </>
