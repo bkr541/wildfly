@@ -1356,6 +1356,16 @@ export type Database = {
         }
         Returns: number
       }
+      mark_disappeared_gowild_observations_admin: {
+        Args: {
+          p_destination_iata: string
+          p_flight_search_id: string
+          p_origin_iata: string
+          p_returned_stable_keys: string[]
+          p_travel_date: string
+        }
+        Returns: number
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
