@@ -447,12 +447,30 @@ Deno.serve(async (req) => {
         }).select("id").single();
 
         if (fsRow?.id) {
-          const rows = buildSnapshotRows(fsRow.id, normalized.flights, iata_code);
+          const { rows, stableKeys } = buildSnapshotRows(fsRow.id, normalized.flights, iata_code);
           const BATCH = 100;
           for (let k = 0; k < rows.length; k += BATCH) {
             const { error: insErr } = await admin
               .from("flight_snapshots").insert(rows.slice(k, k + BATCH));
             if (insErr) console.warn(`[snapshots] ${iata_code} batch ${k}: ${insErr.message}`);
+          }
+          // Mark previously-available GoWild itineraries that did not return
+          // in this fresh provider observation as 'not_returned'. Scope is the
+          // entire origin (all destinations) for the target travel date.
+          try {
+            const { error: rpcErr } = await admin.rpc(
+              "mark_disappeared_gowild_observations_admin",
+              {
+                p_flight_search_id: fsRow.id,
+                p_origin_iata: iata_code,
+                p_destination_iata: null,
+                p_travel_date: targetDate,
+                p_returned_stable_keys: stableKeys,
+              },
+            );
+            if (rpcErr) console.warn(`[disappearance] ${iata_code}: ${rpcErr.message}`);
+          } catch (e: any) {
+            console.warn(`[disappearance] ${iata_code} threw: ${e?.message ?? e}`);
           }
         }
         succeeded++;
