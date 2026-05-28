@@ -19,7 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFlightSearch } from "@/lib/flightApi";
 import { normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
-import { writeFlightSnapshots } from "@/utils/flightSnapshotWriter";
+import { writeFlightSnapshots, markDisappearedGoWildObservations } from "@/utils/flightSnapshotWriter";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -384,9 +384,26 @@ export default function AdminBulkSearch() {
           .single();
 
         if (fsRow?.id) {
-          writeFlightSnapshots(fsRow.id, normalized.flights, iata_code).catch((e) =>
-            console.warn("[bulk-search] snapshot write failed", iata_code, e),
-          );
+          // Await so we can pass the observed stable keys to the disappearance
+          // tracker. Admin bulk searches "all destinations" from origin, so
+          // destinationIata=null scopes the disappearance check to the origin
+          // + travel date across every previously-seen destination.
+          try {
+            const { stableKeys } = await writeFlightSnapshots(
+              fsRow.id,
+              normalized.flights,
+              iata_code,
+            );
+            await markDisappearedGoWildObservations({
+              flightSearchId: fsRow.id,
+              originIata: iata_code,
+              destinationIata: null,
+              travelDate: date,
+              returnedStableKeys: stableKeys,
+            });
+          } catch (e) {
+            console.warn("[bulk-search] snapshot write / disappearance tracking failed", iata_code, e);
+          }
         }
 
         pushResult({
