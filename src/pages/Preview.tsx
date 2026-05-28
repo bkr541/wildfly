@@ -305,14 +305,14 @@ function BlackoutCalendar() {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-y-0.5 gap-x-1">
+      <div className="grid grid-cols-7 gap-x-1">
         {cells.map((d, i) => {
-          if (d === null) return <div key={i} className="h-7" />;
+          if (d === null) return <div key={i} className="h-10" />;
           const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const blackout = isBlackoutDate(dateStr);
           const isToday = dateStr === todayStr;
           return (
-            <div key={i} className="h-7 flex items-center justify-center">
+            <div key={i} className="h-10 flex items-center justify-center">
               <div
                 className={cn(
                   "h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium transition-colors",
