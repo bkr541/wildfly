@@ -168,11 +168,58 @@ function normalizeAllDestinationsResponse(raw: any, date: string): { flights: an
   return { flights };
 }
 
+// ── Stable itinerary key builder (must match src/utils/flightSnapshotWriter.ts) ─
+
+function _normIso(s: any): string {
+  if (!s) return "?";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return String(s);
+  return d.toISOString().slice(0, 19);
+}
+const _up = (v: any) => (v ? String(v).toUpperCase() : "?");
+const _tok = (v: any) => (v == null || v === "" ? "?" : String(v));
+
+function buildStableItineraryKey(f: any): string | null {
+  const segments: any[] = Array.isArray(f?.rawPayload?.segments) ? f.rawPayload.segments : [];
+  const topCarrier = f?.airline ?? f?.carrier ?? null;
+  const topNum = f?.flightNumber ?? f?.flight_number ?? null;
+
+  if (segments.length > 1) {
+    const parts = segments.map((s: any) => {
+      const o = _up(s.departure_airport ?? s.origin);
+      const d = _up(s.arrival_airport ?? s.destination);
+      const c = _up(s.airline ?? s.carrier ?? topCarrier);
+      const n = _tok(s.flight_number ?? s.flightNumber ?? "");
+      const dep = _normIso(s.departure_time);
+      const arr = _normIso(s.arrival_time);
+      if (o === "?" || d === "?" || dep === "?" || arr === "?") return null;
+      return `${o}|${d}|${c}|${n}|${dep}|${arr}`;
+    });
+    if (parts.some((p) => p === null)) return null;
+    return parts.join(">");
+  }
+
+  const legs: any[] = Array.isArray(f?.legs) ? f.legs : [];
+  const first = segments[0] ?? legs[0];
+  const last = segments[segments.length - 1] ?? legs[legs.length - 1];
+  const o = _up(first?.departure_airport ?? first?.origin ?? f?.origin);
+  const d = _up(last?.arrival_airport ?? last?.destination ?? f?.destination);
+  const dep = _normIso(first?.departure_time ?? f?.departureTime ?? f?.depart_time);
+  const arr = _normIso(last?.arrival_time ?? f?.arrivalTime ?? f?.arrive_time);
+  if (o === "?" || d === "?" || dep === "?" || arr === "?") return null;
+  return `${o}|${d}|${_up(topCarrier)}|${_tok(topNum)}|${dep}|${arr}`;
+}
+
 // ── Snapshot writer (ported, one row per itinerary) ─────────────────────────
 
-function buildSnapshotRows(flightSearchId: string, flights: any[], originIata: string): any[] {
+function buildSnapshotRows(
+  flightSearchId: string,
+  flights: any[],
+  originIata: string,
+): { rows: any[]; stableKeys: string[] } {
   const snapshotAt = new Date().toISOString();
   const rows: any[] = [];
+  const stableKeySet = new Set<string>();
   for (const f of flights) {
     const legs: any[] = Array.isArray(f.legs) ? f.legs : [];
     const first = legs[0], last = legs[legs.length - 1];
@@ -189,6 +236,10 @@ function buildSnapshotRows(flightSearchId: string, flights: any[], originIata: s
     const gw = rpFares.go_wild ?? {}, st = rpFares.standard ?? {},
           dd = rpFares.discount_den ?? {}, mi = rpFares.miles ?? {};
     const gwTotal = cleanNum(gw.total ?? f.fares?.go_wild);
+    const gwSeats = cleanInt(fareField(gw, "available_seats", "availableSeats"));
+    const hasGoWild = gwTotal != null;
+    const stableKey = buildStableItineraryKey(f);
+    if (stableKey) stableKeySet.add(stableKey);
     rows.push({
       flight_search_id: flightSearchId, snapshot_at: snapshotAt,
       source_itinerary_id: itinId,
@@ -204,8 +255,10 @@ function buildSnapshotRows(flightSearchId: string, flights: any[], originIata: s
       leg_origin_iata: itinOrigin, leg_destination_iata: itinDest,
       // leg_route is a GENERATED ALWAYS column — do not insert.
       departure_at: depAt, arrival_at: arrAt,
-      has_go_wild: gwTotal != null,
-      go_wild_available_seats: cleanInt(fareField(gw, "available_seats", "availableSeats")),
+      stable_itinerary_key: stableKey,
+      availability_status: hasGoWild ? "returned" : "no_gowild_fare",
+      has_go_wild: hasGoWild,
+      go_wild_available_seats: hasGoWild ? gwSeats : 0,
       go_wild_fare_status: cleanInt(fareField(gw, "fare_status", "fareStatus")),
       go_wild_total: gwTotal,
       go_wild_loyalty_points: cleanInt(fareField(gw, "loyalty_points", "loyaltyPoints")),
@@ -223,8 +276,9 @@ function buildSnapshotRows(flightSearchId: string, flights: any[], originIata: s
       miles_loyalty_points: cleanInt(fareField(mi, "loyalty_points", "loyaltyPoints")),
     });
   }
-  return rows;
+  return { rows, stableKeys: Array.from(stableKeySet) };
 }
+
 
 // ── Upstream flight API call (replicates flight-proxy) ──────────────────────
 
