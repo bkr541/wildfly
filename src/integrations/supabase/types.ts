@@ -1249,6 +1249,16 @@ export type Database = {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
       }
+      authorize_paid_search: {
+        Args: {
+          p_all_destinations: boolean
+          p_arrival_airports_count: number
+          p_source_id: string
+          p_trip_type: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       consume_search_credits:
         | {
             Args: {
@@ -1365,6 +1375,10 @@ export type Database = {
           p_travel_date: string
         }
         Returns: number
+      }
+      refund_paid_search: {
+        Args: { p_reason?: string; p_source_id: string; p_user_id: string }
+        Returns: Json
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
