@@ -181,30 +181,24 @@ const GoWildInsightsPage = () => {
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
-      <div
-        className="rounded-2xl bg-white px-4 py-3 text-xs leading-relaxed text-gray-600"
-        style={{ boxShadow: CARD_SHADOW }}
-      >
-        Insights are calculated from itinerary-level results in the selected period.
-        Connecting itineraries count as GoWild-available only when every leg is
-        GoWild-available. Seat availability uses the lowest seat count across the
-        itinerary.
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {PERIODS.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => setPeriod(p.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-              period === p.key
-                ? "bg-emerald-600 text-white"
-                : "bg-white text-gray-600 border border-gray-200"
-            }`}
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as PeriodKey)}
+            className="appearance-none rounded-full bg-white border border-gray-200 pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
           >
-            {p.label}
-          </button>
-        ))}
+            {PERIODS.map((p) => (
+              <option key={p.key} value={p.key}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none"
+          />
+        </div>
       </div>
 
       {loading ? (
