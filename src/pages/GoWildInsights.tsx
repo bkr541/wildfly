@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
