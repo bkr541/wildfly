@@ -99,12 +99,20 @@ async function fetchIfMissing(
 
   // ── Call the API ──────────────────────────────────────────────────────────
   try {
-    const { data: json } = await fetchDayTrips({
-      origin: homeIata,
-      date: dateStr,
-      nonstop: "true",
-      layovertime: "6",
-    });
+    const { data: json } = await fetchDayTrips(
+      {
+        origin: homeIata,
+        date: dateStr,
+        nonstop: "true",
+        layovertime: "6",
+      },
+      {
+        requestId: cacheKey,
+        tripType: "day_trip",
+        arrivalAirportsCount: 0,
+        allDestinations: false,
+      },
+    );
     if (cancelled) return;
 
     // ── Write normalized payload to cache ─────────────────────────────────
