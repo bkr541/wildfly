@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip } from "@/lib/flightApi";
+import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip, InsufficientCreditsError } from "@/lib/flightApi";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
