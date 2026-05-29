@@ -100,77 +100,53 @@ serve(async (req) => {
 
         const userId = session.metadata?.user_id;
         const packType = session.metadata?.credit_pack;
-        if (!userId || !packType) break;
-
-        const credits = CREDIT_PACKS[packType];
-        if (!credits) break;
-
-        // ── Idempotency: skip if this session was already processed ──
-        const { data: existing } = await supabase
-          .from("credit_transactions")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("source_type", "stripe_checkout")
-          .eq("source_id", session.id)
-          .maybeSingle();
-
-        if (existing) {
-          console.log(`Session ${session.id} already processed — skipping`);
+        if (!userId || !packType) {
+          console.warn(`Session ${session.id} missing user_id/credit_pack metadata — skipping`);
           break;
         }
 
-        // ── Ensure wallet row exists ──
-        const { data: walletCheck } = await supabase
-          .from("user_credit_wallet")
-          .select("purchased_balance")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (!walletCheck) {
-          await supabase.from("user_credit_wallet").insert({ user_id: userId });
+        // Trusted server-side credit amount — never trust client input.
+        const credits = CREDIT_PACKS[packType];
+        if (!credits) {
+          console.warn(`Unknown credit pack type ${packType} on session ${session.id}`);
+          break;
         }
 
-        // Re-read with FOR UPDATE semantics (service role bypasses RLS)
-        const { data: wallet } = await supabase
-          .from("user_credit_wallet")
-          .select("purchased_balance")
-          .eq("user_id", userId)
-          .single();
-
-        if (!wallet) break;
-
-        const balanceBefore = wallet.purchased_balance;
-        const balanceAfter = balanceBefore + credits;
-
-        // ── Increment purchased_balance ──
-        await supabase.from("user_credit_wallet").update({
-          purchased_balance: balanceAfter,
-          updated_at: new Date().toISOString(),
-        }).eq("user_id", userId);
-
-        // ── Write ledger row ──
-        const { error: ledgerErr } = await supabase.from("credit_transactions").insert({
-          user_id: userId,
-          transaction_type: "purchase_credit",
-          source_type: "stripe_checkout",
-          source_id: session.id,
-          amount: credits,
-          bucket: "purchased",
-          balance_before: balanceBefore,
-          balance_after: balanceAfter,
-          metadata: {
-            pack_type: packType,
-            stripe_session_id: session.id,
-            customer_id: session.customer,
-          },
+        // Atomic, idempotent fulfillment via SECURITY DEFINER RPC.
+        const { data: result, error: rpcError } = await supabase.rpc("fulfill_stripe_credit_pack", {
+          p_user_id: userId,
+          p_stripe_session_id: session.id,
+          p_credits: credits,
+          p_pack_id: packType,
+          p_stripe_customer_id: (session.customer as string) ?? null,
+          p_stripe_event_id: event.id,
         });
 
-        if (ledgerErr) {
-          console.error("Failed to write ledger row:", ledgerErr);
+        if (rpcError) {
+          console.error(`Fulfillment RPC failed for session ${session.id}:`, rpcError);
+          // Return 500 so Stripe retries the webhook.
+          return new Response(
+            JSON.stringify({ error: "Fulfillment failed", detail: rpcError.message }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
+        const status = (result as { status?: string } | null)?.status;
+        if (status === "fulfilled") {
+          console.log(`Fulfilled ${credits} credits for user ${userId} (session ${session.id})`);
+        } else if (status === "already_fulfilled") {
+          console.log(`Session ${session.id} already fulfilled — no-op replay`);
+        } else {
+          console.error(`Unexpected fulfillment status for session ${session.id}:`, result);
+          return new Response(
+            JSON.stringify({ error: "Unexpected fulfillment status", result }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+          );
         }
 
         break;
       }
+
     }
 
     return new Response(JSON.stringify({ received: true }), {

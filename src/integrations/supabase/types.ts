@@ -1277,6 +1277,17 @@ export type Database = {
             }
             Returns: Json
           }
+      fulfill_stripe_credit_pack: {
+        Args: {
+          p_credits: number
+          p_pack_id: string
+          p_stripe_customer_id: string
+          p_stripe_event_id: string
+          p_stripe_session_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       get_friend_profiles: {
         Args: { _user_ids: string[] }
         Returns: {
