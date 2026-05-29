@@ -27,9 +27,9 @@ const CARD_SHADOW =
 type PeriodKey = "24h" | "7d" | "30d" | "all";
 
 const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
-  { key: "24h", label: "Last 24 hours", hours: 24 },
-  { key: "7d", label: "Last 7 days", hours: 24 * 7 },
-  { key: "30d", label: "Last 30 days", hours: 24 * 30 },
+  { key: "24h", label: "24 hours", hours: 24 },
+  { key: "7d", label: "7 days", hours: 24 * 7 },
+  { key: "30d", label: "30 days", hours: 24 * 30 },
   { key: "all", label: "All time", hours: null },
 ];
 
