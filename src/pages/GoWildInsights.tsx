@@ -181,7 +181,8 @@ const GoWildInsightsPage = () => {
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
+        <span className="text-xs font-medium text-gray-500">Search Last:</span>
         <div className="relative">
           <select
             value={period}
