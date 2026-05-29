@@ -117,7 +117,10 @@ async function searchWithRetry(
 ): Promise<{ data: any; attempts: number }> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await fetchFlightSearch({ origin: iata, departureDate: date });
+      const result = await fetchFlightSearch(
+        { origin: iata, departureDate: date },
+        { requestId: `admin-bulk-${iata}-${date}-${Date.now()}`, tripType: "one_way", arrivalAirportsCount: 0, allDestinations: false, skip: true },
+      );
       return { data: result.data, attempts: attempt };
     } catch (err: any) {
       if (!isRateLimit(err) || attempt === MAX_RETRIES) throw err;

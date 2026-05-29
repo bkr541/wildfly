@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip } from "@/lib/flightApi";
+import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip, InsufficientCreditsError } from "@/lib/flightApi";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -1070,38 +1070,7 @@ const FlightsPage = ({
               date: depFormatted,
             });
             try {
-              // ── Credit check ──
-              // Pass p_source_id to disambiguate the overloaded function (avoids 300 Multiple Matches)
-              const { data: creditResult, error: creditErr } = await supabase.rpc(
-                "consume_search_credits" as any,
-                {
-                  p_trip_type: tripTypeMapping,
-                  p_arrival_airports_count: arrivalAirportsCount,
-                  p_all_destinations: searchAll,
-                  p_source_id: cacheKey,
-                } as any,
-              );
-
-              if (creditErr) {
-                flightLog.error("Credit check failed", creditErr);
-                setSearchError(creditErr.message ?? "Could not verify credits. Please try again.");
-                setLoading(false);
-                return;
-              }
-
-              const cr = creditResult as any;
-              if (!cr?.allowed) {
-                setCreditError({
-                  cost: cr?.cost ?? 0,
-                  remaining_monthly: cr?.remaining_monthly ?? 0,
-                  purchased_balance: cr?.purchased_balance ?? 0,
-                });
-                setLoading(false);
-                return;
-              }
-
-              const creditsCost = cr?.cost ?? 0;
-              // ── Check cache first ──
+              // ── Cache check first (no charge until we know we need fresh data) ──
               // Cache is valid if: same dep/arr/date (cache_key) AND written within last 6 hours
               const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
               const { data: cached } = await (supabase.from("flight_search_cache") as any)
@@ -1111,8 +1080,41 @@ const FlightsPage = ({
                 .gte("updated_at", sixHoursAgo)
                 .maybeSingle();
 
+              let creditsCost = 0;
+
               if (cached?.payload) {
                 cacheLog.info("Cache HIT", { dep: originCode, arr: cacheDest });
+
+                // Charge for the cache hit (idempotent on cacheKey via consume_search_credits).
+                // This is safe to call client-side: the RPC only debits the calling user
+                // and is bounded by their own wallet.
+                const { data: creditResult, error: creditErr } = await supabase.rpc(
+                  "consume_search_credits" as any,
+                  {
+                    p_trip_type: tripTypeMapping,
+                    p_arrival_airports_count: arrivalAirportsCount,
+                    p_all_destinations: searchAll,
+                    p_source_id: cacheKey,
+                  } as any,
+                );
+                if (creditErr) {
+                  flightLog.error("Credit check failed (cache path)", creditErr);
+                  setSearchError(creditErr.message ?? "Could not verify credits. Please try again.");
+                  setLoading(false);
+                  return;
+                }
+                const cr = creditResult as any;
+                if (!cr?.allowed) {
+                  setCreditError({
+                    cost: cr?.cost ?? 0,
+                    remaining_monthly: cr?.remaining_monthly ?? 0,
+                    purchased_balance: cr?.purchased_balance ?? 0,
+                  });
+                  setLoading(false);
+                  return;
+                }
+                creditsCost = cr?.cost ?? 0;
+
                 await new Promise((r) => setTimeout(r, 2000));
 
                 // Log to flight_searches as cache_hit. Do NOT write flight_snapshots
@@ -1142,7 +1144,6 @@ const FlightsPage = ({
                       gowild_found: cachedGoWild,
                       flight_results_count: cachedFlights.length,
                       result_source: "cache_hit",
-                      // Use the original provider observation time, not when the user opened the cache.
                       provider_observed_at: (cached as any).updated_at ?? null,
                     } as any);
                   }
@@ -1167,26 +1168,30 @@ const FlightsPage = ({
                 return;
               }
 
-              // ── No cache hit – call API ──
+              // ── Cache MISS — call API via proxy. The server charges credits
+              // atomically before performing the upstream paid request, and
+              // refunds automatically if the upstream provider fails.
               cacheLog.info("Cache MISS", { dep: originCode, arr: cacheDest });
+              const billingMeta = {
+                requestId: cacheKey,
+                tripType: tripTypeMapping,
+                arrivalAirportsCount,
+                allDestinations: searchAll,
+              };
               const edgeStart = performance.now();
               let data, error;
 
               try {
                 if (tripType === "day-trip") {
-                  // GET /api/flights/dayTrips — returns paired same-day turnarounds
-                  const params = new URLSearchParams({
-                    origin: originCode,
-                    date: depFormatted,
-                    nonstop: "true",
-                    layovertime: "6",
-                  });
                   edgeLog.info("Day Trip search", { origin: originCode, date: depFormatted });
-                  const dayTripResult = await fetchDayTrips({ origin: originCode, date: depFormatted, nonstop: "true", layovertime: "6" });
+                  const dayTripResult = await fetchDayTrips(
+                    { origin: originCode, date: depFormatted, nonstop: "true", layovertime: "6" },
+                    billingMeta,
+                  );
                   data = dayTripResult.data;
+                  creditsCost = dayTripResult.billing?.charged ?? 0;
                   error = null;
                 } else if (tripType === "round-trip" && arrivalDate) {
-                  // POST /api/flights/roundTrip — fetches outbound + return simultaneously
                   const body = {
                     origin: originCode,
                     destination: destinationCode,
@@ -1194,24 +1199,34 @@ const FlightsPage = ({
                     returnDate: format(arrivalDate, "yyyy-MM-dd"),
                   };
                   edgeLog.info("Round Trip search", body);
-                  const rtResult = await fetchRoundTrip(body);
+                  const rtResult = await fetchRoundTrip(body, billingMeta);
                   data = rtResult.data;
+                  creditsCost = rtResult.billing?.charged ?? 0;
                   error = null;
                 } else {
-                  // POST /api/flights/search — one-way, search-all, multi-day
                   const body: Record<string, string> = {
                     origin: originCode,
                     departureDate: depFormatted,
                   };
                   if (!searchAll && destinationCode && destinationCode !== "__ALL__") {
-                    body.destination = destinationCode; // may be "CITY:Chicago" or a plain IATA
+                    body.destination = destinationCode;
                   }
                   edgeLog.info("One-way / Search-all search", { origin: originCode, dest: body.destination ?? "ALL", date: depFormatted });
-                  const searchResult = await fetchFlightSearch(body);
+                  const searchResult = await fetchFlightSearch(body, billingMeta);
                   data = searchResult.data;
+                  creditsCost = searchResult.billing?.charged ?? 0;
                   error = null;
                 }
               } catch (fetchErr) {
+                if (fetchErr instanceof InsufficientCreditsError) {
+                  setCreditError({
+                    cost: fetchErr.info.cost,
+                    remaining_monthly: fetchErr.info.remaining_monthly,
+                    purchased_balance: fetchErr.info.purchased_balance,
+                  });
+                  setLoading(false);
+                  return;
+                }
                 data = null;
                 error = fetchErr;
               }
@@ -1222,7 +1237,9 @@ const FlightsPage = ({
               });
               if (error) {
                 edgeLog.error("Edge function error", error);
+                setSearchError((error as any)?.message ?? "Flight search failed. Please try again.");
               } else {
+
                 const normalizeStart = performance.now();
                 const normalized = searchAll
                   ? normalizeAllDestinationsResponse(data, depFormatted)
