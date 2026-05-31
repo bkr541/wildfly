@@ -1569,28 +1569,31 @@ export default function AdminConsole() {
         }}
       >
         {/* Logo / toggle */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#F0F1F1]">
+        <div className={`flex items-center border-b border-[#F0F1F1] py-4 ${sidebarOpen ? "justify-between px-4" : "flex-col gap-2 px-2"}`}>
           {sidebarOpen && (
             <span className="text-2xl font-black tracking-widest uppercase text-[#10B981] select-none flex-1 text-center">
               Console
             </span>
           )}
-          <div className="flex items-center gap-1">
+          <div className={`flex items-center gap-1 ${sidebarOpen ? "" : "flex-col"}`}>
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
               aria-label="Back"
               title="Back to app"
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={15} color="currentColor" strokeWidth={2.5} />
             </button>
             <button
+              type="button"
               onClick={() => setSidebarOpen((v) => !v)}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] transition-colors flex-shrink-0 ${!sidebarOpen ? "mx-auto" : ""}`}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
+              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               <HugeiconsIcon
-                icon={sidebarOpen ? ArrowLeft01Icon : ArrowRight01Icon}
+                icon={sidebarOpen ? UnfoldLessIcon : UnfoldMoreIcon}
                 size={15}
                 color="currentColor"
                 strokeWidth={2.5}
