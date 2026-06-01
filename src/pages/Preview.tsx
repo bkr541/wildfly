@@ -852,7 +852,138 @@ const PreviewPage = () => {
         </div>
 
 
+        {/* GoWild Seat Availability group */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07)",
+          }}
+        >
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-[#F0F1F1]">
+            <HugeiconsIcon icon={AirplaneSeatIcon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+            <div className="flex-1">
+              <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">GoWild Seat Aval.</p>
+              <p className="text-xs text-[#6B7B7B]">
+                Historical GoWild seat availability by date for a route
+              </p>
+            </div>
+          </div>
+
+          <div className="px-5 pt-4 pb-5">
+            <AirportSearchSheet
+              open={seatSheet !== null}
+              onClose={() => setSeatSheet(null)}
+              airports={airports}
+              onSelect={(a) => {
+                if (seatSheet === "dep") setSeatDep(a);
+                else if (seatSheet === "arr") setSeatArr(a);
+                setSeatError(null);
+              }}
+            />
+
+            <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure Airport</label>
+            <div
+              className="app-input-container cursor-pointer"
+              style={{ minHeight: 48 }}
+              onClick={() => setSeatSheet("dep")}
+            >
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <span
+                className="app-input truncate flex-1 flex items-center"
+                style={{ color: seatDep ? "#1F2937" : "#6B7280" }}
+              >
+                {seatDep ? `${seatDep.iata_code} | ${seatDep.locations?.city ?? seatDep.name}` : "Search airport or city..."}
+              </span>
+              {seatDep && (
+                <button
+                  type="button"
+                  aria-label="Clear departure airport"
+                  onClick={(e) => { e.stopPropagation(); setSeatDep(null); }}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            <label className="text-sm font-bold text-[#059669] ml-1 mb-0 mt-3 block">Arrival Airport</label>
+            <div
+              className="app-input-container cursor-pointer"
+              style={{ minHeight: 48 }}
+              onClick={() => setSeatSheet("arr")}
+            >
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={AirplaneLanding01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <span
+                className="app-input truncate flex-1 flex items-center"
+                style={{ color: seatArr ? "#1F2937" : "#6B7280" }}
+              >
+                {seatArr ? `${seatArr.iata_code} | ${seatArr.locations?.city ?? seatArr.name}` : "Search airport or city..."}
+              </span>
+              {seatArr && (
+                <button
+                  type="button"
+                  aria-label="Clear arrival airport"
+                  onClick={(e) => { e.stopPropagation(); setSeatArr(null); }}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            {seatError && (
+              <p className="text-xs font-medium text-[#ef4444] mt-2 ml-1">{seatError}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!seatDep || !seatArr) {
+                  setSeatError("Please select both a departure and arrival airport.");
+                  return;
+                }
+                if (seatDep.iata_code === seatArr.iata_code) {
+                  setSeatError("Departure and arrival airports must differ.");
+                  return;
+                }
+                setSeatError(null);
+                setSeatRoute({ origin: seatDep.iata_code, destination: seatArr.iata_code });
+              }}
+              className="mt-5 w-full h-12 rounded-full font-bold text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-90 active:opacity-75"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              View Seats
+            </button>
+
+            {seatRoute && (
+              <div className="mt-4 -mx-5">
+                <div className="px-5 pb-2">
+                  <p className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider">
+                    {seatRoute.origin} → {seatRoute.destination}
+                  </p>
+                </div>
+                <SeatAvailabilityCalendar
+                  key={`${seatRoute.origin}-${seatRoute.destination}`}
+                  origin={seatRoute.origin}
+                  destination={seatRoute.destination}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+
         {/* Blackout Dates group */}
+
         <div
           className="rounded-2xl overflow-hidden"
           style={{
