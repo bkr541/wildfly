@@ -13,6 +13,8 @@ import {
   ArrowRight01Icon,
   ArrowDown01Icon,
   Rocket01Icon,
+  SeatSelectorIcon,
+  AirplaneLandingIcon,
 } from "@hugeicons/core-free-icons";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 
