@@ -338,8 +338,140 @@ function BlackoutCalendar() {
   );
 }
 
+/* ── GoWild Seat Availability Calendar ─────────────────────── */
+function SeatAvailabilityCalendar({
+  origin,
+  destination,
+}: {
+  origin: string;
+  destination: string;
+}) {
+  const today = new Date();
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
+  const [seatsByDate, setSeatsByDate] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
 
-const PreviewPage = () => {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await (supabase.from("flight_snapshots") as any)
+        .select("departure_at, go_wild_available_seats, snapshot_at")
+        .eq("leg_origin_iata", origin)
+        .eq("leg_destination_iata", destination)
+        .eq("has_go_wild", true)
+        .not("go_wild_available_seats", "is", null)
+        .order("snapshot_at", { ascending: false })
+        .limit(2000);
+      if (cancelled) return;
+      // Keep the most recent snapshot per departure date
+      const latestBy: Record<string, { ts: number; seats: number }> = {};
+      for (const row of (data ?? []) as any[]) {
+        const dep: string = row.departure_at;
+        if (!dep) continue;
+        const dateKey = dep.slice(0, 10);
+        const ts = new Date(row.snapshot_at).getTime();
+        const seats = row.go_wild_available_seats ?? 0;
+        const prev = latestBy[dateKey];
+        if (!prev || ts > prev.ts) latestBy[dateKey] = { ts, seats };
+      }
+      const map: Record<string, number> = {};
+      for (const [k, v] of Object.entries(latestBy)) map[k] = v.seats;
+      setSeatsByDate(map);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [origin, destination]);
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const prev = () => {
+    if (month === 0) { setMonth(11); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+  };
+  const next = () => {
+    if (month === 11) { setMonth(0); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+  };
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="px-5 pt-4 pb-5">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={prev}
+          className="h-9 w-9 rounded-full flex items-center justify-center text-[#345C5A] hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors"
+          aria-label="Previous month"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="currentColor" strokeWidth={2} />
+        </button>
+        <div className="text-base font-bold text-[#2E4A4A] text-center w-[170px] tabular-nums shrink-0">
+          {MONTH_NAMES[month]} {year}
+        </div>
+        <button
+          type="button"
+          onClick={next}
+          className="h-9 w-9 rounded-full flex items-center justify-center text-[#345C5A] hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors"
+          aria-label="Next month"
+        >
+          <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="currentColor" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {WEEKDAYS.map((d, i) => (
+          <div key={i} className="text-center text-xs font-bold text-[#9CA3AF] uppercase py-1">{d}</div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-x-1">
+        {cells.map((d, i) => {
+          if (d === null) return <div key={i} className="h-12" />;
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const seats = seatsByDate[dateStr];
+          const hasSeats = seats != null && seats > 0;
+          const isToday = dateStr === todayStr;
+          return (
+            <div key={i} className="h-12 flex flex-col items-center justify-start pt-0.5">
+              <div
+                className={cn(
+                  "h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium transition-colors",
+                  hasSeats && "bg-[#059669] text-white",
+                  !hasSeats && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
+                  !hasSeats && !isToday && "text-[#2E4A4A]",
+                )}
+              >
+                {d}
+              </div>
+              {hasSeats && (
+                <span className="text-[10px] font-bold text-[#059669] leading-none mt-0.5 tabular-nums">
+                  {seats}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#F0F1F1]">
+        <div className="h-3 w-3 rounded-full bg-[#059669]" />
+        <span className="text-xs text-[#6B7B7B] font-medium">
+          {loading ? "Loading seat data…" : "Most recent GoWild seats observed for this date"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
+
   const [airports, setAirports] = useState<Airport[]>([]);
   const [selected, setSelected] = useState<Airport | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
