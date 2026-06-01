@@ -356,33 +356,37 @@ function SeatAvailabilityCalendar({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await (supabase.from("flight_snapshots") as any)
-        .select("departure_at, go_wild_available_seats, snapshot_at")
-        .eq("leg_origin_iata", origin)
-        .eq("leg_destination_iata", destination)
-        .eq("has_go_wild", true)
-        .not("go_wild_available_seats", "is", null)
-        .order("snapshot_at", { ascending: false })
-        .limit(2000);
+      // Query a wide window so navigating months doesn't require refetching.
+      const start = new Date();
+      const end = new Date();
+      end.setDate(end.getDate() + 365);
+      const toDateStr = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const { data, error } = await (supabase.rpc as any)(
+        "get_route_gowild_inventory_calendar",
+        {
+          p_origin_iata: origin,
+          p_destination_iata: destination,
+          p_start_date: toDateStr(start),
+          p_end_date: toDateStr(end),
+        },
+      );
       if (cancelled) return;
-      // Keep the most recent snapshot per departure date
-      const latestBy: Record<string, { ts: number; seats: number }> = {};
-      for (const row of (data ?? []) as any[]) {
-        const dep: string = row.departure_at;
-        if (!dep) continue;
-        const dateKey = dep.slice(0, 10);
-        const ts = new Date(row.snapshot_at).getTime();
-        const seats = row.go_wild_available_seats ?? 0;
-        const prev = latestBy[dateKey];
-        if (!prev || ts > prev.ts) latestBy[dateKey] = { ts, seats };
-      }
       const map: Record<string, number> = {};
-      for (const [k, v] of Object.entries(latestBy)) map[k] = v.seats;
+      if (!error && Array.isArray(data)) {
+        for (const row of data as any[]) {
+          const date: string = row.travel_date;
+          if (!date) continue;
+          const seats = row.available_seats_now;
+          if (seats != null && seats > 0) map[date] = seats;
+        }
+      }
       setSeatsByDate(map);
       setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [origin, destination]);
+
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
