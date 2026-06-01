@@ -1366,6 +1366,20 @@ export type Database = {
           total_duration_display: string
         }[]
       }
+      get_route_gowild_seat_calendar: {
+        Args: {
+          p_destination_iata: string
+          p_end_date: string
+          p_origin_iata: string
+          p_start_date: string
+        }
+        Returns: {
+          available_flights: number
+          available_seats: number
+          last_observed_at: string
+          travel_date: string
+        }[]
+      }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       mark_disappeared_gowild_observations: {
         Args: {
