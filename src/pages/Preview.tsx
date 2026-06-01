@@ -356,10 +356,12 @@ function SeatAvailabilityCalendar({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // Query a wide window so navigating months doesn't require refetching.
+      // Query a wide window (past + future) so historical seat data shows up
+      // and navigating months doesn't require refetching.
       const start = new Date();
+      start.setFullYear(start.getFullYear() - 2);
       const end = new Date();
-      end.setDate(end.getDate() + 365);
+      end.setFullYear(end.getFullYear() + 2);
       const toDateStr = (d: Date) =>
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const { data, error } = await (supabase.rpc as any)(
