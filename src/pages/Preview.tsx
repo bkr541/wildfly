@@ -471,6 +471,7 @@ function SeatAvailabilityCalendar({
 }
 
 
+const PreviewPage = () => {
 
   const [airports, setAirports] = useState<Airport[]>([]);
   const [selected, setSelected] = useState<Airport | null>(null);
