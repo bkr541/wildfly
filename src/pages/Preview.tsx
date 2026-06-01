@@ -482,6 +482,13 @@ const PreviewPage = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [payloads, setPayloads] = useState<Record<string, { status: "loading" | "ready" | "empty"; flights?: any[] }>>({});
 
+  // GoWild Seat Availability section state
+  const [seatDep, setSeatDep] = useState<Airport | null>(null);
+  const [seatArr, setSeatArr] = useState<Airport | null>(null);
+  const [seatSheet, setSeatSheet] = useState<null | "dep" | "arr">(null);
+  const [seatRoute, setSeatRoute] = useState<{ origin: string; destination: string } | null>(null);
+  const [seatError, setSeatError] = useState<string | null>(null);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase
