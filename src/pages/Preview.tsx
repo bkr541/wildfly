@@ -363,7 +363,7 @@ function SeatAvailabilityCalendar({
       const toDateStr = (d: Date) =>
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const { data, error } = await (supabase.rpc as any)(
-        "get_route_gowild_inventory_calendar",
+        "get_route_gowild_seat_calendar",
         {
           p_origin_iata: origin,
           p_destination_iata: destination,
@@ -377,7 +377,7 @@ function SeatAvailabilityCalendar({
         for (const row of data as any[]) {
           const date: string = row.travel_date;
           if (!date) continue;
-          const seats = row.available_seats_now;
+          const seats = row.available_seats;
           if (seats != null && seats > 0) map[date] = seats;
         }
       }
