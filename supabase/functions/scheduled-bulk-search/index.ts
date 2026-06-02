@@ -19,7 +19,7 @@ const corsHeaders = {
 const DELAY_MS = 750;
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 5000;
-const CHUNK_SIZE = 5;
+const CHUNK_SIZE = 1;
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 type TimezoneGroup = "ET" | "CT" | "MT" | "PT";
@@ -490,9 +490,19 @@ Deno.serve(async (req) => {
           }
         }
         succeeded++;
+        await admin.from("bulk_search_job_logs").update({
+          airports_succeeded: succeeded,
+          airports_failed: failed,
+          gowild_found_count: gowildCount,
+        }).eq("id", logId);
         console.log(`[scheduled-bulk-search] ${iata_code} ok flights=${normalized.flights.length} gw=${goWildFound}`);
       } catch (err: any) {
         failed++;
+        await admin.from("bulk_search_job_logs").update({
+          airports_succeeded: succeeded,
+          airports_failed: failed,
+          gowild_found_count: gowildCount,
+        }).eq("id", logId);
         console.error(`[scheduled-bulk-search] ${iata_code} failed: ${err?.message ?? err}`);
       }
       if (i < chunk.length - 1) await sleep(DELAY_MS);
