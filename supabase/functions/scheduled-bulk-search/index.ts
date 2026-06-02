@@ -19,6 +19,7 @@ const corsHeaders = {
 const DELAY_MS = 750;
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 5000;
+const CHUNK_SIZE = 5;
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 type TimezoneGroup = "ET" | "CT" | "MT" | "PT";
