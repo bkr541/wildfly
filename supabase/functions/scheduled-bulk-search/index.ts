@@ -326,6 +326,7 @@ Deno.serve(async (req) => {
   const GOWILDER = Deno.env.get("GOWILDER_TOKEN") ?? "";
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+  const logAdmin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   // Gate: caller must present the configured shared secret as Bearer
   const auth = req.headers.get("Authorization") ?? "";
@@ -394,10 +395,20 @@ Deno.serve(async (req) => {
 
   const finalize = async (patch: Record<string, unknown>) => {
     if (!logId) return;
-    await admin.from("bulk_search_job_logs")
+    await logAdmin.from("bulk_search_job_logs")
       .update({ ...patch, finished_at: new Date().toISOString(),
                 duration_ms: Date.now() - startedAt.getTime() })
       .eq("id", logId);
+  };
+
+  const checkpoint = async (succeeded: number, failed: number, gowildCount: number) => {
+    if (!logId) return;
+    const { error: logErr } = await logAdmin.from("bulk_search_job_logs").update({
+      airports_succeeded: succeeded,
+      airports_failed: failed,
+      gowild_found_count: gowildCount,
+    }).eq("id", logId);
+    if (logErr) console.error(`[scheduled-bulk-search] log checkpoint failed id=${logId}: ${logErr.message}`);
   };
 
   try {
@@ -490,29 +501,17 @@ Deno.serve(async (req) => {
           }
         }
         succeeded++;
-        await admin.from("bulk_search_job_logs").update({
-          airports_succeeded: succeeded,
-          airports_failed: failed,
-          gowild_found_count: gowildCount,
-        }).eq("id", logId);
+        await checkpoint(succeeded, failed, gowildCount);
         console.log(`[scheduled-bulk-search] ${iata_code} ok flights=${normalized.flights.length} gw=${goWildFound}`);
       } catch (err: any) {
         failed++;
-        await admin.from("bulk_search_job_logs").update({
-          airports_succeeded: succeeded,
-          airports_failed: failed,
-          gowild_found_count: gowildCount,
-        }).eq("id", logId);
+        await checkpoint(succeeded, failed, gowildCount);
         console.error(`[scheduled-bulk-search] ${iata_code} failed: ${err?.message ?? err}`);
       }
       if (i < chunk.length - 1) await sleep(DELAY_MS);
     }
 
-    await admin.from("bulk_search_job_logs").update({
-      airports_succeeded: succeeded,
-      airports_failed: failed,
-      gowild_found_count: gowildCount,
-    }).eq("id", logId);
+    await checkpoint(succeeded, failed, gowildCount);
 
     const nextCursor = cursor + chunk.length;
     if (nextCursor < filtered.length) {
