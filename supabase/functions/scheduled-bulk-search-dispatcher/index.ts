@@ -82,16 +82,18 @@ Deno.serve(async (req) => {
   // admin client created above
 
 
-  // Idempotency: skip if we already have a non-skipped log row for this slot
-  // in the last 2 hours
-  const since = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  // Idempotency: completed jobs should not rerun, but a stale "running" row
+  // should not block recovery. The cron ticks twice inside each trigger window,
+  // so only very recent running jobs are considered active.
+  const completedSince = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const activeSince = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data: existing } = await admin
     .from("bulk_search_job_logs")
     .select("id, status")
     .eq("timezone_group", tz)
     .eq("target_date", targetDate)
     .neq("status", "skipped")
-    .gte("started_at", since)
+    .or(`status.in.(success,partial),and(status.eq.running,started_at.gte.${activeSince}),and(status.eq.failed,started_at.gte.${completedSince})`)
     .limit(1);
 
   if (existing && existing.length > 0) {

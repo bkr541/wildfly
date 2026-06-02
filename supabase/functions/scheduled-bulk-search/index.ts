@@ -19,6 +19,7 @@ const corsHeaders = {
 const DELAY_MS = 750;
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 5000;
+const CHUNK_SIZE = 5;
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 type TimezoneGroup = "ET" | "CT" | "MT" | "PT";
@@ -340,7 +341,15 @@ Deno.serve(async (req) => {
   }
 
 
-  let body: { timezone?: TimezoneGroup; date?: string } = {};
+  let body: {
+    timezone?: TimezoneGroup;
+    date?: string;
+    cursor?: number;
+    logId?: string;
+    succeeded?: number;
+    failed?: number;
+    gowildCount?: number;
+  } = {};
   try { body = await req.json(); } catch { /* allow empty */ }
   const tzGroup = body.timezone;
   if (!tzGroup || !(tzGroup in TIMEZONE_GROUPS)) {
@@ -351,6 +360,7 @@ Deno.serve(async (req) => {
 
   const targetDate = body.date ?? tomorrowEastern();
   const startedAt = new Date();
+  const cursor = Math.max(0, Number(body.cursor ?? 0));
 
   // admin client created above for the auth check
 
@@ -369,15 +379,18 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Insert a "running" log row up-front so we always have an audit record
-  const { data: logRow } = await admin
-    .from("bulk_search_job_logs")
-    .insert({
-      timezone_group: tzGroup, target_date: targetDate, status: "running",
-      airports_total: 0, started_at: startedAt.toISOString(),
-    })
-    .select("id").single();
-  const logId = logRow?.id;
+  // Insert one log row for the first chunk, then reuse it for continuation chunks.
+  let logId = body.logId;
+  if (!logId) {
+    const { data: logRow } = await admin
+      .from("bulk_search_job_logs")
+      .insert({
+        timezone_group: tzGroup, target_date: targetDate, status: "running",
+        airports_total: 0, started_at: startedAt.toISOString(),
+      })
+      .select("id").single();
+    logId = logRow?.id;
+  }
 
   const finalize = async (patch: Record<string, unknown>) => {
     if (!logId) return;
@@ -401,15 +414,18 @@ Deno.serve(async (req) => {
       a.locations?.country === "United States of America" && tzSet.has(a.timezone)
     );
 
-    console.log(`[scheduled-bulk-search] tz=${tzGroup} date=${targetDate} airports=${filtered.length}`);
+    console.log(`[scheduled-bulk-search] tz=${tzGroup} date=${targetDate} airports=${filtered.length} cursor=${cursor}`);
     await admin.from("bulk_search_job_logs")
       .update({ airports_total: filtered.length }).eq("id", logId);
 
     const bucket = resetBucket(targetDate);
-    let succeeded = 0, failed = 0, gowildCount = 0;
+    let succeeded = Math.max(0, Number(body.succeeded ?? 0));
+    let failed = Math.max(0, Number(body.failed ?? 0));
+    let gowildCount = Math.max(0, Number(body.gowildCount ?? 0));
+    const chunk = filtered.slice(cursor, cursor + CHUNK_SIZE);
 
-    for (let i = 0; i < filtered.length; i++) {
-      const { iata_code, name } = filtered[i] as any;
+    for (let i = 0; i < chunk.length; i++) {
+      const { iata_code, name } = chunk[i] as any;
       try {
         const { data: raw } = await searchWithRetry(iata_code, targetDate, token);
         const normalized = normalizeAllDestinationsResponse(raw, targetDate);
@@ -479,7 +495,43 @@ Deno.serve(async (req) => {
         failed++;
         console.error(`[scheduled-bulk-search] ${iata_code} failed: ${err?.message ?? err}`);
       }
-      if (i < filtered.length - 1) await sleep(DELAY_MS);
+      if (i < chunk.length - 1) await sleep(DELAY_MS);
+    }
+
+    await admin.from("bulk_search_job_logs").update({
+      airports_succeeded: succeeded,
+      airports_failed: failed,
+      gowild_found_count: gowildCount,
+    }).eq("id", logId);
+
+    const nextCursor = cursor + chunk.length;
+    if (nextCursor < filtered.length) {
+      const url = `${SUPABASE_URL}/functions/v1/scheduled-bulk-search`;
+      // Continue in a fresh invocation so larger timezone groups do not exceed
+      // edge runtime limits and remain stuck as "running".
+      // @ts-ignore EdgeRuntime is provided by Supabase edge runtime
+      EdgeRuntime.waitUntil(fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${expected}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          timezone: tzGroup,
+          date: targetDate,
+          cursor: nextCursor,
+          logId,
+          succeeded,
+          failed,
+          gowildCount,
+        }),
+      }).catch((e) => console.error(`[scheduled-bulk-search] continuation failed: ${e?.message ?? e}`)));
+
+      return new Response(JSON.stringify({
+        ok: true, timezone: tzGroup, target_date: targetDate,
+        airports_total: filtered.length, succeeded, failed, gowildCount,
+        status: "running", cursor: nextCursor,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const status = failed === 0 ? "success" : (succeeded === 0 ? "failed" : "partial");
