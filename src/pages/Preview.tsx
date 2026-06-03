@@ -984,11 +984,6 @@ const PreviewPage = () => {
 
             {seatRoute && (
               <div className="mt-4 -mx-5">
-                <div className="px-5 pb-2">
-                  <p className="text-xs font-bold text-[#6B7B7B] uppercase tracking-wider">
-                    {seatRoute.origin} → {seatRoute.destination}
-                  </p>
-                </div>
                 <SeatAvailabilityCalendar
                   key={`${seatRoute.origin}-${seatRoute.destination}`}
                   origin={seatRoute.origin}
