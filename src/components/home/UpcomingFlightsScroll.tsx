@@ -245,6 +245,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       </div>
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.arrival_airport}</span>
                     </div>
+
+                    <TicketDivider />
+
                     <div className="flex items-start justify-between">
                       <span className="text-xs font-medium text-[#059669] leading-tight">
                         <span className="block">{formatTime(flight.departure_time)}</span>
@@ -256,7 +259,6 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       </span>
                     </div>
 
-                    <TicketDivider />
 
                     {/* Trip-type badge */}
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
