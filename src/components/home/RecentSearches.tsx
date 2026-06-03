@@ -271,6 +271,12 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                   {tripLabel}
                                 </span>
                               </div>
+
+                              {/* Colored bottom accent bar */}
+                              <div
+                                className="absolute left-3 right-3 -bottom-1 h-1.5 rounded-full"
+                                style={{ background: "#1D4ED8" }}
+                              />
                             </motion.div>
                           );
                         })}
