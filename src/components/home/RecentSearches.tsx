@@ -245,6 +245,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 )}
                               </div>
 
+                              <TicketDivider />
+
                               {/* Searched / Depart dates */}
                               <div className="flex items-start justify-between">
                                 <span className="text-xs font-medium text-[#059669] leading-tight">
@@ -257,7 +259,6 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 </span>
                               </div>
 
-                              <TicketDivider />
 
                               {/* Badges row */}
                               <div className="flex items-center justify-center gap-1.5 flex-wrap">
