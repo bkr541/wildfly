@@ -193,16 +193,23 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       transition: { duration: 0.3, delay: i * 0.08, ease: EASE },
                     }}
                     onClick={() => onFlightClick?.(flight)}
-                    className="relative flex-shrink-0 w-[232px] rounded-2xl px-3 pt-2 pb-3 cursor-pointer active:scale-[0.98] transition-transform"
-                    style={{
-                      scrollSnapAlign: "start",
-                      background: "rgba(255,255,255,0.82)",
-                      backdropFilter: "blur(18px)",
-                      WebkitBackdropFilter: "blur(18px)",
-                      border: "1px solid rgba(255,255,255,0.65)",
-                      boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
-                    }}
+                    className="relative flex-shrink-0 w-[232px] pb-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+                    style={{ scrollSnapAlign: "start" }}
                   >
+                    <div
+                      className="absolute inset-x-0 top-2 bottom-0 rounded-2xl pointer-events-none"
+                      style={{ background: "#059669" }}
+                    />
+                    <div
+                      className="relative rounded-2xl px-3 pt-2 pb-3"
+                      style={{
+                        background: "rgba(255,255,255,0.82)",
+                        backdropFilter: "blur(18px)",
+                        WebkitBackdropFilter: "blur(18px)",
+                        border: "1px solid rgba(255,255,255,0.65)",
+                        boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
+                      }}
+                    >
                     {/* Header: logo + GoWild + dismiss */}
                     <div className="flex items-center justify-between mb-3">
                       <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
@@ -260,12 +267,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                         {tripLabel}
                       </span>
                     </div>
-
-                    {/* Colored bottom accent bar */}
-                    <div
-                      className="absolute left-3 right-3 -bottom-1 h-1.5 rounded-full"
-                      style={{ background: "#059669" }}
-                    />
+                    </div>
                   </motion.div>
                   );
                 })}
