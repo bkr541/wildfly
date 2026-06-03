@@ -24,7 +24,9 @@ import {
   FilterMailSquareIcon,
   Analytics01Icon,
   Home13Icon,
+  Radar01Icon,
 } from "@hugeicons/core-free-icons";
+import GoWildRadarMap from "@/components/admin/GoWildRadarMap";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildInsightsSection";
@@ -44,10 +46,11 @@ import {
   getGoWildBadgeClass,
   getFreshnessStatus,
 } from "@/components/admin/FlightSearchDetailDrawer";
+import AdminDashboardView from "@/components/admin/AdminDashboardView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "users" | "flights" | "data" | "gowild";
+type View = "dashboard" | "users" | "flights" | "data" | "gowild" | "radar";
 
 interface UserRow {
   id: number;
@@ -112,6 +115,7 @@ const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "flights",   label: "Flights",        icon: AirplaneTakeOff01Icon },
   { id: "data",      label: "Data",           icon: DatabaseIcon },
   { id: "gowild",    label: "GoWild Insights", icon: Analytics01Icon },
+  { id: "radar",     label: "GoWild Radar",    icon: Radar01Icon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1672,11 +1676,12 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
-  dashboard: { title: "Dashboard",       subtitle: "Overview of app activity and health." },
+  dashboard: { title: "Admin Dashboard",  subtitle: "Wildfly platform health, GoWild availability, and search intelligence." },
   users:     { title: "Users",           subtitle: "All registered users and their profile information." },
   flights:   { title: "Flights",         subtitle: "All flight searches across the platform." },
   data:      { title: "Data",            subtitle: "Data insights and platform analytics." },
-  gowild:    { title: "GoWild Insights", subtitle: "GoWild seat availability trends and route analytics." },
+  gowild:    { title: "GoWild Insights",   subtitle: "GoWild seat availability trends and route analytics." },
+  radar:     { title: "GoWild Radar Map", subtitle: "Interactive map of GoWild opportunity by airport and route." },
 };
 
 export default function AdminConsole() {
@@ -1795,25 +1800,13 @@ export default function AdminConsole() {
           transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
           className="flex flex-col gap-4 flex-1 overflow-y-auto pb-6"
         >
-        {view === "dashboard" && (
-          <div
-            className="rounded-2xl flex-1 flex items-center justify-center"
-            style={{ ...CARD_STYLE, minHeight: 300 }}
-          >
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
-                <HugeiconsIcon icon={ChartRoseIcon} size={22} color="#059669" strokeWidth={1.5} />
-              </div>
-              <p className="text-base font-bold text-[#2E4A4A]">Dashboard coming soon</p>
-              <p className="text-sm text-[#9CA3AF]">App metrics and activity will appear here.</p>
-            </div>
-          </div>
-        )}
+        {view === "dashboard" && <AdminDashboardView />}
 
         {view === "users"   && <UsersView />}
         {view === "flights" && <FlightsView />}
         {view === "data"    && <DataView />}
         {view === "gowild"  && <GoWildInsightsView />}
+        {view === "radar"   && <GoWildRadarMap />}
         </motion.div>
         </AnimatePresence>
       </div>
