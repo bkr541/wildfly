@@ -1727,6 +1727,8 @@ export default function AdminConsole() {
           </motion.div>
         </AnimatePresence>
 
+        {gowildLoading && <LoadingInsightsOverlay />}
+
         {/* View content */}
         <AnimatePresence mode="wait">
         <motion.div
