@@ -62,16 +62,6 @@ function formatShortDate(dateStr: string): string {
   }
 }
 
-function formatShortDateLabel(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  } catch {
-    return "";
-  }
-}
-
 function getPrice(flight_json: any): number | null {
   const fares = flight_json?.fares;
   if (!fares) return flight_json?.price ?? null;
