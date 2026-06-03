@@ -208,15 +208,11 @@ export function WatchedFlightsScroll({
                             y: 0,
                             transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                           }}
-                          className="relative flex-shrink-0 w-[232px] pb-1.5"
+                          className="relative flex-shrink-0 w-[232px]"
                           style={{ scrollSnapAlign: "start" }}
                         >
                           <div
-                            className="absolute inset-x-0 top-2 bottom-0 rounded-2xl pointer-events-none"
-                            style={{ background: "#F59E0B" }}
-                          />
-                          <div
-                            className="relative rounded-2xl px-3 pt-3 pb-4"
+                            className="relative rounded-2xl px-3 pt-3 pb-4 overflow-hidden"
                             style={{
                               background: "rgba(255,255,255,0.82)",
                               backdropFilter: "blur(18px)",
@@ -225,6 +221,11 @@ export function WatchedFlightsScroll({
                               boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                             }}
                           >
+                            {/* Colored bottom border */}
+                            <div
+                              className="absolute inset-x-0 bottom-0 h-1.5 pointer-events-none"
+                              style={{ background: "#F59E0B" }}
+                            />
                           {/* Header: logo + dismiss */}
                           <div className="flex items-start justify-between mb-2">
                             <img
@@ -272,6 +273,8 @@ export function WatchedFlightsScroll({
                             </span>
                           </div>
 
+                          <TicketDivider />
+
                           {/* Departure / Arrival times */}
                           <div className="flex items-start justify-between">
                             <span className="text-xs font-medium text-[#059669] leading-tight">
@@ -284,7 +287,6 @@ export function WatchedFlightsScroll({
                             </span>
                           </div>
 
-                          <TicketDivider />
 
                           {/* Pills row */}
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">

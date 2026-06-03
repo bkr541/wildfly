@@ -184,7 +184,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 y: 0,
                                 transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                               }}
-                              className="relative flex-shrink-0 w-[232px] pb-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+                              className="relative flex-shrink-0 w-[232px] cursor-pointer active:scale-[0.98] transition-transform"
                               style={{ scrollSnapAlign: "start" }}
                               onClick={() => {
                                 const payload = JSON.stringify({
@@ -199,12 +199,12 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 onNavigate?.("flights", payload);
                               }}
                             >
-                              {/* Colored backdrop behind card */}
+                              <div className="relative rounded-2xl px-3 pt-2 pb-3 overflow-hidden" style={CARD_STYLE}>
+                              {/* Colored bottom border */}
                               <div
-                                className="absolute inset-x-0 top-2 bottom-0 rounded-2xl pointer-events-none"
+                                className="absolute inset-x-0 bottom-0 h-1.5 pointer-events-none"
                                 style={{ background: "#1D4ED8" }}
                               />
-                              <div className="relative rounded-2xl px-3 pt-2 pb-3" style={CARD_STYLE}>
 
                               {/* Header: Frontier logo + dismiss */}
                               <div className="flex items-center justify-between mb-3">
@@ -245,6 +245,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 )}
                               </div>
 
+                              <TicketDivider />
+
                               {/* Searched / Depart dates */}
                               <div className="flex items-start justify-between">
                                 <span className="text-xs font-medium text-[#059669] leading-tight">
@@ -257,7 +259,6 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 </span>
                               </div>
 
-                              <TicketDivider />
 
                               {/* Badges row */}
                               <div className="flex items-center justify-center gap-1.5 flex-wrap">

@@ -193,15 +193,11 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       transition: { duration: 0.3, delay: i * 0.08, ease: EASE },
                     }}
                     onClick={() => onFlightClick?.(flight)}
-                    className="relative flex-shrink-0 w-[232px] pb-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+                    className="relative flex-shrink-0 w-[232px] cursor-pointer active:scale-[0.98] transition-transform"
                     style={{ scrollSnapAlign: "start" }}
                   >
                     <div
-                      className="absolute inset-x-0 top-2 bottom-0 rounded-2xl pointer-events-none"
-                      style={{ background: "#059669" }}
-                    />
-                    <div
-                      className="relative rounded-2xl px-3 pt-2 pb-3"
+                      className="relative rounded-2xl px-3 pt-2 pb-3 overflow-hidden"
                       style={{
                         background: "rgba(255,255,255,0.82)",
                         backdropFilter: "blur(18px)",
@@ -210,6 +206,11 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                         boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                       }}
                     >
+                      {/* Colored bottom border */}
+                      <div
+                        className="absolute inset-x-0 bottom-0 h-1.5 pointer-events-none"
+                        style={{ background: "#059669" }}
+                      />
                     {/* Header: logo + GoWild + dismiss */}
                     <div className="flex items-center justify-between mb-3">
                       <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
@@ -244,6 +245,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       </div>
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.arrival_airport}</span>
                     </div>
+
+                    <TicketDivider />
+
                     <div className="flex items-start justify-between">
                       <span className="text-xs font-medium text-[#059669] leading-tight">
                         <span className="block">{formatTime(flight.departure_time)}</span>
@@ -255,7 +259,6 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       </span>
                     </div>
 
-                    <TicketDivider />
 
                     {/* Trip-type badge */}
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
