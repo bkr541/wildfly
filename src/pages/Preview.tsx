@@ -445,11 +445,11 @@ function SeatAvailabilityCalendar({
           const hasSeats = seats != null && seats > 0;
           const isToday = dateStr === todayStr;
           return (
-            <div key={i} className="h-12 flex items-center justify-center">
-              <div className="relative h-10 w-10 flex items-center justify-center">
+            <div key={i} className="h-14 flex items-center justify-center">
+              <div className="relative h-12 w-12 flex items-center justify-center">
                 <div
                   className={cn(
-                    "h-9 w-9 flex items-center justify-center rounded-full text-base transition-colors tabular-nums",
+                    "h-10 w-10 flex items-center justify-center rounded-full text-base transition-colors tabular-nums",
                     hasSeats && "bg-[#4CAF50] text-white font-semibold",
                     !hasSeats && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
                     !hasSeats && !isToday && "text-[#2E4A4A] font-medium",
@@ -459,7 +459,7 @@ function SeatAvailabilityCalendar({
                 </div>
                 {hasSeats && (
                   <span
-                    className="absolute -bottom-1 -right-1 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-[#1F4A1A] text-[#D4A53A] text-[10px] font-bold leading-none tabular-nums ring-2 ring-white"
+                    className="absolute -bottom-2 -right-2 h-9 min-w-9 px-1.5 flex items-center justify-center rounded-full bg-[#059669] text-white text-lg font-bold leading-none tabular-nums ring-4 ring-white"
                   >
                     {seats}
                   </span>
