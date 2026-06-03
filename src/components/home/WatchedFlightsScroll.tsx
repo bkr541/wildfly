@@ -273,8 +273,6 @@ export function WatchedFlightsScroll({
                             </span>
                           </div>
 
-                          <TicketDivider />
-
                           {/* Departure / Arrival times */}
                           <div className="flex items-start justify-between">
                             <span className="text-xs font-medium text-[#059669] leading-tight">
@@ -286,6 +284,8 @@ export function WatchedFlightsScroll({
                               <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
                             </span>
                           </div>
+
+                          <TicketDivider />
 
 
                           {/* Pills row */}
