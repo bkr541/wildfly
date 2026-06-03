@@ -1668,15 +1668,6 @@ export default function AdminConsole() {
           <div className={`flex items-center gap-1 ${sidebarOpen ? "" : "flex-col"}`}>
             <button
               type="button"
-              onClick={() => navigate("/")}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
-              aria-label="Back"
-              title="Back to app"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={15} color="currentColor" strokeWidth={2.5} />
-            </button>
-            <button
-              type="button"
               onClick={() => setSidebarOpen((v) => !v)}
               className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
               aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
@@ -1732,9 +1723,22 @@ export default function AdminConsole() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+            className="flex items-center justify-between"
           >
-            <h1 className="text-2xl font-black text-[#1A2E2E] tracking-tight">{title}</h1>
-            <p className="text-sm text-[#6B7B7B] mt-0.5">{subtitle}</p>
+            <div>
+              <h1 className="text-2xl font-black text-[#1A2E2E] tracking-tight">{title}</h1>
+              <p className="text-sm text-[#6B7B7B] mt-0.5">{subtitle}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+              aria-label="Back to app"
+              title="Back to app"
+            >
+              <HugeiconsIcon icon={Home13Icon} size={17} color="currentColor" strokeWidth={2} />
+              <span>Back To Wildfly</span>
+            </button>
           </motion.div>
         </AnimatePresence>
 
