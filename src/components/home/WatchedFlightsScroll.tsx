@@ -179,8 +179,12 @@ export function WatchedFlightsScroll({
                 <div className="flex flex-col gap-3">
                   {flights.map((flight, i) => {
                     const price = getPrice(flight.flight_json);
+                    const gowild = hasGoWild(flight.flight_json);
+                    const roundTrip = isRoundTrip(flight);
                     const depLabel = formatShortDate(flight.departure_time);
                     const arrLabel = formatShortDateLabel(flight.arrival_time);
+                    const tripIcon = roundTrip ? CircleArrowReload01Icon : ArrowRight04Icon;
+                    const tripLabel = roundTrip ? "Round Trip" : "One Way";
 
                     return (
                       <motion.div
@@ -191,66 +195,81 @@ export function WatchedFlightsScroll({
                           y: 0,
                           transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                         }}
-                        className="relative rounded-2xl px-3 pt-2 pb-3"
+                        className="relative rounded-2xl px-4 pt-3 pb-4"
                         style={{
-                          background: "rgba(255,255,255,0.92)",
+                          background: "rgba(255,255,255,0.82)",
                           backdropFilter: "blur(18px)",
                           WebkitBackdropFilter: "blur(18px)",
                           border: "1px solid rgba(255,255,255,0.65)",
                           boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                         }}
                       >
-                        {/* Dismiss button */}
-                        <button
-                          type="button"
-                          onClick={() => setFlightToRemove(flight)}
-                          className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
-                        >
-                          <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
-                        </button>
+                        {/* Header: logo + dismiss */}
+                        <div className="flex items-start justify-between mb-2">
+                          <img
+                            src={FRONTIER_LOGO}
+                            alt="Frontier"
+                            className="h-[16px] w-auto object-contain"
+                            loading="eager"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFlightToRemove(flight)}
+                            className="flex items-center justify-center transition-opacity hover:opacity-70"
+                            aria-label="Remove watched flight"
+                          >
+                            <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                          </button>
+                        </div>
 
-                        <div className="flex items-center justify-between gap-3">
-                          {/* Left: logo + route + date */}
-                          <div className="flex-1 min-w-0">
-                            <img
-                              src={FRONTIER_LOGO}
-                              alt="Frontier"
-                              className="h-[18px] w-auto object-contain mb-2.5"
-                              loading="eager"
-                            />
-                            {/* Route */}
-                            <div className="flex items-center gap-1 mb-1.5">
-                              <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                                {flight.departure_airport}
-                              </span>
-                              <div className="flex-1 flex items-center px-1">
-                                <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                                <svg fill="#2D6A4F" className="mx-1.5 w-5 h-5 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
-                                  <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
-                                </svg>
-                                <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                              </div>
-                              <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">
-                                {flight.arrival_airport}
-                              </span>
-                            </div>
-                            {/* Date */}
-                            <p className="text-[13px] text-[#9AADAD] font-medium">
-                              {depLabel}{arrLabel && arrLabel !== depLabel ? ` • ${arrLabel}` : ""}
-                            </p>
+                        {/* Route */}
+                        <div className="flex items-center justify-between gap-1 mb-1.5">
+                          <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                            {flight.departure_airport}
+                          </span>
+                          <div className="flex-1 flex items-center px-1">
+                            <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
+                            <svg fill="#2D6A4F" className="mx-1.5 w-6 h-6 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
+                              <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
+                            </svg>
+                            <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
                           </div>
+                          <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                            {flight.arrival_airport}
+                          </span>
+                        </div>
 
-                          {/* Price pill */}
+                        {/* Date */}
+                        <p className="text-center text-[13px] text-[#9AADAD] font-medium mb-3">
+                          {depLabel}{arrLabel && arrLabel !== depLabel ? ` • ${arrLabel}` : ""}
+                        </p>
+
+                        {/* Pills row */}
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                            style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
+                          >
+                            <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                            {tripLabel}
+                          </span>
                           {price !== null && (
-                            <div
-                              className="shrink-0 rounded-full px-4 py-2.5 flex items-center justify-center"
-                              style={{ background: "#E5A320" }}
+                            <span
+                              className="inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap"
+                              style={{ background: "#FFF4E0", border: "1.5px solid #F5C572", color: "#B45309", padding: "3px 10px" }}
                             >
-                              <span className="text-white font-bold text-base leading-none">
-                                ${Math.round(price)}
-                              </span>
-                            </div>
+                              ${Math.round(price)}
+                            </span>
+                          )}
+                          {gowild && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                              style={{ background: "#E8F5EE", border: "1.5px solid #86C7A4", color: "#047857", padding: "3px 10px" }}
+                            >
+                              <HugeiconsIcon icon={Rocket01Icon} size={11} color="#047857" strokeWidth={2.5} />
+                              GoWild
+                            </span>
                           )}
                         </div>
                       </motion.div>
