@@ -184,8 +184,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 y: 0,
                                 transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                               }}
-                              className="relative flex-shrink-0 w-[232px] rounded-2xl px-3 pt-2 pb-3 cursor-pointer active:scale-[0.98] transition-transform"
-                              style={{ scrollSnapAlign: "start", ...CARD_STYLE }}
+                              className="relative flex-shrink-0 w-[232px] pb-1.5 cursor-pointer active:scale-[0.98] transition-transform"
+                              style={{ scrollSnapAlign: "start" }}
                               onClick={() => {
                                 const payload = JSON.stringify({
                                   recentSearch: true,
@@ -199,6 +199,13 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 onNavigate?.("flights", payload);
                               }}
                             >
+                              {/* Colored backdrop behind card */}
+                              <div
+                                className="absolute inset-x-0 top-2 bottom-0 rounded-2xl pointer-events-none"
+                                style={{ background: "#1D4ED8" }}
+                              />
+                              <div className="relative rounded-2xl px-3 pt-2 pb-3" style={CARD_STYLE}>
+
                               {/* Header: Frontier logo + dismiss */}
                               <div className="flex items-center justify-between mb-3">
                                 <img
@@ -271,12 +278,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                   {tripLabel}
                                 </span>
                               </div>
-
-                              {/* Colored bottom accent bar */}
-                              <div
-                                className="absolute left-3 right-3 -bottom-1 h-1.5 rounded-full"
-                                style={{ background: "#1D4ED8" }}
-                              />
+                              </div>
                             </motion.div>
                           );
                         })}
