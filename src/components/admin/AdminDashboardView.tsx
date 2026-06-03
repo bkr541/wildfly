@@ -169,8 +169,39 @@ function CardShell({ children, className = "" }: { children: React.ReactNode; cl
   );
 }
 
-function CardTitle({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-bold text-[#2E4A4A] mb-3">{children}</p>;
+function CardTitle({
+  icon,
+  children,
+  subtitle,
+}: {
+  icon?: typeof Analytics01Icon;
+  children: React.ReactNode;
+  subtitle?: React.ReactNode;
+}) {
+  if (!icon && !subtitle) {
+    return <p className="text-sm font-bold text-[#2E4A4A] mb-3">{children}</p>;
+  }
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      {icon && (
+        <HugeiconsIcon
+          icon={icon}
+          size={28}
+          color="#059669"
+          strokeWidth={1.5}
+          className="shrink-0"
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-semibold text-[#059669] uppercase tracking-wider leading-tight">
+          {children}
+        </p>
+        {subtitle && (
+          <p className="text-xs text-[#6B7B7B] mt-0.5">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function SkeletonCard() {
@@ -228,7 +259,7 @@ function GoWildAvailCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>GoWild Availability Snapshot</CardTitle>
+      <CardTitle icon={Analytics01Icon} subtitle="Live availability across complete itineraries">GoWild Availability Snapshot</CardTitle>
       <div className="flex items-end gap-3 mb-3">
         <span className={`text-4xl font-black ${textColor}`}>{fmtPct(pct)}</span>
         <div className="pb-1">
@@ -290,7 +321,7 @@ function GoWildHitsCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>GoWild Hits</CardTitle>
+      <CardTitle icon={ChartRoseIcon} subtitle="Searches that returned a GoWild fare">GoWild Hits</CardTitle>
       <div className="flex items-end gap-2 mb-2">
         <span className="text-4xl font-black text-emerald-600">{searches.goWildHits.toLocaleString()}</span>
         <span className="text-sm text-[#9CA3AF] pb-1">hits</span>
@@ -325,7 +356,7 @@ function AvgGoWildSeatsCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Average GoWild Seats</CardTitle>
+      <CardTitle icon={Layers01Icon} subtitle="Bottleneck seat distribution per itinerary">Average GoWild Seats</CardTitle>
       <div className="flex items-end gap-2 mb-3">
         <span className="text-4xl font-black text-cyan-600">
           {ga.avgSeats != null ? ga.avgSeats.toFixed(1) : "—"}
@@ -369,7 +400,7 @@ function EstimatedSavingsCard({ d }: { d: DashboardData }) {
   const { savings } = d;
   return (
     <CardShell>
-      <CardTitle>Estimated GoWild Savings</CardTitle>
+      <CardTitle icon={Coins01Icon} subtitle="Dollars saved vs standard fares">Estimated GoWild Savings</CardTitle>
       {savings.itinerariesWithSavings === 0 ? (
         <EmptyState message="Savings cannot be calculated because fare fields are missing or no GoWild fares were observed." />
       ) : (
@@ -418,7 +449,7 @@ function routeStatusBadge(status: ExtendedRouteStat["statusBadge"]) {
 function BestRoutesCard({ d }: { d: DashboardData }) {
   return (
     <CardShell>
-      <CardTitle>Best Routes Right Now</CardTitle>
+      <CardTitle icon={AirplaneTakeOff01Icon} subtitle="Highest bookability in this window">Best Routes Right Now</CardTitle>
       {d.bestRoutes.length === 0 ? (
         <EmptyState message="Not enough snapshot data to rank routes." />
       ) : (
@@ -468,7 +499,7 @@ function worstRouteReason(r: ExtendedRouteStat): string {
 function WorstRoutesCard({ d }: { d: DashboardData }) {
   return (
     <CardShell>
-      <CardTitle>Worst Routes Right Now</CardTitle>
+      <CardTitle icon={AlertCircleIcon} subtitle="Routes to watch or avoid right now">Worst Routes Right Now</CardTitle>
       {d.worstRoutes.length === 0 ? (
         <EmptyState message="Not enough snapshot data to rank routes." />
       ) : (
@@ -504,7 +535,7 @@ function TopOriginsCard({ d }: { d: DashboardData }) {
   const items = d.searches.topOrigins;
   return (
     <CardShell>
-      <CardTitle>Top Origin Airports</CardTitle>
+      <CardTitle icon={AirplaneTakeOff01Icon} subtitle="Most searched departure airports">Top Origin Airports</CardTitle>
       {items.length === 0 ? (
         <EmptyState message="No origin airport data in this range." />
       ) : (
@@ -542,7 +573,7 @@ function TopDestinationsCard({ d }: { d: DashboardData }) {
   const items = d.searches.topDestinations;
   return (
     <CardShell>
-      <CardTitle>Top Destination Airports</CardTitle>
+      <CardTitle icon={AirplaneTakeOff01Icon} subtitle="Most searched arrival airports">Top Destination Airports</CardTitle>
       {items.length === 0 ? (
         <EmptyState message="No destination data in this range. All-destination searches may show no specific airport." />
       ) : (
@@ -588,7 +619,7 @@ function SearchVolumeCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Search Volume</CardTitle>
+      <CardTitle icon={Analytics01Icon} subtitle="Total searches and source breakdown">Search Volume</CardTitle>
       <div className="flex items-end gap-2 mb-3">
         <span className="text-4xl font-black text-cyan-600">{searches.total.toLocaleString()}</span>
         <span className="text-sm text-[#9CA3AF] pb-1">searches</span>
@@ -626,7 +657,7 @@ function CacheEfficiencyCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Cache Efficiency</CardTitle>
+      <CardTitle icon={DatabaseIcon} subtitle="Share of searches served from cache">Cache Efficiency</CardTitle>
       <div className="flex items-end gap-2 mb-2">
         <span className="text-4xl font-black text-indigo-600">{fmtPct(cache.cacheHitRate)}</span>
         <span className="text-sm text-[#9CA3AF] pb-1">cache rate</span>
@@ -668,7 +699,7 @@ function FunnelCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Searches → Saved Flights Funnel</CardTitle>
+      <CardTitle icon={FilterIcon} subtitle="Conversion from search to saved flight">Searches → Saved Flights Funnel</CardTitle>
       <div className="flex flex-col gap-2">
         {steps.map((step, i) => (
           <div key={step.label}>
@@ -730,7 +761,7 @@ function ScanHealthCard({ d }: { d: DashboardData }) {
   if (!latest) {
     return (
       <CardShell>
-        <CardTitle>Scheduled Scan Health</CardTitle>
+        <CardTitle icon={CheckmarkCircle01Icon} subtitle="Latest bulk scan job status">Scheduled Scan Health</CardTitle>
         <EmptyState message="No scan jobs found." />
       </CardShell>
     );
@@ -743,7 +774,7 @@ function ScanHealthCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Scheduled Scan Health</CardTitle>
+      <CardTitle icon={CheckmarkCircle01Icon} subtitle="Latest bulk scan job status">Scheduled Scan Health</CardTitle>
       <div className="flex items-center gap-2 mb-3">
         <span className="text-2xl font-black text-[#1A2E2E]">{latest.timezone_group}</span>
         <Badge variant={statusV}>{latest.status}</Badge>
@@ -829,7 +860,7 @@ function DataFreshnessCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Data Freshness</CardTitle>
+      <CardTitle icon={Clock01Icon} subtitle="Snapshot age distribution">Data Freshness</CardTitle>
       {total === 0 ? (
         <EmptyState message="No snapshot data available." />
       ) : (
@@ -886,7 +917,7 @@ function UserActivityCard({ d }: { d: DashboardData }) {
   const { users } = d;
   return (
     <CardShell>
-      <CardTitle>User Activity</CardTitle>
+      <CardTitle icon={UserGroupIcon} subtitle="Active users and engagement">User Activity</CardTitle>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="text-[10px] text-[#9CA3AF] uppercase font-semibold">Active Users</p>
@@ -928,7 +959,7 @@ function BlackoutImpactCard({ d }: { d: DashboardData }) {
 
   return (
     <CardShell>
-      <CardTitle>Blackout Date Impact</CardTitle>
+      <CardTitle icon={AlertCircleIcon} subtitle="Upcoming GoWild blackout windows">Blackout Date Impact</CardTitle>
       {!nextPeriod ? (
         <EmptyState message="No upcoming blackout dates in the database." />
       ) : (
