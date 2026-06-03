@@ -1497,9 +1497,21 @@ const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
 export default function AdminConsole() {
   const [view, setView]               = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [gowildLoading, setGowildLoading] = useState(false);
   const navigate = useNavigate();
 
   const { title, subtitle } = VIEW_TITLES[view];
+
+  const handleNavClick = (id: View) => {
+    if (id === "gowild") {
+      setGowildLoading(true);
+      setView("gowild");
+      // Keep overlay visible for minimum animation time
+      setTimeout(() => setGowildLoading(false), 2200);
+    } else {
+      setView(id);
+    }
+  };
 
   return (
     <div
