@@ -459,7 +459,7 @@ function SeatAvailabilityCalendar({
                 </div>
                 {hasSeats && (
                   <span
-                    className="absolute -bottom-1.5 -right-1.5 h-[27px] min-w-[27px] px-1 flex items-center justify-center rounded-full bg-[#059669] text-white text-[13px] font-bold leading-none tabular-nums ring-[3px] ring-white"
+                    className="absolute -bottom-2.5 -right-2.5 h-[27px] min-w-[27px] px-1 flex items-center justify-center rounded-full bg-[#059669] text-white text-[13px] font-bold leading-none tabular-nums ring-[3px] ring-white"
                   >
                     {seats}
                   </span>
