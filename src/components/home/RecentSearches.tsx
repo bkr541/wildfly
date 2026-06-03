@@ -152,12 +152,16 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
                           const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
 
-                          let formattedDate = s.departure_date;
-                          try {
-                            formattedDate = format(parseISO(s.departure_date), "MMM d, yyyy");
-                          } catch {
-                            // keep raw string
-                          }
+                          const fmt = (raw: string | null) => {
+                            if (!raw) return "";
+                            try {
+                              return format(parseISO(raw), "EEE, MMM d, yyyy");
+                            } catch {
+                              return raw;
+                            }
+                          };
+                          const depDateLabel = fmt(s.departure_date);
+                          const retDateLabel = fmt(s.return_date);
 
                           return (
                             <motion.div
@@ -183,12 +187,14 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 onNavigate?.("flights", payload);
                               }}
                             >
-                              {/* Date row */}
+                              {/* Header: Frontier logo + dismiss */}
                               <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-1.5">
-                                  <HugeiconsIcon icon={Calendar03Icon} size={14} color="#6B7280" strokeWidth={2} />
-                                  <span className="text-sm font-medium text-[#6B7280]">{formattedDate}</span>
-                                </div>
+                                <img
+                                  src="/assets/logo/frontier/frontier_full_logo.png"
+                                  alt="Frontier"
+                                  className="h-[14px] w-auto object-contain"
+                                  loading="eager"
+                                />
                                 <button
                                   type="button"
                                   onClick={(e) => handleRemove(e, s.id)}
@@ -199,7 +205,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               </div>
 
                               {/* Route row */}
-                              <div className="flex items-center justify-between gap-1 mb-3">
+                              <div className="flex items-center justify-between gap-1 mb-2">
                                 <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
                                   {depCode}
                                 </span>
@@ -218,6 +224,18 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                     {arrCode ?? "—"}
                                   </span>
                                 )}
+                              </div>
+
+                              {/* Departure / Return dates */}
+                              <div className="flex items-start justify-between mb-3">
+                                <span className="text-xs font-medium text-[#059669] leading-tight">
+                                  <span className="block">Depart</span>
+                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
+                                </span>
+                                <span className="text-xs font-medium text-[#059669] text-right leading-tight">
+                                  <span className="block">{retDateLabel ? "Return" : "—"}</span>
+                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{retDateLabel || ""}</span>
+                                </span>
                               </div>
 
                               {/* Badges row */}
