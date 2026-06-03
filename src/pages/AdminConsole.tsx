@@ -30,6 +30,9 @@ import AirportGoWildInsightsSection from "@/components/insights/AirportGoWildIns
 import GoWildRouteAnalyticsSection from "@/components/insights/GoWildRouteAnalyticsSection";
 import GoWildTimingAnalyticsSection from "@/components/insights/GoWildTimingAnalyticsSection";
 import SeatAvailabilityIntelligence from "@/components/insights/SeatAvailabilityIntelligence";
+import RouteAvailabilityCalendarCard from "@/components/insights/RouteAvailabilityCalendarCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
