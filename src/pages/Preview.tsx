@@ -439,17 +439,17 @@ function SeatAvailabilityCalendar({
 
       <div className="grid grid-cols-7 gap-x-1">
         {cells.map((d, i) => {
-          if (d === null) return <div key={i} className="h-12" />;
+          if (d === null) return <div key={i} className="h-10" />;
           const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const seats = seatsByDate[dateStr];
           const hasSeats = seats != null && seats > 0;
           const isToday = dateStr === todayStr;
           return (
-            <div key={i} className="h-14 flex items-center justify-center">
-              <div className="relative h-12 w-12 flex items-center justify-center">
+            <div key={i} className="h-10 flex items-center justify-center">
+              <div className="relative h-9 w-9 flex items-center justify-center">
                 <div
                   className={cn(
-                    "h-10 w-10 flex items-center justify-center rounded-full text-base transition-colors tabular-nums",
+                    "h-[30px] w-[30px] flex items-center justify-center rounded-full text-sm transition-colors tabular-nums",
                     hasSeats && "bg-[#4CAF50] text-white font-semibold",
                     !hasSeats && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
                     !hasSeats && !isToday && "text-[#2E4A4A] font-medium",
@@ -459,9 +459,10 @@ function SeatAvailabilityCalendar({
                 </div>
                 {hasSeats && (
                   <span
-                    className="absolute -bottom-2 -right-2 h-9 min-w-9 px-1.5 flex items-center justify-center rounded-full bg-[#059669] text-white text-lg font-bold leading-none tabular-nums ring-4 ring-white"
+                    className="absolute -bottom-1.5 -right-1.5 h-7 min-w-7 px-1 flex flex-col items-center justify-center rounded-full bg-[#059669] text-white ring-[3px] ring-white"
                   >
-                    {seats}
+                    <span className="text-sm font-bold leading-none tabular-nums">{seats}</span>
+                    <span className="text-[8px] font-medium leading-none">seats</span>
                   </span>
                 )}
               </div>
