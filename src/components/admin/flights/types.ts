@@ -83,3 +83,45 @@ export function countActiveFilters(f: FlightSearchFiltersState): number {
   if (f.minResults || f.maxResults) n++;
   return n;
 }
+
+// ── Column configuration ──────────────────────────────────────────────────────
+
+export type ColumnKey =
+  | "route" | "user" | "departure" | "trip" | "source"
+  | "gowild_signal" | "results_quality" | "freshness" | "actions"
+  | "search_id" | "return_date" | "triggered_by" | "credits_cost"
+  | "snapshot_count" | "avg_savings" | "avg_seats" | "best_destination";
+
+export interface ColumnDef {
+  key: ColumnKey;
+  label: string;
+  optional: boolean;
+  width: string;
+}
+
+export const ALL_COLUMN_DEFS: ColumnDef[] = [
+  { key: "route",           label: "Route",           optional: false, width: "minmax(180px,2fr)" },
+  { key: "user",            label: "User",            optional: false, width: "minmax(100px,1.2fr)" },
+  { key: "departure",       label: "Departure",       optional: false, width: "100px" },
+  { key: "trip",            label: "Trip",            optional: false, width: "90px" },
+  { key: "source",          label: "Source",          optional: false, width: "110px" },
+  { key: "gowild_signal",   label: "GoWild Signal",   optional: false, width: "minmax(130px,1.6fr)" },
+  { key: "results_quality", label: "Results",         optional: false, width: "minmax(110px,1.2fr)" },
+  { key: "freshness",       label: "Freshness",       optional: false, width: "110px" },
+  { key: "actions",         label: "",                optional: false, width: "80px" },
+  { key: "search_id",       label: "Search ID",       optional: true,  width: "120px" },
+  { key: "return_date",     label: "Return Date",     optional: true,  width: "100px" },
+  { key: "triggered_by",    label: "Triggered By",    optional: true,  width: "120px" },
+  { key: "credits_cost",    label: "Credits",         optional: true,  width: "80px" },
+  { key: "snapshot_count",  label: "Snapshots",       optional: true,  width: "90px" },
+  { key: "avg_savings",     label: "Avg Savings",     optional: true,  width: "100px" },
+  { key: "avg_seats",       label: "Avg Seats",       optional: true,  width: "90px" },
+  { key: "best_destination",label: "Best Dest",       optional: true,  width: "90px" },
+];
+
+export const DEFAULT_VISIBLE_COLUMNS: ColumnKey[] = [
+  "route", "user", "departure", "trip", "source",
+  "gowild_signal", "results_quality", "freshness", "actions",
+];
+
+export const COLUMNS_STORAGE_KEY = "wildfly.admin.flights.columns";

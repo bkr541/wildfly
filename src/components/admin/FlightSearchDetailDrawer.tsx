@@ -344,6 +344,8 @@ function tripTypeLabel(t: string): string {
 
 // ── Drawer ────────────────────────────────────────────────────────────────────
 
+type DrawerTab = "overview" | "itineraries" | "snapshots" | "user" | "raw";
+
 interface DrawerProps {
   open: boolean;
   onClose: () => void;
@@ -352,12 +354,12 @@ interface DrawerProps {
 
 export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps) {
   const { snapshots, loading, error } = useFlightSearchSnapshots(open && search ? search.id : null);
-  const [tab, setTab] = useState<"summary" | "snapshots" | "params" | "request" | "response" | "errors">("summary");
+  const [tab, setTab] = useState<DrawerTab>("overview");
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Reset debug tab to summary whenever a new search opens
+  // Reset tab whenever a new search opens
   useEffect(() => {
-    if (open && search) setTab("summary");
+    if (open && search) setTab("overview");
   }, [search?.id, open]);
 
   // Escape close + focus management
@@ -438,6 +440,14 @@ export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps)
   };
   const tier = seatTier(metrics.avgGwSeats != null ? Math.round(metrics.avgGwSeats) : null);
 
+  const DRAWER_TABS: { id: DrawerTab; label: string }[] = [
+    { id: "overview",    label: "Overview" },
+    { id: "itineraries", label: "Itineraries" },
+    { id: "snapshots",   label: "Snapshots" },
+    { id: "user",        label: "User" },
+    { id: "raw",         label: "Raw JSON" },
+  ];
+
   return createPortal(
     <AnimatePresence>
       {open && search && (
@@ -459,26 +469,33 @@ export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps)
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 32, stiffness: 320 }}
-            className="absolute top-0 right-0 h-full w-full sm:w-[600px] md:w-[640px] lg:w-[680px] bg-[#F4F6F6] shadow-2xl flex flex-col"
+            className="absolute top-0 right-0 h-full w-full sm:w-[620px] md:w-[660px] lg:w-[700px] bg-[#F4F6F6] shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <header className="px-5 py-4 bg-white border-b border-[#EAECEC] flex items-start gap-3">
+            {/* ── Header ──────────────────────────────────────────────────── */}
+            <header className="px-5 py-4 bg-white border-b border-[#EAECEC] flex items-start gap-3 flex-shrink-0">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg font-bold text-[#1A2E2E] font-mono">{routeLabel}</h2>
-                </div>
+                <h2 className="text-lg font-bold text-[#1A2E2E] font-mono leading-tight">{routeLabel}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <Badge className="bg-slate-100 text-slate-700 border-slate-200">{tripTypeLabel(search.trip_type)}</Badge>
                   <Badge className={getGoWildBadgeClass(search.gowild_found)}>
                     {search.gowild_found ? "GoWild Found" : "No GoWild"}
                   </Badge>
                   <Badge className={getResultSourceBadgeClass(search.result_source ?? search.triggered_by)}>
-                    {getResultSourceLabel(search.result_source ?? search.triggered_by).toUpperCase()}
+                    {getResultSourceLabel(search.result_source ?? search.triggered_by)}
                   </Badge>
                   <Badge className={FRESHNESS_STYLES[freshness]}>{freshness}</Badge>
                 </div>
-                <p className="text-xs text-[#9CA3AF] mt-2">Created {formatDateTime(createdAt)}</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <p className="text-[11px] text-[#9CA3AF]">Created {formatDateTime(createdAt)}</p>
+                  <span className="text-[#D1D5DB]">·</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] text-[#9CA3AF] font-mono">{search.id.slice(0, 8)}…</span>
+                    <button onClick={() => copyToClipboard(search.id)} className="text-[#9CA3AF] hover:text-emerald-600" aria-label="Copy search ID">
+                      <HugeiconsIcon icon={Copy01Icon} size={10} color="currentColor" strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
               </div>
               <button
                 ref={closeBtnRef}
@@ -490,231 +507,300 @@ export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps)
               </button>
             </header>
 
-            {/* Body */}
+            {/* ── Tab bar ─────────────────────────────────────────────────── */}
+            <div className="flex items-center gap-0 bg-white border-b border-[#EAECEC] px-4 flex-shrink-0">
+              {DRAWER_TABS.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    "px-4 py-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap",
+                    tab === t.id
+                      ? "border-emerald-500 text-emerald-700"
+                      : "border-transparent text-[#9CA3AF] hover:text-[#1A2E2E]",
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Body ────────────────────────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Search Summary */}
-              <Card title="Search Summary">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                  <KV label="Search ID" value={<span className="font-mono text-xs">{search.id.slice(0, 8)}…</span>} copy={search.id} />
-                  <KV label="User ID" value={<span className="font-mono text-xs">{search.user_id.slice(0, 8)}…</span>} copy={search.user_id} />
-                  <KV label="Origin" value={search.departure_airport} />
-                  <KV label={isAllDest ? "Destinations" : "Destination"} value={isAllDest ? "All Destinations" : (search.arrival_airport ?? "—")} />
-                  <KV label="Departure Date" value={formatDate(search.departure_date)} />
-                  <KV label="Return Date" value={search.return_date ? formatDate(search.return_date) : "Not available"} />
-                  <KV label="Trip Type" value={tripTypeLabel(search.trip_type)} />
-                  <KV label="Results Count" value={formatNumber(search.flight_results_count)} />
-                  <KV label="GoWild Found" value={search.gowild_found ? "Yes" : "No"} />
-                  <KV label="Credits Cost" value={formatNumber(search.credits_cost)} />
-                  <KV label="Triggered By" value={search.triggered_by ?? "Not available"} />
-                  <KV label="Result Source" value={getResultSourceLabel(search.result_source ?? search.triggered_by)} />
-                  <KV label="Created At" value={formatDateTime(createdAt)} />
-                  <KV label="Updated At" value={formatDateTime(search.updated_at)} />
-                  <KV label="Provider Observed" value={formatDateTime(search.provider_observed_at)} />
-                </div>
-              </Card>
 
-              {/* Data Freshness */}
-              <Card title="Data Freshness" action={<Badge className={FRESHNESS_STYLES[freshness]}>{freshness}</Badge>}>
-                <div className="grid grid-cols-2 gap-3">
-                  <Metric label="Last Observed" value={<span className="text-sm">{provAge ? getRelativeAge(provAge) : "—"}</span>} />
-                  <Metric label="Search Created" value={<span className="text-sm">{createdAt ? getRelativeAge(createdAt) : "—"}</span>} />
-                </div>
-                <p className="text-xs text-[#6B7B7B] mt-3">
-                  {provAge
-                    ? `Provider data was observed ${getRelativeAge(provAge)}.`
-                    : "No provider observation timestamp is available."}
-                </p>
-              </Card>
-
-              {/* GoWild Signal */}
-              <Card title="GoWild Signal">
-                {loading ? (
-                  <div className="text-sm text-[#9CA3AF]">Loading snapshot details…</div>
-                ) : metrics.total === 0 ? (
-                  <div className="text-sm text-[#9CA3AF]">No GoWild fares were found in this search.</div>
-                ) : (
-                  <>
-                    <div className="flex items-baseline justify-between mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF]">Availability Rate</span>
-                      <span className="text-lg font-bold text-emerald-600">{formatPercent(metrics.gowildRate)}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-[#F0F1F1] overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500" style={{ width: `${Math.min(100, metrics.gowildRate * 100)}%` }} />
-                    </div>
-                    <div className="mt-4 flex items-center gap-1.5">
-                      <span className="text-xs text-[#6B7B7B] mr-2">Seat depth ({tier.label}):</span>
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <span key={i} className={cn("w-3 h-3 rounded-sm", i < tier.dots ? tier.color : "bg-[#F0F1F1]")} />
-                      ))}
-                    </div>
-                    <p className="text-sm text-[#1A2E2E] mt-4">
-                      {metrics.gowildCount > 0
-                        ? <>{metrics.gowildCount} of {metrics.total} itineraries had GoWild fares, with an average of <strong>{formatNumber(metrics.avgGwSeats, 1)}</strong> seats.</>
-                        : "No GoWild fares were found in this search."}
-                    </p>
-                  </>
-                )}
-              </Card>
-
-              {/* Snapshot Summary */}
-              <Card title="Snapshot Summary">
-                {loading ? (
-                  <div className="text-sm text-[#9CA3AF]">Loading snapshot details…</div>
-                ) : error ? (
-                  <div className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">Unable to load flight snapshots for this search.<div className="text-xs text-rose-500 mt-1">{error}</div></div>
-                ) : metrics.totalSnapshots === 0 ? (
-                  <div className="text-sm text-[#6B7B7B] bg-[#FAFBFB] rounded-lg p-3 border border-[#F0F1F1]">
-                    No snapshots were stored for this search. This may indicate an older search, a cache-only result, or a failed snapshot write.
-                  </div>
-                ) : (
+              {/* ── OVERVIEW TAB ─────────────────────────────────────────── */}
+              {tab === "overview" && (
+                <>
+                  {/* Hero metrics */}
                   <div className="grid grid-cols-3 gap-2">
-                    <Metric label="Snapshot Rows" value={formatNumber(metrics.totalSnapshots)} />
-                    <Metric label="Unique Itineraries" value={formatNumber(metrics.total)} />
-                    <Metric label="GoWild Itins" value={<span className="text-emerald-600">{formatNumber(metrics.gowildCount)}</span>} />
-                    <Metric label="GoWild Rate" value={formatPercent(metrics.gowildRate)} accent="text-emerald-600" />
-                    <Metric label="Avg GW Seats" value={formatNumber(metrics.avgGwSeats, 1)} />
-                    <Metric label="Max GW Seats" value={formatNumber(metrics.maxGwSeats)} />
-                    <Metric label="Min GW Fare" value={formatCurrency(metrics.minGwFare)} />
-                    <Metric label="Avg GW Fare" value={formatCurrency(metrics.avgGwFare)} />
-                    <Metric label="Avg Std Fare" value={formatCurrency(metrics.avgStdFare)} />
-                    <Metric label="Avg Savings" value={<span className="text-emerald-600">{formatCurrency(metrics.avgSavings)}</span>} />
-                    <Metric label="Nonstop" value={formatNumber(metrics.nonstop)} />
-                    <Metric label="Connecting" value={formatNumber(metrics.oneStop + metrics.twoPlus)} />
-                  </div>
-                )}
-              </Card>
-
-              {/* Result Composition */}
-              {metrics.total > 0 && (
-                <Card title="Result Composition">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-slate-100 text-slate-700 border-slate-200">{metrics.nonstop} Nonstop</Badge>
-                    <Badge className="bg-slate-100 text-slate-700 border-slate-200">{metrics.oneStop} 1 stop</Badge>
-                    <Badge className="bg-slate-100 text-slate-700 border-slate-200">{metrics.twoPlus} 2+ stops</Badge>
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{metrics.gowildCount} GoWild available</Badge>
-                    <Badge className="bg-gray-100 text-gray-600 border-gray-200">{metrics.gwUnavailable} GoWild unavailable</Badge>
-                    {metrics.soldOut > 0 && <Badge className="bg-rose-100 text-rose-700 border-rose-200">{metrics.soldOut} sold out / limited</Badge>}
-                  </div>
-                </Card>
-              )}
-
-              {/* Top GoWild Results */}
-              {topGw.length > 0 && (
-                <Card title="Top GoWild Results">
-                  <div className="space-y-2">
-                    {topGw.map((i) => (
-                      <div key={i.key} className="rounded-xl border border-[#F0F1F1] bg-[#FAFBFB] p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="font-mono text-sm font-bold text-[#1A2E2E] flex items-center gap-1">
-                            <span>{i.origin ?? "?"}</span>
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#6B7B7B" strokeWidth={2} />
-                            <span>{i.destination ?? "?"}</span>
-                          </div>
-                          {i.has_go_wild ? (
-                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{formatNumber(i.go_wild_available_seats)} seats</Badge>
-                          ) : (
-                            <Badge className="bg-gray-100 text-gray-500 border-gray-200">No GoWild</Badge>
-                          )}
-                        </div>
-                        <div className="mt-1.5 text-xs text-[#6B7B7B] flex flex-wrap gap-x-3 gap-y-0.5">
-                          <span>{formatDateTime(i.departure_at)}</span>
-                          <span>→ {formatDateTime(i.arrival_at)}</span>
-                          <span>{i.stops === 0 ? "Nonstop" : `${i.stops} stop${i.stops === 1 ? "" : "s"}`}</span>
-                          {i.flight_type && <span>{i.flight_type}</span>}
-                          {i.availability_status && <span className="capitalize">{i.availability_status}</span>}
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                          <span><span className="text-[#9CA3AF]">GoWild:</span> <strong className="text-emerald-600">{formatCurrency(i.go_wild_total)}</strong></span>
-                          <span><span className="text-[#9CA3AF]">Standard:</span> <strong>{formatCurrency(i.standard_total)}</strong></span>
-                          <span><span className="text-[#9CA3AF]">Savings:</span> <strong className="text-emerald-600">{formatCurrency(i.savings)}</strong></span>
-                        </div>
-                      </div>
+                    {[
+                      { label: "Results", value: formatNumber(search.flight_results_count) },
+                      { label: "Unique Itins", value: loading ? "…" : formatNumber(metrics.total) },
+                      { label: "Nonstop", value: loading ? "…" : formatNumber(metrics.nonstop) },
+                      { label: "Avg GW Seats", value: loading ? "…" : formatNumber(metrics.avgGwSeats, 1), accent: "text-emerald-600" },
+                      { label: "Avg Savings", value: loading ? "…" : formatCurrency(metrics.avgSavings), accent: "text-emerald-600" },
+                      { label: "GoWild Rate", value: loading ? "…" : formatPercent(metrics.gowildRate), accent: "text-emerald-600" },
+                    ].map(({ label, value, accent }) => (
+                      <Metric key={label} label={label} value={value} accent={accent} />
                     ))}
                   </div>
-                </Card>
+
+                  {/* GoWild signal */}
+                  {!loading && metrics.total > 0 && (
+                    <Card title="GoWild Signal" action={<Badge className={FRESHNESS_STYLES[freshness]}>{freshness}</Badge>}>
+                      <div className="flex items-baseline justify-between mb-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF]">Availability Rate</span>
+                        <span className="text-xl font-black text-emerald-600">{formatPercent(metrics.gowildRate)}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-[#F0F1F1] overflow-hidden mb-3">
+                        <div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500" style={{ width: `${Math.min(100, metrics.gowildRate * 100)}%` }} />
+                      </div>
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <span className="text-xs text-[#6B7B7B] mr-2">Seat depth ({tier.label}):</span>
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <span key={i} className={cn("w-3 h-3 rounded-sm", i < tier.dots ? tier.color : "bg-[#F0F1F1]")} />
+                        ))}
+                      </div>
+                      <p className="text-sm text-[#1A2E2E]">
+                        {metrics.gowildCount} of {metrics.total} itineraries had GoWild fares
+                        {metrics.avgGwSeats != null ? `, averaging ${formatNumber(metrics.avgGwSeats, 1)} seats.` : "."}
+                      </p>
+                    </Card>
+                  )}
+
+                  {/* Search summary KV */}
+                  <Card title="Search Details">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                      <KV label="Search ID" value={<span className="font-mono text-xs">{search.id.slice(0, 8)}…</span>} copy={search.id} />
+                      <KV label="User ID" value={<span className="font-mono text-xs">{search.user_id.slice(0, 8)}…</span>} copy={search.user_id} />
+                      <KV label="Origin" value={search.departure_airport} />
+                      <KV label={isAllDest ? "Destinations" : "Destination"} value={isAllDest ? "All Destinations" : (search.arrival_airport ?? "—")} />
+                      <KV label="Departure Date" value={formatDate(search.departure_date)} />
+                      <KV label="Return Date" value={search.return_date ? formatDate(search.return_date) : "—"} />
+                      <KV label="Trip Type" value={tripTypeLabel(search.trip_type)} />
+                      <KV label="Credits Cost" value={formatNumber(search.credits_cost)} />
+                      <KV label="Triggered By" value={search.triggered_by ?? "—"} />
+                      <KV label="Result Source" value={getResultSourceLabel(search.result_source ?? search.triggered_by)} />
+                      <KV label="Provider Observed" value={formatDateTime(search.provider_observed_at)} />
+                      <KV label="Updated At" value={formatDateTime(search.updated_at)} />
+                    </div>
+                  </Card>
+
+                  {/* Data freshness */}
+                  <Card title="Data Freshness">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <Metric label="Last Observed" value={<span className="text-sm">{provAge ? getRelativeAge(provAge) : "—"}</span>} />
+                      <Metric label="Search Created" value={<span className="text-sm">{createdAt ? getRelativeAge(createdAt) : "—"}</span>} />
+                    </div>
+                    <p className="text-xs text-[#6B7B7B]">
+                      {provAge
+                        ? `Provider data was observed ${getRelativeAge(provAge)}.`
+                        : "No provider observation timestamp is available for this search."}
+                    </p>
+                  </Card>
+
+                  {/* Top destinations for all-dest searches */}
+                  {isAllDest && !loading && metrics.total > 0 && (() => {
+                    const destCount = new Map<string, number>();
+                    for (const i of metrics.itineraries) {
+                      if (i.destination) destCount.set(i.destination, (destCount.get(i.destination) ?? 0) + 1);
+                    }
+                    const tops = Array.from(destCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+                    return tops.length > 0 ? (
+                      <Card title="Top Destinations">
+                        <div className="flex flex-wrap gap-2">
+                          {tops.map(([dest, count]) => (
+                            <div key={dest} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#F8F9F9] border border-[#F0F1F1]">
+                              <span className="text-xs font-bold font-mono text-[#1A2E2E]">{dest}</span>
+                              <span className="text-[10px] text-[#9CA3AF]">{count} itin{count !== 1 ? "s" : ""}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    ) : null;
+                  })()}
+                </>
               )}
 
-              {/* Route Intelligence */}
-              {routeIntel && (
-                <Card title="Route Intelligence">
-                  <div className="grid grid-cols-2 gap-3">
-                    <KV label={isAllDest ? "Best Destination" : "Best Itinerary"} value={routeIntel.bestDest?.destination ?? "—"} />
-                    <KV label={isAllDest ? "Cheapest GoWild Dest" : "Cheapest GoWild"} value={routeIntel.cheapest ? `${routeIntel.cheapest.destination} • ${formatCurrency(routeIntel.cheapest.go_wild_total)}` : "—"} />
-                    <KV label="Highest Seat Count" value={routeIntel.seatiest ? `${routeIntel.seatiest.destination} • ${formatNumber(routeIntel.seatiest.go_wild_available_seats)} seats` : "—"} />
-                    <KV label="Best Savings" value={routeIntel.savings ? `${routeIntel.savings.destination} • ${formatCurrency(routeIntel.savings.savings)}` : "—"} />
-                    <KV label="Most Common Destination" value={routeIntel.mostCommonDest ?? "—"} />
-                    <KV label="Most Common Stops" value={routeIntel.mostCommonStops != null ? (routeIntel.mostCommonStops === 0 ? "Nonstop" : `${routeIntel.mostCommonStops} stop${routeIntel.mostCommonStops === 1 ? "" : "s"}`) : "—"} />
-                  </div>
-                </Card>
-              )}
-
-              {/* Debug tabs */}
-              <Card title="Debug">
-                <div className="flex flex-wrap gap-1 mb-3 border-b border-[#F0F1F1]">
-                  {([
-                    ["summary", "Summary"],
-                    ["snapshots", "Snapshots"],
-                    ["params", "Search Params"],
-                    ["request", "Raw Request"],
-                    ["response", "Raw Response"],
-                    ["errors", "Errors"],
-                  ] as const).map(([k, l]) => (
-                    <button
-                      key={k}
-                      onClick={() => setTab(k)}
-                      className={cn(
-                        "text-xs font-semibold px-3 py-1.5 -mb-px border-b-2 transition-colors",
-                        tab === k
-                          ? "border-emerald-500 text-emerald-700"
-                          : "border-transparent text-[#9CA3AF] hover:text-[#1A2E2E]",
-                      )}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-                {tab === "summary" && <JsonBlock value={metrics} />}
-                {tab === "snapshots" && (
-                  snapshots.length === 0
-                    ? <div className="text-sm text-[#9CA3AF]">No snapshot rows were found for this search.</div>
-                    : <div className="overflow-x-auto max-h-80 border border-[#EAECEC] rounded-xl">
+              {/* ── ITINERARIES TAB ──────────────────────────────────────── */}
+              {tab === "itineraries" && (
+                <>
+                  {loading ? (
+                    <Card title="Itineraries">
+                      <div className="text-sm text-[#9CA3AF]">Loading itinerary data…</div>
+                    </Card>
+                  ) : metrics.itineraries.length === 0 ? (
+                    <Card title="Itineraries">
+                      <div className="text-sm text-[#6B7B7B] bg-[#FAFBFB] rounded-lg p-3 border border-[#F0F1F1]">
+                        No itinerary data found. This search may be older or may not have stored snapshot data.
+                      </div>
+                    </Card>
+                  ) : (
+                    <Card title={`Itineraries (${metrics.itineraries.length})`}>
+                      <div className="overflow-x-auto rounded-xl border border-[#EAECEC]">
                         <table className="w-full text-[11px]">
                           <thead className="bg-[#FAFBFB] sticky top-0">
-                            <tr className="text-left text-[#9CA3AF]">
-                              <th className="px-2 py-2">Route</th>
-                              <th className="px-2 py-2">Dep</th>
-                              <th className="px-2 py-2">Flt</th>
-                              <th className="px-2 py-2">GW</th>
-                              <th className="px-2 py-2">Seats</th>
-                              <th className="px-2 py-2">GW $</th>
-                              <th className="px-2 py-2">Std $</th>
+                            <tr className="text-left text-[#9CA3AF] border-b border-[#EAECEC]">
+                              <th className="px-3 py-2 font-semibold">Route</th>
+                              <th className="px-3 py-2 font-semibold">Departs</th>
+                              <th className="px-3 py-2 font-semibold">Stops</th>
+                              <th className="px-3 py-2 font-semibold">GoWild</th>
+                              <th className="px-3 py-2 font-semibold">Seats</th>
+                              <th className="px-3 py-2 font-semibold">GW Fare</th>
+                              <th className="px-3 py-2 font-semibold">Std Fare</th>
+                              <th className="px-3 py-2 font-semibold">Savings</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {snapshots.map((s) => (
-                              <tr key={s.id} className="border-t border-[#F0F1F1]">
-                                <td className="px-2 py-1.5 font-mono">{s.leg_origin_iata}→{s.leg_destination_iata}</td>
-                                <td className="px-2 py-1.5">{s.departure_at?.slice(0, 16) ?? "—"}</td>
-                                <td className="px-2 py-1.5">{s.flight_number ?? "—"}</td>
-                                <td className="px-2 py-1.5">{s.has_go_wild ? "Y" : "—"}</td>
-                                <td className="px-2 py-1.5">{s.go_wild_available_seats ?? "—"}</td>
-                                <td className="px-2 py-1.5">{s.go_wild_total ?? "—"}</td>
-                                <td className="px-2 py-1.5">{s.standard_total ?? "—"}</td>
-                              </tr>
-                            ))}
+                            {[...metrics.itineraries]
+                              .sort((a, b) => {
+                                if (a.has_go_wild !== b.has_go_wild) return a.has_go_wild ? -1 : 1;
+                                return (b.go_wild_available_seats ?? -1) - (a.go_wild_available_seats ?? -1);
+                              })
+                              .map((itin) => (
+                                <tr key={itin.key} className={cn("border-t border-[#F0F1F1]", itin.has_go_wild ? "bg-emerald-50/30" : "")}>
+                                  <td className="px-3 py-2 font-mono font-bold text-[#1A2E2E]">
+                                    {itin.origin ?? "?"} <HugeiconsIcon icon={ArrowRight01Icon} size={9} color="#9CA3AF" strokeWidth={2} className="inline" /> {itin.destination ?? "?"}
+                                  </td>
+                                  <td className="px-3 py-2 text-[#6B7B7B]">{itin.departure_at?.slice(0, 10) ?? "—"}</td>
+                                  <td className="px-3 py-2 text-[#6B7B7B]">{itin.stops === 0 ? "Nonstop" : `${itin.stops}s`}</td>
+                                  <td className="px-3 py-2">
+                                    {itin.has_go_wild
+                                      ? <span className="text-emerald-600 font-semibold">✓</span>
+                                      : <span className="text-[#D1D5DB]">—</span>}
+                                  </td>
+                                  <td className="px-3 py-2 font-semibold text-[#1A2E2E]">{itin.go_wild_available_seats ?? "—"}</td>
+                                  <td className="px-3 py-2 text-emerald-600 font-semibold">{formatCurrency(itin.go_wild_total)}</td>
+                                  <td className="px-3 py-2 text-[#6B7B7B]">{formatCurrency(itin.standard_total)}</td>
+                                  <td className="px-3 py-2 text-emerald-600 font-semibold">{itin.savings != null && itin.savings > 0 ? formatCurrency(itin.savings) : "—"}</td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
-                )}
-                {tab === "params" && <JsonBlock value={search.json_body ?? search.search_params} />}
-                {tab === "request" && <JsonBlock value={search.request_body ?? search.raw_request} />}
-                {tab === "response" && <JsonBlock value={search.raw_response} />}
-                {tab === "errors" && (
-                  search.error_message || search.status
-                    ? <JsonBlock value={{ error_message: search.error_message, status: search.status }} />
-                    : <div className="text-sm text-[#9CA3AF]">No data available.</div>
-                )}
-              </Card>
+                    </Card>
+                  )}
+                </>
+              )}
+
+              {/* ── SNAPSHOTS TAB ────────────────────────────────────────── */}
+              {tab === "snapshots" && (
+                <>
+                  {error ? (
+                    <Card title="Snapshots">
+                      <div className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
+                        Unable to load snapshots.<div className="text-xs text-rose-500 mt-1">{error}</div>
+                      </div>
+                    </Card>
+                  ) : loading ? (
+                    <Card title="Snapshots">
+                      <div className="text-sm text-[#9CA3AF]">Loading snapshot data…</div>
+                    </Card>
+                  ) : metrics.totalSnapshots === 0 ? (
+                    <Card title="Snapshots">
+                      <div className="text-sm text-[#6B7B7B] bg-[#FAFBFB] rounded-lg p-3 border border-[#F0F1F1]">
+                        No snapshots were stored for this search. This may indicate an older search, a cache-only result, or a failed snapshot write.
+                      </div>
+                    </Card>
+                  ) : (
+                    <>
+                      {/* Summary metrics */}
+                      <Card title="Snapshot Summary">
+                        <div className="grid grid-cols-4 gap-2">
+                          <Metric label="Snapshot Rows" value={formatNumber(metrics.totalSnapshots)} />
+                          <Metric label="Unique Itins" value={formatNumber(metrics.total)} />
+                          <Metric label="GoWild Itins" value={<span className="text-emerald-600">{formatNumber(metrics.gowildCount)}</span>} />
+                          <Metric label="GoWild Rate" value={formatPercent(metrics.gowildRate)} accent="text-emerald-600" />
+                          <Metric label="Avg GW Seats" value={formatNumber(metrics.avgGwSeats, 1)} />
+                          <Metric label="Max GW Seats" value={formatNumber(metrics.maxGwSeats)} />
+                          <Metric label="Min GW Fare" value={formatCurrency(metrics.minGwFare)} />
+                          <Metric label="Avg Savings" value={<span className="text-emerald-600">{formatCurrency(metrics.avgSavings)}</span>} />
+                          <Metric label="Nonstop" value={formatNumber(metrics.nonstop)} />
+                          <Metric label="1 Stop" value={formatNumber(metrics.oneStop)} />
+                          <Metric label="2+ Stops" value={formatNumber(metrics.twoPlus)} />
+                          <Metric label="Sold Out" value={<span className={metrics.soldOut > 0 ? "text-rose-500" : ""}>{formatNumber(metrics.soldOut)}</span>} />
+                        </div>
+                      </Card>
+
+                      {/* Raw snapshot rows */}
+                      <Card title={`Raw Snapshot Rows (${snapshots.length})`}>
+                        <div className="overflow-x-auto max-h-80 rounded-xl border border-[#EAECEC]">
+                          <table className="w-full text-[11px]">
+                            <thead className="bg-[#FAFBFB] sticky top-0">
+                              <tr className="text-left text-[#9CA3AF] border-b border-[#EAECEC]">
+                                {["Route", "Dep", "Flt", "GW", "Seats", "GW $", "Std $"].map(h => (
+                                  <th key={h} className="px-2 py-2 font-semibold">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {snapshots.map((s) => (
+                                <tr key={s.id} className="border-t border-[#F0F1F1]">
+                                  <td className="px-2 py-1.5 font-mono">{s.leg_origin_iata}→{s.leg_destination_iata}</td>
+                                  <td className="px-2 py-1.5">{s.departure_at?.slice(0, 10) ?? "—"}</td>
+                                  <td className="px-2 py-1.5">{s.flight_number ?? "—"}</td>
+                                  <td className="px-2 py-1.5">{s.has_go_wild ? <span className="text-emerald-600 font-bold">Y</span> : "—"}</td>
+                                  <td className="px-2 py-1.5 font-semibold">{s.go_wild_available_seats ?? "—"}</td>
+                                  <td className="px-2 py-1.5 text-emerald-600">{s.go_wild_total ?? "—"}</td>
+                                  <td className="px-2 py-1.5 text-[#6B7B7B]">{s.standard_total ?? "—"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </Card>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* ── USER TAB ─────────────────────────────────────────────── */}
+              {tab === "user" && (
+                <Card title="User Information">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <KV label="User ID" value={<span className="font-mono text-xs">{search.user_id}</span>} copy={search.user_id} />
+                    <KV label="Triggered By" value={search.triggered_by ?? "—"} />
+                    <KV label="Credits Cost" value={search.credits_cost != null ? String(search.credits_cost) : "—"} />
+                    <KV label="Search Timestamp" value={formatDateTime(search.search_timestamp)} />
+                  </div>
+                  <div className="mt-4 rounded-xl bg-[#FAFBFB] border border-[#F0F1F1] p-3">
+                    <p className="text-xs text-[#9CA3AF]">
+                      Detailed user profile data (email, name, subscription) is not returned by this endpoint.
+                      Use the Users tab in the admin console to look up user details by ID.
+                    </p>
+                  </div>
+                </Card>
+              )}
+
+              {/* ── RAW JSON TAB ─────────────────────────────────────────── */}
+              {tab === "raw" && (
+                <div className="space-y-4">
+                  <Card title="Search Row">
+                    <JsonBlock value={search} />
+                  </Card>
+                  {(search.json_body || search.search_params) && (
+                    <Card title="Search Params">
+                      <JsonBlock value={search.json_body ?? search.search_params} />
+                    </Card>
+                  )}
+                  {(search.request_body || search.raw_request) && (
+                    <Card title="Raw Request">
+                      <JsonBlock value={search.request_body ?? search.raw_request} />
+                    </Card>
+                  )}
+                  {search.raw_response && (
+                    <Card title="Raw Response">
+                      <JsonBlock value={search.raw_response} />
+                    </Card>
+                  )}
+                  {(search.error_message || search.status) && (
+                    <Card title="Errors">
+                      <JsonBlock value={{ error_message: search.error_message, status: search.status }} />
+                    </Card>
+                  )}
+                </div>
+              )}
+
             </div>
           </motion.aside>
         </motion.div>
