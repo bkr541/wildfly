@@ -472,7 +472,7 @@ function SeatAvailabilityCalendar({
 
       <div className="flex flex-col gap-2 mt-4 pt-3 border-t border-[#F0F1F1]">
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-[#059669]" />
+          <div className="h-3 w-3 rounded-full bg-[#4CAF50]" />
           <span className="text-xs text-[#6B7B7B] font-medium">
             {loading ? "Loading seat data…" : "Most recent GoWild seats observed for this date"}
           </span>
