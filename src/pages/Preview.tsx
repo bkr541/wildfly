@@ -445,22 +445,26 @@ function SeatAvailabilityCalendar({
           const hasSeats = seats != null && seats > 0;
           const isToday = dateStr === todayStr;
           return (
-            <div key={i} className="h-12 flex flex-col items-center justify-start pt-0.5">
-              <div
-                className={cn(
-                  "h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium transition-colors",
-                  hasSeats && "bg-[#059669] text-white",
-                  !hasSeats && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
-                  !hasSeats && !isToday && "text-[#2E4A4A]",
+            <div key={i} className="h-12 flex items-center justify-center">
+              <div className="relative h-10 w-10 flex items-center justify-center">
+                <div
+                  className={cn(
+                    "h-9 w-9 flex items-center justify-center rounded-full text-base transition-colors tabular-nums",
+                    hasSeats && "bg-[#4CAF50] text-white font-semibold",
+                    !hasSeats && isToday && "ring-2 ring-[#10B981] text-[#059669] font-bold",
+                    !hasSeats && !isToday && "text-[#2E4A4A] font-medium",
+                  )}
+                >
+                  {d}
+                </div>
+                {hasSeats && (
+                  <span
+                    className="absolute -bottom-1 -right-1 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-[#1F4A1A] text-[#D4A53A] text-[10px] font-bold leading-none tabular-nums ring-2 ring-white"
+                  >
+                    {seats}
+                  </span>
                 )}
-              >
-                {d}
               </div>
-              {hasSeats && (
-                <span className="text-[10px] font-bold text-[#059669] leading-none mt-0.5 tabular-nums">
-                  {seats}
-                </span>
-              )}
             </div>
           );
         })}
