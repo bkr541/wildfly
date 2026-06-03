@@ -1560,7 +1560,7 @@ export default function AdminConsole() {
             return (
               <button
                 key={item.id}
-                onClick={() => setView(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 title={!sidebarOpen ? item.label : undefined}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left ${
                   active ? "text-white" : "text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]"
