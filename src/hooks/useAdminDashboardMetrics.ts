@@ -337,8 +337,8 @@ function computeMetrics(
   const bySource = { liveApi: 0, cacheHit: 0, adminBulk: 0, scheduledBulk: 0, other: 0 };
   let totalResults = 0;
   const userIdSet = new Set<string>();
-  const originCounts = new Map<string, { count: number; goWild: number }>();
-  const destCounts = new Map<string, { count: number; goWild: number }>();
+  const originCounts = new Map<string, { count: number; goWildCount: number }>();
+  const destCounts = new Map<string, { count: number; goWildCount: number }>();
 
   for (const row of searchSample) {
     const label = getResultSourceLabel(row.result_source);
@@ -354,17 +354,17 @@ function computeMetrics(
 
     const org = normalizeAirport(row.departure_airport);
     if (org) {
-      const e = originCounts.get(org) ?? { count: 0, goWild: 0 };
+      const e = originCounts.get(org) ?? { count: 0, goWildCount: 0 };
       e.count++;
-      if (row.gowild_found) e.goWild++;
+      if (row.gowild_found) e.goWildCount++;
       originCounts.set(org, e);
     }
 
     const dst = normalizeAirport(row.arrival_airport);
     if (dst) {
-      const e = destCounts.get(dst) ?? { count: 0, goWild: 0 };
+      const e = destCounts.get(dst) ?? { count: 0, goWildCount: 0 };
       e.count++;
-      if (row.gowild_found) e.goWild++;
+      if (row.gowild_found) e.goWildCount++;
       destCounts.set(dst, e);
     }
   }

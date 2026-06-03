@@ -3,8 +3,6 @@ import { formatDistanceToNowStrict, parseISO, format } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   RefreshIcon,
-  BarChart01Icon,
-  BarChart02Icon,
   AirplaneTakeOff01Icon,
   UserGroupIcon,
   Layers01Icon,
@@ -12,8 +10,6 @@ import {
   DatabaseIcon,
   AlertCircleIcon,
   CheckmarkCircle01Icon,
-  TrendUpIcon,
-  TrendDownIcon,
   FilterIcon,
   ArrowRight01Icon,
   Analytics01Icon,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
@@ -1483,6 +1483,121 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
   );
 }
 
+// ── GoWild Insights Loading Overlay ─────────────────────────────────────────────
+
+const FLAP_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+
+function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boolean; delay?: number }) {
+  const [display, setDisplay] = useState<string[]>(Array(word.length).fill(" "));
+  const activeRef = useRef(true);
+
+  useEffect(() => {
+    activeRef.current = true;
+    const allTimeouts: ReturnType<typeof setTimeout>[] = [];
+    const allIntervals: ReturnType<typeof setInterval>[] = [];
+
+    const runCycle = (cycleDelay: number) => {
+      word.split("").forEach((finalChar, idx) => {
+        const to = setTimeout(
+          () => {
+            if (!activeRef.current) return;
+            let step = 0;
+            const steps = 6;
+            const iv = setInterval(() => {
+              if (!activeRef.current) {
+                clearInterval(iv);
+                return;
+              }
+              step++;
+              if (step >= steps) {
+                clearInterval(iv);
+                setDisplay((prev) => {
+                  const n = [...prev];
+                  n[idx] = finalChar;
+                  return n;
+                });
+              } else {
+                const r = FLAP_CHARS[Math.floor(Math.random() * FLAP_CHARS.length)];
+                setDisplay((prev) => {
+                  const n = [...prev];
+                  n[idx] = r;
+                  return n;
+                });
+              }
+            }, 40);
+            allIntervals.push(iv);
+          },
+          cycleDelay + delay + idx * 55,
+        );
+        allTimeouts.push(to);
+      });
+    };
+
+    const cycleLength = word.length * 55 + 600;
+    let cycle = 0;
+    const schedule = () => {
+      if (!activeRef.current) return;
+      runCycle(cycle * cycleLength);
+      const loopTo = setTimeout(schedule, cycleLength);
+      allTimeouts.push(loopTo);
+      cycle++;
+    };
+    schedule();
+
+    return () => {
+      activeRef.current = false;
+      allTimeouts.forEach(clearTimeout);
+      allIntervals.forEach(clearInterval);
+    };
+  }, []);
+
+  return (
+    <div className="flex gap-1">
+      {display.map((char, i) => (
+        <div
+          key={i}
+          className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden"
+          style={{
+            width: 28,
+            height: 36,
+            background: green ? "linear-gradient(160deg,#6ee7b7 0%,#10B981 100%)" : "#e8eaed",
+            borderColor: green ? "#059669" : "#d1d5db",
+          }}
+        >
+          <div
+            className="absolute inset-x-0 top-1/2 -translate-y-px h-px z-10"
+            style={{ background: green ? "#059669aa" : "#b0b5bdaa" }}
+          />
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }}
+          />
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full border z-20"
+            style={{ background: green ? "#d1fae5" : "#e8eaed", borderColor: green ? "#059669" : "#d1d5db" }}
+          />
+          <span
+            className="font-black text-base leading-none select-none"
+            style={{ color: green ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
+          >
+            {char === " " ? "" : char}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LoadingInsightsOverlay() {
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
+      <SplitFlapWord word="LOADING" delay={0} />
+      <SplitFlapWord word="INSIGHTS" green delay={100} />
+      <p className="text-sm text-[#6B7B7B] mt-2">Fetching GoWild analytics…</p>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
@@ -1497,9 +1612,21 @@ const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
 export default function AdminConsole() {
   const [view, setView]               = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [gowildLoading, setGowildLoading] = useState(false);
   const navigate = useNavigate();
 
   const { title, subtitle } = VIEW_TITLES[view];
+
+  const handleNavClick = (id: View) => {
+    if (id === "gowild") {
+      setGowildLoading(true);
+      setView("gowild");
+      // Keep overlay visible for minimum animation time
+      setTimeout(() => setGowildLoading(false), 2200);
+    } else {
+      setView(id);
+    }
+  };
 
   return (
     <div
@@ -1548,7 +1675,7 @@ export default function AdminConsole() {
             return (
               <button
                 key={item.id}
-                onClick={() => setView(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 title={!sidebarOpen ? item.label : undefined}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left ${
                   active ? "text-white" : "text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]"
@@ -1599,6 +1726,8 @@ export default function AdminConsole() {
             </button>
           </motion.div>
         </AnimatePresence>
+
+        {gowildLoading && <LoadingInsightsOverlay />}
 
         {/* View content */}
         <AnimatePresence mode="wait">
