@@ -37,6 +37,13 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  FlightSearchDetailDrawer,
+  getResultSourceLabel,
+  getResultSourceBadgeClass,
+  getGoWildBadgeClass,
+  getFreshnessStatus,
+} from "@/components/admin/FlightSearchDetailDrawer";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
