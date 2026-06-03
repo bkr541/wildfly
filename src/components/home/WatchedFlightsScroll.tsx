@@ -32,6 +32,26 @@ interface UserFlight {
   created_at: string;
 }
 
+function formatFullDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function formatTime(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  } catch {
+    return dateStr;
+  }
+}
+
 function formatShortDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
