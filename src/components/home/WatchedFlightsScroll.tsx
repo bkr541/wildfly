@@ -225,14 +225,25 @@ export function WatchedFlightsScroll({
                               className="h-[16px] w-auto object-contain"
                               loading="eager"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setFlightToRemove(flight)}
-                              className="flex items-center justify-center transition-opacity hover:opacity-70"
-                              aria-label="Remove watched flight"
-                            >
-                              <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              {gowild && (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                                  style={{ background: "#059669", color: "#FFFFFF" }}
+                                >
+                                  <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2.5} />
+                                  GoWild
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setFlightToRemove(flight)}
+                                className="flex items-center justify-center transition-opacity hover:opacity-70"
+                                aria-label="Remove watched flight"
+                              >
+                                <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Route */}
