@@ -237,15 +237,15 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 )}
                               </div>
 
-                              {/* Departure / Return dates */}
+                              {/* Searched / Depart dates */}
                               <div className="flex items-start justify-between mb-3">
                                 <span className="text-xs font-medium text-[#059669] leading-tight">
-                                  <span className="block">Depart</span>
-                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
+                                  <span className="block">{searchedTime || "Searched"}</span>
+                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{searchedDate}</span>
                                 </span>
                                 <span className="text-xs font-medium text-[#059669] text-right leading-tight">
-                                  <span className="block">{retDateLabel ? "Return" : "—"}</span>
-                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{retDateLabel || ""}</span>
+                                  <span className="block">Depart</span>
+                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
                                 </span>
                               </div>
 
