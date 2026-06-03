@@ -151,7 +151,17 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           const tripLabel = TRIP_LABELS[s.trip_type] ?? s.trip_type;
                           const tripIcon: IconSvgElement = TRIP_ICONS[s.trip_type] ?? ArrowRight04Icon;
 
-                          const fmt = (raw: string | null) => {
+                          const fmtTime = (raw: string | null) => {
+                            if (!raw) return "";
+                            try {
+                              const d = new Date(raw);
+                              if (isNaN(d.getTime())) return "";
+                              return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                            } catch {
+                              return "";
+                            }
+                          };
+                          const fmtDate = (raw: string | null) => {
                             if (!raw) return "";
                             try {
                               return format(parseISO(raw), "EEE, MMM d, yyyy");
@@ -159,8 +169,10 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               return raw;
                             }
                           };
-                          const depDateLabel = fmt(s.departure_date);
-                          const retDateLabel = fmt(s.return_date);
+                          const searchedTime = fmtTime(s.search_timestamp);
+                          const searchedDate = fmtDate(s.search_timestamp);
+                          const depDateLabel = fmtDate(s.departure_date);
+                          const retDateLabel = fmtDate(s.return_date);
 
                           return (
                             <motion.div
