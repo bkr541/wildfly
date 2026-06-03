@@ -205,8 +205,6 @@ export function WatchedFlightsScroll({
                       const price = getPrice(flight.flight_json);
                       const gowild = hasGoWild(flight.flight_json);
                       const roundTrip = isRoundTrip(flight);
-                      const depLabel = formatShortDate(flight.departure_time);
-                      const arrLabel = formatShortDateLabel(flight.arrival_time);
                       const tripIcon = roundTrip ? CircleArrowReload01Icon : ArrowRight04Icon;
                       const tripLabel = roundTrip ? "Round Trip" : "One Way";
 
