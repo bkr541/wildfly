@@ -13,6 +13,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { TicketDivider } from "./TicketDivider";
 
 interface FlightSearch {
   id: string;
