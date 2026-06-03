@@ -265,10 +265,17 @@ export function WatchedFlightsScroll({
                             </span>
                           </div>
 
-                          {/* Date */}
-                          <p className="text-center text-[13px] text-[#9AADAD] font-medium mb-3">
-                            {depLabel}{arrLabel && arrLabel !== depLabel ? ` • ${arrLabel}` : ""}
-                          </p>
+                          {/* Departure / Arrival times */}
+                          <div className="flex items-start justify-between mb-3">
+                            <span className="text-xs font-medium text-[#059669] leading-tight">
+                              <span className="block">{formatTime(flight.departure_time)}</span>
+                              <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                            </span>
+                            <span className="text-xs font-medium text-[#059669] text-right leading-tight">
+                              <span className="block">{formatTime(flight.arrival_time)}</span>
+                              <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                            </span>
+                          </div>
 
                           {/* Pills row */}
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
