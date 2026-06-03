@@ -9,7 +9,6 @@ import {
   CircleArrowReload01Icon,
   SunCloud01Icon,
   MapPinpoint01Icon,
-  Calendar03Icon,
   Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
