@@ -59,6 +59,23 @@ function getPrice(flight_json: any): number | null {
   return typeof val === "number" && val > 0 ? val : null;
 }
 
+function hasGoWild(flight_json: any): boolean {
+  const fares = flight_json?.fares;
+  if (!fares) return false;
+  const gw = fares.gowild ?? fares.goWild ?? fares.go_wild;
+  return typeof gw === "number" && gw > 0;
+}
+
+function isRoundTrip(flight: { departure_time: string; arrival_time: string; flight_json: any }): boolean {
+  if (flight.flight_json?.tripType === "round-trip" || flight.flight_json?.tripType === "round_trip") return true;
+  if (Array.isArray(flight.flight_json?.legs) && flight.flight_json.legs.length > 1) {
+    const first = flight.flight_json.legs[0];
+    const last = flight.flight_json.legs[flight.flight_json.legs.length - 1];
+    if (first?.origin && last?.destination && first.origin === last.destination) return true;
+  }
+  return false;
+}
+
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
