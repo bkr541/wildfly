@@ -13,6 +13,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { TicketDivider } from "./TicketDivider";
 
 interface FlightSearch {
   id: string;
@@ -238,7 +239,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                               </div>
 
                               {/* Searched / Depart dates */}
-                              <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-start justify-between">
                                 <span className="text-xs font-medium text-[#059669] leading-tight">
                                   <span className="block">{searchedTime || "Searched"}</span>
                                   <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{searchedDate}</span>
@@ -248,6 +249,8 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                   <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
                                 </span>
                               </div>
+
+                              <TicketDivider />
 
                               {/* Badges row */}
                               <div className="flex items-center justify-center gap-1.5 flex-wrap">

@@ -10,6 +10,7 @@ import {
   Rocket01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
+import { TicketDivider } from "./TicketDivider";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -265,7 +266,7 @@ export function WatchedFlightsScroll({
                           </div>
 
                           {/* Departure / Arrival times */}
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between">
                             <span className="text-xs font-medium text-[#059669] leading-tight">
                               <span className="block">{formatTime(flight.departure_time)}</span>
                               <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
@@ -275,6 +276,8 @@ export function WatchedFlightsScroll({
                               <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
                             </span>
                           </div>
+
+                          <TicketDivider />
 
                           {/* Pills row */}
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
