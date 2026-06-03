@@ -169,8 +169,39 @@ function CardShell({ children, className = "" }: { children: React.ReactNode; cl
   );
 }
 
-function CardTitle({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-bold text-[#2E4A4A] mb-3">{children}</p>;
+function CardTitle({
+  icon,
+  children,
+  subtitle,
+}: {
+  icon?: typeof Analytics01Icon;
+  children: React.ReactNode;
+  subtitle?: React.ReactNode;
+}) {
+  if (!icon && !subtitle) {
+    return <p className="text-sm font-bold text-[#2E4A4A] mb-3">{children}</p>;
+  }
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      {icon && (
+        <HugeiconsIcon
+          icon={icon}
+          size={28}
+          color="#059669"
+          strokeWidth={1.5}
+          className="shrink-0"
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-semibold text-[#059669] uppercase tracking-wider leading-tight">
+          {children}
+        </p>
+        {subtitle && (
+          <p className="text-xs text-[#6B7B7B] mt-0.5">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function SkeletonCard() {
