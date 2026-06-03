@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, X } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Timer02Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Timer02Icon, Delete02Icon, ArrowRight04Icon, CircleArrowReload01Icon, Rocket01Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
