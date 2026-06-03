@@ -78,6 +78,13 @@ interface FlightRow {
   arrival_airports_count: number | null;
   search_timestamp: string;
   triggered_by: string | null;
+  result_source?: string | null;
+  provider_observed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  json_body?: any;
+  request_body?: any;
+  [key: string]: any;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
