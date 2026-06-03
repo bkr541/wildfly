@@ -37,6 +37,13 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  FlightSearchDetailDrawer,
+  getResultSourceLabel,
+  getResultSourceBadgeClass,
+  getGoWildBadgeClass,
+  getFreshnessStatus,
+} from "@/components/admin/FlightSearchDetailDrawer";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -78,6 +85,13 @@ interface FlightRow {
   arrival_airports_count: number | null;
   search_timestamp: string;
   triggered_by: string | null;
+  result_source?: string | null;
+  provider_observed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  json_body?: any;
+  request_body?: any;
+  [key: string]: any;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -610,6 +624,7 @@ function FlightsView() {
   const [loading, setLoading]   = useState(true);
   const [page, setPage]         = useState(0);
   const [search, setSearch]     = useState("");
+  const [selected, setSelected] = useState<FlightRow | null>(null);
 
   const fetchPage = async (p: number) => {
     setLoading(true);
@@ -676,9 +691,9 @@ function FlightsView() {
       {/* Table */}
       <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
-          {["Route", "Date", "Trip Type", "All Dest", "GoWild", "Results", "Timestamp"].map((h) => (
-            <span key={h} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
+        <div className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1.1fr_60px] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
+          {["Route", "Date", "Trip Type", "Source", "GoWild", "Results", "Timestamp", ""].map((h, i) => (
+            <span key={i} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
           ))}
         </div>
 
@@ -690,15 +705,24 @@ function FlightsView() {
           <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
             {filtered.map((f) => {
               const isAdmin = f.triggered_by === "admin_bulk_search";
+              const sourceLbl = getResultSourceLabel(f.result_source ?? f.triggered_by);
+              const freshness = getFreshnessStatus(f.provider_observed_at ?? f.created_at ?? f.search_timestamp);
               return (
-                <div key={f.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-3 items-center hover:bg-[#FAFAFA] transition-colors">
+                <div
+                  key={f.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelected(f)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(f); } }}
+                  className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1.1fr_60px] gap-3 px-5 py-3 items-center hover:bg-[#F1FAF6] cursor-pointer transition-colors group focus:outline-none focus:bg-[#F1FAF6]"
+                >
                   {/* Route */}
                   <div className="flex items-center gap-2 min-w-0">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-bold text-[#1A2E2E] font-mono">
-                        {f.departure_airport} → {f.arrival_airport ?? "ALL"}
+                        {f.departure_airport} → {f.all_destinations === "Yes" ? "ALL" : (f.arrival_airport ?? "ALL")}
                       </p>
-                      <p className="text-[11px] text-[#9CA3AF] truncate max-w-[160px]" title={f.user_id}>
+                      <p className="text-[11px] text-[#9CA3AF] truncate max-w-[180px]" title={f.user_id}>
                         {isAdmin
                           ? <span className="text-[#d97706] font-semibold">admin bulk</span>
                           : f.user_id.slice(0, 8) + "…"
@@ -710,18 +734,31 @@ function FlightsView() {
                   <span className="text-xs text-[#2E4A4A]">{fmtDate(f.departure_date)}</span>
                   {/* Trip Type */}
                   <span className="text-xs text-[#6B7B7B] capitalize">{f.trip_type.replace(/_/g, " ")}</span>
-                  {/* All Dest */}
-                  <span className="text-xs font-semibold" style={{ color: f.all_destinations === "Yes" ? "#059669" : "#9CA3AF" }}>
-                    {f.all_destinations === "Yes" ? "Yes" : "No"}
+                  {/* Source */}
+                  <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getResultSourceBadgeClass(f.result_source ?? f.triggered_by)}`}>
+                    {sourceLbl}
                   </span>
                   {/* GoWild */}
-                  <span className="text-xs font-semibold" style={{ color: f.gowild_found ? "#059669" : "#9CA3AF" }}>
-                    {f.gowild_found ? "Yes" : "—"}
+                  <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getGoWildBadgeClass(f.gowild_found)}`}>
+                    {f.gowild_found ? "GoWild" : "—"}
                   </span>
                   {/* Results */}
-                  <span className="text-xs text-[#6B7B7B]">{f.flight_results_count ?? "—"}</span>
-                  {/* Timestamp */}
-                  <span className="text-xs text-[#9CA3AF]">{fmtTs(f.search_timestamp)}</span>
+                  <span className="text-xs text-[#6B7B7B]">
+                    {f.flight_results_count != null ? `${f.flight_results_count} results` : "—"}
+                  </span>
+                  {/* Timestamp + freshness */}
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-xs text-[#9CA3AF] truncate">{fmtTs(f.search_timestamp)}</span>
+                    <span className="text-[10px] text-[#9CA3AF] capitalize">{freshness}</span>
+                  </div>
+                  {/* View details */}
+                  <button
+                    aria-label="View flight search details"
+                    onClick={(e) => { e.stopPropagation(); setSelected(f); }}
+                    className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-1 opacity-70 group-hover:opacity-100"
+                  >
+                    View
+                  </button>
                 </div>
               );
             })}
@@ -733,6 +770,12 @@ function FlightsView() {
           <Pagination page={page} totalPages={totalPages} onPage={(p) => { setPage(p); }} />
         )}
       </div>
+
+      <FlightSearchDetailDrawer
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        search={selected}
+      />
     </div>
   );
 }
