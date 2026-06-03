@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
@@ -25,7 +25,22 @@ import {
   Analytics01Icon,
   Home13Icon,
   Radar01Icon,
+  ArrowReloadHorizontalIcon,
+  GridViewIcon,
+  ListViewIcon,
 } from "@hugeicons/core-free-icons";
+import {
+  type FlightSearchFiltersState,
+  type FlightSearchSnapshotSummary,
+  type FlightSearchViewMode,
+  DEFAULT_FILTERS,
+  hasActiveFilters as hasActiveFSFilters,
+  countActiveFilters,
+} from "@/components/admin/flights/types";
+import { FlightRouteMiniPreview } from "@/components/admin/flights/FlightRouteMiniPreview";
+import { GoWildSignalMini } from "@/components/admin/flights/GoWildSignalMini";
+import { FlightSearchFilters } from "@/components/admin/flights/FlightSearchFilters";
+import { FlightSearchTimeline } from "@/components/admin/flights/FlightSearchTimeline";
 import GoWildRadarMap from "@/components/admin/GoWildRadarMap";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
@@ -73,29 +88,7 @@ interface UserRow {
   locations: { name: string; city: string | null; state: string | null; country: string | null } | null;
 }
 
-interface FlightRow {
-  id: string;
-  user_id: string;
-  departure_airport: string;
-  arrival_airport: string | null;
-  departure_date: string;
-  return_date: string | null;
-  trip_type: string;
-  all_destinations: string;
-  gowild_found: boolean | null;
-  flight_results_count: number | null;
-  credits_cost: number | null;
-  arrival_airports_count: number | null;
-  search_timestamp: string;
-  triggered_by: string | null;
-  result_source?: string | null;
-  provider_observed_at?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  json_body?: any;
-  request_body?: any;
-  [key: string]: any;
-}
+type FlightRow = import("@/components/admin/FlightSearchDetailDrawer").FlightSearchRow;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -620,18 +613,64 @@ function UsersView() {
   );
 }
 
-// ── Flights Table ─────────────────────────────────────────────────────────────
+// ── Flights View ──────────────────────────────────────────────────────────────
+
+const FRESHNESS_BADGE_CLS: Record<string, string> = {
+  fresh:   "bg-emerald-100 text-emerald-700 border-emerald-200",
+  recent:  "bg-cyan-100 text-cyan-700 border-cyan-200",
+  aging:   "bg-amber-100 text-amber-700 border-amber-200",
+  stale:   "bg-rose-100 text-rose-700 border-rose-200",
+  unknown: "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+function SkeletonRows() {
+  return (
+    <div className="divide-y divide-[#F0F1F1]">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="grid grid-cols-[2.5fr_1fr_0.9fr_1.1fr_1.8fr_1.3fr_1.1fr_70px] gap-3 px-5 py-3.5 animate-pulse">
+          <div className="flex items-center gap-2">
+            <div className="w-14 h-8 rounded-lg bg-[#F0F1F1] flex-shrink-0" />
+            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+              <div className="h-3.5 w-28 rounded bg-[#F0F1F1]" />
+              <div className="h-2.5 w-16 rounded bg-[#F0F1F1]" />
+            </div>
+          </div>
+          {[28, 20, 22, 24, 26, 20].map((w, j) => (
+            <div key={j} className="flex items-center">
+              <div className={`h-3 w-${w} rounded bg-[#F0F1F1]`} />
+            </div>
+          ))}
+          <div className="flex items-center">
+            <div className="h-6 w-12 rounded-full bg-[#F0F1F1]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function FlightsView() {
-  const [flights, setFlights]   = useState<FlightRow[]>([]);
-  const [total, setTotal]       = useState(0);
-  const [loading, setLoading]   = useState(true);
-  const [page, setPage]         = useState(0);
-  const [search, setSearch]     = useState("");
-  const [selected, setSelected] = useState<FlightRow | null>(null);
+  const [flights, setFlights]               = useState<FlightRow[]>([]);
+  const [total, setTotal]                   = useState(0);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState<string | null>(null);
+  const [page, setPage]                     = useState(0);
+  const [viewMode, setViewMode]             = useState<FlightSearchViewMode>("table");
+  const [filtersOpen, setFiltersOpen]       = useState(false);
+  const [filters, setFilters]               = useState<FlightSearchFiltersState>(DEFAULT_FILTERS);
+  const [snapshotSummaries, setSnapSumms]   = useState<Record<string, FlightSearchSnapshotSummary>>({});
+  const [selected, setSelected]             = useState<FlightRow | null>(null);
+  const [lastUpdated, setLastUpdated]       = useState<Date | null>(null);
 
-  const fetchPage = async (p: number) => {
+  // Keep a ref to the latest filters so debounced search can access it without stale closure
+  const filtersRef = useRef(filters);
+  useEffect(() => { filtersRef.current = filters; }, [filters]);
+
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchPage = useCallback(async (p: number, f: FlightSearchFiltersState) => {
     setLoading(true);
+    setError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setFlights([]); setTotal(0); return; }
@@ -644,136 +683,411 @@ function FlightsView() {
             Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ page: p, page_size: PAGE_SIZE }),
+          body: JSON.stringify({
+            page: p,
+            page_size: PAGE_SIZE,
+            search: f.search,
+            origin: f.origin,
+            destination: f.destination,
+            trip_type: f.tripType,
+            result_source: f.resultSource,
+            triggered_by: f.triggeredBy,
+            gowild_status: f.goWildStatus,
+            all_destinations: f.allDestinations,
+            freshness: f.freshness,
+            date_from: f.dateFrom,
+            date_to: f.dateTo,
+            departure_date_from: f.departureDateFrom,
+            departure_date_to: f.departureDateTo,
+            min_results: f.minResults,
+            max_results: f.maxResults,
+          }),
         }
       );
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(json?.error ?? `HTTP ${res.status}`);
+      }
       const json = await res.json();
       setFlights((json?.flights ?? []) as FlightRow[]);
       setTotal(json?.total ?? 0);
-    } catch (e) {
-      console.error("Failed to load flights", e);
+      setSnapSumms(json?.snapshot_summaries_by_search_id ?? {});
+      setLastUpdated(new Date());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load flight searches");
+      setFlights([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchPage(page); }, [page]);
+  // Initial load
+  useEffect(() => { fetchPage(0, DEFAULT_FILTERS); }, [fetchPage]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return flights;
-    const q = search.toLowerCase();
-    return flights.filter((f) =>
-      [f.departure_airport, f.arrival_airport, f.user_id, f.trip_type]
-        .some((v) => v?.toLowerCase().includes(q))
-    );
-  }, [flights, search]);
+  const handleFilterChange = useCallback((patch: Partial<FlightSearchFiltersState>) => {
+    const next = { ...filtersRef.current, ...patch };
+    setFilters(next);
+    setPage(0);
+    fetchPage(0, next);
+  }, [fetchPage]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    const next = { ...filtersRef.current, search: value };
+    setFilters(next);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setPage(0);
+      fetchPage(0, { ...filtersRef.current, search: value });
+    }, 400);
+  }, [fetchPage]);
+
+  const handlePageChange = useCallback((p: number) => {
+    setPage(p);
+    fetchPage(p, filtersRef.current);
+  }, [fetchPage]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setPage(0);
+    fetchPage(0, DEFAULT_FILTERS);
+  }, [fetchPage]);
+
+  const handleRefresh = useCallback(() => {
+    fetchPage(page, filtersRef.current);
+  }, [fetchPage, page]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
+  const isFiltered = hasActiveFSFilters(filters);
+
+  // Relative "updated X ago" label
+  const updatedLabel = useMemo(() => {
+    if (!lastUpdated) return null;
+    const secs = Math.round((Date.now() - lastUpdated.getTime()) / 1000);
+    if (secs < 10) return "just now";
+    if (secs < 60) return `${secs}s ago`;
+    return `${Math.round(secs / 60)}m ago`;
+  }, [lastUpdated]);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
-      <div className="rounded-2xl px-4 py-3 flex items-center gap-3" style={CARD_STYLE}>
-        <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 max-w-xs">
-          <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter this page…"
-            className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-[#9CA3AF] hover:text-[#6B7B7B]">
-              <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
-            </button>
+      {/* ── Toolbar ───────────────────────────────────────────────────────── */}
+      <div className="rounded-2xl px-4 py-3 flex flex-col gap-2.5" style={CARD_STYLE}>
+        {/* Top row */}
+        <div className="flex items-center gap-3">
+          {/* Search input */}
+          <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 max-w-sm">
+            <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search all flight searches…"
+              aria-label="Search all flight searches"
+              className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
+            />
+            {filters.search && (
+              <button
+                onClick={() => handleSearchChange("")}
+                aria-label="Clear search"
+                className="text-[#9CA3AF] hover:text-[#6B7B7B]"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
+              </button>
+            )}
+          </div>
+
+          {/* Refresh */}
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            aria-label="Refresh flight searches"
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors disabled:opacity-40"
+          >
+            <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={16} color="currentColor" strokeWidth={2} />
+          </button>
+
+          {/* View toggle */}
+          <div className="flex items-center bg-[#F2F3F3] rounded-xl p-0.5 gap-0.5">
+            {(["table", "timeline"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                aria-label={m === "table" ? "Table view" : "Timeline view"}
+                title={m === "table" ? "Table view" : "Timeline view"}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+                  viewMode === m
+                    ? "text-white"
+                    : "text-[#9CA3AF] hover:text-[#2E4A4A]"
+                }`}
+                style={viewMode === m ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+              >
+                <HugeiconsIcon
+                  icon={m === "table" ? GridViewIcon : ListViewIcon}
+                  size={15}
+                  color="currentColor"
+                  strokeWidth={2}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* Filter toggle */}
+          <button
+            onClick={() => setFiltersOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors duration-200"
+            style={
+              activeFilterCount > 0
+                ? { background: "#345C5A", color: "white" }
+                : filtersOpen
+                ? { background: "#F2F3F3", color: "#059669" }
+                : { color: "#9CA3AF" }
+            }
+          >
+            <HugeiconsIcon icon={FilterMailSquareIcon} size={17} color="currentColor" strokeWidth={2} />
+            <span className="text-[11px] font-semibold uppercase tracking-wide">Filter</span>
+            {activeFilterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center flex-shrink-0 leading-none">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* Total count + updated label */}
+          <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-[#6B7B7B] font-medium">{total.toLocaleString()} {isFiltered ? "matching" : "total"}</span>
+            {updatedLabel && <span className="text-[10px] text-[#9CA3AF]">· {updatedLabel}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Filter panel ──────────────────────────────────────────────────── */}
+      {filtersOpen && (
+        <FlightSearchFilters
+          filters={filters}
+          onChange={handleFilterChange}
+          onClear={handleClearFilters}
+        />
+      )}
+
+      {/* ── Error state ───────────────────────────────────────────────────── */}
+      {error && !loading && (
+        <div className="rounded-2xl px-5 py-4 flex items-start gap-4" style={{ ...CARD_STYLE, borderLeft: "4px solid #f43f5e" }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-rose-600">Unable to load flight searches</p>
+            <p className="text-xs text-[#9CA3AF] mt-0.5 break-all">{error}</p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-white flex-shrink-0 transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ── Table / Timeline ──────────────────────────────────────────────── */}
+      {viewMode === "table" ? (
+        <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
+          {/* Column headers */}
+          <div className="grid grid-cols-[2.5fr_1fr_0.9fr_1.1fr_1.8fr_1.3fr_1.1fr_70px] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
+            {["Route / Preview", "Dates", "Trip", "Source", "GoWild Signal", "Results / Comp", "Freshness", ""].map((h, i) => (
+              <span key={i} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
+            ))}
+          </div>
+
+          {loading ? (
+            <SkeletonRows />
+          ) : flights.length === 0 && !error ? (
+            /* Empty state */
+            <div className="flex flex-col items-center gap-3 px-5 py-12 text-center">
+              <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
+                <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={22} color="#059669" strokeWidth={1.5} />
+              </div>
+              <p className="text-sm font-semibold text-[#2E4A4A]">
+                {isFiltered ? "No flight searches match these filters" : "No flight searches yet"}
+              </p>
+              <p className="text-xs text-[#9CA3AF] max-w-xs">
+                {isFiltered
+                  ? "Try expanding the date range, changing the source, or clearing some filters."
+                  : "Flight searches will appear here once users start searching."}
+              </p>
+              {isFiltered && (
+                <button
+                  onClick={handleClearFilters}
+                  className="mt-1 px-4 py-1.5 rounded-xl text-xs font-semibold text-white"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 330px)" }}>
+              {flights.map((f) => {
+                const isAdmin = f.triggered_by === "admin_bulk_search";
+                const isAllDest = f.all_destinations === "Yes";
+                const sourceLbl = getResultSourceLabel(f.result_source ?? f.triggered_by);
+                const freshness = getFreshnessStatus(f.provider_observed_at ?? f.created_at ?? f.search_timestamp);
+                const summary = snapshotSummaries[f.id] ?? null;
+
+                return (
+                  <div
+                    key={f.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelected(f)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(f); } }}
+                    className="grid grid-cols-[2.5fr_1fr_0.9fr_1.1fr_1.8fr_1.3fr_1.1fr_70px] gap-3 px-5 py-3 items-center hover:bg-[#F1FAF6] cursor-pointer transition-colors group focus:outline-none focus:bg-[#F1FAF6]"
+                  >
+                    {/* Route / Preview */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FlightRouteMiniPreview
+                        isAllDestinations={isAllDest}
+                        isGoWild={!!f.gowild_found}
+                        bestDestination={summary?.best_destination}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[#1A2E2E] font-mono leading-tight">
+                          {f.departure_airport} → {isAllDest ? "ALL" : (f.arrival_airport ?? "ALL")}
+                        </p>
+                        <p className="text-[10px] text-[#9CA3AF] truncate" title={f.user_id}>
+                          {isAdmin
+                            ? <span className="text-[#d97706] font-semibold">admin bulk</span>
+                            : f.user_id.slice(0, 8) + "…"
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-xs text-[#2E4A4A]">{fmtDate(f.departure_date)}</span>
+                      {f.return_date && (
+                        <span className="text-[10px] text-[#9CA3AF]">↩ {fmtDate(f.return_date)}</span>
+                      )}
+                    </div>
+
+                    {/* Trip */}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="inline-flex w-fit items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border bg-slate-100 text-slate-700 border-slate-200 capitalize">
+                        {f.trip_type.replace(/_/g, " ")}
+                      </span>
+                      {isAllDest && (
+                        <span className="inline-flex w-fit items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border bg-violet-100 text-violet-700 border-violet-200">
+                          All Dest
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Source */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getResultSourceBadgeClass(f.result_source ?? f.triggered_by)}`}>
+                        {sourceLbl}
+                      </span>
+                      {f.triggered_by && f.triggered_by !== (f.result_source ?? "") && (
+                        <span className="text-[10px] text-[#9CA3AF] truncate">{f.triggered_by}</span>
+                      )}
+                    </div>
+
+                    {/* GoWild Signal */}
+                    <GoWildSignalMini goWildFound={f.gowild_found} summary={summary} />
+
+                    {/* Results / Composition */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-xs text-[#2E4A4A] font-medium">
+                        {f.flight_results_count != null ? `${f.flight_results_count} results` : "—"}
+                      </span>
+                      {summary && (
+                        <div className="flex flex-wrap gap-1">
+                          {summary.unique_itineraries > 0 && (
+                            <span className="text-[10px] text-[#9CA3AF]">{summary.unique_itineraries} itins</span>
+                          )}
+                          {summary.nonstop_count > 0 && (
+                            <span className="text-[10px] text-[#9CA3AF]">· {summary.nonstop_count} nonstop</span>
+                          )}
+                          {summary.connecting_count > 0 && (
+                            <span className="text-[10px] text-[#9CA3AF]">· {summary.connecting_count} connect</span>
+                          )}
+                          {isAllDest && summary.best_destination && (
+                            <span className="text-[10px] text-cyan-600 font-medium">· {summary.best_destination}</span>
+                          )}
+                          {summary.avg_savings != null && summary.avg_savings > 0 && (
+                            <span className="text-[10px] text-emerald-600">+${Math.round(summary.avg_savings)} avg</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Freshness */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${FRESHNESS_BADGE_CLS[freshness] ?? FRESHNESS_BADGE_CLS.unknown}`}>
+                        {freshness}
+                      </span>
+                      <span className="text-[10px] text-[#9CA3AF] truncate">{fmtTs(f.search_timestamp)}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <button
+                      aria-label={`View flight search details: ${f.departure_airport} to ${isAllDest ? "all" : (f.arrival_airport ?? "all")}`}
+                      onClick={(e) => { e.stopPropagation(); setSelected(f); }}
+                      className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1.5 opacity-70 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                    >
+                      View
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && !loading && (
+            <Pagination page={page} totalPages={totalPages} onPage={handlePageChange} />
           )}
         </div>
-        <span className="text-xs text-[#9CA3AF] ml-auto">{total.toLocaleString()} total records</span>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
-        {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1.1fr_60px] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
-          {["Route", "Date", "Trip Type", "Source", "GoWild", "Results", "Timestamp", ""].map((h, i) => (
-            <span key={i} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">Loading flights…</div>
-        ) : filtered.length === 0 ? (
-          <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">No records found.</div>
-        ) : (
-          <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
-            {filtered.map((f) => {
-              const isAdmin = f.triggered_by === "admin_bulk_search";
-              const sourceLbl = getResultSourceLabel(f.result_source ?? f.triggered_by);
-              const freshness = getFreshnessStatus(f.provider_observed_at ?? f.created_at ?? f.search_timestamp);
-              return (
-                <div
-                  key={f.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelected(f)}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(f); } }}
-                  className="grid grid-cols-[2fr_1fr_1fr_1.2fr_1fr_1fr_1.1fr_60px] gap-3 px-5 py-3 items-center hover:bg-[#F1FAF6] cursor-pointer transition-colors group focus:outline-none focus:bg-[#F1FAF6]"
-                >
-                  {/* Route */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-[#1A2E2E] font-mono">
-                        {f.departure_airport} → {f.all_destinations === "Yes" ? "ALL" : (f.arrival_airport ?? "ALL")}
-                      </p>
-                      <p className="text-[11px] text-[#9CA3AF] truncate max-w-[180px]" title={f.user_id}>
-                        {isAdmin
-                          ? <span className="text-[#d97706] font-semibold">admin bulk</span>
-                          : f.user_id.slice(0, 8) + "…"
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  {/* Date */}
-                  <span className="text-xs text-[#2E4A4A]">{fmtDate(f.departure_date)}</span>
-                  {/* Trip Type */}
-                  <span className="text-xs text-[#6B7B7B] capitalize">{f.trip_type.replace(/_/g, " ")}</span>
-                  {/* Source */}
-                  <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getResultSourceBadgeClass(f.result_source ?? f.triggered_by)}`}>
-                    {sourceLbl}
-                  </span>
-                  {/* GoWild */}
-                  <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getGoWildBadgeClass(f.gowild_found)}`}>
-                    {f.gowild_found ? "GoWild" : "—"}
-                  </span>
-                  {/* Results */}
-                  <span className="text-xs text-[#6B7B7B]">
-                    {f.flight_results_count != null ? `${f.flight_results_count} results` : "—"}
-                  </span>
-                  {/* Timestamp + freshness */}
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-xs text-[#9CA3AF] truncate">{fmtTs(f.search_timestamp)}</span>
-                    <span className="text-[10px] text-[#9CA3AF] capitalize">{freshness}</span>
-                  </div>
-                  {/* View details */}
-                  <button
-                    aria-label="View flight search details"
-                    onClick={(e) => { e.stopPropagation(); setSelected(f); }}
-                    className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-1 opacity-70 group-hover:opacity-100"
-                  >
-                    View
-                  </button>
+      ) : (
+        /* Timeline view */
+        <div className="rounded-2xl p-5" style={CARD_STYLE}>
+          {loading ? (
+            <div className="flex flex-col gap-3 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <div className="h-3 w-24 rounded bg-[#F0F1F1]" />
+                  <div className="h-16 w-full rounded-2xl bg-[#F0F1F1]" />
+                  <div className="h-16 w-full rounded-2xl bg-[#F0F1F1]" />
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} onPage={(p) => { setPage(p); }} />
-        )}
-      </div>
+              ))}
+            </div>
+          ) : flights.length === 0 && !error ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <p className="text-sm font-semibold text-[#2E4A4A]">
+                {isFiltered ? "No flight searches match these filters" : "No flight searches yet"}
+              </p>
+              {isFiltered && (
+                <button
+                  onClick={handleClearFilters}
+                  className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <FlightSearchTimeline
+              flights={flights}
+              snapshotSummaries={snapshotSummaries}
+              onSelect={setSelected}
+            />
+          )}
+          {totalPages > 1 && !loading && (
+            <Pagination page={page} totalPages={totalPages} onPage={handlePageChange} />
+          )}
+        </div>
+      )}
 
       <FlightSearchDetailDrawer
         open={!!selected}

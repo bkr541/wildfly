@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO, formatDistanceToNowStrict } from "date-fns";
@@ -353,16 +353,25 @@ interface DrawerProps {
 export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps) {
   const { snapshots, loading, error } = useFlightSearchSnapshots(open && search ? search.id : null);
   const [tab, setTab] = useState<"summary" | "snapshots" | "params" | "request" | "response" | "errors">("summary");
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Escape close + focus mgmt
+  // Reset debug tab to summary whenever a new search opens
+  useEffect(() => {
+    if (open && search) setTab("summary");
+  }, [search?.id, open]);
+
+  // Escape close + focus management
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    // Move focus to close button when drawer opens
+    const raf = requestAnimationFrame(() => closeBtnRef.current?.focus());
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      cancelAnimationFrame(raf);
     };
   }, [open, onClose]);
 
@@ -472,6 +481,7 @@ export function FlightSearchDetailDrawer({ open, onClose, search }: DrawerProps)
                 <p className="text-xs text-[#9CA3AF] mt-2">Created {formatDateTime(createdAt)}</p>
               </div>
               <button
+                ref={closeBtnRef}
                 onClick={onClose}
                 aria-label="Close drawer"
                 className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[#F2F3F3] hover:bg-[#E5E7E7] text-[#1A2E2E]"
