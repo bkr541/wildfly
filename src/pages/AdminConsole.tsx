@@ -1429,55 +1429,141 @@ function DataView() {
 
 // ── GoWild Insights View ──────────────────────────────────────────────────────
 
+type GoWildPeriodKey = "24h" | "7d" | "30d" | "all";
+
+const GOWILD_PERIODS: { key: GoWildPeriodKey; label: string; hours: number | null }[] = [
+  { key: "24h", label: "24 hours", hours: 24 },
+  { key: "7d",  label: "7 days",   hours: 24 * 7 },
+  { key: "30d", label: "30 days",  hours: 24 * 30 },
+  { key: "all", label: "All time", hours: null },
+];
+
+const GOWILD_PAGE_SIZE = 1000;
+const GOWILD_HARD_SAFETY_PAGE_LIMIT = 5000;
+
 function GoWildInsightsView() {
   const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
+  const [period, setPeriod]       = useState<GoWildPeriodKey>("7d");
   const { dict: airportDict }     = useAirportDictionary();
+
+  const currentSinceIso = useMemo(() => {
+    const p = GOWILD_PERIODS.find((x) => x.key === period)!;
+    if (p.hours === null) return null;
+    return new Date(Date.now() - p.hours * 3600 * 1000).toISOString();
+  }, [period]);
+
+  const sinceIso = useMemo(() => {
+    const p = GOWILD_PERIODS.find((x) => x.key === period)!;
+    if (p.hours === null) return null;
+    return new Date(Date.now() - p.hours * 2 * 3600 * 1000).toISOString();
+  }, [period]);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setSnapshots([]);
+
     (async () => {
-      const { data, error } = await (supabase.from("flight_snapshots") as any)
-        .select(
-          "id, flight_search_id, snapshot_at, departure_at, leg_origin_iata, leg_destination_iata, origin_iata, has_go_wild, go_wild_available_seats, go_wild_total, standard_total"
-        )
-        .order("snapshot_at", { ascending: false })
-        .limit(500);
-      if (cancelled) return;
-      if (error) setError(error.message);
-      else setSnapshots(data ?? []);
-      setLoading(false);
+      const all: FlightSnapshot[] = [];
+      const seenIds = new Set<string>();
+      try {
+        let page = 0;
+        while (true) {
+          if (cancelled) return;
+          if (page >= GOWILD_HARD_SAFETY_PAGE_LIMIT) {
+            throw new Error(
+              `Aborted after ${GOWILD_HARD_SAFETY_PAGE_LIMIT} pages (${all.length} rows). Possible pagination issue — analytics not shown to avoid misleading partial data.`,
+            );
+          }
+          const offset = page * GOWILD_PAGE_SIZE;
+          const { data, error: pageError } = await (supabase.rpc as any)(
+            "get_global_gowild_insight_snapshots",
+            { p_since: sinceIso, p_limit: GOWILD_PAGE_SIZE, p_offset: offset },
+          );
+          if (cancelled) return;
+          if (pageError) {
+            throw new Error(
+              `Page ${page + 1} failed: ${pageError.message}. Analytics cannot be considered complete.`,
+            );
+          }
+          const rows = (data ?? []) as FlightSnapshot[];
+          for (const r of rows) {
+            if (!seenIds.has(r.id)) {
+              seenIds.add(r.id);
+              all.push(r);
+            }
+          }
+          if (rows.length < GOWILD_PAGE_SIZE) break;
+          page += 1;
+        }
+        if (cancelled) return;
+        setSnapshots(all);
+        setLoading(false);
+      } catch (e: any) {
+        if (cancelled) return;
+        setSnapshots([]);
+        setError(e?.message ?? "Unknown error loading snapshots");
+        setLoading(false);
+      }
     })();
+
     return () => { cancelled = true; };
-  }, []);
+  }, [sinceIso, period]);
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl p-5 animate-pulse flex flex-col gap-3" style={CARD_STYLE}>
-        <div className="h-5 w-40 rounded-lg bg-[#F0F1F1]" />
-        <div className="h-3 w-56 rounded bg-[#F0F1F1]" />
-        <div className="h-48 w-full rounded-xl bg-[#F0F1F1]" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-2xl p-5" style={CARD_STYLE}>
-        <p className="text-sm font-medium text-red-500">Failed to load GoWild data</p>
-        <p className="text-xs text-[#9CA3AF] mt-1">{error}</p>
-      </div>
-    );
-  }
+  const currentSnapshots = useMemo<FlightSnapshot[]>(() => {
+    if (!currentSinceIso) return snapshots;
+    const cutoff = new Date(currentSinceIso).getTime();
+    return snapshots.filter((s) => {
+      const t = new Date(s.snapshot_at).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }, [snapshots, currentSinceIso]);
 
   return (
     <div className="flex flex-col gap-4">
-      <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} period="7d" />
-      <AirportGoWildInsightsSection snapshots={snapshots} airportDict={airportDict} />
-      <GoWildRouteAnalyticsSection snapshots={snapshots} airportDict={airportDict} />
-      <GoWildTimingAnalyticsSection snapshots={snapshots} />
-      <SeatAvailabilityIntelligence snapshots={snapshots} airportDict={airportDict} />
+      <div className="flex items-center justify-end gap-3">
+        <span className="text-xs font-medium text-gray-500">Search Last:</span>
+        <div className="relative">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as GoWildPeriodKey)}
+            className="appearance-none rounded-full bg-white border border-gray-200 pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+          >
+            {GOWILD_PERIODS.map((p) => (
+              <option key={p.key} value={p.key}>{p.label}</option>
+            ))}
+          </select>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="rounded-2xl p-5 animate-pulse flex flex-col gap-3" style={CARD_STYLE}>
+          <div className="h-5 w-40 rounded-lg bg-[#F0F1F1]" />
+          <div className="h-3 w-56 rounded bg-[#F0F1F1]" />
+          <div className="h-48 w-full rounded-xl bg-[#F0F1F1]" />
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl p-5" style={CARD_STYLE}>
+          <p className="text-sm font-medium text-red-500">Failed to load GoWild data</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">{error}</p>
+        </div>
+      ) : (
+        <>
+          <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} period={period} />
+          <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
+          <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
+          <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
+        </>
+      )}
     </div>
   );
 }
