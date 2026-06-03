@@ -11,6 +11,7 @@ import RouteAvailabilityCalendarCard from "@/components/insights/RouteAvailabili
 import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
+import { SplitFlapOverlay } from "@/components/SplitFlapOverlay";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
