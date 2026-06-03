@@ -10,7 +10,7 @@ export function TicketDivider() {
   const NOTCH = 14;
   const NOTCH_BG = "#EDF1F1"; // approximates page bg behind frosted cards
   return (
-    <div className="relative my-2.5 h-0">
+    <div className="relative my-3 h-0">
       {/* dashed line */}
       <div
         className="absolute inset-x-3 top-0 border-t border-dashed"
