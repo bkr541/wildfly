@@ -177,7 +177,12 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             ) : (
               <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
                 <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
-                {flights.map((flight, i) => (
+                {flights.map((flight, i) => {
+                  const gowild = hasGoWild(flight.flight_json);
+                  const roundTrip = isRoundTrip(flight);
+                  const tripIcon = roundTrip ? CircleArrowReload01Icon : ArrowRight04Icon;
+                  const tripLabel = roundTrip ? "Round Trip" : "One Way";
+                  return (
                   <motion.div
                     key={flight.id}
                     initial={{ opacity: 0, x: 16 }}
@@ -197,17 +202,27 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
                     }}
                   >
-                    {/* Remove button */}
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setFlightToRemove(flight); }}
-                      className="absolute top-2.5 right-2.5 flex items-center justify-center transition-opacity hover:opacity-70"
-                    >
-                      <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
-                    </button>
-
-                    <div className="flex items-center mb-3">
+                    {/* Header: logo + GoWild + dismiss */}
+                    <div className="flex items-center justify-between mb-3">
                       <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
+                      <div className="flex items-center gap-1.5">
+                        {gowild && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                            style={{ background: "#059669", color: "#FFFFFF" }}
+                          >
+                            <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2.5} />
+                            GoWild
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setFlightToRemove(flight); }}
+                          className="flex items-center justify-center transition-opacity hover:opacity-70"
+                        >
+                          <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between gap-1 mb-2">
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.departure_airport}</span>
@@ -221,7 +236,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                       </div>
                       <span className="text-2xl font-bold text-[#1a2e2e] leading-none tracking-tight">{flight.arrival_airport}</span>
                     </div>
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between mb-3">
                       <span className="text-xs font-medium text-[#059669] leading-tight">
                         <span className="block">{formatTime(flight.departure_time)}</span>
                         <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
@@ -231,8 +246,19 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                         <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
                       </span>
                     </div>
+                    {/* Trip-type badge */}
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                        style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
+                      >
+                        <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                        {tripLabel}
+                      </span>
+                    </div>
                   </motion.div>
-                ))}
+                  );
+                })}
                 </div>
               </div>
             )}
