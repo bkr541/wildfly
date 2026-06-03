@@ -23,6 +23,7 @@ import {
   SquareArrowUpDownIcon,
   FilterMailSquareIcon,
   Analytics01Icon,
+  Home13Icon,
 } from "@hugeicons/core-free-icons";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
