@@ -293,15 +293,6 @@ export function WatchedFlightsScroll({
                                 ${Math.round(price)}
                               </span>
                             )}
-                            {gowild && (
-                              <span
-                                className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                style={{ background: "#E8F5EE", border: "1.5px solid #86C7A4", color: "#047857", padding: "3px 10px" }}
-                              >
-                                <HugeiconsIcon icon={Rocket01Icon} size={11} color="#047857" strokeWidth={2.5} />
-                                GoWild
-                              </span>
-                            )}
                           </div>
                         </motion.div>
                       );
