@@ -279,7 +279,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               </span>
                             </div>
 
-                            <TicketDivider cardPx={16} />
+                            <TicketDivider cardPx={16} notchSize={28} />
 
                             {/* Badge row */}
                             <div className="flex items-center justify-center gap-1.5 flex-wrap">
