@@ -558,12 +558,15 @@ function SkeletonCard({ height = 80 }: { height?: number }) {
 function RadarModeTabs({ mode, onChange }: { mode: RadarMode; onChange: (m: RadarMode) => void }) {
   const modes = Object.entries(MODE_LABELS) as [RadarMode, string][];
   return (
-    <div className="flex items-center gap-1 p-1 rounded-2xl" style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(52,92,90,0.06)" }}>
+    <div
+      className="flex items-center gap-1 p-1 rounded-2xl overflow-x-auto no-scrollbar"
+      style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(52,92,90,0.06)" }}
+    >
       {modes.map(([key, label]) => (
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`flex-1 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+          className={`flex-1 min-w-[92px] px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
             mode === key
               ? "text-white"
               : "text-[#6B7B7B] hover:text-[#2E4A4A] hover:bg-gray-50"
@@ -645,13 +648,13 @@ function KpiStrip({ routes, loading }: { routes: RouteMetric[]; loading: boolean
   const freshRoutes = routes.filter((r) => r.freshnessStatus === "fresh" || r.freshnessStatus === "recent").length;
 
   if (loading) return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {[0,1,2,3].map((i) => <SkeletonCard key={i} height={72} />)}
     </div>
   );
 
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <KpiCard icon={AirplaneTakeOff01Icon} label="Active Routes" value={activeRoutes.toString()} sub="within current filters" />
       <KpiCard icon={CheckmarkCircle01Icon} label="GoWild Hotspots" value={hotspots.toString()} sub="Book Now or Strong" color="#0891B2" />
       <KpiCard icon={Coins01Icon} label="Avg Savings" value={avgSavings != null ? `$${Math.round(avgSavings)}` : "—"} sub="positive savings across routes" color="#D97706" />
@@ -876,7 +879,7 @@ function AirportDetailPanel({
   const color = getAirportColor(airport, mode);
 
   return (
-    <div className="absolute right-4 top-4 bottom-4 w-72 flex flex-col rounded-2xl overflow-hidden z-[1000]" style={CARD_STYLE}>
+    <div className="absolute right-2 top-2 bottom-2 sm:right-4 sm:top-4 sm:bottom-4 w-[min(18rem,calc(100%-1rem))] flex flex-col rounded-2xl overflow-hidden z-[1000]" style={CARD_STYLE}>
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white flex-shrink-0" style={{ background: color }}>
@@ -1084,9 +1087,9 @@ export default function GoWildRadarMap() {
       </div>
 
       {/* ── Map + right panels ───────────────────────────────────────────────── */}
-      <div className="flex gap-3" style={{ height: "calc(100vh - 380px)", minHeight: 400 }}>
+      <div className="flex flex-col lg:flex-row gap-3 lg:h-[calc(100vh-380px)] lg:min-h-[400px]">
         {/* Map */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden" style={CARD_STYLE}>
+        <div className="flex-1 relative rounded-2xl overflow-hidden h-[480px] lg:h-auto" style={CARD_STYLE}>
           {/* Loading overlay */}
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-[1100] bg-white/60 backdrop-blur-sm rounded-2xl">
@@ -1229,7 +1232,7 @@ export default function GoWildRadarMap() {
         </div>
 
         {/* ── Right panels ──────────────────────────────────────────────────── */}
-        <div className="w-72 flex flex-col gap-3 overflow-y-auto flex-shrink-0">
+        <div className="w-full lg:w-72 flex flex-col gap-3 lg:overflow-y-auto flex-shrink-0">
           <BestMovesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
           <RiskyRoutesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
         </div>
