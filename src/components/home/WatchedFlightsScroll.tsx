@@ -89,6 +89,27 @@ function isRoundTrip(flight: { departure_time: string; arrival_time: string; fli
 
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
+const CARD_SHADOW =
+  "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
+const CARD_STYLE = {
+  background: "rgba(255,255,255,0.82)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  border: "1px solid rgba(255,255,255,0.65)",
+  boxShadow: CARD_SHADOW,
+};
+
+const PlaneSVG = ({ size = 22 }: { size?: number }) => (
+  <svg
+    fill="#2D6A4F"
+    style={{ width: size, height: size, flexShrink: 0 }}
+    viewBox="-3.2 -3.2 38.40 38.40"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
+    <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
+  </svg>
+);
 
 interface Props {
   flights: UserFlight[];
@@ -155,18 +176,25 @@ export function WatchedFlightsScroll({
                     {[1, 2].map((i) => (
                       <div
                         key={i}
-                        className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-4 pt-3 pb-4"
+                        className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-3 pt-2 pb-4"
                         style={{
                           background: "rgba(255,255,255,0.72)",
                           backdropFilter: "blur(18px)",
                           WebkitBackdropFilter: "blur(18px)",
                           border: "1px solid rgba(255,255,255,0.55)",
-                          boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
+                          boxShadow: CARD_SHADOW,
                         }}
                       >
-                        <div className="h-3 w-24 rounded bg-[#e5e7eb] mb-2" />
-                        <div className="h-7 w-40 rounded bg-[#e5e7eb] mb-2" />
-                        <div className="h-3 w-32 rounded bg-[#e5e7eb]" />
+                        <div className="animate-pulse">
+                          <div className="h-[14px] w-28 rounded bg-[#e5e7eb] mb-3" />
+                          <div className="h-7 w-full rounded bg-[#e5e7eb] mb-2" />
+                          <div className="h-3 w-32 rounded bg-[#e5e7eb] mb-3" />
+                          <div className="h-px w-full bg-[#e5e7eb] mb-3" />
+                          <div className="flex gap-2 justify-center">
+                            <div className="h-6 w-16 rounded-full bg-[#e5e7eb]" />
+                            <div className="h-6 w-14 rounded-full bg-[#e5e7eb]" />
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -174,13 +202,7 @@ export function WatchedFlightsScroll({
               ) : flights.length === 0 ? (
                 <div
                   className="rounded-2xl px-3 py-3 flex items-center gap-3"
-                  style={{
-                    background: "rgba(255,255,255,0.82)",
-                    backdropFilter: "blur(18px)",
-                    WebkitBackdropFilter: "blur(18px)",
-                    border: "1px solid rgba(255,255,255,0.65)",
-                    boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
-                  }}
+                  style={CARD_STYLE}
                 >
                   <div className="flex-1 min-w-0 py-1">
                     <p className="text-base text-[#1A2E2E] font-semibold leading-tight capitalize">No watched flights</p>
@@ -212,100 +234,91 @@ export function WatchedFlightsScroll({
                           style={{ scrollSnapAlign: "start" }}
                         >
                           <div
-                            className="relative rounded-2xl px-3 pt-3 pb-4 overflow-hidden"
-                            style={{
-                              background: "rgba(255,255,255,0.82)",
-                              backdropFilter: "blur(18px)",
-                              WebkitBackdropFilter: "blur(18px)",
-                              border: "1px solid rgba(255,255,255,0.65)",
-                              boxShadow: "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
-                            }}
+                            className="relative rounded-2xl px-3 pt-2 pb-4 overflow-hidden"
+                            style={CARD_STYLE}
                           >
                             {/* Colored bottom border */}
                             <div
-                              className="absolute inset-x-0 bottom-0 h-1.5 pointer-events-none"
+                              className="absolute inset-x-0 bottom-0 h-2 pointer-events-none"
                               style={{ background: "#F59E0B" }}
                             />
-                          {/* Header: logo + dismiss */}
-                          <div className="flex items-start justify-between mb-2">
-                            <img
-                              src={FRONTIER_LOGO}
-                              alt="Frontier"
-                              className="h-[16px] w-auto object-contain"
-                              loading="eager"
-                            />
-                            <div className="flex items-center gap-1.5">
-                              {gowild && (
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
-                                  style={{ background: "#059669", color: "#FFFFFF" }}
-                                >
-                                  <HugeiconsIcon icon={Rocket01Icon} size={10} color="white" strokeWidth={2.5} />
-                                  GoWild
-                                </span>
-                              )}
+
+                            {/* Header: logo + dismiss */}
+                            <div className="flex items-center justify-between mb-2">
+                              <img
+                                src={FRONTIER_LOGO}
+                                alt="Frontier"
+                                className="h-[14px] w-auto object-contain"
+                                loading="eager"
+                              />
                               <button
                                 type="button"
                                 onClick={() => setFlightToRemove(flight)}
                                 className="flex items-center justify-center transition-opacity hover:opacity-70"
                                 aria-label="Remove watched flight"
                               >
-                                <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                                <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
                               </button>
                             </div>
-                          </div>
 
-                          {/* Route */}
-                          <div className="flex items-center justify-between gap-1 mb-1.5">
-                            <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                              {flight.departure_airport}
-                            </span>
-                            <div className="flex-1 flex items-center px-1">
-                              <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                              <svg fill="#2D6A4F" className="mx-1.5 w-6 h-6 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
-                                <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
-                              </svg>
-                              <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                            </div>
-                            <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                              {flight.arrival_airport}
-                            </span>
-                          </div>
-
-                          {/* Departure / Arrival times */}
-                          <div className="flex items-start justify-between">
-                            <span className="text-xs font-medium text-[#059669] leading-tight">
-                              <span className="block">{formatTime(flight.departure_time)}</span>
-                              <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
-                            </span>
-                            <span className="text-xs font-medium text-[#059669] text-right leading-tight">
-                              <span className="block">{formatTime(flight.arrival_time)}</span>
-                              <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
-                            </span>
-                          </div>
-
-                          <TicketDivider />
-
-
-                          {/* Pills row */}
-                          <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                            <span
-                              className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                              style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
-                            >
-                              <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
-                              {tripLabel}
-                            </span>
-                            {price !== null && (
-                              <span
-                                className="inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                style={{ background: "#FFF4E0", border: "1.5px solid #F5C572", color: "#B45309", padding: "3px 10px" }}
-                              >
-                                ${Math.round(price)}
+                            {/* Route row */}
+                            <div className="flex items-center justify-between gap-1 mb-2">
+                              <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                {flight.departure_airport}
                               </span>
-                            )}
-                          </div>
+                              <div className="flex-1 flex items-center px-1.5">
+                                <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                                <div className="mx-1.5">
+                                  <PlaneSVG size={22} />
+                                </div>
+                                <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                              </div>
+                              <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                {flight.arrival_airport}
+                              </span>
+                            </div>
+
+                            {/* Departure / Arrival times */}
+                            <div className="flex items-start justify-between">
+                              <span className="leading-tight">
+                                <span className="block text-xs font-medium text-[#059669]">{formatTime(flight.departure_time)}</span>
+                                <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                              </span>
+                              <span className="leading-tight text-right">
+                                <span className="block text-xs font-medium text-[#059669]">{formatTime(flight.arrival_time)}</span>
+                                <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                              </span>
+                            </div>
+
+                            <TicketDivider />
+
+                            {/* Badges row */}
+                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                              {gowild && (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                  style={{ background: "#059669", color: "#FFFFFF", padding: "3px 10px" }}
+                                >
+                                  <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+                                  GoWild
+                                </span>
+                              )}
+                              <span
+                                className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
+                              >
+                                <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                                {tripLabel}
+                              </span>
+                              {price !== null && (
+                                <span
+                                  className="inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                  style={{ background: "#FFF4E0", border: "1.5px solid #F5C572", color: "#B45309", padding: "3px 10px" }}
+                                >
+                                  ${Math.round(price)}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       );

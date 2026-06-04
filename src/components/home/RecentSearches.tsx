@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ArrowRight, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import allDestIcon from "@/assets/all-destinations-icon.svg";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
@@ -74,6 +74,18 @@ const CARD_STYLE = {
   boxShadow: CARD_SHADOW,
 };
 
+const PlaneSVG = ({ size = 22 }: { size?: number }) => (
+  <svg
+    fill="#2D6A4F"
+    style={{ width: size, height: size, flexShrink: 0 }}
+    viewBox="-3.2 -3.2 38.40 38.40"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
+    <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
+  </svg>
+);
+
 interface Props {
   searches: FlightSearch[];
   loading: boolean;
@@ -129,14 +141,16 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       ? [1, 2].map((i) => (
                           <div
                             key={i}
-                            className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-4 pt-3 pb-4"
+                            className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-3 pt-2 pb-4"
                             style={CARD_STYLE}
                           >
-                            <div className="h-4 w-28 rounded bg-[#e5e7eb] mb-4" />
-                            <div className="h-8 w-36 rounded-lg bg-[#e5e7eb] mb-4 mx-auto" />
-                            <div className="flex gap-2">
-                              <div className="h-7 w-20 rounded-full bg-[#e5e7eb]" />
-                              <div className="h-7 w-16 rounded-full bg-[#e5e7eb]" />
+                            <div className="h-[14px] w-28 rounded bg-[#e5e7eb] mb-3" />
+                            <div className="h-7 w-full rounded-lg bg-[#e5e7eb] mb-2" />
+                            <div className="h-3 w-32 rounded bg-[#e5e7eb] mb-3" />
+                            <div className="h-px w-full bg-[#e5e7eb] mb-3" />
+                            <div className="flex gap-2 justify-center">
+                              <div className="h-6 w-20 rounded-full bg-[#e5e7eb]" />
+                              <div className="h-6 w-16 rounded-full bg-[#e5e7eb]" />
                             </div>
                           </div>
                         ))
@@ -173,7 +187,6 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                           const searchedTime = fmtTime(s.search_timestamp);
                           const searchedDate = fmtDate(s.search_timestamp);
                           const depDateLabel = fmtDate(s.departure_date);
-                          const retDateLabel = fmtDate(s.return_date);
 
                           return (
                             <motion.div
@@ -199,86 +212,84 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 onNavigate?.("flights", payload);
                               }}
                             >
-                              <div className="relative rounded-2xl px-3 pt-2 pb-3 overflow-hidden" style={CARD_STYLE}>
-                              {/* Colored bottom border */}
-                              <div
-                                className="absolute inset-x-0 bottom-0 h-1.5 pointer-events-none"
-                                style={{ background: "#1D4ED8" }}
-                              />
-
-                              {/* Header: Frontier logo + dismiss */}
-                              <div className="flex items-center justify-between mb-3">
-                                <img
-                                  src="/assets/logo/frontier/frontier_full_logo.png"
-                                  alt="Frontier"
-                                  className="h-[14px] w-auto object-contain"
-                                  loading="eager"
+                              <div className="relative rounded-2xl px-3 pt-2 pb-4 overflow-hidden" style={CARD_STYLE}>
+                                {/* Colored bottom border */}
+                                <div
+                                  className="absolute inset-x-0 bottom-0 h-2 pointer-events-none"
+                                  style={{ background: "#1D4ED8" }}
                                 />
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleRemove(e, s.id)}
-                                  className="flex items-center justify-center transition-opacity hover:opacity-70"
-                                >
-                                  <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
-                                </button>
-                              </div>
 
-                              {/* Route row */}
-                              <div className="flex items-center justify-between gap-1 mb-2">
-                                <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                  {depCode}
-                                </span>
-                                <div className="flex-1 flex items-center px-1">
-                                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                                  <svg fill="#2D6A4F" className="mx-1.5 w-6 h-6 shrink-0" viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z"/>
-                                    <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z"/>
-                                  </svg>
-                                  <div className="flex-1 h-[1.5px] bg-[#2E4A4A] opacity-20" />
-                                </div>
-                                {isAllDest ? (
-                                  <img src={allDestIcon} alt="All destinations" className="w-[28px] h-[28px] object-contain" />
-                                ) : (
-                                  <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                    {arrCode ?? "—"}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Searched / Depart dates */}
-                              <div className="flex items-start justify-between">
-                                <span className="text-xs font-medium text-[#059669] leading-tight">
-                                  <span className="block">{searchedTime || "Searched"}</span>
-                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{searchedDate}</span>
-                                </span>
-                                <span className="text-xs font-medium text-[#059669] text-right leading-tight">
-                                  <span className="block">Depart</span>
-                                  <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
-                                </span>
-                              </div>
-
-                              <TicketDivider />
-
-
-                              {/* Badges row */}
-                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                                {s.gowild_found && (
-                                  <span
-                                    className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold whitespace-nowrap"
-                                    style={{ background: "#059669", color: "#FFFFFF" }}
+                                {/* Header: Frontier logo + dismiss */}
+                                <div className="flex items-center justify-between mb-2">
+                                  <img
+                                    src="/assets/logo/frontier/frontier_full_logo.png"
+                                    alt="Frontier"
+                                    className="h-[14px] w-auto object-contain"
+                                    loading="eager"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleRemove(e, s.id)}
+                                    className="flex items-center justify-center transition-opacity hover:opacity-70"
                                   >
-                                    <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
-                                    GoWild
+                                    <X size={11} strokeWidth={2.5} className="text-[#6B7280]" />
+                                  </button>
+                                </div>
+
+                                {/* Route row */}
+                                <div className="flex items-center justify-between gap-1 mb-2">
+                                  <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                    {depCode}
                                   </span>
-                                )}
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
-                                >
-                                  <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
-                                  {tripLabel}
-                                </span>
-                              </div>
+                                  <div className="flex-1 flex items-center px-1.5">
+                                    <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                                    <div className="mx-1.5">
+                                      <PlaneSVG size={22} />
+                                    </div>
+                                    <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                                  </div>
+                                  {isAllDest ? (
+                                    <img src={allDestIcon} alt="All destinations" className="w-[26px] h-[26px] object-contain" />
+                                  ) : (
+                                    <span className="text-2xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                      {arrCode ?? "—"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Searched / Depart dates */}
+                                <div className="flex items-start justify-between">
+                                  <span className="leading-tight">
+                                    <span className="block text-xs font-medium text-[#059669]">{searchedTime || "Searched"}</span>
+                                    <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{searchedDate}</span>
+                                  </span>
+                                  <span className="leading-tight text-right">
+                                    <span className="block text-xs font-medium text-[#059669]">Depart</span>
+                                    <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{depDateLabel}</span>
+                                  </span>
+                                </div>
+
+                                <TicketDivider />
+
+                                {/* Badges row */}
+                                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                  {s.gowild_found && (
+                                    <span
+                                      className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                      style={{ background: "#059669", color: "#FFFFFF", padding: "3px 10px" }}
+                                    >
+                                      <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+                                      GoWild
+                                    </span>
+                                  )}
+                                  <span
+                                    className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                    style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
+                                  >
+                                    <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                                    {tripLabel}
+                                  </span>
+                                </div>
                               </div>
                             </motion.div>
                           );

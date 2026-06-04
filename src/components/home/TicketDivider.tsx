@@ -1,41 +1,65 @@
+interface TicketDividerProps {
+  className?: string;
+  notchSize?: number;
+  notchBg?: string;
+  lineColor?: string;
+  marginY?: number;
+  /** Must match the card's horizontal padding in px so notches align at card edges */
+  cardPx?: number;
+}
+
 /**
- * Boarding-pass style divider: a dashed horizontal line flanked by two
- * semi-circle notches that punch into the card's left/right edges.
+ * Boarding-pass style divider with a dashed horizontal line and semicircle
+ * notches punched into the left/right card edges.
  *
- * Renders inside a relatively-positioned parent card. The notch circles
- * use a solid color tuned to blend with the page background behind the
- * frosted-glass cards.
+ * Uses negative horizontal margins equal to cardPx so the notch circles are
+ * centered at the card's inner padding edge. With overflow:hidden on the
+ * parent card the outer half of each circle is clipped, leaving a visible
+ * semicircle that looks like a notch cut into the ticket.
  */
-export function TicketDivider() {
-  const NOTCH = 14;
-  const NOTCH_BG = "#EDF1F1"; // approximates page bg behind frosted cards
+export function TicketDivider({
+  className,
+  notchSize = 14,
+  notchBg = "#EDF1F1",
+  lineColor = "#CBD5D5",
+  marginY = 12,
+  cardPx = 12,
+}: TicketDividerProps) {
   return (
-    <div className="relative my-3 h-0">
-      {/* dashed line */}
+    <div
+      className={`relative h-0${className ? ` ${className}` : ""}`}
+      style={{
+        marginTop: marginY,
+        marginBottom: marginY,
+        marginLeft: -cardPx,
+        marginRight: -cardPx,
+      }}
+    >
+      {/* dashed line — inset back to card's content area */}
       <div
-        className="absolute inset-x-3 top-0 border-t border-dashed"
-        style={{ borderColor: "#CBD5D5" }}
+        className="absolute top-0 border-t border-dashed"
+        style={{ borderColor: lineColor, left: cardPx, right: cardPx }}
       />
-      {/* left notch */}
+      {/* left notch — center sits at card's padding-box edge, right half visible */}
       <div
         className="absolute rounded-full"
         style={{
-          width: NOTCH,
-          height: NOTCH,
-          left: -NOTCH / 2,
-          top: -NOTCH / 2,
-          background: NOTCH_BG,
+          width: notchSize,
+          height: notchSize,
+          left: -notchSize / 2,
+          top: -notchSize / 2,
+          background: notchBg,
         }}
       />
       {/* right notch */}
       <div
         className="absolute rounded-full"
         style={{
-          width: NOTCH,
-          height: NOTCH,
-          right: -NOTCH / 2,
-          top: -NOTCH / 2,
-          background: NOTCH_BG,
+          width: notchSize,
+          height: notchSize,
+          right: -notchSize / 2,
+          top: -notchSize / 2,
+          background: notchBg,
         }}
       />
     </div>
