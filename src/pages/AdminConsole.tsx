@@ -28,7 +28,7 @@ import {
   Menu03Icon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
 import { FlightsView } from "@/components/admin/flights/FlightsView";
