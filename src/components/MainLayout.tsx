@@ -171,7 +171,7 @@ const MainLayout = ({
   return (
     <div
       className="relative flex h-full overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
+      style={{ background: "linear-gradient(160deg, #DDE8E8 0%, #CDDADA 100%)" }}
     >
       {/* ── Sidebar drawer panel ── */}
       <div
@@ -279,7 +279,7 @@ const MainLayout = ({
       <div
         className="relative flex flex-col h-full w-full"
         style={{
-          background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)",
+          background: "linear-gradient(160deg, #DDE8E8 0%, #CDDADA 100%)",
           transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "translateX(0)",
           borderRadius: drawerOpen ? "20px" : "0px",
           boxShadow: drawerOpen ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)" : "none",

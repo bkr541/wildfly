@@ -224,7 +224,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                           className="relative flex-shrink-0 cursor-pointer active:scale-[0.98] transition-transform"
                           style={{
                             scrollSnapAlign: "start",
-                            width: "calc(100vw - 72px)",
+                            width: "calc(100vw - 40px)",
                             maxWidth: 580,
                           }}
                         >
@@ -279,7 +279,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               </span>
                             </div>
 
-                            <TicketDivider cardPx={16} notchSize={28} />
+                            <TicketDivider cardPx={16} notchSize={40} />
 
                             {/* Badge row */}
                             <div className="flex items-center justify-center gap-1.5 flex-wrap">
