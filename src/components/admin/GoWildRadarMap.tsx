@@ -879,7 +879,7 @@ function AirportDetailPanel({
   const color = getAirportColor(airport, mode);
 
   return (
-    <div className="absolute right-4 top-4 bottom-4 w-72 flex flex-col rounded-2xl overflow-hidden z-[1000]" style={CARD_STYLE}>
+    <div className="absolute right-2 top-2 bottom-2 sm:right-4 sm:top-4 sm:bottom-4 w-[min(18rem,calc(100%-1rem))] flex flex-col rounded-2xl overflow-hidden z-[1000]" style={CARD_STYLE}>
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white flex-shrink-0" style={{ background: color }}>
