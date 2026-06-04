@@ -1232,7 +1232,7 @@ export default function GoWildRadarMap() {
         </div>
 
         {/* ── Right panels ──────────────────────────────────────────────────── */}
-        <div className="w-72 flex flex-col gap-3 overflow-y-auto flex-shrink-0">
+        <div className="w-full lg:w-72 flex flex-col gap-3 lg:overflow-y-auto flex-shrink-0">
           <BestMovesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
           <RiskyRoutesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
         </div>
