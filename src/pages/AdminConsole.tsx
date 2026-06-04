@@ -1614,97 +1614,162 @@ const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
   radar:     { title: "GoWild Radar Map", subtitle: "Interactive map of GoWild opportunity by airport and route." },
 };
 
+const DRAWER_WIDTH_PCT = 80;
+const DRAWER_MAX_PX = 320;
+
 export default function AdminConsole() {
   const [view, setView]               = useState<View>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen]   = useState(false);
   const [gowildLoading, setGowildLoading] = useState(false);
   const navigate = useNavigate();
+  const { avatarUrl, initials: profileInitials, fullName } = useProfile();
 
   const { title, subtitle } = VIEW_TITLES[view];
 
   const handleNavClick = (id: View) => {
-    if (id === "gowild") {
-      setGowildLoading(true);
-      setView("gowild");
-      // Keep overlay visible for minimum animation time
-      setTimeout(() => setGowildLoading(false), 2200);
-    } else {
-      setView(id);
-    }
+    setDrawerOpen(false);
+    const fire = () => {
+      if (id === "gowild") {
+        setGowildLoading(true);
+        setView("gowild");
+        setTimeout(() => setGowildLoading(false), 2200);
+      } else {
+        setView(id);
+      }
+    };
+    setTimeout(fire, 280);
   };
+
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
 
   return (
     <div
-      className="h-screen overflow-hidden flex"
+      className="relative h-screen overflow-hidden flex"
       style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
     >
-      {/* ── Sidebar ────────────────────────────────────────────────────────── */}
+      {/* ── Sidebar drawer panel ── */}
       <div
-        className="flex flex-col flex-shrink-0 border-r border-[#E8EEEE] transition-all duration-300 overflow-hidden"
+        className="fixed inset-y-0 left-0 z-40 flex flex-col bg-white"
         style={{
-          width: sidebarOpen ? 220 : 68,
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(18px)",
-          WebkitBackdropFilter: "blur(18px)",
+          width: `min(${DRAWER_WIDTH_PCT}%, ${DRAWER_MAX_PX}px)`,
+          transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
         }}
       >
-        {/* Logo / toggle */}
-        <div className={`flex items-center border-b border-[#F0F1F1] py-4 ${sidebarOpen ? "justify-between px-4" : "flex-col gap-2 px-2"}`}>
-          {sidebarOpen && (
-            <span className="text-2xl font-black tracking-widest uppercase text-[#10B981] select-none flex-1 text-center">
-              Console
-            </span>
-          )}
-          <div className={`flex items-center gap-1 ${sidebarOpen ? "" : "flex-col"}`}>
-            <button
-              type="button"
-              onClick={() => setSidebarOpen((v) => !v)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
-              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              <HugeiconsIcon
-                icon={sidebarOpen ? UnfoldLessIcon : UnfoldMoreIcon}
-                size={15}
-                color="currentColor"
-                strokeWidth={2.5}
-              />
-            </button>
+        {/* Profile header */}
+        <div className="flex items-center gap-3 px-6 pt-10 pb-2">
+          <UIAvatar
+            className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => { setDrawerOpen(false); setTimeout(() => navigate("/"), 280); }}
+          >
+            <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
+            <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">
+              {profileInitials}
+            </AvatarFallback>
+          </UIAvatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-[#9CA3AF] text-sm font-medium">Hello,</p>
+            <p className="text-[#2E4A4A] text-lg font-semibold truncate leading-tight">{fullName}</p>
           </div>
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className="text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+            type="button"
+            aria-label="Close menu"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="currentColor" strokeWidth={1.5} />
+          </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex flex-col gap-1 p-2 pt-3">
+        <div className="h-px bg-[#E5E7EB] mx-6" />
+
+        <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0 overflow-y-auto">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
+            Console
+          </p>
           {NAV_ITEMS.map((item) => {
             const active = view === item.id;
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => handleNavClick(item.id)}
-                title={!sidebarOpen ? item.label : undefined}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left ${
-                  active ? "text-white" : "text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]"
-                }`}
-                style={active ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
               >
                 <HugeiconsIcon
                   icon={item.icon}
-                  size={17}
-                  color={active ? "white" : "currentColor"}
-                  strokeWidth={2}
-                  className="flex-shrink-0"
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={active ? 2 : 1.5}
                 />
-                {sidebarOpen && (
-                  <span className="text-sm font-semibold truncate">{item.label}</span>
-                )}
+                <span className={cn("text-base", active ? "font-extrabold" : "font-semibold")}>
+                  {item.label}
+                </span>
               </button>
             );
           })}
         </nav>
+
+        <div className="mt-auto">
+          <div className="h-px bg-[#E5E7EB] mx-6" />
+          <button
+            onClick={() => { setDrawerOpen(false); setTimeout(() => navigate("/"), 280); }}
+            type="button"
+            className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
+          >
+            <HugeiconsIcon icon={Home13Icon} size={20} color="currentColor" strokeWidth={1.5} />
+            <span className="text-base font-semibold">Back to Wildfly</span>
+          </button>
+        </div>
       </div>
 
-      {/* ── Main content ───────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 p-6 gap-5 overflow-hidden">
+      {/* ── Scrim ── */}
+      <div
+        className="fixed inset-0 z-30 bg-black/30 backdrop-blur-[1px]"
+        style={{
+          opacity: drawerOpen ? 1 : 0,
+          pointerEvents: drawerOpen ? "auto" : "none",
+          transition: "opacity 0.32s cubic-bezier(0.4,0,0.2,1)",
+        }}
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* ── Main content panel (push + card effect) ── */}
+      <div
+        className="relative flex flex-col h-full w-full min-w-0"
+        style={{
+          background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)",
+          transform: drawerOpen ? `translateX(min(${DRAWER_WIDTH_PCT * 0.55}%, ${DRAWER_MAX_PX * 0.55}px))` : "translateX(0)",
+          borderRadius: drawerOpen ? "20px" : "0px",
+          boxShadow: drawerOpen ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)" : "none",
+          transition:
+            "transform 0.32s cubic-bezier(0.4,0,0.2,1), border-radius 0.32s cubic-bezier(0.4,0,0.2,1), box-shadow 0.32s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
+          overflow: drawerOpen ? "hidden" : "visible",
+        }}
+      >
+        {/* Hamburger trigger row */}
+        <div className="flex items-center px-5 pt-4">
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
+            aria-label="Open menu"
+          >
+            <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col min-w-0 px-6 pb-6 pt-2 gap-5 overflow-hidden">
+
         {/* Page header */}
         <AnimatePresence mode="wait">
           <motion.div
