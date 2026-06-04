@@ -648,13 +648,13 @@ function KpiStrip({ routes, loading }: { routes: RouteMetric[]; loading: boolean
   const freshRoutes = routes.filter((r) => r.freshnessStatus === "fresh" || r.freshnessStatus === "recent").length;
 
   if (loading) return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {[0,1,2,3].map((i) => <SkeletonCard key={i} height={72} />)}
     </div>
   );
 
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <KpiCard icon={AirplaneTakeOff01Icon} label="Active Routes" value={activeRoutes.toString()} sub="within current filters" />
       <KpiCard icon={CheckmarkCircle01Icon} label="GoWild Hotspots" value={hotspots.toString()} sub="Book Now or Strong" color="#0891B2" />
       <KpiCard icon={Coins01Icon} label="Avg Savings" value={avgSavings != null ? `$${Math.round(avgSavings)}` : "—"} sub="positive savings across routes" color="#D97706" />
