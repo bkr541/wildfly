@@ -558,12 +558,15 @@ function SkeletonCard({ height = 80 }: { height?: number }) {
 function RadarModeTabs({ mode, onChange }: { mode: RadarMode; onChange: (m: RadarMode) => void }) {
   const modes = Object.entries(MODE_LABELS) as [RadarMode, string][];
   return (
-    <div className="flex items-center gap-1 p-1 rounded-2xl" style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(52,92,90,0.06)" }}>
+    <div
+      className="flex items-center gap-1 p-1 rounded-2xl overflow-x-auto no-scrollbar"
+      style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(52,92,90,0.06)" }}
+    >
       {modes.map(([key, label]) => (
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`flex-1 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+          className={`flex-1 min-w-[92px] px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
             mode === key
               ? "text-white"
               : "text-[#6B7B7B] hover:text-[#2E4A4A] hover:bg-gray-50"
