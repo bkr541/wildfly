@@ -223,12 +223,12 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                           className="relative flex-shrink-0 cursor-pointer active:scale-[0.98] transition-transform"
                           style={{
                             scrollSnapAlign: "start",
-                            width: "calc(100vw - 40px)",
+                            width: "calc((100vw - 40px) * 0.7)",
                             maxWidth: 580,
                           }}
                         >
                           <div
-                            className="relative rounded-2xl px-4 pt-3 pb-[18px] overflow-hidden"
+                            className="relative rounded-2xl px-4 pt-3 pb-[14px] overflow-hidden"
                             style={CARD_STYLE}
                           >
                             {/* Colored bottom border */}
@@ -278,7 +278,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               </span>
                             </div>
 
-                            <TicketDivider cardPx={16} notchSize={40} />
+                            <TicketDivider cardPx={16} notchSize={32} />
 
                             {/* Badge row */}
                             <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>

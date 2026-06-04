@@ -211,7 +211,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 onNavigate?.("flights", payload);
                               }}
                             >
-                              <div className="relative rounded-2xl px-3 pt-2 pb-[18px] overflow-hidden" style={CARD_STYLE}>
+                              <div className="relative rounded-2xl px-3 pt-2 pb-[14px] overflow-hidden" style={CARD_STYLE}>
                                 {/* Colored bottom border */}
                                 <div
                                   className="absolute inset-x-0 bottom-0 h-2 pointer-events-none"
