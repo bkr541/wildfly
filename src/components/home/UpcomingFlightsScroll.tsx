@@ -4,7 +4,7 @@ import { ChevronDown, X } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer02Icon, Delete02Icon, ArrowRight04Icon, CircleArrowReload01Icon, Rocket01Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
-import { TicketDivider } from "./TicketDivider";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -227,85 +227,86 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                             maxWidth: 580,
                           }}
                         >
+                          {/* Outer wrapper: clips notch circles + applies drop-shadow that follows the actual alpha shape */}
                           <div
-                            className="relative rounded-2xl px-4 pt-3 pb-[14px] overflow-hidden"
-                            style={CARD_STYLE}
+                            className="rounded-2xl overflow-hidden"
+                            style={{
+                              filter: "drop-shadow(0 2px 8px rgba(52,92,90,0.18)) drop-shadow(0 1px 2px rgba(0,0,0,0.08))",
+                            }}
                           >
-                            {/* Colored bottom border */}
-                            <div
-                              className="absolute inset-x-0 bottom-0 h-2 pointer-events-none"
-                              style={{ background: "#059669" }}
-                            />
-
-                            {/* Header: logo + dismiss */}
-                            <div className="flex items-center justify-between mb-3">
-                              <img src={FRONTIER_LOGO} alt="Frontier" className="h-[20px] w-auto object-contain" loading="eager" />
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setFlightToRemove(flight); }}
-                                className="flex items-center justify-center transition-opacity hover:opacity-70"
-                              >
-                                <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
-                              </button>
-                            </div>
-
-                            {/* Route row */}
-                            <div className="flex items-center justify-between gap-1 mb-3">
-                              <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                {flight.departure_airport}
-                              </span>
-                              <div className="flex-1 flex items-center px-2">
-                                <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
-                                <div className="mx-2">
-                                  <PlaneSVG size={30} />
-                                </div>
-                                <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                            {/* Top section */}
+                            <div className="px-4 pt-3 pb-3" style={{ background: "rgba(255,255,255,0.95)" }}>
+                              <div className="flex items-center justify-between mb-3">
+                                <img src={FRONTIER_LOGO} alt="Frontier" className="h-[20px] w-auto object-contain" loading="eager" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setFlightToRemove(flight); }}
+                                  className="flex items-center justify-center transition-opacity hover:opacity-70"
+                                >
+                                  <X size={13} strokeWidth={2.5} className="text-[#6B7280]" />
+                                </button>
                               </div>
-                              <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
-                                {flight.arrival_airport}
-                              </span>
+                              <div className="flex items-center justify-between gap-1 mb-3">
+                                <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                  {flight.departure_airport}
+                                </span>
+                                <div className="flex-1 flex items-center px-2">
+                                  <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                                  <div className="mx-2"><PlaneSVG size={30} /></div>
+                                  <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                                </div>
+                                <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                                  {flight.arrival_airport}
+                                </span>
+                              </div>
+                              <div className="flex items-start justify-between">
+                                <span className="leading-tight">
+                                  <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
+                                  <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                                </span>
+                                {departureCountdown && (
+                                  <span
+                                    className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap self-center"
+                                    style={{ background: "#F0FDF4", border: "1.5px solid #6EE7B7", color: "#047857", height: "24px", padding: "0 10px" }}
+                                  >
+                                    Departs in {departureCountdown}
+                                  </span>
+                                )}
+                                <span className="leading-tight text-right">
+                                  <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.arrival_time)}</span>
+                                  <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                                </span>
+                              </div>
                             </div>
 
-                            {/* Time / date row */}
-                            <div className="flex items-start justify-between">
-                              <span className="leading-tight">
-                                <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
-                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
-                              </span>
-                              <span className="leading-tight text-right">
-                                <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.arrival_time)}</span>
-                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
-                              </span>
+                            {/* Notch gap — transparent, circles have no background so the page shows through */}
+                            <div className="relative" style={{ height: 32 }}>
+                              <div className="absolute" style={{ top: 15, left: 16, right: 16, borderTop: "1px dashed #C2CFCF" }} />
+                              <div className="absolute rounded-full" style={{ width: 32, height: 32, left: -16, top: 0 }} />
+                              <div className="absolute rounded-full" style={{ width: 32, height: 32, right: -16, top: 0 }} />
                             </div>
 
-                            <TicketDivider cardPx={16} notchSize={32} />
-
-                            {/* Badge row */}
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>
-                              {gowild && (
+                            {/* Bottom section */}
+                            <div className="relative px-4 overflow-hidden" style={{ background: "rgba(255,255,255,0.95)", paddingBottom: "14px" }}>
+                              <div className="absolute inset-x-0 bottom-0 h-2 pointer-events-none" style={{ background: "#059669" }} />
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>
+                                {gowild && (
+                                  <span
+                                    className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                    style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
+                                  >
+                                    <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+                                    GoWild
+                                  </span>
+                                )}
                                 <span
                                   className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
+                                  style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: "24px", padding: "0 10px" }}
                                 >
-                                  <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
-                                  GoWild
+                                  <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                                  {tripLabel}
                                 </span>
-                              )}
-                              {departureCountdown && (
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#F0FDF4", border: "1.5px solid #6EE7B7", color: "#047857", height: "24px", padding: "0 10px" }}
-                                >
-                                  Departs in {departureCountdown}
-                                </span>
-                              )}
-                              <span
-                                className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: "24px", padding: "0 10px" }}
-                              >
-                                <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
-                                {tripLabel}
-                              </span>
+                              </div>
                             </div>
                           </div>
                         </motion.div>
