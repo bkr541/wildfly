@@ -271,7 +271,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 <TicketDivider />
 
                                 {/* Badges row */}
-                                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>
                                   {s.gowild_found && (
                                     <span
                                       className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"

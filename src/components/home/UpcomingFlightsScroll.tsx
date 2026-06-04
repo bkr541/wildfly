@@ -281,7 +281,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                             <TicketDivider cardPx={16} notchSize={40} />
 
                             {/* Badge row */}
-                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                            <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>
                               {gowild && (
                                 <span
                                   className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
