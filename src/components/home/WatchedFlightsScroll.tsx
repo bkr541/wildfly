@@ -233,7 +233,7 @@ export function WatchedFlightsScroll({
                           style={{ scrollSnapAlign: "start" }}
                         >
                           <div
-                            className="relative rounded-2xl px-3 pt-2 pb-[14px] overflow-hidden"
+                            className="relative rounded-2xl px-3 pt-2 pb-[18px] overflow-hidden"
                             style={CARD_STYLE}
                           >
                             {/* Colored bottom border */}

@@ -19,7 +19,7 @@ interface TicketDividerProps {
  */
 export function TicketDivider({
   className,
-  notchSize = 28,
+  notchSize = 36,
   notchBg = "#CDDADA",
   lineColor = "#C2CFCF",
   marginY = 10,
