@@ -289,7 +289,7 @@ export function WatchedFlightsScroll({
                               </span>
                             </div>
 
-                            <TicketDivider />
+                            <TicketDivider notchSize={26} />
 
                             {/* Badges row */}
                             <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>

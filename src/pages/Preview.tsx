@@ -21,6 +21,7 @@ import { isBlackoutDate } from "@/utils/blackoutDates";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomSheet } from "@/components/BottomSheet";
 import { cn } from "@/lib/utils";
+import FlightLegTimeline from "@/components/FlightLegTimeline";
 
 interface Airport {
   id: number;
@@ -498,6 +499,7 @@ const PreviewPage = () => {
   const [examples, setExamples] = useState<FlightSearchExample[] | null>(null);
   const [loadingExamples, setLoadingExamples] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedPreviewKey, setExpandedPreviewKey] = useState<string | null>(null);
   const [payloads, setPayloads] = useState<Record<string, { status: "loading" | "ready" | "empty"; flights?: any[] }>>({});
 
   // GoWild Seat Availability section state
@@ -521,6 +523,17 @@ const PreviewPage = () => {
   const airportMap = useMemo(() => {
     const m: Record<string, Airport> = {};
     for (const a of airports) m[a.iata_code] = a;
+    return m;
+  }, [airports]);
+
+  const previewAirportMap = useMemo(() => {
+    const m: Record<string, { city: string; stateCode: string }> = {};
+    for (const a of airports) {
+      m[a.iata_code] = {
+        city: a.locations?.city ?? "",
+        stateCode: a.locations?.state_code ?? "",
+      };
+    }
     return m;
   }, [airports]);
 
@@ -802,58 +815,146 @@ const PreviewPage = () => {
                                 const cheapest = [f.fares?.basic, f.fares?.economy, f.fares?.premium]
                                   .filter((v): v is number => v != null)
                                   .sort((a, b) => a - b)[0];
+                                const pKey = `${ex.id}-${i}`;
+                                const isFlightOpen = expandedPreviewKey === pKey;
+
+                                const FARE_LABELS: Record<string, string> = {
+                                  go_wild: "GoWild", discount_den: "Discount Den", standard: "Standard",
+                                  basic: "Basic", economy: "Economy", premium: "Premium", business: "Business", first: "First",
+                                };
+                                const FARE_ORDER = ["go_wild", "discount_den", "standard", "basic", "economy", "premium", "business", "first"];
+                                const rawFares = f.rawPayload?.fares ?? {};
+                                const fareOptions: { label: string; price: number; isGoWild: boolean }[] = [];
+                                for (const key of FARE_ORDER) {
+                                  const rawEntry = rawFares?.[key];
+                                  let price: number | null = null;
+                                  if (rawEntry && typeof rawEntry === "object") {
+                                    const t = Number(rawEntry.total ?? rawEntry.price ?? rawEntry.amount);
+                                    if (Number.isFinite(t) && t > 0) price = t;
+                                  } else if (rawEntry != null) {
+                                    const t = Number(rawEntry);
+                                    if (Number.isFinite(t) && t > 0) price = t;
+                                  }
+                                  if (price == null) {
+                                    const fallback = f.fares?.[key];
+                                    const t = Number(fallback);
+                                    if (Number.isFinite(t) && t > 0) price = t;
+                                  }
+                                  if (price != null) {
+                                    fareOptions.push({ label: FARE_LABELS[key] ?? key, price, isGoWild: key === "go_wild" });
+                                  }
+                                }
+
                                 return (
                                   <div
                                     key={i}
                                     className={cn(
-                                      "rounded-xl bg-white px-3 py-2.5",
+                                      "rounded-xl bg-white overflow-hidden",
                                       isGW ? "border border-[#059669]" : "border border-[#E8EBEB]",
                                     )}
                                     style={{ boxShadow: "0 2px 8px 0 rgba(53,92,90,0.06)" }}
                                   >
-                                    <div className="flex items-center justify-between mb-1.5">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-semibold text-[#6B7B7B]">
-                                          {f.flightNumber ?? f.airline ?? "Frontier"}
-                                        </span>
-                                        {isGW && (
-                                          <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-4 text-[9px] font-bold text-white bg-[#059669]">
-                                            <HugeiconsIcon icon={Rocket01Icon} size={9} color="#FFFFFF" strokeWidth={2.5} />
-                                            GoWild
+                                    {/* Collapsed summary */}
+                                    <div className="px-3 pt-2.5 pb-1.5">
+                                      <div className="flex items-center justify-between mb-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[11px] font-semibold text-[#6B7B7B]">
+                                            {f.flightNumber ?? f.airline ?? "Frontier"}
+                                          </span>
+                                          {isGW && (
+                                            <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-4 text-[9px] font-bold text-white bg-[#059669]">
+                                              <HugeiconsIcon icon={Rocket01Icon} size={9} color="#FFFFFF" strokeWidth={2.5} />
+                                              GoWild
+                                            </span>
+                                          )}
+                                        </div>
+                                        {cheapest != null && (
+                                          <span className="text-[14px] font-black text-[#1A2E2E] tabular-nums">
+                                            ${cheapest.toFixed(0)}
                                           </span>
                                         )}
                                       </div>
-                                      {cheapest != null && (
-                                        <span className="text-[14px] font-black text-[#1A2E2E] tabular-nums">
-                                          ${cheapest.toFixed(0)}
-                                        </span>
+                                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                                        <div className="text-left">
+                                          <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
+                                            {formatTime(depLeg?.departure_time ?? "")}
+                                          </div>
+                                          <div className="text-[10px] font-semibold text-[#6B7B7B]">
+                                            {depLeg?.origin}
+                                          </div>
+                                        </div>
+                                        <div className="flex flex-col items-center text-[10px] text-[#9CA3AF] font-medium">
+                                          <div className="w-12 h-px bg-[#C8D5D5] mb-1" />
+                                          <span>{f.total_duration || "—"}</span>
+                                          <span className="mt-0.5">
+                                            {(f.legs?.length ?? 1) === 1 ? "Nonstop" : `${(f.legs?.length ?? 1) - 1} stop`}
+                                          </span>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
+                                            {formatTime(arrLeg?.arrival_time ?? "")}
+                                          </div>
+                                          <div className="text-[10px] font-semibold text-[#6B7B7B]">
+                                            {arrLeg?.destination}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Show / Hide Details toggle */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedPreviewKey(isFlightOpen ? null : pKey)}
+                                      className={cn(
+                                        "w-full flex items-center justify-center gap-1 py-2 text-[11px] font-semibold transition-colors border-t border-[#F0F1F1]",
+                                        isGW ? "text-[#10B981]" : "text-[#6B7B7B] hover:text-[#2E4A4A]",
                                       )}
-                                    </div>
-                                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                                      <div className="text-left">
-                                        <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
-                                          {formatTime(depLeg?.departure_time ?? "")}
-                                        </div>
-                                        <div className="text-[10px] font-semibold text-[#6B7B7B]">
-                                          {depLeg?.origin}
-                                        </div>
+                                    >
+                                      {isFlightOpen ? "Hide Details" : "Show Details"}
+                                      <HugeiconsIcon
+                                        icon={ArrowDown01Icon}
+                                        size={12}
+                                        color="currentColor"
+                                        strokeWidth={2.5}
+                                        style={{ transform: isFlightOpen ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }}
+                                      />
+                                    </button>
+
+                                    {/* Expanded detail */}
+                                    {isFlightOpen && (
+                                      <div className="border-t border-[#F0F1F1] bg-[#F8FAFA]">
+                                        <FlightLegTimeline legs={f.legs ?? []} airportMap={previewAirportMap} />
+                                        {fareOptions.length > 0 && (
+                                          <div className="px-3 pb-3">
+                                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#6B7B7B] mb-1.5">
+                                              Fare Options
+                                            </div>
+                                            <div className="rounded-xl border border-[#E8EBEB] overflow-hidden bg-white">
+                                              {fareOptions.map((fare, fi) => (
+                                                <div
+                                                  key={fare.label}
+                                                  className={cn(
+                                                    "flex items-center justify-between px-3 py-2",
+                                                    fi > 0 && "border-t border-[#F1F4F4]",
+                                                    fare.isGoWild && "bg-[#ECFDF5]",
+                                                  )}
+                                                >
+                                                  <div className="flex items-center gap-1.5">
+                                                    {fare.isGoWild && <HugeiconsIcon icon={Rocket01Icon} size={11} color="#059669" strokeWidth={2.5} />}
+                                                    <span className={cn("text-[12px] font-semibold", fare.isGoWild ? "text-[#047857]" : "text-[#1A2E2E]")}>
+                                                      {fare.label}
+                                                    </span>
+                                                  </div>
+                                                  <span className={cn("text-[13px] font-bold tabular-nums", fare.isGoWild ? "text-[#047857]" : "text-[#1A2E2E]")}>
+                                                    ${fare.price.toFixed(2)}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
-                                      <div className="flex flex-col items-center text-[10px] text-[#9CA3AF] font-medium">
-                                        <div className="w-12 h-px bg-[#C8D5D5] mb-1" />
-                                        <span>{f.total_duration || "—"}</span>
-                                        <span className="mt-0.5">
-                                          {(f.legs?.length ?? 1) === 1 ? "Nonstop" : `${(f.legs?.length ?? 1) - 1} stop`}
-                                        </span>
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="text-[16px] font-bold text-[#1A2E2E] tabular-nums leading-tight">
-                                          {formatTime(arrLeg?.arrival_time ?? "")}
-                                        </div>
-                                        <div className="text-[10px] font-semibold text-[#6B7B7B]">
-                                          {arrLeg?.destination}
-                                        </div>
-                                      </div>
-                                    </div>
+                                    )}
                                   </div>
                                 );
                               })}

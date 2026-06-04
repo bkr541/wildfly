@@ -1605,13 +1605,13 @@ function LoadingInsightsOverlay() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const VIEW_TITLES: Record<View, { title: string; subtitle: string }> = {
-  dashboard: { title: "Admin Dashboard",  subtitle: "Wildfly platform health, GoWild availability, and search intelligence." },
-  users:     { title: "Users",           subtitle: "All registered users and their profile information." },
-  flights:   { title: "Flights",         subtitle: "All flight searches across the platform." },
-  data:      { title: "Data",            subtitle: "Data insights and platform analytics." },
-  gowild:    { title: "GoWild Insights",   subtitle: "GoWild seat availability trends and route analytics." },
-  radar:     { title: "GoWild Radar Map", subtitle: "Interactive map of GoWild opportunity by airport and route." },
+const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
+  dashboard: { prefix: "Admin",   label: "DASHBOARD" },
+  users:     { prefix: "Admin",   label: "USERS" },
+  flights:   { prefix: "Admin",   label: "FLIGHTS" },
+  data:      { prefix: "Admin",   label: "DATA" },
+  gowild:    { prefix: "GoWild",  label: "INSIGHTS" },
+  radar:     { prefix: "GoWild",  label: "RADAR" },
 };
 
 const DRAWER_WIDTH_PCT = 80;
@@ -1624,7 +1624,7 @@ export default function AdminConsole() {
   const navigate = useNavigate();
   const { avatarUrl, initials: profileInitials, fullName } = useProfile();
 
-  const { title, subtitle } = VIEW_TITLES[view];
+  const { prefix, label } = VIEW_HEADERS[view];
 
   const handleNavClick = (id: View) => {
     setDrawerOpen(false);
@@ -1756,21 +1756,9 @@ export default function AdminConsole() {
           overflow: drawerOpen ? "hidden" : "visible",
         }}
       >
-        {/* Hamburger trigger row */}
-        <div className="flex items-center px-5 pt-4">
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            className="h-12 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
-            aria-label="Open menu"
-          >
-            <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
-          </button>
-        </div>
+        <div className="flex-1 flex flex-col min-w-0 px-5 pb-6 pt-4 gap-5 overflow-hidden">
 
-        <div className="flex-1 flex flex-col min-w-0 px-6 pb-6 pt-2 gap-5 overflow-hidden">
-
-        {/* Page header */}
+        {/* Page header — hamburger + title + back button in one row */}
         <AnimatePresence mode="wait">
           <motion.div
             key={view + "-header"}
@@ -1778,11 +1766,19 @@ export default function AdminConsole() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
-            className="flex items-start justify-between gap-3"
+            className="flex items-center gap-3"
           >
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2E] tracking-tight">{title}</h1>
-              <p className="text-xs sm:text-sm text-[#6B7B7B] mt-0.5">{subtitle}</p>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="h-10 w-10 flex items-center justify-center text-[#2E4A4A] hover:opacity-70 transition-opacity flex-shrink-0"
+              aria-label="Open menu"
+            >
+              <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
+            </button>
+            <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1 min-w-0">
+              <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
+              <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
             </div>
             <button
               type="button"
