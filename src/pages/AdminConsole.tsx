@@ -1818,6 +1818,7 @@ export default function AdminConsole() {
         {view === "radar"   && <GoWildRadarMap />}
         </motion.div>
         </AnimatePresence>
+        </div>
       </div>
     </div>
   );
