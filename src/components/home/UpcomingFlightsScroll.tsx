@@ -101,7 +101,6 @@ const CARD_STYLE = {
   background: "rgba(255,255,255,0.82)",
   backdropFilter: "blur(18px)",
   WebkitBackdropFilter: "blur(18px)",
-  border: "1px solid rgba(255,255,255,0.65)",
   boxShadow: CARD_SHADOW,
 };
 
@@ -229,7 +228,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                           }}
                         >
                           <div
-                            className="relative rounded-2xl px-4 pt-3 pb-5 overflow-hidden"
+                            className="relative rounded-2xl px-4 pt-3 pb-[18px] overflow-hidden"
                             style={CARD_STYLE}
                           >
                             {/* Colored bottom border */}
@@ -286,7 +285,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               {gowild && (
                                 <span
                                   className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#059669", color: "#FFFFFF", padding: "3px 10px" }}
+                                  style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
                                 >
                                   <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
                                   GoWild
@@ -295,14 +294,14 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               {departureCountdown && (
                                 <span
                                   className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                  style={{ background: "#F0FDF4", border: "1.5px solid #6EE7B7", color: "#047857", padding: "3px 10px" }}
+                                  style={{ background: "#F0FDF4", border: "1.5px solid #6EE7B7", color: "#047857", height: "24px", padding: "0 10px" }}
                                 >
                                   Departs in {departureCountdown}
                                 </span>
                               )}
                               <span
                                 className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", padding: "3px 10px" }}
+                                style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: "24px", padding: "0 10px" }}
                               >
                                 <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
                                 {tripLabel}
