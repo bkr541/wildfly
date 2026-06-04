@@ -25,7 +25,12 @@ import {
   Analytics01Icon,
   Home13Icon,
   Radar01Icon,
+  Menu03Icon,
+  Logout01Icon,
 } from "@hugeicons/core-free-icons";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useProfile } from "@/contexts/ProfileContext";
+import { cn } from "@/lib/utils";
 import { FlightsView } from "@/components/admin/flights/FlightsView";
 import GoWildRadarMap from "@/components/admin/GoWildRadarMap";
 import GoWildSnapshotCard from "@/components/insights/GoWildSnapshotCard";
