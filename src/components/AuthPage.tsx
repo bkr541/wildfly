@@ -326,7 +326,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
-      <div className="flex-1 flex flex-col items-center justify-center z-10 py-10">
+      <div className="flex-1 flex flex-col items-center justify-center z-10 py-4">
         <img
           src="/assets/logo/logo_horizontal.png"
           alt="Logo"
@@ -337,7 +337,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           src="/assets/logo/tag_noshadow.png"
           alt="Tag"
           className="w-auto object-contain mx-auto"
-          style={{ height: "clamp(40px, 10vw, 72px)" }}
+          style={{ height: "clamp(28px, 7vw, 50px)" }}
         />
       </div>
 

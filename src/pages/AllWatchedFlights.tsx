@@ -1,0 +1,283 @@
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  ArrowRight04Icon,
+  CircleArrowReload01Icon,
+  Rocket01Icon,
+} from "@hugeicons/core-free-icons";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { TicketDivider } from "@/components/home/TicketDivider";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+
+interface UserFlight {
+  id: string;
+  departure_airport: string;
+  arrival_airport: string;
+  departure_time: string;
+  arrival_time: string;
+  type: string;
+  flight_json: any;
+  created_at: string;
+}
+
+function formatFullDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  } catch { return ""; }
+}
+
+function formatTime(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  } catch { return dateStr; }
+}
+
+function formatShortDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  } catch { return ""; }
+}
+
+function getPrice(flight_json: any): number | null {
+  const fares = flight_json?.fares;
+  if (!fares) return flight_json?.price ?? null;
+  const val = fares.basic ?? fares.economy ?? fares.premium ?? fares.standard;
+  return typeof val === "number" && val > 0 ? val : null;
+}
+
+function hasGoWild(flight_json: any): boolean {
+  const fares = flight_json?.fares;
+  if (!fares) return false;
+  const gw = fares.gowild ?? fares.goWild ?? fares.go_wild;
+  return typeof gw === "number" && gw > 0;
+}
+
+function isRoundTrip(flight: { flight_json: any }): boolean {
+  if (flight.flight_json?.tripType === "round-trip" || flight.flight_json?.tripType === "round_trip") return true;
+  if (Array.isArray(flight.flight_json?.legs) && flight.flight_json.legs.length > 1) {
+    const first = flight.flight_json.legs[0];
+    const last = flight.flight_json.legs[flight.flight_json.legs.length - 1];
+    if (first?.origin && last?.destination && first.origin === last.destination) return true;
+  }
+  return false;
+}
+
+const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
+const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
+const CARD_SHADOW =
+  "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
+const CARD_STYLE = {
+  background: "rgba(255,255,255,0.82)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  boxShadow: CARD_SHADOW,
+};
+
+const PlaneSVG = () => (
+  <svg fill="#2D6A4F" style={{ width: 30, height: 30, flexShrink: 0 }} viewBox="-3.2 -3.2 38.40 38.40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30.8,14.2C30.1,13.4,29,13,28,13H8.5L4.8,8.4C4.6,8.1,4.3,8,4,8H1C0.7,8,0.4,8.1,0.2,8.4C0,8.6,0,9,0,9.3l3,11C3.2,20.7,3.6,21,4,21h6.4l-3.3,6.6c-0.2,0.3-0.1,0.7,0,1C7.3,28.8,7.7,29,8,29h4c0.3,0,0.6-0.1,0.7-0.3l6.9-7.7H28c1.1,0,2.1-0.4,2.8-1.2c0.8-0.8,1.2-1.8,1.2-2.8S31.6,14.9,30.8,14.2z" />
+    <path d="M10.4,11h8.5l-5.1-5.7C13.6,5.1,13.3,5,13,5H9C8.7,5,8.3,5.2,8.1,5.5C8,5.8,8,6.1,8.1,6.4L10.4,11z" />
+  </svg>
+);
+
+export default function AllWatchedFlights() {
+  const { user } = useAuth();
+  const [flights, setFlights] = useState<UserFlight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [flightToRemove, setFlightToRemove] = useState<UserFlight | null>(null);
+  const [removing, setRemoving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const startOfToday = new Date();
+    startOfToday.setUTCHours(0, 0, 0, 0);
+    supabase
+      .from("user_flights")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "Current")
+      .eq("type", "alert")
+      .gte("departure_time", startOfToday.toISOString())
+      .order("departure_time", { ascending: true })
+      .then(({ data }) => {
+        setFlights(data || []);
+        setLoading(false);
+      });
+  }, [user]);
+
+  const handleRemove = async () => {
+    if (!flightToRemove) return;
+    setRemoving(true);
+    await supabase.from("user_flights").delete().eq("id", flightToRemove.id);
+    setFlights((prev) => prev.filter((f) => f.id !== flightToRemove.id));
+    setRemoving(false);
+    setFlightToRemove(null);
+  };
+
+  return (
+    <div className="flex flex-col pt-4 pb-10 px-4 gap-4 w-full lg:max-w-[50%] mx-auto">
+      {loading ? (
+        <>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl px-5 py-5 animate-pulse" style={CARD_STYLE}>
+              <div className="flex justify-between mb-4">
+                <div className="h-4 w-28 rounded bg-[#e5e7eb]" />
+                <div className="h-4 w-4 rounded bg-[#e5e7eb]" />
+              </div>
+              <div className="h-10 w-full rounded bg-[#e5e7eb] mb-3" />
+              <div className="flex justify-between">
+                <div className="h-3 w-24 rounded bg-[#e5e7eb]" />
+                <div className="h-3 w-24 rounded bg-[#e5e7eb]" />
+              </div>
+            </div>
+          ))}
+        </>
+      ) : flights.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="h-20 w-20 rounded-full bg-[#FFF8E6] flex items-center justify-center mb-5">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#F59E0B" />
+            </svg>
+          </div>
+          <p className="text-base text-[#1A2E2E] font-semibold mb-1">No watched flights</p>
+          <p className="text-xs text-[#9AADAD] font-medium">Set an alert on a flight to track it here</p>
+        </div>
+      ) : (
+        flights.map((flight, i) => {
+          const price = getPrice(flight.flight_json);
+          const gowild = hasGoWild(flight.flight_json);
+          const roundTrip = isRoundTrip(flight);
+          const tripIcon = roundTrip ? CircleArrowReload01Icon : ArrowRight04Icon;
+          const tripLabel = roundTrip ? "Round Trip" : "One Way";
+
+          return (
+            <motion.div
+              key={flight.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 0.28, delay: i * 0.07, ease: EASE } }}
+            >
+              <div className="relative rounded-2xl px-5 pt-4 pb-[20px] overflow-hidden" style={CARD_STYLE}>
+                {/* Amber bottom border */}
+                <div className="absolute inset-x-0 bottom-0 h-2 pointer-events-none" style={{ background: "#F59E0B" }} />
+
+                {/* Header: logo + dismiss */}
+                <div className="flex items-center justify-between mb-3">
+                  <img src={FRONTIER_LOGO} alt="Frontier" className="h-[22px] w-auto object-contain" loading="eager" />
+                  <button
+                    type="button"
+                    onClick={() => setFlightToRemove(flight)}
+                    className="flex items-center justify-center transition-opacity hover:opacity-70"
+                    aria-label="Remove watched flight"
+                  >
+                    <X size={14} strokeWidth={2.5} className="text-[#6B7280]" />
+                  </button>
+                </div>
+
+                {/* Route row */}
+                <div className="flex items-center justify-between gap-1 mb-3">
+                  <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                    {flight.departure_airport}
+                  </span>
+                  <div className="flex-1 flex items-center px-2">
+                    <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                    <div className="mx-2"><PlaneSVG /></div>
+                    <div className="flex-1 h-0 border-t border-dashed" style={{ borderColor: "#B8CECE" }} />
+                  </div>
+                  <span className="text-4xl font-bold text-[#1A2E2E] leading-none tracking-tight">
+                    {flight.arrival_airport}
+                  </span>
+                </div>
+
+                {/* Time / date row */}
+                <div className="flex items-start justify-between">
+                  <span className="leading-tight">
+                    <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
+                    <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                  </span>
+                  <span className="leading-tight text-right">
+                    <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.arrival_time)}</span>
+                    <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                  </span>
+                </div>
+
+                <TicketDivider cardPx={20} notchSize={26} />
+
+                {/* Badge row */}
+                <div className="flex items-center justify-center gap-1.5 flex-wrap" style={{ paddingTop: "10px" }}>
+                  {gowild && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                      style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
+                    >
+                      <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+                      GoWild
+                    </span>
+                  )}
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                    style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: "24px", padding: "0 10px" }}
+                  >
+                    <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                    {tripLabel}
+                  </span>
+                  {price !== null && (
+                    <span
+                      className="inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap"
+                      style={{ background: "#FFF4E0", border: "1.5px solid #F5C572", color: "#B45309", height: "24px", padding: "0 10px" }}
+                    >
+                      ${Math.round(price)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })
+      )}
+
+      <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
+            <HugeiconsIcon icon={Delete02Icon} size={22} color="#EF4444" strokeWidth={1.5} />
+          </div>
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
+              Remove Alert
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
+              Remove the alert for {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on{" "}
+              {flightToRemove ? formatShortDate(flightToRemove.departure_time) : ""}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 mt-3">
+            <AlertDialogCancel disabled={removing} className="w-full text-xs py-1 mt-0 bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F4F8F8] hover:text-[#2E4A4A]">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemove} disabled={removing} className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1">
+              {removing ? "Removing…" : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

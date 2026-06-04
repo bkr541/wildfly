@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { CreditCardIcon } from "@hugeicons/core-free-icons";
+import { CreditCardIcon, Timer02Icon, Alert01Icon } from "@hugeicons/core-free-icons";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,7 @@ import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
 import GoWildInsightsPage from "./pages/GoWildInsights";
 import FlightExplorerPage from "./pages/FlightExplorer";
+import GoWildRadarMap from "./components/admin/GoWildRadarMap";
 import DesignSystemPage from "./pages/DesignSystemV2";
 import FlightDetails from "./pages/FlightDetails";
 import ResetPasswordPage from "./pages/ResetPassword";
@@ -36,6 +37,8 @@ import BillingCancel from "./pages/BillingCancel";
 import BillingPortalReturn from "./pages/BillingPortalReturn";
 import AdminGate from "./components/AdminGate";
 import PreviewPage from "./pages/Preview";
+import AllUpcomingFlights from "./pages/AllUpcomingFlights";
+import AllWatchedFlights from "./pages/AllWatchedFlights";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +49,7 @@ const MainApp = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [accountPending, setAccountPending] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights" | "all-upcoming-flights" | "all-watched-flights" | "radar">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
   /** When true, the flight-results back button returns to flight-multi-results */
@@ -335,6 +338,12 @@ const MainApp = () => {
     if (page === "design-system") {
       setSubScreenTitle("Design System");
       setSubScreenIcon(CreditCardIcon);
+    } else if (page === "all-upcoming-flights") {
+      setSubScreenTitle("Upcoming Flights");
+      setSubScreenIcon(Timer02Icon);
+    } else if (page === "all-watched-flights") {
+      setSubScreenTitle("Watched Flights");
+      setSubScreenIcon(Alert01Icon);
     } else {
       setSubScreenTitle(null);
       setSubScreenIcon(null);
@@ -347,7 +356,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights", "all-upcoming-flights", "all-watched-flights", "radar"].includes(currentPage);
 
   return (
     <div className="flex justify-center">
@@ -404,6 +413,10 @@ const MainApp = () => {
                 if (currentPage === "design-system") {
                   setCurrentPage("account");
                   accountDevRef.current?.();
+                } else if (currentPage === "all-upcoming-flights" || currentPage === "all-watched-flights") {
+                  setCurrentPage("home");
+                  setSubScreenTitle(null);
+                  setSubScreenIcon(null);
                 } else {
                   accountBackRef.current?.();
                 }
@@ -423,7 +436,10 @@ const MainApp = () => {
               {currentPage === "hubs" && <HubsPage />}
               {currentPage === "gowild-insights" && <GoWildInsightsPage />}
               {currentPage === "explorer" && <FlightExplorerPage onNavigate={handleNavigate} />}
+              {currentPage === "radar" && <div className="p-4"><GoWildRadarMap /></div>}
               {currentPage === "design-system" && <DesignSystemPage />}
+              {currentPage === "all-upcoming-flights" && <AllUpcomingFlights />}
+              {currentPage === "all-watched-flights" && <AllWatchedFlights />}
             </MainLayout>
           </ProfileProvider>
         )}

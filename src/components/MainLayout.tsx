@@ -23,6 +23,7 @@ import {
   Idea01Icon,
   GlobalSearchIcon,
   ConsoleIcon,
+  Radar01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -48,7 +49,7 @@ const menuItems = [
   { icon: Location01Icon, label: "Destinations", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
-  { icon: Search01Icon, label: "Explorer", indent: true },
+  { icon: Radar01Icon, label: "Radar", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: Home01Icon, label: "Hubs", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
@@ -60,7 +61,7 @@ const pageMap: Record<string, string> = {
   Flights: "flights",
   Destinations: "destinations",
   Itinerary: "itinerary",
-  Explorer: "explorer",
+  Radar: "radar",
   Routes: "routes",
   Friends: "friends",
   Hubs: "hubs",
@@ -359,6 +360,14 @@ const MainLayout = ({
                       <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
                         <span className="text-[22px] font-medium text-[#6B7280]">GoWild</span>
                         <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Insights</span>
+                      </div>
+                    );
+                  }
+                  if (currentPage === "radar") {
+                    return (
+                      <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1">
+                        <span className="text-[22px] font-medium text-[#6B7280]">GoWild</span>
+                        <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Radar</span>
                       </div>
                     );
                   }

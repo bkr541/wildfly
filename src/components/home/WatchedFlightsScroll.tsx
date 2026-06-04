@@ -153,9 +153,18 @@ export function WatchedFlightsScroll({
             Watched Flights
           </h2>
         </div>
-        <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
-          <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
-        </motion.div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onNavigate?.("all-watched-flights"); }}
+            className="text-[10px] font-bold text-[#059669] uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity"
+          >
+            View All
+          </button>
+          <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
+            <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
+          </motion.div>
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
