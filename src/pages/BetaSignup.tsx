@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
@@ -11,10 +12,14 @@ import {
   AirplaneSeatIcon,
   SearchingIcon,
   Location01Icon,
+  Location04Icon,
+  AddCircleIcon,
   UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { AirportSearchSheet, type Airport } from "@/components/AirportSearchSheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -215,9 +220,151 @@ function StepCircle({ idx, current, status }: { idx: number; current: number; st
   );
 }
 
+// ── Airport popup (modal variant for BetaSignup) ──────────────────────────────
+
+function AirportPopup({ open, onClose, airports, onSelect }: {
+  open: boolean;
+  onClose: () => void;
+  airports: Airport[];
+  onSelect: (airport: Airport) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      requestAnimationFrame(() => { setTimeout(() => inputRef.current?.focus(), 50); });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  const shouldShow = query.trim().length >= 2;
+
+  const groupedAirports = useMemo(() => {
+    if (!shouldShow) return {} as Record<string, Airport[]>;
+    const q = query.toLowerCase();
+    const filtered = airports.filter(
+      (a) => a.name.toLowerCase().includes(q) ||
+        a.iata_code.toLowerCase().includes(q) ||
+        (a.locations?.city && a.locations.city.toLowerCase().includes(q))
+    ).slice(0, 40);
+    const grouped = filtered.reduce((acc, airport) => {
+      const city = airport.locations?.city;
+      const state = airport.locations?.state_code;
+      const key = city && state ? `${city}, ${state}` : "Other Locations";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(airport);
+      return acc;
+    }, {} as Record<string, Airport[]>);
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, aps]) => [aps.length > 1 ? key : `__single__${key}`, aps])
+    );
+  }, [query, airports, shouldShow]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300" style={{ height: "520px" }}>
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#F0F1F1]">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+              <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
+            </div>
+            <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Select Airport</h2>
+          </div>
+          <button type="button" onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors">
+            <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+          </button>
+        </div>
+        <div className="px-5 pb-4 pt-3">
+          <div className="app-input-container">
+            <button type="button" tabIndex={-1} className="app-input-icon-btn">
+              <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+            </button>
+            <input ref={inputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search airport or city…" className="app-input"
+              autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
+            {query.length > 0 && (
+              <button type="button" onClick={() => setQuery("")} className="app-input-reset app-input-reset--visible">
+                <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {!shouldShow ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-5">
+              <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-5">
+                <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
+              </div>
+              <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for an airport</p>
+              <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
+            </div>
+          ) : Object.keys(groupedAirports).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
+              <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+            </div>
+          ) : (
+            <div className="py-3 px-4">
+              {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+                const isSingle = cityGroup.startsWith("__single__");
+                const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+                return (
+                  <div key={cityGroup} className="mb-2 last:mb-0">
+                    {!isSingle && (
+                      <div className="w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2">
+                        <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
+                        {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                      </div>
+                    )}
+                    {cityAirports.map((a, idx) => (
+                      <div key={a.id}>
+                        {idx > 0 && <div className="border-t border-[#F0F1F1] mx-1" />}
+                        <button type="button" onClick={() => { onSelect(a); onClose(); }}
+                          className={cn("w-full text-left pr-4 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden", isSingle ? "pl-4" : "pl-14")}>
+                          <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                              <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                              <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                            </div>
+                            {a.locations?.city && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2F3F3] text-[#6B7B7B] text-xs font-medium mt-0.5">
+                                <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
+                                <span className="truncate">{a.locations.city}{a.locations.state_code ? `, ${a.locations.state_code}` : ""}</span>
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="h-10" />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ── BetaSignup ────────────────────────────────────────────────────────────────
 
 export default function BetaSignup() {
+  const isMobile = useIsMobile();
   const [phase, setPhase] = useState<Phase>("landing");
   const [heroExiting, setHeroExiting] = useState(false);
   const [step, setStep] = useState(1);
@@ -406,10 +553,15 @@ export default function BetaSignup() {
               autoComplete="email" maxLength={254} error={errors.email} />
           </div>
           <div id="field-homeAirport">
-            <AirportSearchSheet open={airportSheetOpen} onClose={() => setAirportSheetOpen(false)}
-              airports={airports}
-              onSelect={(a) => { setSelectedAirport(a); setHomeAirport(a.iata_code); clearError("homeAirport"); }} />
-            <label className="text-sm font-semibold text-[#2E4A4A] ml-1 block mb-2.5">
+            {isMobile
+              ? <AirportSearchSheet open={airportSheetOpen} onClose={() => setAirportSheetOpen(false)}
+                  airports={airports}
+                  onSelect={(a) => { setSelectedAirport(a); setHomeAirport(a.iata_code); clearError("homeAirport"); }} />
+              : <AirportPopup open={airportSheetOpen} onClose={() => setAirportSheetOpen(false)}
+                  airports={airports}
+                  onSelect={(a) => { setSelectedAirport(a); setHomeAirport(a.iata_code); clearError("homeAirport"); }} />
+            }
+            <label className="text-sm font-semibold text-[#6B7B7B] ml-1 block">
               Home Airport <span className="text-red-400" aria-hidden="true">*</span>
               <span className="sr-only"> (required)</span>
             </label>
@@ -594,31 +746,42 @@ export default function BetaSignup() {
 
   function renderProgress() {
     return (
-      <div className="flex items-start mb-6 px-1">
-        {STEP_META.map(({ short }, i) => (
-          <div key={i} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center gap-1">
+      <div className="mb-2 px-1">
+        {/* Circles + connecting lines — perfectly centered */}
+        <div className="flex items-center mb-1">
+          {STEP_META.map(({ }, i) => (
+            <React.Fragment key={i}>
               <StepCircle idx={i} current={step} status={stepStatuses[i]} />
-              <span className={[
-                "text-[9px] font-semibold hidden xs:block text-center leading-tight",
-                i + 1 === step ? "text-[#059669]"
-                  : stepStatuses[i] === "complete" ? "text-[#059669]"
-                  : stepStatuses[i] === "error" ? "text-red-500"
-                  : "text-[#9CA3AF]",
-              ].join(" ")}>
-                {short}
-              </span>
-            </div>
-            {i < STEP_META.length - 1 && (
-              <div className={[
-                "flex-1 h-0.5 mx-1 mb-3 transition-colors duration-300",
-                stepStatuses[i] === "complete" ? "bg-[#059669]"
-                  : stepStatuses[i] === "error" ? "bg-red-400"
-                  : "bg-[#E5E7EB]",
-              ].join(" ")} />
-            )}
-          </div>
-        ))}
+              {i < STEP_META.length - 1 && (
+                <div className={[
+                  "flex-1 h-0.5 mx-1 transition-colors duration-300",
+                  stepStatuses[i] === "complete" ? "bg-[#059669]"
+                    : stepStatuses[i] === "error" ? "bg-red-400"
+                    : "bg-[#E5E7EB]",
+                ].join(" ")} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+        {/* Labels aligned under each circle */}
+        <div className="flex items-start">
+          {STEP_META.map(({ short }, i) => (
+            <React.Fragment key={i}>
+              <div className="w-7 flex justify-center">
+                <span className={[
+                  "text-[9px] font-semibold hidden xs:block text-center leading-tight",
+                  i + 1 === step ? "text-[#059669]"
+                    : stepStatuses[i] === "complete" ? "text-[#059669]"
+                    : stepStatuses[i] === "error" ? "text-red-500"
+                    : "text-[#9CA3AF]",
+                ].join(" ")}>
+                  {short}
+                </span>
+              </div>
+              {i < STEP_META.length - 1 && <div className="flex-1 mx-1" />}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     );
   }
@@ -626,46 +789,45 @@ export default function BetaSignup() {
   // ── Render ────────────────────────────────────────────────────────────────────
 
   const BENEFIT_CARDS: { icon: IconSvgElement; title: string; desc: string }[] = [
-    { icon: Rocket01Icon, title: "Early Access", desc: "Try new Wildfly features before public release." },
-    { icon: AirplaneSeatIcon, title: "Direct Feedback", desc: "Help identify bugs, confusing flows, and missing features." },
-    { icon: AirportIcon, title: "Better GoWild Tools", desc: "Shape tools built specifically around real GoWild travel behavior." },
+    { icon: Rocket01Icon, title: "Early Access", desc: "Try new features before public release." },
+    { icon: AirplaneSeatIcon, title: "Direct Feedback", desc: "Help identify bugs and missing features." },
+    { icon: AirportIcon, title: "Better GoWild Tools", desc: "Shape tools built for GoWild travelers." },
   ];
 
   return (
     <div className="min-h-screen pb-20 overflow-x-hidden" style={{ backgroundImage: "url('/assets/backgrounds/betasignupbkg.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
-      <div className="max-w-2xl mx-auto px-4 pt-8 sm:pt-12">
+      <div className="max-w-2xl mx-auto px-5 pt-8 sm:pt-12">
 
         {/* ── Landing ─────────────────────────────────────────────────────── */}
         {phase === "landing" && (
           <div className={`transition-all duration-280 ease-in ${heroExiting ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-500"}`}>
-            <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
-              <img src="/assets/logo/wflogo2.png" alt="Wildfly" className="h-12 sm:h-14 w-auto object-contain mb-5" />
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#F0FDF4] text-[#059669] border border-[#6EE7B7] mb-5">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#059669] animate-pulse" />
-                Limited beta tester spots available
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-black text-[#1A2E2E] mb-3 leading-tight">
+            <div className="flex flex-col items-center text-center mb-5">
+              <img src="/assets/logo/logo_horizontal.png" alt="Wildfly" className="w-auto object-contain mb-1" style={{ height: "clamp(72px, 18vw, 110px)" }} />
+              <img src="/assets/logo/tag_noshadow.png" alt="Wildfly tagline" className="w-auto object-contain mb-4" style={{ height: "clamp(22px, 5.5vw, 40px)" }} />
+              <h1 className="text-2xl sm:text-3xl font-black text-[#1A2E2E] mb-2 leading-tight">
                 Help Shape the Future of Wildfly
               </h1>
-              <p className="text-base text-[#6B7B7B] max-w-lg leading-relaxed">
+              <p className="text-sm text-[#6B7B7B] max-w-lg leading-relaxed">
                 Apply to become a Wildfly beta tester and help improve the way GoWild travelers
                 find availability, track flights, and discover better travel opportunities.
               </p>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:grid sm:grid-cols-3 sm:overflow-visible sm:mx-0 sm:px-0 sm:gap-4 snap-x snap-mandatory sm:snap-none mb-8 sm:mb-10">
+            <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 mb-5">
               {BENEFIT_CARDS.map(({ icon, title, desc }) => (
-                <div key={title} className="flex-none w-[200px] snap-start sm:w-auto bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#F0F1F1]">
-                  <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center mb-3">
-                    <HugeiconsIcon icon={icon} size={18} color="#059669" strokeWidth={2} />
+                <div key={title} className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-[#F0F1F1]">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center">
+                    <HugeiconsIcon icon={icon} size={20} color="#059669" strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-[#2E4A4A] mb-1">{title}</h3>
-                  <p className="text-xs text-[#6B7B7B] leading-relaxed">{desc}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-[#2E4A4A] mb-0.5">{title}</h3>
+                    <p className="text-xs text-[#6B7B7B] leading-relaxed">{desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-center mb-10">
+            <div className="flex justify-center mb-10 mt-3">
               <button
                 type="button"
                 onClick={openForm}
@@ -682,17 +844,10 @@ export default function BetaSignup() {
         {phase === "form" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-            {/* Header */}
-            <div className="flex flex-col items-center text-center mb-6">
-              <img src="/assets/logo/wflogo2.png" alt="Wildfly" className="h-9 w-auto object-contain mb-3" />
-              <h2 className="text-2xl font-black text-[#1A2E2E] mb-1">Beta Tester Application</h2>
-              <p className="text-sm text-[#6B7B7B]">
-                Step {step} of {TOTAL_STEPS} — <span className="font-semibold text-[#2E4A4A]">{STEP_META[step - 1].label}</span>
-              </p>
+            {/* Logo above the form card */}
+            <div className="flex justify-center mb-4">
+              <img src="/assets/logo/logo_horizontal.png" alt="Wildfly" className="w-auto object-contain" style={{ height: "clamp(48px, 12vw, 70px)" }} />
             </div>
-
-            {/* Progress bar */}
-            {renderProgress()}
 
             {/* Honeypot */}
             <div aria-hidden="true" style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0, overflow: "hidden" }}>
@@ -701,56 +856,71 @@ export default function BetaSignup() {
                 onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" />
             </div>
 
-            {/* Step card */}
-            <div className={`bg-white rounded-2xl shadow-sm border border-[#F0F1F1] overflow-hidden mb-5 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-              <div
-                className="h-1 w-full transition-all duration-500"
-                style={{
-                  background: `linear-gradient(90deg, #10B981 0%, #059669 ${((step - 1) / (TOTAL_STEPS - 1)) * 100}%, #E5E7EB ${((step - 1) / (TOTAL_STEPS - 1)) * 100}%)`,
-                }}
-              />
-              <div className="px-5 py-6 sm:px-6 sm:py-7">
+            {/* Parent form card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-[#F0F1F1] overflow-hidden mb-10">
+
+              {/* Consistent header */}
+              <div className="px-5 pt-5 pb-4">
+                <h2 className="text-xl font-black text-[#1A2E2E]">Beta Tester Application</h2>
+              </div>
+
+              {/* Progress bar — 70% width, centered */}
+              <div className="flex justify-center">
+                <div className="w-[70%]">
+                  {renderProgress()}
+                </div>
+              </div>
+
+              {/* Section name — animates with each step */}
+              <div className={`flex items-center justify-center gap-3 px-5 pb-5 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+                <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
+                <p className="text-xl font-bold text-[#1A2E2E]">{STEP_META[step - 1].label}</p>
+                <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
+              </div>
+
+              {/* Step content — animated */}
+              <div className={`px-5 pb-6 sm:px-6 sm:pb-7 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
                 {renderStep()}
               </div>
-            </div>
 
-            {/* Navigation */}
-            <div className="flex items-center gap-3 mb-10">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="flex-1 py-3.5 rounded-full border-2 border-[#E5E7EB] text-[#6B7280] font-bold text-sm hover:border-[#059669] hover:text-[#059669] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
-                >
-                  ← Back
-                </button>
-              )}
-              {step < TOTAL_STEPS ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="flex-[2] py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-wide shadow hover:shadow-md active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
-                >
-                  Next →
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="flex-[2] py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-wide shadow hover:shadow-md active:scale-[0.98] transition-all disabled:opacity-60 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
-                >
-                  {submitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg aria-hidden="true" className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      Submitting…
-                    </span>
-                  ) : "Submit Application"}
-                </button>
-              )}
+              {/* Navigation */}
+              <div className="flex items-center gap-3 px-5 pb-5">
+                {step > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="flex-1 py-3.5 rounded-full border-2 border-[#E5E7EB] text-[#6B7280] font-bold text-sm hover:border-[#059669] hover:text-[#059669] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
+                  >
+                    ← Back
+                  </button>
+                )}
+                {step < TOTAL_STEPS ? (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="flex-[2] py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-wide shadow hover:shadow-md active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
+                  >
+                    Next →
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="flex-[2] py-3.5 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm tracking-wide shadow hover:shadow-md active:scale-[0.98] transition-all disabled:opacity-60 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2"
+                  >
+                    {submitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg aria-hidden="true" className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Submitting…
+                      </span>
+                    ) : "Submit Application"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
