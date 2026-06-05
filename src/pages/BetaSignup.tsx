@@ -340,9 +340,7 @@ export default function BetaSignup() {
     // Capture UTM params and referrer at submit time
     const params = new URLSearchParams(window.location.search);
 
-    // TODO: Remove cast after running `supabase gen types typescript` to include beta_applications.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("beta_applications") as any).insert({
+    const { error } = await supabase.from("beta_applications").insert({
       full_name: fullName.trim(),
       email: email.trim().toLowerCase(),
       home_airport: homeAirport.trim(),
