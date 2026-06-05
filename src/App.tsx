@@ -145,25 +145,33 @@ const MainApp = () => {
       // Check if user has an existing session and remember_me is enabled.
       // IMPORTANT: never sign out a PASSWORD_RECOVERY session — the user
       // must keep it alive to be able to set their new password on /reset-password.
+      // If navigating back from the admin console, skip the remember_me sign-out check.
+      const fromAdmin = sessionStorage.getItem("adminReturn") === "1";
+      if (fromAdmin) sessionStorage.removeItem("adminReturn");
+
       let shouldKeepSession = false;
       let isRecoverySession = false;
       try {
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         if (existingSession?.user) {
-          // Detect recovery sessions from the URL hash (present on first load)
-          // or from the session's AMR claim set by Supabase on recovery links.
-          const hash = window.location.hash;
-          isRecoverySession = hash.includes("type=recovery");
-
-          if (!isRecoverySession) {
-            const { data: profile } = await supabase
-              .from("user_info")
-              .select("remember_me")
-              .eq("auth_user_id", existingSession.user.id)
-              .maybeSingle();
-            shouldKeepSession = profile?.remember_me === true;
+          if (fromAdmin) {
+            shouldKeepSession = true;
           } else {
-            shouldKeepSession = true; // keep recovery session intact
+            // Detect recovery sessions from the URL hash (present on first load)
+            // or from the session's AMR claim set by Supabase on recovery links.
+            const hash = window.location.hash;
+            isRecoverySession = hash.includes("type=recovery");
+
+            if (!isRecoverySession) {
+              const { data: profile } = await supabase
+                .from("user_info")
+                .select("remember_me")
+                .eq("auth_user_id", existingSession.user.id)
+                .maybeSingle();
+              shouldKeepSession = profile?.remember_me === true;
+            } else {
+              shouldKeepSession = true; // keep recovery session intact
+            }
           }
         }
       } catch {

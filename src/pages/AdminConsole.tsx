@@ -1664,7 +1664,7 @@ export default function AdminConsole() {
         <div className="flex items-center gap-3 px-6 pt-10 pb-2">
           <UIAvatar
             className="h-12 w-12 border-2 border-[#E3E6E6] shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => { setDrawerOpen(false); setTimeout(() => navigate("/"), 280); }}
+            onClick={() => { setDrawerOpen(false); sessionStorage.setItem("adminReturn", "1"); setTimeout(() => navigate("/"), 280); }}
           >
             <AvatarImage src={avatarUrl ?? undefined} alt="Profile" />
             <AvatarFallback className="bg-[#E3E6E6] text-[#345C5A] text-base font-bold">
@@ -1720,7 +1720,7 @@ export default function AdminConsole() {
         <div className="mt-auto">
           <div className="h-px bg-[#E5E7EB] mx-6" />
           <button
-            onClick={() => { setDrawerOpen(false); setTimeout(() => navigate("/"), 280); }}
+            onClick={() => { setDrawerOpen(false); sessionStorage.setItem("adminReturn", "1"); setTimeout(() => navigate("/"), 280); }}
             type="button"
             className="flex items-center gap-4 px-8 py-5 text-[#2E4A4A] hover:text-red-600 transition-colors w-full"
           >
@@ -1782,7 +1782,7 @@ export default function AdminConsole() {
             </div>
             <button
               type="button"
-              onClick={() => navigate("/")}
+              onClick={() => { sessionStorage.setItem("adminReturn", "1"); navigate("/"); }}
               className="flex items-center gap-2 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0 whitespace-nowrap"
               aria-label="Back to app"
               title="Back to app"

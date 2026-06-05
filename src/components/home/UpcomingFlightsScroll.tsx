@@ -76,6 +76,17 @@ function departsInLabel(dateStr: string): string | null {
   }
 }
 
+function formatDuration(dep: string, arr: string): string {
+  try {
+    const diffMs = new Date(arr).getTime() - new Date(dep).getTime();
+    if (diffMs <= 0) return "";
+    const totalMins = Math.round(diffMs / 60000);
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+  } catch { return ""; }
+}
+
 function hasGoWild(flight_json: any): boolean {
   const fares = flight_json?.fares;
   if (!fares) return false;
@@ -276,10 +287,13 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                             </div>
 
                             {/* Time / date row */}
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-center justify-between">
                               <span className="leading-tight">
                                 <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
                                 <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                              </span>
+                              <span className="text-[13px] font-medium text-[#9AADAD] uppercase">
+                                {formatDuration(flight.departure_time, flight.arrival_time)}
                               </span>
                               <span className="leading-tight text-right">
                                 <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.arrival_time)}</span>
