@@ -632,7 +632,7 @@ export default function BetaSignup() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F9F9] pb-20 overflow-x-hidden">
+    <div className="min-h-screen pb-20 overflow-x-hidden" style={{ backgroundImage: "url('/assets/backgrounds/betasignupbkg.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
       <div className="max-w-2xl mx-auto px-4 pt-8 sm:pt-12">
 
         {/* ── Landing ─────────────────────────────────────────────────────── */}
