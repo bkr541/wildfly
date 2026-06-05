@@ -518,6 +518,7 @@ const App = () => (
           <Route path="/billing/portal-return" element={<BillingPortalReturn />} />
           <Route path="/beta" element={<BetaSignup />} />
           <Route path="/beta-testers" element={<BetaSignup />} />
+          <Route path="/betapreview" element={<BetaSignup />} />
           <Route path="*" element={<MainApp />} />
         </Routes>
       </BrowserRouter>
