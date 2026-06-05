@@ -53,14 +53,14 @@ type Phase = "landing" | "form" | "success";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOTAL_STEPS = 7;
 
-const STEP_META: { label: string; short: string; icon: IconSvgElement }[] = [
-  { label: "About You",              short: "You",      icon: UserIcon },
-  { label: "GoWild Pass",            short: "GoWild",   icon: AirplaneTakeOff01Icon },
-  { label: "Travel Behavior",        short: "Travel",   icon: SearchingIcon },
-  { label: "Current Tools",          short: "Tools",    icon: AirportIcon },
-  { label: "Beta Testing",           short: "Beta",     icon: UserAdd01Icon },
-  { label: "Availability & Device",  short: "Device",   icon: AirplaneSeatIcon },
-  { label: "Optional",               short: "Optional", icon: Location01Icon },
+const STEP_META: { label: string; short: string; icon: IconSvgElement; desc: string }[] = [
+  { label: "About You",              short: "You",      icon: UserIcon,             desc: "Basic info so we know who you are." },
+  { label: "GoWild Pass",            short: "GoWild",   icon: AirplaneTakeOff01Icon, desc: "Tell us about your GoWild Pass status." },
+  { label: "Travel Behavior",        short: "Travel",   icon: SearchingIcon,        desc: "How often you search and book flights." },
+  { label: "Current Tools",          short: "Tools",    icon: AirportIcon,          desc: "What you use today to find GoWild deals." },
+  { label: "Beta Testing",           short: "Beta",     icon: UserAdd01Icon,        desc: "Your experience testing apps or products." },
+  { label: "Availability & Device",  short: "Device",   icon: AirplaneSeatIcon,     desc: "How you'll access Wildfly and give feedback." },
+  { label: "Optional",               short: "Optional", icon: Location01Icon,       desc: "Extra context to help us understand your needs." },
 ];
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ function OptionPills({
   allowDeselect?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-2" role="radiogroup">
+    <div className="grid grid-cols-2 gap-2" role="radiogroup">
       {options.map((opt) => {
         const sel = value === opt.value;
         return (
@@ -85,7 +85,7 @@ function OptionPills({
             aria-checked={sel}
             onClick={() => (allowDeselect && sel ? onChange("") : onChange(opt.value))}
             className={[
-              "w-full text-left px-4 py-3.5 min-h-[48px] rounded-xl text-sm border transition-all leading-snug flex items-center",
+              "w-full text-center px-3 py-3.5 min-h-[48px] rounded-xl text-sm border transition-all leading-snug flex items-center justify-center",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-1",
               sel
                 ? "bg-[#F0FDF4] border-[#059669] text-[#059669] font-semibold"
@@ -186,39 +186,6 @@ function ErrorLine({ msg }: { msg: string }) {
   );
 }
 
-function StepCircle({ idx, current, status }: { idx: number; current: number; status: StepStatus }) {
-  const isActive = idx + 1 === current;
-  if (status === "complete") {
-    return (
-      <div className="h-7 w-7 rounded-full bg-[#059669] flex items-center justify-center flex-shrink-0 shadow-sm">
-        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-    );
-  }
-  if (status === "error") {
-    return (
-      <div className={`h-7 w-7 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 ${isActive ? "ring-4 ring-red-500/20" : ""}`}>
-        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </div>
-    );
-  }
-  if (isActive) {
-    return (
-      <div className="h-7 w-7 rounded-full border-2 border-[#059669] bg-white flex items-center justify-center flex-shrink-0 ring-4 ring-[#059669]/10">
-        <span className="text-[10px] font-bold text-[#059669]">{idx + 1}</span>
-      </div>
-    );
-  }
-  return (
-    <div className="h-7 w-7 rounded-full border-2 border-[#E5E7EB] bg-white flex items-center justify-center flex-shrink-0">
-      <span className="text-[10px] font-medium text-[#9CA3AF]">{idx + 1}</span>
-    </div>
-  );
-}
 
 // ── Airport popup (modal variant for BetaSignup) ──────────────────────────────
 
@@ -361,6 +328,183 @@ function AirportPopup({ open, onClose, airports, onSelect }: {
   );
 }
 
+// ── Multi-select airport popup ────────────────────────────────────────────────
+
+function MultiAirportPopup({ open, onClose, airports, selected, onToggle }: {
+  open: boolean;
+  onClose: () => void;
+  airports: Airport[];
+  selected: Airport[];
+  onToggle: (airport: Airport) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      requestAnimationFrame(() => { setTimeout(() => inputRef.current?.focus(), 50); });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  const shouldShow = query.trim().length >= 2;
+
+  const groupedAirports = useMemo(() => {
+    if (!shouldShow) return {} as Record<string, Airport[]>;
+    const q = query.toLowerCase();
+    const filtered = airports.filter(
+      (a) => a.name.toLowerCase().includes(q) ||
+        a.iata_code.toLowerCase().includes(q) ||
+        (a.locations?.city && a.locations.city.toLowerCase().includes(q))
+    ).slice(0, 40);
+    const grouped = filtered.reduce((acc, airport) => {
+      const city = airport.locations?.city;
+      const state = airport.locations?.state_code;
+      const key = city && state ? `${city}, ${state}` : "Other Locations";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(airport);
+      return acc;
+    }, {} as Record<string, Airport[]>);
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, aps]) => [aps.length > 1 ? key : `__single__${key}`, aps])
+    );
+  }, [query, airports, shouldShow]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300" style={{ height: "520px" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#F0F1F1]">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+              <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
+            </div>
+            <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">Select Destinations</h2>
+          </div>
+          <button type="button" onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors">
+            <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+          </button>
+        </div>
+        {/* Search input */}
+        <div className="px-5 pb-3 pt-3">
+          <div className="app-input-container">
+            <button type="button" tabIndex={-1} className="app-input-icon-btn">
+              <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+            </button>
+            <input ref={inputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search airport or city…" className="app-input"
+              autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
+            {query.length > 0 && (
+              <button type="button" onClick={() => setQuery("")} className="app-input-reset app-input-reset--visible">
+                <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Results */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {!shouldShow ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center px-5">
+              <div className="h-16 w-16 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
+                <HugeiconsIcon icon={AirportIcon} size={28} color="#059669" strokeWidth={2} />
+              </div>
+              <p className="text-[#2E4A4A] font-bold text-base mb-1">Search for airports</p>
+              <p className="text-[#9CA3AF] text-sm">Type 2 or more letters to see results</p>
+            </div>
+          ) : Object.keys(groupedAirports).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
+              <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+            </div>
+          ) : (
+            <div className="py-3 px-4">
+              {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
+                const isSingle = cityGroup.startsWith("__single__");
+                const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+                return (
+                  <div key={cityGroup} className="mb-2 last:mb-0">
+                    {!isSingle && (
+                      <div className="w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2">
+                        <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
+                        {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                      </div>
+                    )}
+                    {cityAirports.map((a, idx) => {
+                      const isSel = selected.some((s) => s.id === a.id);
+                      return (
+                        <div key={a.id}>
+                          {idx > 0 && <div className="border-t border-[#F0F1F1] mx-1" />}
+                          <button type="button" onClick={() => onToggle(a)}
+                            className={cn(
+                              "w-full text-left pr-4 py-1.5 text-base transition-colors flex items-center gap-3 overflow-hidden",
+                              isSingle ? "pl-4" : "pl-14",
+                              isSel ? "bg-[#F0FDF4]" : "hover:bg-[#F2F3F3] active:bg-[#E8F5F0]"
+                            )}>
+                            <HugeiconsIcon icon={AirportIcon} size={22} color={isSel ? "#059669" : "#6B7B7B"} strokeWidth={2} className="shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className={cn("font-bold text-sm shrink-0", isSel ? "text-[#059669]" : "text-[#345C5A]")}>{a.iata_code}</span>
+                                <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
+                                <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                              </div>
+                              {a.locations?.city && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2F3F3] text-[#6B7B7B] text-xs font-medium mt-0.5">
+                                  <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
+                                  <span className="truncate">{a.locations.city}{a.locations.state_code ? `, ${a.locations.state_code}` : ""}</span>
+                                </span>
+                              )}
+                            </div>
+                            {isSel && (
+                              <div className="h-5 w-5 rounded-full bg-[#059669] flex items-center justify-center shrink-0">
+                                <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {/* Footer — selected chips + Done */}
+        <div className="px-4 py-3 border-t border-[#F0F1F1] flex items-center gap-2 flex-wrap">
+          <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
+            {selected.length === 0 ? (
+              <span className="text-xs text-[#9CA3AF] font-medium">No destinations selected yet</span>
+            ) : selected.map((a) => (
+              <span key={a.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#059669]/30 text-xs font-semibold text-[#059669]">
+                {a.iata_code}
+                <button type="button" onClick={() => onToggle(a)} className="opacity-70 hover:opacity-100">
+                  <HugeiconsIcon icon={AddCircleIcon} size={12} color="currentColor" strokeWidth={2} className="rotate-45" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <button type="button" onClick={onClose}
+            className="shrink-0 px-5 py-1.5 rounded-full bg-[#059669] text-white text-xs font-bold hover:bg-[#047857] transition-colors">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ── BetaSignup ────────────────────────────────────────────────────────────────
 
 export default function BetaSignup() {
@@ -388,7 +532,8 @@ export default function BetaSignup() {
   const [primaryDevice, setPrimaryDevice] = useState("");
 
   // Form fields — optional
-  const [frequentDestinations, setFrequentDestinations] = useState("");
+  const [frequentDestinations, setFrequentDestinations] = useState<Airport[]>([]);
+  const [freqDestOpen, setFreqDestOpen] = useState(false);
   const [interestedFeatures, setInterestedFeatures] = useState<string[]>([]);
   const [valueExpectation, setValueExpectation] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -408,6 +553,10 @@ export default function BetaSignup() {
   const showPassDuration = gowildStatus === "current_pass_holder" || gowildStatus === "former_pass_holder";
   const showToolName = usesGowildSearchTool === "yes" || usesGowildSearchTool === "used_to";
   const showBetaDetails = betaTestingExperience === "yes_professional" || betaTestingExperience === "informal";
+
+  const [subStep, setSubStep] = useState(0);
+  const [subStepVisible, setSubStepVisible] = useState(true);
+
 
   useEffect(() => {
     (async () => {
@@ -455,7 +604,27 @@ export default function BetaSignup() {
     return e;
   }
 
+  function advanceSubStep() {
+    setSubStepVisible(false);
+    setTimeout(() => { setSubStep((s) => s + 1); setSubStepVisible(true); }, 180);
+  }
+
   function handleNext() {
+    // Step 6 sub-step 0: validate checkbox before advancing to device question
+    if (step === 6 && subStep === 0) {
+      if (!feedbackCommitment) { setErrors({ feedbackCommitment: "You must agree to provide feedback to apply." }); return; }
+      setErrors({});
+      setSubStepVisible(false);
+      setTimeout(() => { setSubStep(1); setSubStepVisible(true); }, 180);
+      return;
+    }
+    // Step 7 sub-steps 0–3: advance through optional fields (no validation needed)
+    if (step === TOTAL_STEPS && subStep < 4) {
+      setSubStepVisible(false);
+      setTimeout(() => { setSubStep((s) => s + 1); setSubStepVisible(true); }, 180);
+      return;
+    }
+    // Normal main-step advance
     const errs = validateStep(step);
     const hasErrors = Object.keys(errs).length > 0;
     const next = [...stepStatuses] as StepStatus[];
@@ -464,19 +633,27 @@ export default function BetaSignup() {
     if (hasErrors) { setErrors(errs); return; }
     setErrors({});
     setStepVisible(false);
-    setTimeout(() => { setStep((s) => s + 1); setStepVisible(true); }, 180);
+    setSubStepVisible(false);
+    setTimeout(() => { setStep((s) => s + 1); setSubStep(0); setStepVisible(true); setSubStepVisible(true); }, 180);
   }
 
   function handleBack() {
     setErrors({});
-    setStepVisible(false);
-    setTimeout(() => { setStep((s) => s - 1); setStepVisible(true); }, 180);
+    if (subStep > 0) {
+      setSubStepVisible(false);
+      setTimeout(() => { setSubStep((s) => s - 1); setSubStepVisible(true); }, 180);
+    } else {
+      setStepVisible(false);
+      setSubStepVisible(false);
+      setTimeout(() => { setStep((s) => s - 1); setSubStep(0); setStepVisible(true); setSubStepVisible(true); }, 180);
+    }
   }
 
   function openForm() {
     setHeroExiting(true);
     setTimeout(() => {
       setHeroExiting(false);
+      setSubStep(0);
       setPhase("form");
     }, 280);
   }
@@ -488,11 +665,11 @@ export default function BetaSignup() {
     setUsesGowildSearchTool(""); setGowildSearchToolName("");
     setBetaTestingExperience(""); setBetaTestingDetails("");
     setFeedbackCommitment(false); setPrimaryDevice("");
-    setFrequentDestinations(""); setInterestedFeatures([]);
+    setFrequentDestinations([]); setInterestedFeatures([]);
     setValueExpectation(""); setAdditionalNotes(""); setPreferredFeedbackMethod("");
     setWebsite(""); setErrors({});
     setStepStatuses(Array(TOTAL_STEPS).fill("pending") as StepStatus[]);
-    setStep(1); setIsDuplicate(false);
+    setStep(1); setSubStep(0); setIsDuplicate(false);
     setPhase("landing");
   }
 
@@ -517,7 +694,7 @@ export default function BetaSignup() {
       feedback_commitment: feedbackCommitment,
       primary_device: primaryDevice,
       preferred_feedback_method: preferredFeedbackMethod || null,
-      frequent_destinations: frequentDestinations.trim() || null,
+      frequent_destinations: frequentDestinations.length > 0 ? frequentDestinations.map((a) => a.iata_code).join(", ") : null,
       interested_features: interestedFeatures,
       value_expectation: valueExpectation.trim() || null,
       additional_notes: additionalNotes.trim() || null,
@@ -595,81 +772,94 @@ export default function BetaSignup() {
         </div>
       );
 
-      case 2: return (
-        <div className="flex flex-col gap-5">
+      case 2:
+        if (subStep === 0) return (
           <FormQuestion label="Are you currently a Frontier GoWild Pass holder?" required error={errors.gowildStatus} fieldId="field-gowildStatus">
             <OptionPills options={GOWILD_STATUS_OPTIONS} value={gowildStatus}
-              onChange={(v) => { setGowildStatus(v); setGowildPassDuration(""); clearError("gowildStatus", "gowildPassDuration"); }} />
+              onChange={(v) => {
+                setGowildStatus(v); setGowildPassDuration(""); clearError("gowildStatus", "gowildPassDuration");
+                if (v === "current_pass_holder" || v === "former_pass_holder") advanceSubStep();
+              }} />
           </FormQuestion>
-          {showPassDuration && (
-            <FormQuestion label="How long have you had or did you have the GoWild Pass?" required error={errors.gowildPassDuration} fieldId="field-gowildPassDuration">
-              <OptionPills options={GOWILD_PASS_DURATION_OPTIONS} value={gowildPassDuration}
-                onChange={(v) => { setGowildPassDuration(v); clearError("gowildPassDuration"); }} />
-            </FormQuestion>
-          )}
-        </div>
-      );
+        );
+        return (
+          <FormQuestion label="How long have you had or did you have the GoWild Pass?" required error={errors.gowildPassDuration} fieldId="field-gowildPassDuration">
+            <OptionPills options={GOWILD_PASS_DURATION_OPTIONS} value={gowildPassDuration}
+              onChange={(v) => { setGowildPassDuration(v); clearError("gowildPassDuration"); }} />
+          </FormQuestion>
+        );
 
-      case 3: return (
-        <div className="flex flex-col gap-5">
+      case 3:
+        if (subStep === 0) return (
           <FormQuestion label="How often do you search for GoWild flights?" required error={errors.gowildSearchFrequency} fieldId="field-gowildSearchFrequency">
             <OptionPills options={GOWILD_SEARCH_FREQUENCY_OPTIONS} value={gowildSearchFrequency}
-              onChange={(v) => { setGowildSearchFrequency(v); clearError("gowildSearchFrequency"); }} />
+              onChange={(v) => { setGowildSearchFrequency(v); clearError("gowildSearchFrequency"); advanceSubStep(); }} />
           </FormQuestion>
+        );
+        return (
           <FormQuestion label="How often do you fly Frontier?" required error={errors.frontierFlightFrequency} fieldId="field-frontierFlightFrequency">
             <OptionPills options={FRONTIER_FLIGHT_FREQUENCY_OPTIONS} value={frontierFlightFrequency}
               onChange={(v) => { setFrontierFlightFrequency(v); clearError("frontierFlightFrequency"); }} />
           </FormQuestion>
-        </div>
-      );
+        );
 
-      case 4: return (
-        <div className="flex flex-col gap-5">
+      case 4:
+        if (subStep === 0) return (
           <FormQuestion label="Do you currently use any Frontier GoWild search app, tool, spreadsheet, alert system, or website?" required error={errors.usesGowildSearchTool} fieldId="field-usesGowildSearchTool">
             <OptionPills options={USES_GOWILD_SEARCH_TOOL_OPTIONS} value={usesGowildSearchTool}
-              onChange={(v) => { setUsesGowildSearchTool(v); setGowildSearchToolName(""); clearError("usesGowildSearchTool", "gowildSearchToolName"); }} />
+              onChange={(v) => {
+                setUsesGowildSearchTool(v); setGowildSearchToolName(""); clearError("usesGowildSearchTool", "gowildSearchToolName");
+                if (v === "yes" || v === "used_to") advanceSubStep();
+              }} />
           </FormQuestion>
-          {showToolName && (
-            <div id="field-gowildSearchToolName">
-              <AppInput icon={SearchingIcon} label="Which app, tool, website, spreadsheet, or system do you use? *"
-                placeholder="e.g. GoWild Tracker, a spreadsheet, Reddit alerts…"
-                value={gowildSearchToolName}
-                onChange={(e) => { setGowildSearchToolName(e.target.value); clearError("gowildSearchToolName"); }}
-                maxLength={255} error={errors.gowildSearchToolName} />
-            </div>
-          )}
-        </div>
-      );
+        );
+        return (
+          <div id="field-gowildSearchToolName">
+            <AppInput icon={SearchingIcon} label="Which app, tool, website, spreadsheet, or system do you use? *"
+              placeholder="e.g. GoWild Tracker, a spreadsheet, Reddit alerts…"
+              value={gowildSearchToolName}
+              onChange={(e) => { setGowildSearchToolName(e.target.value); clearError("gowildSearchToolName"); }}
+              maxLength={255} error={errors.gowildSearchToolName} />
+          </div>
+        );
 
-      case 5: return (
-        <div className="flex flex-col gap-5">
+      case 5:
+        if (subStep === 0) return (
           <FormQuestion label="Have you ever professionally contributed to a beta testing program?" required error={errors.betaTestingExperience} fieldId="field-betaTestingExperience">
             <OptionPills options={BETA_TESTING_EXPERIENCE_OPTIONS} value={betaTestingExperience}
-              onChange={(v) => { setBetaTestingExperience(v); setBetaTestingDetails(""); clearError("betaTestingExperience", "betaTestingDetails"); }} />
+              onChange={(v) => {
+                setBetaTestingExperience(v); setBetaTestingDetails(""); clearError("betaTestingExperience", "betaTestingDetails");
+                if (v === "yes_professional" || v === "informal") advanceSubStep();
+              }} />
           </FormQuestion>
-          {showBetaDetails && (
-            <div id="field-betaTestingDetails">
-              <label htmlFor="betaTestingDetails" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
-                What company, product, app, or business sector did you beta test for?
-                <span className="text-red-400 ml-0.5">*</span>
-              </label>
-              <textarea id="betaTestingDetails" value={betaTestingDetails} rows={3} maxLength={500}
-                onChange={(e) => { setBetaTestingDetails(e.target.value); clearError("betaTestingDetails"); }}
-                placeholder="Tell us about your experience…" className={textareaCls(errors.betaTestingDetails)} />
-              {errors.betaTestingDetails && <ErrorLine msg={errors.betaTestingDetails} />}
-            </div>
-          )}
-        </div>
-      );
+        );
+        return (
+          <div id="field-betaTestingDetails">
+            <label htmlFor="betaTestingDetails" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
+              What company, product, app, or business sector did you beta test for?
+              <span className="text-red-400 ml-0.5">*</span>
+            </label>
+            <textarea id="betaTestingDetails" value={betaTestingDetails} rows={3} maxLength={500}
+              onChange={(e) => { setBetaTestingDetails(e.target.value); clearError("betaTestingDetails"); }}
+              placeholder="Tell us about your experience…" className={textareaCls(errors.betaTestingDetails)} />
+            {errors.betaTestingDetails && <ErrorLine msg={errors.betaTestingDetails} />}
+          </div>
+        );
 
-      case 6: return (
-        <div className="flex flex-col gap-5">
+      case 6:
+        if (subStep === 0) return (
           <div id="field-feedbackCommitment">
             <p className="text-sm font-semibold text-[#2E4A4A] mb-3 leading-snug">
               Are you willing to provide honest feedback, report bugs, and answer occasional follow-up questions?
               <span className="text-red-400 ml-0.5">*</span>
             </p>
-            <button type="button" onClick={() => { setFeedbackCommitment((v) => !v); clearError("feedbackCommitment"); }}
+            <button type="button"
+              onClick={() => {
+                const next = !feedbackCommitment;
+                setFeedbackCommitment(next);
+                clearError("feedbackCommitment");
+                if (next) advanceSubStep();
+              }}
               role="checkbox" aria-checked={feedbackCommitment}
               className="flex items-start gap-3 text-left w-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2 rounded-lg">
               <div className={["mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all",
@@ -695,48 +885,94 @@ export default function BetaSignup() {
               </p>
             )}
           </div>
+        );
+        return (
           <FormQuestion label="What device would you primarily use Wildfly on?" required error={errors.primaryDevice} fieldId="field-primaryDevice">
             <OptionPills options={PRIMARY_DEVICE_OPTIONS} value={primaryDevice}
               onChange={(v) => { setPrimaryDevice(v); clearError("primaryDevice"); }} />
           </FormQuestion>
-        </div>
-      );
+        );
 
-      case 7: return (
-        <div className="flex flex-col gap-5">
+      case 7:
+        if (subStep === 0) return (
           <div>
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-1">Optional</p>
-            <p className="text-xs text-[#9CA3AF] leading-relaxed">These fields help us understand your needs better but are not required.</p>
+            <MultiAirportPopup
+              open={freqDestOpen}
+              onClose={() => setFreqDestOpen(false)}
+              airports={airports}
+              selected={frequentDestinations}
+              onToggle={(a) => setFrequentDestinations((prev) =>
+                prev.some((x) => x.id === a.id) ? prev.filter((x) => x.id !== a.id) : [...prev, a]
+              )}
+            />
+            <label className="text-sm font-semibold text-[#6B7B7B] ml-1 block mb-1">
+              Which destinations do you search most often?
+            </label>
+            <div
+              className="app-input-container cursor-pointer min-h-[46px] h-auto flex-wrap py-2"
+              onClick={() => setFreqDestOpen(true)}
+              role="button" tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setFreqDestOpen(true); }}
+              aria-label="Select frequent destinations"
+            >
+              <button type="button" tabIndex={-1} className="app-input-icon-btn self-start mt-0.5">
+                <HugeiconsIcon icon={AirportIcon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              {frequentDestinations.length === 0 ? (
+                <span className="app-input flex-1 flex items-center" style={{ color: "#9CA3AF" }}>
+                  Search airports or cities…
+                </span>
+              ) : (
+                <div className="flex flex-wrap gap-1.5 flex-1 py-0.5">
+                  {frequentDestinations.map((a) => (
+                    <span key={a.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#059669]/30 text-xs font-semibold text-[#059669]">
+                      {a.iata_code}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setFrequentDestinations((prev) => prev.filter((x) => x.id !== a.id)); }}
+                        className="opacity-70 hover:opacity-100"
+                      >
+                        <HugeiconsIcon icon={AddCircleIcon} size={12} color="currentColor" strokeWidth={2} className="rotate-45" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <AppInput icon={Location01Icon} label="Which destinations do you search most often?"
-            placeholder="e.g. Cancún, Las Vegas, New York…"
-            value={frequentDestinations} onChange={(e) => setFrequentDestinations(e.target.value)} maxLength={500} />
+        );
+        if (subStep === 1) return (
           <div>
             <p className="text-sm font-semibold text-[#2E4A4A] mb-3 leading-snug">Which Wildfly features are you most excited to test?</p>
             <MultiOptionPills options={INTERESTED_FEATURES_OPTIONS} values={interestedFeatures} onChange={setInterestedFeatures} />
           </div>
+        );
+        if (subStep === 2) return (
           <div>
             <label htmlFor="valueExpectation" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
               What would make Wildfly valuable enough for you to keep using?
             </label>
-            <textarea id="valueExpectation" value={valueExpectation} rows={3} maxLength={1000}
+            <textarea id="valueExpectation" value={valueExpectation} rows={4} maxLength={1000}
               onChange={(e) => setValueExpectation(e.target.value)}
               placeholder="What problem would Wildfly need to solve for you?" className={textareaCls()} />
           </div>
+        );
+        if (subStep === 3) return (
           <FormQuestion label="How would you prefer to give feedback?" htmlFor="preferredFeedbackMethod">
             <OptionPills options={PREFERRED_FEEDBACK_METHOD_OPTIONS} value={preferredFeedbackMethod}
               onChange={setPreferredFeedbackMethod} allowDeselect />
           </FormQuestion>
+        );
+        return (
           <div>
             <label htmlFor="additionalNotes" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
               Anything else you want me to know?
             </label>
-            <textarea id="additionalNotes" value={additionalNotes} rows={3} maxLength={1000}
+            <textarea id="additionalNotes" value={additionalNotes} rows={4} maxLength={1000}
               onChange={(e) => setAdditionalNotes(e.target.value)}
               placeholder="Any other context, questions, or notes…" className={textareaCls()} />
           </div>
-        </div>
-      );
+        );
 
       default: return null;
     }
@@ -746,40 +982,26 @@ export default function BetaSignup() {
 
   function renderProgress() {
     return (
-      <div className="mb-2 px-1">
-        {/* Circles + connecting lines — perfectly centered */}
-        <div className="flex items-center mb-1">
-          {STEP_META.map(({ }, i) => (
-            <React.Fragment key={i}>
-              <StepCircle idx={i} current={step} status={stepStatuses[i]} />
-              {i < STEP_META.length - 1 && (
-                <div className={[
-                  "flex-1 h-0.5 mx-1 transition-colors duration-300",
-                  stepStatuses[i] === "complete" ? "bg-[#059669]"
-                    : stepStatuses[i] === "error" ? "bg-red-400"
-                    : "bg-[#E5E7EB]",
-                ].join(" ")} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-        {/* Labels aligned under each circle */}
-        <div className="flex items-start">
-          {STEP_META.map(({ short }, i) => (
-            <React.Fragment key={i}>
-              <div className="w-7 flex justify-center">
-                <span className={[
-                  "text-[9px] font-semibold hidden xs:block text-center leading-tight",
-                  i + 1 === step ? "text-[#059669]"
-                    : stepStatuses[i] === "complete" ? "text-[#059669]"
-                    : stepStatuses[i] === "error" ? "text-red-500"
-                    : "text-[#9CA3AF]",
-                ].join(" ")}>
-                  {short}
-                </span>
-              </div>
-              {i < STEP_META.length - 1 && <div className="flex-1 mx-1" />}
-            </React.Fragment>
+      <div className="flex justify-center pb-4">
+        <div
+          className="flex gap-1.5 rounded-full px-3 py-2"
+          style={{
+            background: "rgba(243,244,246,1.0)",
+            border: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          {STEP_META.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full flex-1 transition-colors duration-300 ${
+                i < step
+                  ? "bg-[#10B981]"
+                  : stepStatuses[i] === "error"
+                  ? "bg-red-400"
+                  : "bg-[#DDE0E0]"
+              }`}
+              style={{ minWidth: "20px" }}
+            />
           ))}
         </div>
       </div>
@@ -864,28 +1086,27 @@ export default function BetaSignup() {
                 <h2 className="text-xl font-black text-[#1A2E2E]">Beta Tester Application</h2>
               </div>
 
-              {/* Progress bar — 70% width, centered */}
-              <div className="flex justify-center">
-                <div className="w-[70%]">
-                  {renderProgress()}
-                </div>
-              </div>
+              {/* Progress bar */}
+              {renderProgress()}
 
               {/* Section name — animates with each step */}
-              <div className={`flex items-center justify-center gap-3 px-5 pb-5 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-                <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
-                <p className="text-xl font-bold text-[#1A2E2E]">{STEP_META[step - 1].label}</p>
-                <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
+              <div className={`flex flex-col items-center gap-1 px-5 pb-5 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
+                  <p className="text-xl font-bold text-[#1A2E2E]">{STEP_META[step - 1].label}</p>
+                  <div className="w-3 h-0.5 rounded-full bg-[#059669]" />
+                </div>
+                <p className="text-xs text-[#9CA3AF] font-medium">{STEP_META[step - 1].desc}</p>
               </div>
 
-              {/* Step content — animated */}
-              <div className={`px-5 pb-6 sm:px-6 sm:pb-7 transition-all duration-180 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+              {/* Step content — animates on both step and sub-step transitions */}
+              <div className={`px-5 pb-6 sm:px-6 sm:pb-7 transition-all duration-180 ${subStepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
                 {renderStep()}
               </div>
 
               {/* Navigation */}
               <div className="flex items-center gap-3 px-5 pb-5">
-                {step > 1 && (
+                {(step > 1 || subStep > 0) && (
                   <button
                     type="button"
                     onClick={handleBack}
@@ -894,7 +1115,7 @@ export default function BetaSignup() {
                     ← Back
                   </button>
                 )}
-                {step < TOTAL_STEPS ? (
+                {step < TOTAL_STEPS || (step === TOTAL_STEPS && subStep < 4) ? (
                   <button
                     type="button"
                     onClick={handleNext}

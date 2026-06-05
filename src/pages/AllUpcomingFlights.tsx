@@ -239,9 +239,9 @@ function FlightCard({ flight, onRemove }: { flight: UserFlight; onRemove: (f: Us
           )}
           <span
             className="inline-flex items-center gap-1 rounded-full text-[10px] font-semibold whitespace-nowrap"
-            style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: 20, padding: "0 8px" }}
+            style={{ background: "#1D4ED8", color: "#FFFFFF", height: 20, padding: "0 8px" }}
           >
-            <HugeiconsIcon icon={tripIcon} size={10} color="#1D4ED8" strokeWidth={2.5} />
+            <HugeiconsIcon icon={tripIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
             {tripLabel}
           </span>
         </div>

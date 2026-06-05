@@ -243,8 +243,8 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                           className="relative flex-shrink-0 cursor-pointer active:scale-[0.98] transition-transform"
                           style={{
                             scrollSnapAlign: "start",
-                            width: "calc((100vw - 40px) * 0.7)",
-                            maxWidth: 406,
+                            width: "calc((100vw - 40px) * 0.7 + 48px)",
+                            maxWidth: 454,
                           }}
                         >
                           <div
@@ -324,9 +324,9 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                               )}
                               <span
                                 className="inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                style={{ background: "#EFF6FF", border: "1.5px solid #93C5FD", color: "#1D4ED8", height: "24px", padding: "0 10px" }}
+                                style={{ background: "#1D4ED8", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
                               >
-                                <HugeiconsIcon icon={tripIcon} size={11} color="#1D4ED8" strokeWidth={2.5} />
+                                <HugeiconsIcon icon={tripIcon} size={11} color="#FFFFFF" strokeWidth={2.5} />
                                 {tripLabel}
                               </span>
                             </div>
