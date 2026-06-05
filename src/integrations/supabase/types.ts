@@ -168,6 +168,108 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_applications: {
+        Row: {
+          additional_notes: string | null
+          beta_testing_details: string | null
+          beta_testing_experience: string
+          created_at: string
+          email: string
+          feedback_commitment: boolean
+          frequent_destinations: string | null
+          frontier_flight_frequency: string
+          full_name: string
+          gowild_pass_duration: string | null
+          gowild_search_frequency: string
+          gowild_search_tool_name: string | null
+          gowild_status: string
+          home_airport: string
+          id: string
+          interested_features: string[]
+          internal_notes: string | null
+          invited_at: string | null
+          normalized_email: string | null
+          preferred_feedback_method: string | null
+          primary_device: string
+          referrer: string | null
+          selected_at: string | null
+          source: string
+          status: string
+          updated_at: string
+          uses_gowild_search_tool: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          value_expectation: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          beta_testing_details?: string | null
+          beta_testing_experience: string
+          created_at?: string
+          email: string
+          feedback_commitment?: boolean
+          frequent_destinations?: string | null
+          frontier_flight_frequency: string
+          full_name: string
+          gowild_pass_duration?: string | null
+          gowild_search_frequency: string
+          gowild_search_tool_name?: string | null
+          gowild_status: string
+          home_airport: string
+          id?: string
+          interested_features?: string[]
+          internal_notes?: string | null
+          invited_at?: string | null
+          normalized_email?: string | null
+          preferred_feedback_method?: string | null
+          primary_device: string
+          referrer?: string | null
+          selected_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          uses_gowild_search_tool: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          value_expectation?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          beta_testing_details?: string | null
+          beta_testing_experience?: string
+          created_at?: string
+          email?: string
+          feedback_commitment?: boolean
+          frequent_destinations?: string | null
+          frontier_flight_frequency?: string
+          full_name?: string
+          gowild_pass_duration?: string | null
+          gowild_search_frequency?: string
+          gowild_search_tool_name?: string | null
+          gowild_status?: string
+          home_airport?: string
+          id?: string
+          interested_features?: string[]
+          internal_notes?: string | null
+          invited_at?: string | null
+          normalized_email?: string | null
+          preferred_feedback_method?: string | null
+          primary_device?: string
+          referrer?: string | null
+          selected_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          uses_gowild_search_tool?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          value_expectation?: string | null
+        }
+        Relationships: []
+      }
       bulk_search_job_logs: {
         Row: {
           airports_failed: number
