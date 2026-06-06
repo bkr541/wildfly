@@ -172,7 +172,7 @@ function FlightCard({ flight, onRemove }: { flight: UserFlight; onRemove: (f: Us
       {/* Green bottom strip */}
       <div className="absolute inset-x-0 bottom-0 h-[5px] pointer-events-none" style={{ background: GREEN }} />
 
-      <div className="px-3 pt-2.5 pb-[14px]">
+      <div className="px-3 pt-2 pb-2.5">
         {/* Header: logo + dismiss */}
         <div className="flex items-center justify-between mb-2">
           <img src={FRONTIER_LOGO} alt="Frontier" className="h-[14px] w-auto object-contain" loading="eager" />
@@ -268,19 +268,24 @@ function MonthGroup({
   const flightCount = flights.length;
 
   return (
-    <div className="mb-8">
+    <div className="mb-5">
       {/* Month header row */}
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="w-full flex items-center gap-3 pr-2 mb-1"
+        className="w-full flex items-center gap-3 pr-2"
       >
-        {/* Month badge — sits on top of the vertical timeline line */}
+        {/* Calendar chip badge */}
         <div
-          className="relative w-[52px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: GREEN }}
+          className="relative w-[46px] h-[50px] rounded-xl overflow-hidden flex-shrink-0 flex flex-col"
+          style={{ border: `1.5px solid ${GREEN}` }}
         >
-          <span className="text-white font-black text-sm tracking-wide leading-none">{monthAbbr}</span>
+          <div className="w-full flex items-center justify-center py-1" style={{ background: GREEN }}>
+            <span className="text-white text-[9px] font-black tracking-wider leading-none">{monthAbbr}</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-white">
+            <span className="text-[18px] font-black leading-none" style={{ color: GREEN }}>{flightCount}</span>
+          </div>
         </div>
 
         {/* Month name + count */}
@@ -311,35 +316,41 @@ function MonthGroup({
             transition={{ duration: 0.25, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            {dayGroups.map(([dayKey, { date, flights: dayFlights }]) => (
-              <div key={dayKey} className="mt-3">
-                {/* Day header: circle + label */}
-                <div className="flex items-center gap-3 mb-2.5">
-                  <div
-                    className="relative w-[28px] h-[28px] rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#374151] flex-shrink-0"
-                    style={{ border: `2px solid ${GREEN}`, marginLeft: 12 }}
-                  >
-                    {date.getDate()}
-                  </div>
-                  <p className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest">
-                    {getDayLabel(date)}
-                  </p>
-                </div>
+            {/* Day groups */}
+            <div style={{ marginLeft: 54 }}>
+              {dayGroups.map(([dayKey, { date, flights: dayFlights }]) => (
+                <div key={dayKey} className="mt-2 relative">
+                  {/* ╰ connector: line extends up from each day circle, curves left, attaches to trunk */}
+                  <div style={{ position: "absolute", left: -31, top: 0, width: 31, height: 18, borderLeft: `2px solid ${GREEN}`, borderBottom: `2px solid ${GREEN}`, borderBottomLeftRadius: 8 }} />
 
-                {/* Flight cards */}
-                <div className="flex flex-col gap-2.5" style={{ marginLeft: 64 }}>
-                  {dayFlights.map((flight, i) => (
-                    <motion.div
-                      key={flight.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0, transition: { duration: 0.22, delay: i * 0.05, ease: EASE } }}
+                  {/* Day header: z-index raises circle above the absolute connector so the circle covers the line */}
+                  <div className="flex items-center gap-2.5 mb-1.5" style={{ position: "relative", zIndex: 1 }}>
+                    <div
+                      className="w-[36px] h-[36px] rounded-full bg-white flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ border: `2px solid ${GREEN}`, color: "#1A2E2E", marginLeft: -19 }}
                     >
-                      <FlightCard flight={flight} onRemove={onRemove} />
-                    </motion.div>
-                  ))}
+                      {date.getDate()}
+                    </div>
+                    <p className="text-xs font-semibold text-[#4B5563] uppercase tracking-wide">
+                      {getDayLabel(date)}
+                    </p>
+                  </div>
+
+                  {/* Flight cards */}
+                  <div className="flex flex-col gap-2" style={{ marginLeft: 25 }}>
+                    {dayFlights.map((flight, i) => (
+                      <motion.div
+                        key={flight.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0, transition: { duration: 0.22, delay: i * 0.05, ease: EASE } }}
+                      >
+                        <FlightCard flight={flight} onRemove={onRemove} />
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -388,19 +399,12 @@ export default function AllUpcomingFlights() {
   return (
     <div className="w-full flex justify-center pt-4 pb-10">
       <div className="relative w-full px-4 lg:max-w-[50%]">
-        {/* Vertical timeline line */}
-        {!loading && flights.length > 0 && (
-          <div
-            className="absolute top-0 bottom-0 rounded-full"
-            style={{ left: 42, width: 2, background: GREEN }}
-          />
-        )}
 
         {loading ? (
           <div className="flex flex-col gap-6 pt-2">
             {[1, 2].map((i) => (
               <div key={i} className="flex items-start gap-3">
-                <div className="w-[52px] h-[52px] rounded-xl bg-[#e5e7eb] animate-pulse flex-shrink-0" />
+                <div className="w-[46px] h-[50px] rounded-xl bg-[#e5e7eb] animate-pulse flex-shrink-0" />
                 <div className="flex-1 pt-2 space-y-1.5">
                   <div className="h-4 w-28 rounded bg-[#e5e7eb] animate-pulse" />
                   <div className="h-3 w-16 rounded bg-[#e5e7eb] animate-pulse" />
@@ -421,6 +425,8 @@ export default function AllUpcomingFlights() {
           </div>
         ) : (
           <>
+            {/* Global line at badge center: content starts at x=16 (px-4 padding) + 23 (half of 46px badge) = x=39 */}
+            <div style={{ position: "absolute", left: 39, top: 25, bottom: 0, width: 2, background: GREEN }} />
             {months.map(([key, { date, flights: monthFlights }]) => (
               <MonthGroup
                 key={key}
@@ -429,12 +435,6 @@ export default function AllUpcomingFlights() {
                 onRemove={setFlightToRemove}
               />
             ))}
-            {months.length > 0 && (
-              <div
-                className="relative rounded-full"
-                style={{ width: 12, height: 12, background: GREEN, border: "2px solid white", marginLeft: 20 }}
-              />
-            )}
           </>
         )}
 
