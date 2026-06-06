@@ -31,7 +31,6 @@ import {
   BETA_TESTING_EXPERIENCE_OPTIONS,
   PRIMARY_DEVICE_OPTIONS,
   PREFERRED_FEEDBACK_METHOD_OPTIONS,
-  INTERESTED_FEATURES_OPTIONS,
   type BetaSignupOption,
 } from "@/constants/betaSignup";
 
@@ -41,7 +40,7 @@ type FormErrors = Partial<Record<
   | "fullName" | "email" | "homeAirport"
   | "gowildStatus" | "gowildPassDuration"
   | "gowildSearchFrequency" | "frontierFlightFrequency"
-  | "usesGowildSearchTool" | "gowildSearchToolName"
+  | "usesGowildSearchTool"
   | "betaTestingExperience" | "betaTestingDetails"
   | "feedbackCommitment" | "primaryDevice",
   string
@@ -100,40 +99,6 @@ function OptionPills({
   );
 }
 
-function MultiOptionPills({
-  options, values, onChange,
-}: {
-  options: BetaSignupOption[];
-  values: string[];
-  onChange: (v: string[]) => void;
-}) {
-  const toggle = (val: string) =>
-    onChange(values.includes(val) ? values.filter((x) => x !== val) : [...values, val]);
-  return (
-    <div className="flex flex-wrap gap-2" role="group">
-      {options.map((opt) => {
-        const sel = values.includes(opt.value);
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            aria-pressed={sel}
-            onClick={() => toggle(opt.value)}
-            className={[
-              "px-4 py-2.5 min-h-[40px] rounded-full text-sm font-semibold border transition-all",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-1",
-              sel
-                ? "bg-[#059669] border-[#059669] text-white"
-                : "bg-white border-[#E5E7EB] text-[#6B7280] hover:border-[#6EE7B7] hover:bg-[#FAFAFA]",
-            ].join(" ")}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 function FormQuestion({
   label, htmlFor, required, error, fieldId, children,
@@ -167,7 +132,7 @@ function FormQuestion({
 
 function textareaCls(error?: string): string {
   return [
-    "w-full px-4 py-3 rounded-xl border bg-white text-sm text-[#374151]",
+    "w-full px-4 py-3 rounded-xl border bg-white text-base text-[#374151]",
     "placeholder-[#9CA3AF] focus:outline-none resize-none transition-all focus:ring-2",
     error
       ? "border-red-400 focus:border-red-400 focus:ring-red-400/10"
@@ -395,7 +360,7 @@ function MultiAirportPopup({ open, onClose, airports, selected, onToggle }: {
           </button>
         </div>
         {/* Search input */}
-        <div className="px-5 pb-3 pt-3">
+        <div className="px-5 pt-3 pb-2">
           <div className="app-input-container">
             <button type="button" tabIndex={-1} className="app-input-icon-btn">
               <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
@@ -410,6 +375,19 @@ function MultiAirportPopup({ open, onClose, airports, selected, onToggle }: {
             )}
           </div>
         </div>
+        {/* Selected chips — below search input */}
+        {selected.length > 0 && (
+          <div className="px-5 pb-3 flex flex-wrap gap-1.5">
+            {selected.map((a) => (
+              <span key={a.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#059669]/30 text-xs font-semibold text-[#059669]">
+                {a.iata_code}
+                <button type="button" onClick={() => onToggle(a)} className="opacity-70 hover:opacity-100">
+                  <HugeiconsIcon icon={AddCircleIcon} size={12} color="currentColor" strokeWidth={2} className="rotate-45" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         {/* Results */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
           {!shouldShow ? (
@@ -443,7 +421,7 @@ function MultiAirportPopup({ open, onClose, airports, selected, onToggle }: {
                       return (
                         <div key={a.id}>
                           {idx > 0 && <div className="border-t border-[#F0F1F1] mx-1" />}
-                          <button type="button" onClick={() => onToggle(a)}
+                          <button type="button" onClick={() => { onToggle(a); setQuery(""); }}
                             className={cn(
                               "w-full text-left pr-4 py-1.5 text-base transition-colors flex items-center gap-3 overflow-hidden",
                               isSingle ? "pl-4" : "pl-14",
@@ -480,22 +458,10 @@ function MultiAirportPopup({ open, onClose, airports, selected, onToggle }: {
             </div>
           )}
         </div>
-        {/* Footer — selected chips + Done */}
-        <div className="px-4 py-3 border-t border-[#F0F1F1] flex items-center gap-2 flex-wrap">
-          <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
-            {selected.length === 0 ? (
-              <span className="text-xs text-[#9CA3AF] font-medium">No destinations selected yet</span>
-            ) : selected.map((a) => (
-              <span key={a.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#059669]/30 text-xs font-semibold text-[#059669]">
-                {a.iata_code}
-                <button type="button" onClick={() => onToggle(a)} className="opacity-70 hover:opacity-100">
-                  <HugeiconsIcon icon={AddCircleIcon} size={12} color="currentColor" strokeWidth={2} className="rotate-45" />
-                </button>
-              </span>
-            ))}
-          </div>
+        {/* Footer — Done button */}
+        <div className="px-4 py-3 border-t border-[#F0F1F1] flex justify-end">
           <button type="button" onClick={onClose}
-            className="shrink-0 px-5 py-1.5 rounded-full bg-[#059669] text-white text-xs font-bold hover:bg-[#047857] transition-colors">
+            className="px-5 py-1.5 rounded-full bg-[#059669] text-white text-xs font-bold hover:bg-[#047857] transition-colors">
             Done
           </button>
         </div>
@@ -525,7 +491,6 @@ export default function BetaSignup() {
   const [gowildSearchFrequency, setGowildSearchFrequency] = useState("");
   const [frontierFlightFrequency, setFrontierFlightFrequency] = useState("");
   const [usesGowildSearchTool, setUsesGowildSearchTool] = useState("");
-  const [gowildSearchToolName, setGowildSearchToolName] = useState("");
   const [betaTestingExperience, setBetaTestingExperience] = useState("");
   const [betaTestingDetails, setBetaTestingDetails] = useState("");
   const [feedbackCommitment, setFeedbackCommitment] = useState(false);
@@ -534,9 +499,7 @@ export default function BetaSignup() {
   // Form fields — optional
   const [frequentDestinations, setFrequentDestinations] = useState<Airport[]>([]);
   const [freqDestOpen, setFreqDestOpen] = useState(false);
-  const [interestedFeatures, setInterestedFeatures] = useState<string[]>([]);
   const [valueExpectation, setValueExpectation] = useState("");
-  const [additionalNotes, setAdditionalNotes] = useState("");
   const [preferredFeedbackMethod, setPreferredFeedbackMethod] = useState("");
 
   // Honeypot
@@ -551,7 +514,6 @@ export default function BetaSignup() {
   const [submitting, setSubmitting] = useState(false);
 
   const showPassDuration = gowildStatus === "current_pass_holder" || gowildStatus === "former_pass_holder";
-  const showToolName = usesGowildSearchTool === "yes" || usesGowildSearchTool === "used_to";
   const showBetaDetails = betaTestingExperience === "yes_professional" || betaTestingExperience === "informal";
 
   const [subStep, setSubStep] = useState(0);
@@ -593,7 +555,6 @@ export default function BetaSignup() {
       if (!frontierFlightFrequency) e.frontierFlightFrequency = "Please select an option.";
     } else if (s === 4) {
       if (!usesGowildSearchTool) e.usesGowildSearchTool = "Please select an option.";
-      if (showToolName && !gowildSearchToolName.trim()) e.gowildSearchToolName = "Please name the tool you use.";
     } else if (s === 5) {
       if (!betaTestingExperience) e.betaTestingExperience = "Please select an option.";
       if (showBetaDetails && !betaTestingDetails.trim()) e.betaTestingDetails = "Please describe your beta testing experience.";
@@ -619,7 +580,7 @@ export default function BetaSignup() {
       return;
     }
     // Step 7 sub-steps 0–3: advance through optional fields (no validation needed)
-    if (step === TOTAL_STEPS && subStep < 4) {
+    if (step === TOTAL_STEPS && subStep < 2) {
       setSubStepVisible(false);
       setTimeout(() => { setSubStep((s) => s + 1); setSubStepVisible(true); }, 180);
       return;
@@ -662,11 +623,11 @@ export default function BetaSignup() {
     setFullName(""); setEmail(""); setHomeAirport(""); setSelectedAirport(null);
     setGowildStatus(""); setGowildPassDuration("");
     setGowildSearchFrequency(""); setFrontierFlightFrequency("");
-    setUsesGowildSearchTool(""); setGowildSearchToolName("");
+    setUsesGowildSearchTool("");
     setBetaTestingExperience(""); setBetaTestingDetails("");
     setFeedbackCommitment(false); setPrimaryDevice("");
-    setFrequentDestinations([]); setInterestedFeatures([]);
-    setValueExpectation(""); setAdditionalNotes(""); setPreferredFeedbackMethod("");
+    setFrequentDestinations([]);
+    setValueExpectation(""); setPreferredFeedbackMethod("");
     setWebsite(""); setErrors({});
     setStepStatuses(Array(TOTAL_STEPS).fill("pending") as StepStatus[]);
     setStep(1); setSubStep(0); setIsDuplicate(false);
@@ -688,16 +649,13 @@ export default function BetaSignup() {
       gowild_search_frequency: gowildSearchFrequency,
       frontier_flight_frequency: frontierFlightFrequency,
       uses_gowild_search_tool: usesGowildSearchTool,
-      gowild_search_tool_name: showToolName ? gowildSearchToolName.trim() || null : null,
       beta_testing_experience: betaTestingExperience,
       beta_testing_details: showBetaDetails ? betaTestingDetails.trim() || null : null,
       feedback_commitment: feedbackCommitment,
       primary_device: primaryDevice,
       preferred_feedback_method: preferredFeedbackMethod || null,
       frequent_destinations: frequentDestinations.length > 0 ? frequentDestinations.map((a) => a.iata_code).join(", ") : null,
-      interested_features: interestedFeatures,
       value_expectation: valueExpectation.trim() || null,
-      additional_notes: additionalNotes.trim() || null,
       source: params.get("source") || "public_beta_page",
       utm_source: params.get("utm_source") || null,
       utm_medium: params.get("utm_medium") || null,
@@ -803,24 +761,13 @@ export default function BetaSignup() {
           </FormQuestion>
         );
 
-      case 4:
-        if (subStep === 0) return (
+      case 4: return (
           <FormQuestion label="Do you currently use any Frontier GoWild search app, tool, spreadsheet, alert system, or website?" required error={errors.usesGowildSearchTool} fieldId="field-usesGowildSearchTool">
             <OptionPills options={USES_GOWILD_SEARCH_TOOL_OPTIONS} value={usesGowildSearchTool}
               onChange={(v) => {
-                setUsesGowildSearchTool(v); setGowildSearchToolName(""); clearError("usesGowildSearchTool", "gowildSearchToolName");
-                if (v === "yes" || v === "used_to") advanceSubStep();
+                setUsesGowildSearchTool(v); clearError("usesGowildSearchTool");
               }} />
           </FormQuestion>
-        );
-        return (
-          <div id="field-gowildSearchToolName">
-            <AppInput icon={SearchingIcon} label="Which app, tool, website, spreadsheet, or system do you use? *"
-              placeholder="e.g. GoWild Tracker, a spreadsheet, Reddit alerts…"
-              value={gowildSearchToolName}
-              onChange={(e) => { setGowildSearchToolName(e.target.value); clearError("gowildSearchToolName"); }}
-              maxLength={255} error={errors.gowildSearchToolName} />
-          </div>
         );
 
       case 5:
@@ -923,7 +870,7 @@ export default function BetaSignup() {
                   Search airports or cities…
                 </span>
               ) : (
-                <div className="flex flex-wrap gap-1.5 flex-1 py-0.5">
+                <div className="flex flex-wrap gap-1.5 flex-1 py-0.5 pl-1.5">
                   {frequentDestinations.map((a) => (
                     <span key={a.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#059669]/30 text-xs font-semibold text-[#059669]">
                       {a.iata_code}
@@ -943,12 +890,6 @@ export default function BetaSignup() {
         );
         if (subStep === 1) return (
           <div>
-            <p className="text-sm font-semibold text-[#2E4A4A] mb-3 leading-snug">Which Wildfly features are you most excited to test?</p>
-            <MultiOptionPills options={INTERESTED_FEATURES_OPTIONS} values={interestedFeatures} onChange={setInterestedFeatures} />
-          </div>
-        );
-        if (subStep === 2) return (
-          <div>
             <label htmlFor="valueExpectation" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
               What would make Wildfly valuable enough for you to keep using?
             </label>
@@ -957,21 +898,11 @@ export default function BetaSignup() {
               placeholder="What problem would Wildfly need to solve for you?" className={textareaCls()} />
           </div>
         );
-        if (subStep === 3) return (
+        if (subStep === 2) return (
           <FormQuestion label="How would you prefer to give feedback?" htmlFor="preferredFeedbackMethod">
             <OptionPills options={PREFERRED_FEEDBACK_METHOD_OPTIONS} value={preferredFeedbackMethod}
               onChange={setPreferredFeedbackMethod} allowDeselect />
           </FormQuestion>
-        );
-        return (
-          <div>
-            <label htmlFor="additionalNotes" className="text-sm font-semibold text-[#2E4A4A] block mb-2 leading-snug">
-              Anything else you want me to know?
-            </label>
-            <textarea id="additionalNotes" value={additionalNotes} rows={4} maxLength={1000}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-              placeholder="Any other context, questions, or notes…" className={textareaCls()} />
-          </div>
         );
 
       default: return null;
@@ -1115,7 +1046,7 @@ export default function BetaSignup() {
                     ← Back
                   </button>
                 )}
-                {step < TOTAL_STEPS || (step === TOTAL_STEPS && subStep < 4) ? (
+                {step < TOTAL_STEPS || (step === TOTAL_STEPS && subStep < 2) ? (
                   <button
                     type="button"
                     onClick={handleNext}
@@ -1150,19 +1081,13 @@ export default function BetaSignup() {
         {phase === "success" && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-              <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #10B981 0%, #059669 100%)" }} />
               <div className="px-6 py-10 flex flex-col items-center text-center">
-                <div className="relative mb-7">
-                  <div className="h-20 w-20 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%)" }}>
-                    <svg aria-hidden="true" className="h-9 w-9 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div className="absolute inset-0 rounded-full opacity-30 animate-ping" style={{ background: "radial-gradient(circle, #6EE7B7 0%, transparent 70%)" }} />
+                <div className="mb-7">
+                  <img src="/assets/backgrounds/BetaSignupSuccess.png" alt="" className="h-24 w-auto object-contain" />
                 </div>
 
                 <h2 className="text-2xl font-black text-[#1A2E2E] mb-2 leading-tight">
-                  {isDuplicate ? "Already Applied!" : "You're on the list!"}
+                  {isDuplicate ? "Already Applied!" : "Thanks for applying!"}
                 </h2>
 
                 {isDuplicate ? (
@@ -1171,18 +1096,12 @@ export default function BetaSignup() {
                   </p>
                 ) : (
                   <>
-                    <p className="text-sm text-[#6B7B7B] leading-relaxed mb-2">
-                      Thanks for applying to become a Wildfly beta tester.
-                    </p>
                     {email && (
-                      <p className="text-sm text-[#6B7B7B] leading-relaxed mb-6">
-                        If selected, Wildfly will be in touch and reach out to{" "}
+                      <p className="text-sm text-[#6B7B7B] leading-relaxed mb-8">
+                        If selected, we will reach out to{" "}
                         <span className="font-semibold text-[#2E4A4A]">{email.trim()}</span>.
                       </p>
                     )}
-                    <p className="text-xs text-[#B0BEC5] mb-8">
-                      Submitting an application does not guarantee beta access.
-                    </p>
                   </>
                 )}
 

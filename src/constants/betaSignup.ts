@@ -70,9 +70,7 @@ export const PREFERRED_FEEDBACK_METHOD_OPTIONS: BetaSignupOption[] = [
   { value: "email",             label: "Email" },
   { value: "in_app",            label: "In-app feedback form" },
   { value: "google_form",       label: "Google Form" },
-  { value: "discord",           label: "Discord" },
   { value: "text_message",      label: "Text/message" },
-  { value: "screen_recording",  label: "Short video/screen recording" },
 ];
 
 // "Which Wildfly features are you most excited to test?"

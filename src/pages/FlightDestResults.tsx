@@ -748,61 +748,83 @@ const FlightDestResults = ({
                 </button>
               </div>
               {/* Route text below icons — POLISHED WITH TEXT-SHADOW */}
-              <div className="relative mt-3">
-                <p
-                  className="text-white/70 text-[22px] font-light leading-tight"
-                  style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
-                >
-                  {airportMap[departureAirport]?.city || departureAirport} to
-                </p>
-                <p
-                  className="text-white leading-tight uppercase tracking-wide"
-                  style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
-                >
-                  {arrivalAirport && arrivalAirport !== "All" ? (
-                    <>
-                      <span className="text-[30px] font-black">{arrivalAirport}</span>
-                      {airportMap[arrivalAirport]?.city ? (
-                        <span className="text-[30px] font-light">
-                          {" "}
-                          | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
-                        </span>
-                      ) : null}
-                    </>
-                  ) : (
-                    <span className="text-[36px] font-black">All Destinations</span>
-                  )}
-                </p>
-                {(arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name) || departureDate ? (
-                  <div className="flex items-center gap-2 flex-wrap mt-2">
-                    {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
-                      <div
-                        className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
-                        style={{
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                        }}
-                      >
-                        <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                        <span className="text-[#065F46] text-xs font-semibold leading-none">
-                          {airportMap[arrivalAirport].name}
-                        </span>
-                      </div>
+              <div className="relative mt-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-white/70 text-[22px] font-light leading-tight"
+                    style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                  >
+                    {airportMap[departureAirport]?.city || departureAirport} to
+                  </p>
+                  <p
+                    className="text-white leading-tight uppercase tracking-wide"
+                    style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                  >
+                    {arrivalAirport && arrivalAirport !== "All" ? (
+                      <>
+                        <span className="text-[30px] font-black">{arrivalAirport}</span>
+                        {airportMap[arrivalAirport]?.city ? (
+                          <span className="text-[30px] font-light">
+                            {" "}
+                            | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className="text-[36px] font-black">All Destinations</span>
                     )}
-                    {departureDate && (
-                      <div
-                        className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
-                        style={{
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                        }}
-                      >
-                        <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                        <span className="text-[#065F46] text-xs font-semibold leading-none">
-                          {new Date(departureDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
-                        </span>
-                      </div>
-                    )}
+                  </p>
+                  {(arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name) || departureDate ? (
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                      {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
+                        <div
+                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                          style={{
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                          <span className="text-[#065F46] text-xs font-semibold leading-none">
+                            {airportMap[arrivalAirport].name}
+                          </span>
+                        </div>
+                      )}
+                      {departureDate && (
+                        <div
+                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                          style={{
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                          <span className="text-[#065F46] text-xs font-semibold leading-none">
+                            {new Date(departureDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Flight count badge */}
+                <div
+                  className="flex-shrink-0 rounded-2xl overflow-hidden self-center"
+                  style={{
+                    minWidth: 62,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.30)",
+                  }}
+                >
+                  <div className="flex flex-col items-center px-2 pt-3 pb-2.5" style={{ background: "#4E7B6A" }}>
+                    <span className="text-[34px] font-black text-white leading-none tabular-nums">
+                      {activeFlights.length}
+                    </span>
                   </div>
-                ) : null}
+                  <div className="flex items-center justify-center py-2 bg-white">
+                    <span className="text-[13px] font-semibold text-[#2E4A4A]">
+                      Flights
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Metrics strip — flows naturally below route text */}
@@ -977,15 +999,9 @@ const FlightDestResults = ({
             const isSorted = sortBy !== "time";
             const filterCount = (filterNonstopOnly ? 1 : 0) + (filterGoWildOnly ? 1 : 0) + (filterDestType !== "all" ? 1 : 0);
             const sortCount = isSorted ? 1 : 0;
-            const displayCount = isFiltered ? sortedGroups.reduce((sum, g) => sum + g.flights.length, 0) : activeFlights.length;
             return (
-              <div className="flex items-center bg-white border-b border-gray-200 px-3 -mx-4 -mt-3">
-                {/* Left: count — takes up remaining space */}
-                <span className="flex-1 py-3.5">
-                  <span className="text-[22px] font-black text-[#059669]">{displayCount}</span>
-                  <span className="text-[15px] font-semibold text-[#2E4A4A] ml-1.5">Flights</span>
-                </span>
-                {/* Right: Sort + Filter tab-style buttons */}
+              <div className="flex items-center justify-end bg-white border-b border-gray-200 px-3 -mx-4 -mt-3">
+                {/* Sort + Filter tab-style buttons */}
                 <button
                   type="button"
                   onClick={() => setSortSheet(true)}
