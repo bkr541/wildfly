@@ -7,11 +7,11 @@ import {
   Search01Icon,
   Cancel01Icon,
   Refresh01Icon,
-  ArrowDown01Icon,
   UserIcon,
   AirportIcon,
-  Notebook01Icon,
   Alert01Icon,
+  ArrowDown01Icon,
+  Notebook01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -85,6 +85,8 @@ const STATUS_CONFIG: Record<AppStatus, { label: string; bg: string; text: string
   rejected:    { label: "Rejected",    bg: "#FEF2F2", text: "#DC2626" },
 };
 
+const GRID = "grid-cols-[1.6fr_1.4fr_0.6fr_1.1fr_1.1fr_0.7fr_0.9fr_0.8fr_32px]";
+
 function statusConfig(s: string) {
   return STATUS_CONFIG[s as AppStatus] ?? { label: s, bg: "#F2F3F3", text: "#6B7B7B" };
 }
@@ -99,37 +101,7 @@ function fmt(iso: string | null | undefined): string {
   try { return format(parseISO(iso), "MMM d, yyyy"); } catch { return iso; }
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  const { label, bg, text } = statusConfig(status);
-  return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
-      style={{ background: bg, color: text }}
-    >
-      <span
-        className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-        style={{ background: text }}
-      />
-      {label}
-    </span>
-  );
-}
-
-function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
-  const isEmpty = value === null || value === undefined || value === "" || value === "—";
-  return (
-    <div className="flex gap-3 py-1.5 border-b border-[#F8F9F9] last:border-0 items-start">
-      <dt className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide w-40 flex-shrink-0 pt-0.5">
-        {label}
-      </dt>
-      <dd className={["text-xs break-words flex-1", isEmpty ? "text-[#C4C9CA]" : "text-[#2E4A4A]"].join(" ")}>
-        {isEmpty ? "—" : value}
-      </dd>
-    </div>
-  );
-}
+// ── Detail panel sub-components ───────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -139,20 +111,75 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── ApplicationRow ────────────────────────────────────────────────────────────
+function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
+  const empty = value === null || value === undefined || value === "" || value === "—";
+  return (
+    <div className="flex gap-2 py-0.5 border-b border-[#F8F9F9] last:border-0 items-start">
+      <dt className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide w-36 flex-shrink-0 pt-0.5">
+        {label}
+      </dt>
+      <dd className={`text-xs break-words flex-1 ${empty ? "text-[#C4C9CA]" : "text-[#2E4A4A]"}`}>
+        {empty ? "—" : value}
+      </dd>
+    </div>
+  );
+}
 
-function ApplicationRow({
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (p: number) => void }) {
+  const getPages = () => {
+    const pages: (number | "…")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
+    } else {
+      pages.push(0);
+      if (page > 2) pages.push("…");
+      for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) pages.push(i);
+      if (page < totalPages - 3) pages.push("…");
+      pages.push(totalPages - 1);
+    }
+    return pages;
+  };
+  const btn = "h-8 min-w-[32px] px-2 rounded-lg text-xs font-semibold transition-colors";
+  return (
+    <div className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-[#F0F1F1]">
+      <button onClick={() => onPage(page - 1)} disabled={page === 0}
+        className={`${btn} border border-[#E8EEEE] text-[#6B7B7B] hover:bg-[#F2F3F3] disabled:opacity-40 disabled:cursor-not-allowed`}>
+        Previous
+      </button>
+      {getPages().map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="text-xs text-[#9CA3AF] px-1">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onPage(p as number)}
+            className={`${btn} ${p === page ? "text-white" : "border border-[#E8EEEE] text-[#6B7B7B] hover:bg-[#F2F3F3]"}`}
+            style={p === page ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+          >
+            {(p as number) + 1}
+          </button>
+        )
+      )}
+      <button onClick={() => onPage(page + 1)} disabled={page >= totalPages - 1}
+        className={`${btn} border border-[#E8EEEE] text-[#6B7B7B] hover:bg-[#F2F3F3] disabled:opacity-40 disabled:cursor-not-allowed`}>
+        Next
+      </button>
+    </div>
+  );
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+
+function DetailPanel({
   app,
-  expanded,
-  onToggle,
   onStatusChange,
   onNotesSave,
   updatingStatus,
   savingNotes,
 }: {
   app: BetaApplication;
-  expanded: boolean;
-  onToggle: () => void;
   onStatusChange: (id: string, status: AppStatus) => void;
   onNotesSave: (id: string, notes: string) => void;
   updatingStatus: boolean;
@@ -161,7 +188,6 @@ function ApplicationRow({
   const [localNotes, setLocalNotes] = useState(app.internal_notes ?? "");
   const notesDirty = localNotes !== (app.internal_notes ?? "");
 
-  // Sync local notes when the app row is updated from parent
   useEffect(() => {
     setLocalNotes(app.internal_notes ?? "");
   }, [app.internal_notes]);
@@ -171,101 +197,61 @@ function ApplicationRow({
     .join(", ");
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={CARD_STYLE}>
-      {/* Collapsed row */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full text-left px-5 py-3.5 flex items-center gap-3 hover:bg-black/[0.02] transition-colors"
-      >
-        {/* Initial avatar */}
-        <div
-          className="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-        >
-          {app.full_name.trim()[0]?.toUpperCase() ?? "?"}
-        </div>
+    <div className="border-t border-[#E8EEEE] bg-[#FAFBFB] px-5 py-3">
+      <div className="grid grid-cols-4 gap-x-6 gap-y-0">
 
-        {/* Name + email */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#2E4A4A] truncate">{app.full_name}</p>
-          <p className="text-xs text-[#9CA3AF] truncate">{app.email}</p>
-        </div>
-
-        {/* Airport */}
-        <span className="text-xs font-mono font-bold text-[#6B7B7B] hidden sm:block flex-shrink-0">
-          {app.home_airport}
-        </span>
-
-        {/* GoWild status (short) */}
-        <span className="text-xs text-[#9CA3AF] hidden md:block flex-shrink-0 max-w-[120px] truncate">
-          {labelFor(app.gowild_status, GOWILD_STATUS_OPTIONS).split(",")[0]}
-        </span>
-
-        {/* Status badge */}
-        <StatusBadge status={app.status} />
-
-        {/* Date */}
-        <span className="text-xs text-[#9CA3AF] hidden sm:block flex-shrink-0">
-          {fmt(app.created_at)}
-        </span>
-
-        {/* Expand chevron */}
-        <HugeiconsIcon
-          icon={ArrowDown01Icon}
-          size={16}
-          color="#9CA3AF"
-          strokeWidth={2}
-          className="flex-shrink-0 transition-transform duration-200"
-          style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
-        />
-      </button>
-
-      {/* Expanded detail */}
-      {expanded && (
-        <div className="border-t border-[#F0F1F1] px-5 py-4 flex flex-col gap-0">
-
-          {/* ── Applicant ───────────────────────────────────────────────── */}
+        {/* Col 1 — Applicant */}
+        <div>
           <SectionLabel>Applicant</SectionLabel>
           <dl>
-            <FieldRow label="Full name"  value={app.full_name} />
-            <FieldRow label="Email"      value={<a href={`mailto:${app.email}`} className="text-[#059669] hover:underline">{app.email}</a>} />
+            <FieldRow label="Full name"    value={app.full_name} />
+            <FieldRow label="Email"        value={<a href={`mailto:${app.email}`} className="text-[#059669] hover:underline">{app.email}</a>} />
             <FieldRow label="Home airport" value={app.home_airport} />
-            <FieldRow label="Applied"    value={fmt(app.created_at)} />
+            <FieldRow label="Applied"      value={fmt(app.created_at)} />
           </dl>
 
-          {/* ── GoWild Pass ─────────────────────────────────────────────── */}
+          <SectionLabel>Tracking</SectionLabel>
+          <dl>
+            <FieldRow label="Source"       value={app.source} />
+            <FieldRow label="UTM source"   value={app.utm_source} />
+            <FieldRow label="UTM medium"   value={app.utm_medium} />
+            <FieldRow label="UTM campaign" value={app.utm_campaign} />
+            <FieldRow label="Referrer"     value={app.referrer} />
+          </dl>
+        </div>
+
+        {/* Col 2 — GoWild Pass + Current Tools */}
+        <div>
           <SectionLabel>GoWild Pass</SectionLabel>
           <dl>
-            <FieldRow label="GoWild status"      value={labelFor(app.gowild_status,           GOWILD_STATUS_OPTIONS)} />
-            <FieldRow label="Pass duration"       value={labelFor(app.gowild_pass_duration,    GOWILD_PASS_DURATION_OPTIONS)} />
-            <FieldRow label="Search frequency"    value={labelFor(app.gowild_search_frequency, GOWILD_SEARCH_FREQUENCY_OPTIONS)} />
-            <FieldRow label="Frontier frequency"  value={labelFor(app.frontier_flight_frequency, FRONTIER_FLIGHT_FREQUENCY_OPTIONS)} />
+            <FieldRow label="Status"            value={labelFor(app.gowild_status,             GOWILD_STATUS_OPTIONS)} />
+            <FieldRow label="Pass duration"      value={labelFor(app.gowild_pass_duration,      GOWILD_PASS_DURATION_OPTIONS)} />
+            <FieldRow label="Search frequency"   value={labelFor(app.gowild_search_frequency,   GOWILD_SEARCH_FREQUENCY_OPTIONS)} />
+            <FieldRow label="Frontier frequency" value={labelFor(app.frontier_flight_frequency,  FRONTIER_FLIGHT_FREQUENCY_OPTIONS)} />
           </dl>
 
-          {/* ── Tools ───────────────────────────────────────────────────── */}
           <SectionLabel>Current Tools</SectionLabel>
           <dl>
-            <FieldRow label="Uses GoWild tool"  value={labelFor(app.uses_gowild_search_tool, USES_GOWILD_SEARCH_TOOL_OPTIONS)} />
-            <FieldRow label="Tool name"          value={app.gowild_search_tool_name} />
+            <FieldRow label="Uses GoWild tool" value={labelFor(app.uses_gowild_search_tool, USES_GOWILD_SEARCH_TOOL_OPTIONS)} />
+            <FieldRow label="Tool name"         value={app.gowild_search_tool_name} />
           </dl>
+        </div>
 
-          {/* ── Beta Experience ──────────────────────────────────────────── */}
+        {/* Col 3 — Beta Experience + Availability & Device + Optional */}
+        <div>
           <SectionLabel>Beta Experience</SectionLabel>
           <dl>
-            <FieldRow label="Experience"  value={labelFor(app.beta_testing_experience, BETA_TESTING_EXPERIENCE_OPTIONS)} />
-            <FieldRow label="Details"     value={app.beta_testing_details} />
+            <FieldRow label="Experience" value={labelFor(app.beta_testing_experience, BETA_TESTING_EXPERIENCE_OPTIONS)} />
+            <FieldRow label="Details"    value={app.beta_testing_details} />
           </dl>
 
-          {/* ── Availability & Device ────────────────────────────────────── */}
           <SectionLabel>Availability &amp; Device</SectionLabel>
           <dl>
-            <FieldRow label="Feedback commitment" value={app.feedback_commitment ? "Yes" : "No"} />
-            <FieldRow label="Primary device"      value={labelFor(app.primary_device,             PRIMARY_DEVICE_OPTIONS)} />
-            <FieldRow label="Feedback method"     value={labelFor(app.preferred_feedback_method,  PREFERRED_FEEDBACK_METHOD_OPTIONS)} />
+            <FieldRow label="Commitment"      value={app.feedback_commitment ? "Yes" : "No"} />
+            <FieldRow label="Primary device"  value={labelFor(app.primary_device,            PRIMARY_DEVICE_OPTIONS)} />
+            <FieldRow label="Feedback method" value={labelFor(app.preferred_feedback_method, PREFERRED_FEEDBACK_METHOD_OPTIONS)} />
           </dl>
 
-          {/* ── Optional ────────────────────────────────────────────────── */}
           <SectionLabel>Optional</SectionLabel>
           <dl>
             <FieldRow label="Destinations"      value={app.frequent_destinations} />
@@ -273,31 +259,19 @@ function ApplicationRow({
             <FieldRow label="Value expectation" value={app.value_expectation} />
             <FieldRow label="Additional notes"  value={app.additional_notes} />
           </dl>
+        </div>
 
-          {/* ── Tracking ────────────────────────────────────────────────── */}
-          <SectionLabel>Tracking</SectionLabel>
-          <dl>
-            <FieldRow label="Source"      value={app.source} />
-            <FieldRow label="UTM source"  value={app.utm_source} />
-            <FieldRow label="UTM medium"  value={app.utm_medium} />
-            <FieldRow label="UTM campaign" value={app.utm_campaign} />
-            <FieldRow label="Referrer"    value={app.referrer} />
-          </dl>
-
-          {/* ── Admin Actions ────────────────────────────────────────────── */}
+        {/* Col 4 — Admin actions */}
+        <div>
           <SectionLabel>Admin</SectionLabel>
-
-          {/* Timestamps */}
-          <dl className="mb-4">
+          <dl className="mb-2">
             <FieldRow label="Invited at"  value={fmt(app.invited_at)} />
             <FieldRow label="Selected at" value={fmt(app.selected_at)} />
           </dl>
 
           {/* Status buttons */}
-          <div className="mb-4">
-            <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">
-              Set status
-            </p>
+          <div className="mb-3">
+            <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1.5">Set status</p>
             <div className="flex flex-wrap gap-2">
               {ALL_STATUSES.map((s) => {
                 const cfg = STATUS_CONFIG[s];
@@ -324,7 +298,7 @@ function ApplicationRow({
 
           {/* Internal notes */}
           <div>
-            <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <HugeiconsIcon icon={Notebook01Icon} size={12} color="currentColor" strokeWidth={2} />
               Internal notes
             </p>
@@ -356,9 +330,9 @@ function ApplicationRow({
               </div>
             )}
           </div>
-
         </div>
-      )}
+
+      </div>
     </div>
   );
 }
@@ -382,8 +356,8 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
   // Pagination
   const [page, setPage] = useState(0);
 
-  // Expanded row
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Selected row
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Per-row action state
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
@@ -518,11 +492,10 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
     return result;
   }, [applications, search, filterStatus, filterGowildStatus, filterDevice, filterAirport]);
 
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage    = Math.min(page, totalPages - 1);
-  const pageRows    = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
-
-  const hasFilters  = !!(search || filterStatus || filterGowildStatus || filterDevice || filterAirport);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages - 1);
+  const pageRows   = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+  const hasFilters = !!(search || filterStatus || filterGowildStatus || filterDevice || filterAirport);
 
   function clearFilters() {
     setSearch("");
@@ -533,16 +506,7 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
     setPage(0);
   }
 
-  // Status counts for the count chips
-  const countByStatus = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const a of applications) {
-      counts[a.status] = (counts[a.status] ?? 0) + 1;
-    }
-    return counts;
-  }, [applications]);
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Layout ─────────────────────────────────────────────────────────────────
 
   const outerCls = embedded
     ? "flex flex-col w-full gap-4 pb-8"
@@ -552,6 +516,8 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
     ? "flex flex-col w-full gap-4"
     : "flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 pt-8 pb-12 gap-4";
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div
       className={outerCls}
@@ -559,10 +525,10 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
     >
       <div className={innerCls}>
 
-        {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="px-1 mb-1 flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            {!embedded && (
+        {/* ── Header (standalone only) ─────────────────────────────────────── */}
+        {!embedded && (
+          <div className="px-1 mb-1 flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2">
               <button
                 type="button"
                 onClick={() => navigate("/admin/console")}
@@ -571,67 +537,33 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
               >
                 <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="currentColor" strokeWidth={2.5} />
               </button>
-            )}
-            <div>
-              <div className="flex items-baseline gap-1.5 select-none">
-                <span className="text-[22px] font-medium text-[#6B7280]">Beta</span>
-                <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Applications</span>
+              <div>
+                <div className="flex items-baseline gap-1.5 select-none">
+                  <span className="text-[22px] font-medium text-[#6B7280]">Beta</span>
+                  <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">Applications</span>
+                </div>
+                <p className="text-sm text-[#6B7B7B] mt-0.5">
+                  {loading ? "Loading…" : `${applications.length} total application${applications.length !== 1 ? "s" : ""}`}
+                </p>
               </div>
-              <p className="text-sm text-[#6B7B7B] mt-0.5">
-                {loading ? "Loading…" : `${applications.length} total application${applications.length !== 1 ? "s" : ""}`}
-              </p>
             </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={load}
-            disabled={loading}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#059669] transition-opacity hover:opacity-70 disabled:opacity-40"
-            style={{ background: "rgba(209,250,229,0.7)", border: "1px solid #6EE7B7" }}
-            aria-label="Refresh"
-          >
-            <HugeiconsIcon icon={Refresh01Icon} size={13} color="#059669" strokeWidth={2.5} />
-            Refresh
-          </button>
-        </div>
-
-        {/* ── Status summary chips ─────────────────────────────────────────── */}
-        {!loading && applications.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-1">
-            {ALL_STATUSES.map((s) => {
-              const cfg = STATUS_CONFIG[s];
-              const count = countByStatus[s] ?? 0;
-              if (count === 0) return null;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => { setFilterStatus(filterStatus === s ? "" : s); setPage(0); }}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
-                  style={
-                    filterStatus === s
-                      ? { background: cfg.text, color: "white" }
-                      : { background: cfg.bg, color: cfg.text }
-                  }
-                >
-                  {cfg.label}
-                  <span
-                    className="h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black leading-none"
-                    style={{ background: filterStatus === s ? "rgba(255,255,255,0.25)" : cfg.text, color: filterStatus === s ? "white" : "white" }}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              onClick={load}
+              disabled={loading}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#059669] transition-opacity hover:opacity-70 disabled:opacity-40"
+              style={{ background: "rgba(209,250,229,0.7)", border: "1px solid #6EE7B7" }}
+              aria-label="Refresh"
+            >
+              <HugeiconsIcon icon={Refresh01Icon} size={13} color="#059669" strokeWidth={2.5} />
+              Refresh
+            </button>
           </div>
         )}
 
-        {/* ── Filter bar ───────────────────────────────────────────────────── */}
-        <div className="rounded-2xl px-4 py-3 flex flex-wrap items-center gap-2" style={CARD_STYLE}>
-          {/* Text search */}
-          <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 min-w-[160px]">
+        {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+        <div className="rounded-2xl px-4 py-3 flex items-center gap-3 flex-wrap" style={CARD_STYLE}>
+          <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 max-w-xs">
             <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
             <input
               type="text"
@@ -647,180 +579,192 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
             )}
           </div>
 
-          {/* Status filter */}
-          <div className="app-input-container" style={{ minHeight: 36, width: 130, flexShrink: 0 }}>
-            <select
-              value={filterStatus}
-              onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
-              className="app-input"
-              style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-            >
-              <option value="">All statuses</option>
-              {ALL_STATUSES.map((s) => (
-                <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-              ))}
-            </select>
-          </div>
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <div className="app-input-container" style={{ minHeight: 36, width: 130, flexShrink: 0 }}>
+              <select
+                value={filterStatus}
+                onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
+                className="app-input"
+                style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+              >
+                <option value="">All statuses</option>
+                {ALL_STATUSES.map((s) => (
+                  <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* GoWild status filter */}
-          <div className="app-input-container" style={{ minHeight: 36, width: 160, flexShrink: 0 }}>
-            <select
-              value={filterGowildStatus}
-              onChange={(e) => { setFilterGowildStatus(e.target.value); setPage(0); }}
-              className="app-input"
-              style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-            >
-              <option value="">All GoWild statuses</option>
-              {GOWILD_STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+            <div className="app-input-container" style={{ minHeight: 36, width: 160, flexShrink: 0 }}>
+              <select
+                value={filterGowildStatus}
+                onChange={(e) => { setFilterGowildStatus(e.target.value); setPage(0); }}
+                className="app-input"
+                style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+              >
+                <option value="">All GoWild statuses</option>
+                {GOWILD_STATUS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Device filter */}
-          <div className="app-input-container" style={{ minHeight: 36, width: 130, flexShrink: 0 }}>
-            <select
-              value={filterDevice}
-              onChange={(e) => { setFilterDevice(e.target.value); setPage(0); }}
-              className="app-input"
-              style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-            >
-              <option value="">All devices</option>
-              {PRIMARY_DEVICE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+            <div className="app-input-container" style={{ minHeight: 36, width: 130, flexShrink: 0 }}>
+              <select
+                value={filterDevice}
+                onChange={(e) => { setFilterDevice(e.target.value); setPage(0); }}
+                className="app-input"
+                style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
+              >
+                <option value="">All devices</option>
+                {PRIMARY_DEVICE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Airport filter */}
-          <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9" style={{ width: 110, flexShrink: 0 }}>
-            <HugeiconsIcon icon={AirportIcon} size={13} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-            <input
-              type="text"
-              value={filterAirport}
-              onChange={(e) => { setFilterAirport(e.target.value); setPage(0); }}
-              placeholder="Airport…"
-              className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
-            />
-          </div>
+            <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9" style={{ width: 110, flexShrink: 0 }}>
+              <HugeiconsIcon icon={AirportIcon} size={13} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+              <input
+                type="text"
+                value={filterAirport}
+                onChange={(e) => { setFilterAirport(e.target.value); setPage(0); }}
+                placeholder="Airport…"
+                className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
+              />
+            </div>
 
-          {/* Clear filters */}
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors px-1"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        {/* ── Results info ─────────────────────────────────────────────────── */}
-        {!loading && (
-          <div className="px-1 flex items-center justify-between">
-            <p className="text-xs text-[#9CA3AF]">
-              {filtered.length === applications.length
-                ? `${applications.length} application${applications.length !== 1 ? "s" : ""}`
-                : `${filtered.length} of ${applications.length} matching filters`}
-            </p>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={safePage === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  ← Prev
-                </button>
-                <span className="text-xs text-[#9CA3AF]">
-                  {safePage + 1} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages - 1}
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors px-1"
+              >
+                Clear
+              </button>
             )}
           </div>
-        )}
+        </div>
 
-        {/* ── Content ──────────────────────────────────────────────────────── */}
-        {loading ? (
-          <div className="rounded-2xl px-5 py-10 flex flex-col items-center gap-3" style={CARD_STYLE}>
-            <div className="h-6 w-6 rounded-full border-2 border-[#059669] border-t-transparent animate-spin" />
-            <p className="text-sm text-[#9CA3AF]">Loading applications…</p>
-          </div>
-        ) : error ? (
-          <div className="rounded-2xl px-5 py-8 flex flex-col items-center gap-3" style={CARD_STYLE}>
-            <HugeiconsIcon icon={Alert01Icon} size={24} color="#DC2626" strokeWidth={2} />
-            <p className="text-sm font-semibold text-[#DC2626]">{error}</p>
-            <button
-              onClick={load}
-              className="text-xs font-bold text-[#059669] hover:opacity-70 transition-opacity"
-            >
-              Try again
-            </button>
-          </div>
-        ) : applications.length === 0 ? (
-          <div className="rounded-2xl px-5 py-12 flex flex-col items-center gap-2" style={CARD_STYLE}>
-            <HugeiconsIcon icon={UserIcon} size={28} color="#9CA3AF" strokeWidth={1.5} />
-            <p className="text-sm font-semibold text-[#6B7B7B] mt-1">No applications yet</p>
-            <p className="text-xs text-[#9CA3AF]">Applications submitted via /beta will appear here.</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-2xl px-5 py-10 flex flex-col items-center gap-2" style={CARD_STYLE}>
-            <p className="text-sm font-semibold text-[#6B7B7B]">No results match the current filters.</p>
-            <button
-              onClick={clearFilters}
-              className="text-xs font-bold text-[#059669] hover:opacity-70 transition-opacity"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {pageRows.map((app) => (
-              <ApplicationRow
-                key={app.id}
-                app={app}
-                expanded={expandedId === app.id}
-                onToggle={() => setExpandedId((prev) => (prev === app.id ? null : app.id))}
-                onStatusChange={handleStatusChange}
-                onNotesSave={handleNotesSave}
-                updatingStatus={updatingStatusId === app.id}
-                savingNotes={savingNotesId === app.id}
-              />
+        {/* ── Table ────────────────────────────────────────────────────────── */}
+        <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
+
+          {/* Column headers */}
+          <div className={`grid ${GRID} gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]`}>
+            {["Applicant", "Email", "Airport", "GoWild", "Experience", "Device", "Status", "Applied", ""].map((h) => (
+              <span key={h} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
             ))}
           </div>
-        )}
 
-        {/* Bottom pagination (repeated for long lists) */}
-        {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 pt-2">
-            <button
-              type="button"
-              disabled={safePage === 0}
-              onClick={() => { setPage((p) => Math.max(0, p - 1)); window.scrollTo({ top: 0 }); }}
-              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              ← Previous
-            </button>
-            <span className="text-xs text-[#9CA3AF]">Page {safePage + 1} of {totalPages}</span>
-            <button
-              type="button"
-              disabled={safePage >= totalPages - 1}
-              onClick={() => { setPage((p) => Math.min(totalPages - 1, p + 1)); window.scrollTo({ top: 0 }); }}
-              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Next →
-            </button>
-          </div>
-        )}
+          {loading ? (
+            <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">Loading applications…</div>
+          ) : error ? (
+            <div className="px-5 py-8 flex flex-col items-center gap-3">
+              <HugeiconsIcon icon={Alert01Icon} size={24} color="#DC2626" strokeWidth={2} />
+              <p className="text-sm font-semibold text-[#DC2626]">{error}</p>
+              <button onClick={load} className="text-xs font-bold text-[#059669] hover:opacity-70 transition-opacity">
+                Try again
+              </button>
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="px-5 py-12 flex flex-col items-center gap-2">
+              <HugeiconsIcon icon={UserIcon} size={28} color="#9CA3AF" strokeWidth={1.5} />
+              <p className="text-sm font-semibold text-[#6B7B7B] mt-1">No applications yet</p>
+              <p className="text-xs text-[#9CA3AF]">Applications submitted via /beta will appear here.</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="px-5 py-10 flex flex-col items-center gap-2">
+              <p className="text-sm font-semibold text-[#6B7B7B]">No results match the current filters.</p>
+              <button onClick={clearFilters} className="text-xs font-bold text-[#059669] hover:opacity-70 transition-opacity">
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
+              {pageRows.map((app) => {
+                const cfg = statusConfig(app.status);
+                const isSelected = selectedId === app.id;
+                return (
+                  <div key={app.id}>
+                    {/* ── Row ── */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId((prev) => (prev === app.id ? null : app.id))}
+                      className={`w-full text-left grid ${GRID} gap-3 px-5 py-3 items-center transition-colors ${isSelected ? "bg-[#F0FDF4]" : "hover:bg-[#FAFAFA]"}`}
+                    >
+                      {/* Applicant */}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                          style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                        >
+                          {app.full_name.trim()[0]?.toUpperCase() ?? "?"}
+                        </div>
+                        <p className="text-sm font-semibold text-[#1A2E2E] truncate">{app.full_name}</p>
+                      </div>
+
+                      {/* Email */}
+                      <p className="text-xs text-[#9CA3AF] truncate min-w-0">{app.email}</p>
+
+                      {/* Airport */}
+                      <span className="text-sm font-mono font-bold text-[#6B7B7B]">{app.home_airport}</span>
+
+                      {/* GoWild */}
+                      <span className="text-xs text-[#2E4A4A] truncate">
+                        {labelFor(app.gowild_status, GOWILD_STATUS_OPTIONS)}
+                      </span>
+
+                      {/* Experience */}
+                      <span className="text-xs text-[#2E4A4A] truncate">
+                        {labelFor(app.beta_testing_experience, BETA_TESTING_EXPERIENCE_OPTIONS)}
+                      </span>
+
+                      {/* Device */}
+                      <span className="text-xs text-[#6B7B7B] truncate">
+                        {labelFor(app.primary_device, PRIMARY_DEVICE_OPTIONS)}
+                      </span>
+
+                      {/* Status badge */}
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit"
+                        style={{ background: cfg.bg, color: cfg.text }}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: cfg.text }} />
+                        {cfg.label}
+                      </span>
+
+                      {/* Applied */}
+                      <span className="text-xs text-[#9CA3AF]">{fmt(app.created_at)}</span>
+
+                      {/* Chevron */}
+                      <HugeiconsIcon
+                        icon={ArrowDown01Icon}
+                        size={14}
+                        color="#9CA3AF"
+                        strokeWidth={2}
+                        className="flex-shrink-0 transition-transform duration-200 justify-self-center"
+                        style={{ transform: isSelected ? "rotate(180deg)" : "rotate(0deg)" }}
+                      />
+                    </button>
+
+                    {/* ── Detail panel ── */}
+                    {isSelected && (
+                      <DetailPanel
+                        app={app}
+                        onStatusChange={handleStatusChange}
+                        onNotesSave={handleNotesSave}
+                        updatingStatus={updatingStatusId === app.id}
+                        savingNotes={savingNotesId === app.id}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {totalPages > 1 && !loading && (
+            <Pagination page={safePage} totalPages={totalPages} onPage={setPage} />
+          )}
+        </div>
 
       </div>
     </div>
