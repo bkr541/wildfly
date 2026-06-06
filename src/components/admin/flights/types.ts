@@ -29,6 +29,7 @@ export interface FlightSearchFiltersState {
   triggeredBy: string;
   goWildStatus: "all" | "found" | "not_found";
   allDestinations: "all" | "yes" | "no";
+  routeType: "all" | "domestic" | "international";
   freshness: "all" | "fresh" | "recent" | "aging" | "stale" | "unknown";
   dateFrom: string;
   dateTo: string;
@@ -49,6 +50,7 @@ export const DEFAULT_FILTERS: FlightSearchFiltersState = {
   triggeredBy: "",
   goWildStatus: "all",
   allDestinations: "all",
+  routeType: "all",
   freshness: "all",
   dateFrom: "",
   dateTo: "",
@@ -62,7 +64,7 @@ export function hasActiveFilters(f: FlightSearchFiltersState): boolean {
   return !!(
     f.search || f.origin || f.destination || f.tripType || f.resultSource ||
     f.triggeredBy || f.goWildStatus !== "all" || f.allDestinations !== "all" ||
-    f.freshness !== "all" || f.dateFrom || f.dateTo || f.departureDateFrom ||
+    f.routeType !== "all" || f.freshness !== "all" || f.dateFrom || f.dateTo || f.departureDateFrom ||
     f.departureDateTo || f.minResults || f.maxResults
   );
 }
@@ -77,6 +79,7 @@ export function countActiveFilters(f: FlightSearchFiltersState): number {
   if (f.triggeredBy) n++;
   if (f.goWildStatus !== "all") n++;
   if (f.allDestinations !== "all") n++;
+  if (f.routeType !== "all") n++;
   if (f.freshness !== "all") n++;
   if (f.dateFrom || f.dateTo) n++;
   if (f.departureDateFrom || f.departureDateTo) n++;

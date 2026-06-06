@@ -131,6 +131,7 @@ export function FlightsView() {
             search: f.search, origin: f.origin, destination: f.destination,
             trip_type: f.tripType, result_source: f.resultSource, triggered_by: f.triggeredBy,
             gowild_status: f.goWildStatus, all_destinations: f.allDestinations,
+            route_type: f.routeType,
             freshness: f.freshness, date_from: f.dateFrom, date_to: f.dateTo,
             departure_date_from: f.departureDateFrom, departure_date_to: f.departureDateTo,
             min_results: f.minResults, max_results: f.maxResults,

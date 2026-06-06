@@ -365,7 +365,7 @@ function ApplicationRow({
 
 // ── AdminBetaApplications ─────────────────────────────────────────────────────
 
-export default function AdminBetaApplications() {
+export default function AdminBetaApplications({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
 
   const [applications, setApplications] = useState<BetaApplication[]>([]);
@@ -544,24 +544,34 @@ export default function AdminBetaApplications() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const outerCls = embedded
+    ? "flex flex-col w-full gap-4 pb-8"
+    : "min-h-screen flex flex-col";
+
+  const innerCls = embedded
+    ? "flex flex-col w-full gap-4"
+    : "flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 pt-8 pb-12 gap-4";
+
   return (
     <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
+      className={outerCls}
+      style={embedded ? undefined : { background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
     >
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 pt-8 pb-12 gap-4">
+      <div className={innerCls}>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="px-1 mb-1 flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/admin/console")}
-              className="mt-1 w-8 h-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
-              aria-label="Back to admin console"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="currentColor" strokeWidth={2.5} />
-            </button>
+            {!embedded && (
+              <button
+                type="button"
+                onClick={() => navigate("/admin/console")}
+                className="mt-1 w-8 h-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
+                aria-label="Back to admin console"
+              >
+                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="currentColor" strokeWidth={2.5} />
+              </button>
+            )}
             <div>
               <div className="flex items-baseline gap-1.5 select-none">
                 <span className="text-[22px] font-medium text-[#6B7280]">Beta</span>

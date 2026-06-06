@@ -27,6 +27,7 @@ import {
   Radar01Icon,
   Menu03Icon,
   Logout01Icon,
+  Notebook01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -46,10 +47,11 @@ import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardView from "@/components/admin/AdminDashboardView";
+import AdminBetaApplications from "./AdminBetaApplications";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "users" | "flights" | "data" | "gowild" | "radar";
+type View = "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications";
 
 interface UserRow {
   id: number;
@@ -91,7 +93,8 @@ const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "flights",   label: "Flights",        icon: AirplaneTakeOff01Icon },
   { id: "data",      label: "Data",           icon: DatabaseIcon },
   { id: "gowild",    label: "GoWild Insights", icon: Analytics01Icon },
-  { id: "radar",     label: "GoWild Radar",    icon: Radar01Icon },
+  { id: "radar",             label: "GoWild Radar",    icon: Radar01Icon },
+  { id: "beta-applications", label: "Beta Applications", icon: Notebook01Icon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -641,6 +644,16 @@ const COLUMN_MAP: Record<string, string[]> = {
   // Credits
   credit_packs: ["id", "name", "credits_amount", "stripe_price_id", "price_usd", "is_active", "display_order", "created_at"],
   credit_transactions: ["id", "user_id", "transaction_type", "source_type", "source_id", "amount", "bucket", "balance_before", "balance_after", "metadata", "created_at"],
+  // Beta
+  beta_applications: [
+    "id", "full_name", "email", "home_airport", "gowild_status", "gowild_pass_duration",
+    "gowild_search_frequency", "frontier_flight_frequency", "uses_gowild_search_tool",
+    "gowild_search_tool_name", "beta_testing_experience", "beta_testing_details",
+    "feedback_commitment", "primary_device", "preferred_feedback_method",
+    "frequent_destinations", "interested_features", "value_expectation", "additional_notes",
+    "source", "utm_source", "utm_medium", "utm_campaign", "referrer",
+    "status", "internal_notes", "selected_at", "invited_at", "created_at", "updated_at",
+  ],
   // System
   app_config: ["id", "user_id", "config_key", "config_value", "created_at", "updated_at"],
   developer_allowlist: ["user_id"],
@@ -705,6 +718,13 @@ const TABLE_GROUPS: { label: string; icon: any; tables: TableEntry[] }[] = [
     tables: [
       { name: "credit_packs" },
       { name: "credit_transactions" },
+    ],
+  },
+  {
+    label: "Beta",
+    icon: Notebook01Icon,
+    tables: [
+      { name: "beta_applications" },
     ],
   },
   {
@@ -1606,12 +1626,13 @@ function LoadingInsightsOverlay() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
-  dashboard: { prefix: "Admin",   label: "DASHBOARD" },
-  users:     { prefix: "Admin",   label: "USERS" },
-  flights:   { prefix: "Admin",   label: "FLIGHTS" },
-  data:      { prefix: "Admin",   label: "DATA" },
-  gowild:    { prefix: "GoWild",  label: "INSIGHTS" },
-  radar:     { prefix: "GoWild",  label: "RADAR" },
+  dashboard:          { prefix: "Admin",  label: "DASHBOARD" },
+  users:              { prefix: "Admin",  label: "USERS" },
+  flights:            { prefix: "Admin",  label: "FLIGHTS" },
+  data:               { prefix: "Admin",  label: "DATA" },
+  gowild:             { prefix: "GoWild", label: "INSIGHTS" },
+  radar:              { prefix: "GoWild", label: "RADAR" },
+  "beta-applications": { prefix: "Beta",  label: "APPLICATIONS" },
 };
 
 const DRAWER_WIDTH_PCT = 80;
@@ -1805,13 +1826,13 @@ export default function AdminConsole() {
           transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
           className="flex flex-col gap-4 flex-1 overflow-y-auto pb-6"
         >
-        {view === "dashboard" && <AdminDashboardView />}
-
-        {view === "users"   && <UsersView />}
-        {view === "flights" && <FlightsView />}
-        {view === "data"    && <DataView />}
-        {view === "gowild"  && <GoWildInsightsView />}
-        {view === "radar"   && <GoWildRadarMap />}
+        {view === "dashboard"          && <AdminDashboardView />}
+        {view === "users"              && <UsersView />}
+        {view === "flights"            && <FlightsView />}
+        {view === "data"               && <DataView />}
+        {view === "gowild"             && <GoWildInsightsView />}
+        {view === "radar"              && <GoWildRadarMap />}
+        {view === "beta-applications"  && <AdminBetaApplications embedded />}
         </motion.div>
         </AnimatePresence>
         </div>

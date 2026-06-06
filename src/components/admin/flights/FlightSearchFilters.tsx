@@ -41,7 +41,7 @@ export function FlightSearchFilters({ filters, onChange, onClear }: Props) {
       </div>
 
       {/* Row 1 – main filters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-2">
         <div>
           <Label>Origin</Label>
           <input
@@ -123,6 +123,20 @@ export function FlightSearchFilters({ filters, onChange, onClear }: Props) {
             <option value="all">All</option>
             <option value="yes">All Dest.</option>
             <option value="no">Specific Dest.</option>
+          </select>
+        </div>
+
+        <div>
+          <Label>Route Type</Label>
+          <select
+            value={filters.routeType}
+            onChange={(e) => onChange({ routeType: e.target.value as FlightSearchFiltersState["routeType"] })}
+            aria-label="Filter by route type"
+            className={SELECT_CLS}
+          >
+            <option value="all">All</option>
+            <option value="domestic">Domestic</option>
+            <option value="international">International</option>
           </select>
         </div>
 
