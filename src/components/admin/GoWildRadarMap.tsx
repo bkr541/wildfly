@@ -1089,7 +1089,7 @@ export default function GoWildRadarMap() {
       {/* ── Map + right panels ───────────────────────────────────────────────── */}
       <div className="flex flex-col lg:flex-row gap-3 lg:h-[calc(100vh-380px)] lg:min-h-[400px]">
         {/* Map */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden min-h-[480px] lg:h-auto" style={CARD_STYLE}>
+        <div className="relative rounded-2xl overflow-hidden h-[480px] lg:flex-1 lg:h-auto" style={CARD_STYLE}>
           {/* Loading overlay */}
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-[1100] bg-white/60 backdrop-blur-sm rounded-2xl">

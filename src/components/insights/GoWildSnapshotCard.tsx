@@ -197,12 +197,15 @@ const GoWildSnapshotCard = ({ itineraries, period }: GoWildSnapshotCardProps) =>
             />
           </div>
 
-          <p className="text-xs text-[#6B7B7B] mt-3 text-center">
-            {goWildAvailableItineraries.toLocaleString()} GoWild / {totalItineraries.toLocaleString()} total itineraries
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <div className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${trendStyles.bg}`}>
+              <trendStyles.Icon size={13} color={trendStyles.color} />
+            </div>
+            <span className={`text-sm font-semibold ${trendStyles.text}`}>{trendLabel}</span>
+          </div>
 
           {/* Trend graph */}
-          <div className="mt-4 -mx-1" style={{ width: "calc(100% + 0.5rem)", height: 160 }}>
+          <div className="mt-3 -mx-1" style={{ width: "calc(100% + 0.5rem)", height: 100 }}>
             {trendData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-xs text-gray-400">
                 No itinerary observations in this period yet.
@@ -246,13 +249,6 @@ const GoWildSnapshotCard = ({ itineraries, period }: GoWildSnapshotCardProps) =>
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </div>
-
-          <div className="border-t border-gray-100 mt-3 pt-3 flex items-center gap-2">
-            <div className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${trendStyles.bg}`}>
-              <trendStyles.Icon size={13} color={trendStyles.color} />
-            </div>
-            <span className={`text-sm font-semibold ${trendStyles.text}`}>{trendLabel}</span>
           </div>
 
           <p className="text-[11px] text-[#9CA3AF] mt-3 leading-snug">

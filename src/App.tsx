@@ -508,9 +508,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/admin/import" element={<AdminImport />} />
-          <Route path="/admin/bulk-search" element={<AdminGate><AdminBulkSearch /></AdminGate>} />
-          <Route path="/admin/console" element={<AdminGate><AdminConsole /></AdminGate>} />
-          <Route path="/admin/beta-applications" element={<AdminGate><AdminBetaApplications /></AdminGate>} />
+          <Route path="/admin/bulk-search" element={<AdminGate><ProfileProvider><AdminBulkSearch /></ProfileProvider></AdminGate>} />
+          <Route path="/admin/console" element={<AdminGate><ProfileProvider><AdminConsole /></ProfileProvider></AdminGate>} />
+          <Route path="/admin/beta-applications" element={<AdminGate><ProfileProvider><AdminBetaApplications /></ProfileProvider></AdminGate>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
