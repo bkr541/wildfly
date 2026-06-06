@@ -1099,19 +1099,12 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
 
           <button
             onClick={() => setFiltersOpen(v => !v)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors",
-              activeFilterCount > 0
-                ? "bg-[#345C5A] text-white"
-                : filtersOpen
-                ? "bg-[#F2F3F3] text-emerald-600"
-                : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
-            )}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all"
+            style={{ background: "#E5E7EB" }}
           >
-            <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="currentColor" strokeWidth={2} />
-            <span>Filters</span>
+            <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="#4B5563" strokeWidth={2.5} />
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center leading-none">
+              <span className="w-4 h-4 rounded-full bg-[#345C5A] text-white text-[9px] font-bold flex items-center justify-center leading-none">
                 {activeFilterCount}
               </span>
             )}
@@ -1144,12 +1137,6 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
           )}
 
           <div className="ml-auto flex items-center gap-3">
-            {lastUpdatedLabel && (
-              <span className="text-[10px] text-[#9CA3AF] flex items-center gap-1">
-                <HugeiconsIcon icon={Clock01Icon} size={11} color="#9CA3AF" strokeWidth={2} />
-                Updated {lastUpdatedLabel}
-              </span>
-            )}
             <button
               onClick={refetch}
               disabled={loading}
