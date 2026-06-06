@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -555,8 +556,10 @@ function SkeletonCard({ height = 80 }: { height?: number }) {
 
 // ── Mode tabs ──────────────────────────────────────────────────────────────────
 
-function RadarModeTabs({ mode, onChange }: { mode: RadarMode; onChange: (m: RadarMode) => void }) {
-  const modes = Object.entries(MODE_LABELS) as [RadarMode, string][];
+function RadarModeTabs({ mode, onChange, allowedModes }: { mode: RadarMode; onChange: (m: RadarMode) => void; allowedModes?: RadarMode[] }) {
+  const modes = (Object.entries(MODE_LABELS) as [RadarMode, string][]).filter(
+    ([key]) => !allowedModes || allowedModes.includes(key)
+  );
   return (
     <div
       className="flex items-center gap-1 p-1 rounded-2xl overflow-x-auto no-scrollbar"
@@ -960,7 +963,9 @@ function AirportDetailPanel({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function GoWildRadarMap() {
+const MAIN_APP_MODES: RadarMode[] = ["availability", "seats", "volatility"];
+
+export default function GoWildRadarMap({ simplified }: { simplified?: boolean } = {}) {
   const [timeRange, setTimeRange]       = useState<RadarTimeRange>("24h");
   const [mode, setMode]                 = useState<RadarMode>("availability");
   const [originFilter, setOriginFilter] = useState<string>("all");
@@ -968,8 +973,16 @@ export default function GoWildRadarMap() {
   const [routeType, setRouteType]       = useState<RouteTypeFilter>("all");
   const [selectedAirport, setSelectedAirport] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute]     = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen]         = useState(false);
 
   const { data, loading, error, refetch, lastUpdated } = useGoWildRadarData(timeRange);
+
+  const allowedModes = simplified ? MAIN_APP_MODES : undefined;
+
+  // If the active mode is not allowed (e.g. navigating from admin to main), reset to availability
+  useEffect(() => {
+    if (allowedModes && !allowedModes.includes(mode)) setMode("availability");
+  }, [allowedModes, mode]);
 
   // ── Filtered routes ──────────────────────────────────────────────────────────
 
@@ -1048,6 +1061,13 @@ export default function GoWildRadarMap() {
     { value: "stale",     label: "Stale Only" },
   ];
 
+  const activeFilterCount = [
+    timeRange !== "24h",
+    originFilter !== "all",
+    destFilter !== "all",
+    routeType !== "all",
+  ].filter(Boolean).length;
+
   const lastUpdatedLabel = lastUpdated
     ? (() => {
         const mins = Math.floor((Date.now() - lastUpdated.getTime()) / 60000);
@@ -1057,33 +1077,100 @@ export default function GoWildRadarMap() {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* ── Mode tabs ───────────────────────────────────────────────────────── */}
-      <RadarModeTabs mode={mode} onChange={setMode} />
-
       {/* ── Filter row ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 flex-wrap" style={{ ...CARD_STYLE, borderRadius: 16, padding: "10px 16px" }}>
-        <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="#9CA3AF" strokeWidth={2} />
-        <FilterSelect value={timeRange} onChange={(v) => setTimeRange(v as RadarTimeRange)} options={Object.entries(RADAR_TIME_LABELS).map(([k, l]) => ({ value: k, label: l }))} placeholder="Time range" />
-        <FilterSelect value={originFilter} onChange={setOriginFilter} options={originOptions} placeholder="All Origins" />
-        <FilterSelect value={destFilter}   onChange={setDestFilter}   options={destOptions}   placeholder="All Destinations" />
-        <FilterSelect value={routeType}    onChange={(v) => setRouteType(v as RouteTypeFilter)} options={routeTypeOptions} placeholder="All Routes" />
-        <div className="ml-auto flex items-center gap-3">
-          {lastUpdatedLabel && (
-            <span className="text-[10px] text-[#9CA3AF] flex items-center gap-1">
-              <HugeiconsIcon icon={Clock01Icon} size={11} color="#9CA3AF" strokeWidth={2} />
-              Updated {lastUpdatedLabel}
-            </span>
-          )}
+      <div className="rounded-2xl flex flex-col" style={CARD_STYLE}>
+        {/* Header — always visible */}
+        <div className="flex items-center gap-2 px-4 py-2.5 flex-wrap">
+          {/* Mode tabs — left justified, inline */}
+          <div className="flex items-center bg-[#F2F3F3] rounded-xl p-0.5 gap-0.5">
+            {(allowedModes ?? (Object.keys(MODE_LABELS) as RadarMode[])).map((key) => (
+              <button
+                key={key}
+                onClick={() => setMode(key)}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                  mode === key ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
+                }`}
+                style={mode === key ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+              >
+                {MODE_LABELS[key]}
+              </button>
+            ))}
+          </div>
+
           <button
-            onClick={refetch}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-60 transition-all"
-            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            onClick={() => setFiltersOpen(v => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors",
+              activeFilterCount > 0
+                ? "bg-[#345C5A] text-white"
+                : filtersOpen
+                ? "bg-[#F2F3F3] text-emerald-600"
+                : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
+            )}
           >
-            <HugeiconsIcon icon={RefreshIcon} size={12} color="white" strokeWidth={2.5} className={loading ? "animate-spin" : ""} />
-            Refresh
+            <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="currentColor" strokeWidth={2} />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center leading-none">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
+
+          {/* Active filter chips — visible when panel is collapsed */}
+          {!filtersOpen && activeFilterCount > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {timeRange !== "24h" && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  {RADAR_TIME_LABELS[timeRange]}
+                </span>
+              )}
+              {originFilter !== "all" && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  From {originFilter}
+                </span>
+              )}
+              {destFilter !== "all" && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  To {destFilter}
+                </span>
+              )}
+              {routeType !== "all" && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  {routeTypeOptions.find(o => o.value === routeType)?.label}
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            {lastUpdatedLabel && (
+              <span className="text-[10px] text-[#9CA3AF] flex items-center gap-1">
+                <HugeiconsIcon icon={Clock01Icon} size={11} color="#9CA3AF" strokeWidth={2} />
+                Updated {lastUpdatedLabel}
+              </span>
+            )}
+            <button
+              onClick={refetch}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-60 transition-all"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              <HugeiconsIcon icon={RefreshIcon} size={12} color="white" strokeWidth={2.5} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible filter selects — matches admin flights "More" pattern */}
+        {filtersOpen && (
+          <div className="flex items-center gap-2 flex-wrap px-4 pb-3 pt-2 border-t border-[#F0F1F1]">
+            <FilterSelect value={timeRange} onChange={(v) => setTimeRange(v as RadarTimeRange)} options={Object.entries(RADAR_TIME_LABELS).map(([k, l]) => ({ value: k, label: l }))} placeholder="Time range" />
+            <FilterSelect value={originFilter} onChange={setOriginFilter} options={originOptions} placeholder="All Origins" />
+            <FilterSelect value={destFilter}   onChange={setDestFilter}   options={destOptions}   placeholder="All Destinations" />
+            <FilterSelect value={routeType}    onChange={(v) => setRouteType(v as RouteTypeFilter)} options={routeTypeOptions} placeholder="All Routes" />
+          </div>
+        )}
       </div>
 
       {/* ── Map + right panels ───────────────────────────────────────────────── */}

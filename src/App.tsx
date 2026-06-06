@@ -446,7 +446,7 @@ const MainApp = () => {
               {currentPage === "hubs" && <HubsPage />}
               {currentPage === "gowild-insights" && <GoWildInsightsPage />}
               {currentPage === "explorer" && <FlightExplorerPage onNavigate={handleNavigate} />}
-              {currentPage === "radar" && <div className="p-4"><GoWildRadarMap /></div>}
+              {currentPage === "radar" && <div className="p-4"><GoWildRadarMap simplified /></div>}
               {currentPage === "design-system" && <DesignSystemPage />}
               {currentPage === "all-upcoming-flights" && <AllUpcomingFlights />}
               {currentPage === "all-watched-flights" && <AllWatchedFlights />}
