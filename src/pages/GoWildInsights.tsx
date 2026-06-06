@@ -25,14 +25,37 @@ const CARD_SHADOW =
 // `source_itinerary_id` value that is globally unique per (search, itinerary)
 // observation so identical upstream ids from separate searches never merge.
 
-type PeriodKey = "24h" | "7d" | "30d" | "all";
+export type PeriodKey = "24h" | "7d" | "30d" | "all";
 
-const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
+export const PERIODS: { key: PeriodKey; label: string; hours: number | null }[] = [
   { key: "24h", label: "24 hours", hours: 24 },
   { key: "7d", label: "7 days", hours: 24 * 7 },
   { key: "30d", label: "30 days", hours: 24 * 30 },
   { key: "all", label: "All time", hours: null },
 ];
+
+export function InsightsPeriodPicker({ period, onChange }: { period: PeriodKey; onChange: (p: PeriodKey) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium text-gray-500">Search Last:</span>
+      <div className="relative">
+        <select
+          value={period}
+          onChange={(e) => onChange(e.target.value as PeriodKey)}
+          className="appearance-none rounded-full bg-white border border-gray-200 pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+        >
+          {PERIODS.map((p) => (
+            <option key={p.key} value={p.key}>{p.label}</option>
+          ))}
+        </select>
+        <FontAwesomeIcon
+          icon={faChevronDown}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none"
+        />
+      </div>
+    </div>
+  );
+}
 
 // Pagination ceiling per request. The RPC paginates the full matching set;
 // we keep fetching until a page returns fewer than PAGE_SIZE rows.
@@ -66,11 +89,10 @@ const ErrorCard = ({ message }: { message: string }) => (
   </div>
 );
 
-const GoWildInsightsPage = () => {
+const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPeriod: (p: PeriodKey) => void }) => {
   const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [period, setPeriod] = useState<PeriodKey>("7d");
   const { dict: airportDict } = useAirportDictionary();
 
   // Current-period cutoff (used to scope analytics for the other cards).
@@ -186,26 +208,6 @@ const GoWildInsightsPage = () => {
 
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
-      <div className="flex items-center justify-end gap-3">
-        <span className="text-xs font-medium text-gray-500">Search Last:</span>
-        <div className="relative">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as PeriodKey)}
-            className="appearance-none rounded-full bg-white border border-gray-200 pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
-          >
-            {PERIODS.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-          <FontAwesomeIcon
-            icon={faChevronDown}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none"
-          />
-        </div>
-      </div>
 
       {loading ? (
         <SkeletonCard />

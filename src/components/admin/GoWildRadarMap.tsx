@@ -1077,8 +1077,8 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
 
   return (
     <div className="flex flex-col gap-3">
-      {/* ── Filter row ──────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl flex flex-col" style={CARD_STYLE}>
+      {/* ── Filter row — mobile only ────────────────────────────────────────── */}
+      <div className="rounded-2xl flex flex-col lg:hidden" style={CARD_STYLE}>
         {/* Header — always visible */}
         <div className="flex items-center gap-2 px-4 py-2.5 flex-wrap">
           {/* Mode tabs — left justified, inline */}
@@ -1159,6 +1159,16 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
           </div>
         )}
       </div>
+
+      {/* ── Desktop filter bar — above map when filtersOpen on lg+ ─────────── */}
+      {filtersOpen && (
+        <div className="hidden lg:flex items-center gap-2 flex-wrap px-4 py-2.5 rounded-2xl" style={CARD_STYLE}>
+          <FilterSelect value={timeRange} onChange={(v) => setTimeRange(v as RadarTimeRange)} options={Object.entries(RADAR_TIME_LABELS).map(([k, l]) => ({ value: k, label: l }))} placeholder="Time range" />
+          <FilterSelect value={originFilter} onChange={setOriginFilter} options={originOptions} placeholder="All Origins" />
+          <FilterSelect value={destFilter}   onChange={setDestFilter}   options={destOptions}   placeholder="All Destinations" />
+          <FilterSelect value={routeType}    onChange={(v) => setRouteType(v as RouteTypeFilter)} options={routeTypeOptions} placeholder="All Routes" />
+        </div>
+      )}
 
       {/* ── Map + right panels ───────────────────────────────────────────────── */}
       <div className="flex flex-col lg:flex-row gap-3 lg:h-[calc(100vh-380px)] lg:min-h-[400px]">
@@ -1290,6 +1300,45 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
               <span className="text-[10px] text-[#9CA3AF]">· {filteredRoutes.length} routes · {RADAR_TIME_LABELS[timeRange]}</span>
             </div>
           )}
+
+          {/* Desktop top-right controls — mirrors snapshot count badge on left */}
+          <div className="absolute top-4 right-4 z-[1000] hidden lg:flex items-center gap-2 rounded-xl px-2 py-1.5" style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.7)", boxShadow: "0 2px 8px rgba(0,0,0,0.07)" }}>
+            <div className="flex items-center bg-[#F2F3F3] rounded-xl p-0.5 gap-0.5">
+              {(allowedModes ?? (Object.keys(MODE_LABELS) as RadarMode[])).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setMode(key)}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    mode === key ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
+                  }`}
+                  style={mode === key ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
+                >
+                  {MODE_LABELS[key]}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setFiltersOpen(v => !v)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all"
+              style={{ background: "#E5E7EB" }}
+            >
+              <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="#4B5563" strokeWidth={2.5} />
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#345C5A] text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={refetch}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-60 transition-all"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              <HugeiconsIcon icon={RefreshIcon} size={12} color="white" strokeWidth={2.5} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
 
           <MapLegend mode={mode} />
 

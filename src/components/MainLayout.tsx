@@ -82,6 +82,7 @@ interface MainLayoutProps {
   onHomeLayoutSaved?: () => void;
   onAccountDevPress?: () => void;
   onAccountManageUsersPress?: () => void;
+  headerActions?: React.ReactNode;
 }
 
 const MainLayout = ({
@@ -96,6 +97,7 @@ const MainLayout = ({
   onHomeLayoutSaved,
   onAccountDevPress,
   onAccountManageUsersPress,
+  headerActions,
 }: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -403,6 +405,10 @@ const MainLayout = ({
                     </span>
                   );
                 })()}
+
+              {headerActions && (
+                <div className="ml-auto">{headerActions}</div>
+              )}
 
               {currentPage === "account" && isDeveloper && !subScreenTitle && (
                 <div className="flex items-center gap-0.5 ml-auto">

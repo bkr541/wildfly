@@ -26,7 +26,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
-import GoWildInsightsPage from "./pages/GoWildInsights";
+import GoWildInsightsPage, { InsightsPeriodPicker, type PeriodKey } from "./pages/GoWildInsights";
 import FlightExplorerPage from "./pages/FlightExplorer";
 import GoWildRadarMap from "./components/admin/GoWildRadarMap";
 import DesignSystemPage from "./pages/DesignSystemV2";
@@ -62,6 +62,7 @@ const MainApp = () => {
   const [subScreenTitle, setSubScreenTitle] = useState<string | null>(null);
   const [subScreenIcon, setSubScreenIcon] = useState<any>(null);
   const [homeRefreshTrigger, setHomeRefreshTrigger] = useState(0);
+  const [insightsPeriod, setInsightsPeriod] = useState<PeriodKey>("7d");
   const accountBackRef = useRef<(() => void) | null>(null);
   const accountDevRef = useRef<(() => void) | null>(null);
   const accountManageUsersRef = useRef<(() => void) | null>(null);
@@ -435,6 +436,9 @@ const MainApp = () => {
               onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
               onAccountDevPress={() => accountDevRef.current?.()}
               onAccountManageUsersPress={() => accountManageUsersRef.current?.()}
+              headerActions={currentPage === "gowild-insights" ? (
+                <InsightsPeriodPicker period={insightsPeriod} onChange={setInsightsPeriod} />
+              ) : undefined}
             >
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} onFlightClick={(flight) => { setSelectedFlight(flight); setCurrentPage("flight-details"); }} />}
               {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} devRef={accountDevRef} manageUsersRef={accountManageUsersRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
@@ -444,7 +448,7 @@ const MainApp = () => {
               {currentPage === "routes" && <RoutesPage onNavigate={handleNavigate} />}
               {currentPage === "friends" && <FriendsPage />}
               {currentPage === "hubs" && <HubsPage />}
-              {currentPage === "gowild-insights" && <GoWildInsightsPage />}
+              {currentPage === "gowild-insights" && <GoWildInsightsPage period={insightsPeriod} setPeriod={setInsightsPeriod} />}
               {currentPage === "explorer" && <FlightExplorerPage onNavigate={handleNavigate} />}
               {currentPage === "radar" && <div className="p-4"><GoWildRadarMap simplified /></div>}
               {currentPage === "design-system" && <DesignSystemPage />}
