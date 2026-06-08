@@ -16,7 +16,7 @@ function seatDepthDots(avgSeats: number | null) {
 export function GoWildSignalMini({ goWildFound, summary }: GoWildSignalMiniProps) {
   if (!goWildFound) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gray-100 text-gray-500 border-gray-200">
+      <span className="inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gray-100 text-gray-500 border-gray-200">
         No GoWild
       </span>
     );
@@ -25,7 +25,7 @@ export function GoWildSignalMini({ goWildFound, summary }: GoWildSignalMiniProps
   if (!summary) {
     return (
       <div className="flex flex-col gap-0.5">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-100 text-emerald-700 border-emerald-200">
+        <span className="inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-100 text-emerald-700 border-emerald-200">
           GoWild Found
         </span>
         <span className="text-[10px] text-[#9CA3AF]">No snapshots</span>

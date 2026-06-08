@@ -165,13 +165,6 @@ function RowActions({ row, onSelect }: { row: FlightSearchRow; onSelect: (f: Fli
 
   return (
     <div className="flex items-center gap-1 justify-end">
-      <button
-        onClick={(e) => { e.stopPropagation(); onSelect(row); }}
-        aria-label="View flight search details"
-        className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 opacity-70 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-      >
-        View
-      </button>
       <div className="relative">
         <button
           onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
@@ -286,16 +279,9 @@ function FlightRow({ row, summary, visibleCols, gridTemplate, onSelect }: RowPro
 
       {/* Trip type */}
       {visibleCols.has("trip") && (
-        <div className="flex flex-col gap-0.5">
-          <span className="inline-flex w-fit items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border bg-slate-100 text-slate-600 border-slate-200 capitalize">
-            {formatTripTypeLabel(row)}
-          </span>
-          {isAllDest && (
-            <span className="inline-flex w-fit items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border bg-violet-100 text-violet-700 border-violet-200">
-              All Dest
-            </span>
-          )}
-        </div>
+        <span className="inline-flex w-fit items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border bg-slate-100 text-slate-600 border-slate-200 capitalize">
+          {formatTripTypeLabel(row)}
+        </span>
       )}
 
       {/* Source */}
