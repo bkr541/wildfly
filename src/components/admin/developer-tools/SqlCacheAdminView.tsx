@@ -36,7 +36,7 @@ export function SqlCacheAdminView() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-[#059669]">Cache cleared successfully.</p>
               <p className="text-xs text-[#9CA3AF] mt-0.5">
-                Flight search records and cache entries have been removed.
+                Your flight_searches rows have been deleted and the shared flight_search_cache has been cleared.
               </p>
             </div>
             <button
@@ -51,10 +51,10 @@ export function SqlCacheAdminView() {
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <p className="text-sm font-semibold text-[#EF4444]">
-                Clear all flight search data and cache?
+                Clear your flight searches and the shared cache?
               </p>
               <p className="text-xs text-[#9CA3AF] mt-0.5">
-                This deletes your flight_searches rows and invokes the clear-flight-cache edge function.
+                Deletes your flight_searches rows and invokes the clear-flight-cache edge function to reset the shared flight_search_cache.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">

@@ -1722,17 +1722,25 @@ export default function AdminConsole() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user || !active) return;
-      const { data: dev } = await supabase
-        .from("developer_allowlist")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (!active) return;
-      setIsDeveloper(!!dev);
-      setIsDeveloperChecked(true);
-    });
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!active) return;
+        if (user) {
+          const { data: dev } = await supabase
+            .from("developer_allowlist")
+            .select("user_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (!active) return;
+          setIsDeveloper(!!dev);
+        }
+      } catch {
+        // allowlist query error — isDeveloper stays false
+      } finally {
+        if (active) setIsDeveloperChecked(true);
+      }
+    })();
     return () => { active = false; };
   }, []);
 
