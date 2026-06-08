@@ -602,18 +602,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               {oauthError && <p className="text-red-500 text-xs text-center font-semibold mt-2">{oauthError}</p>}
 
               <p className="text-center text-sm text-[#6B7280] mt-[16px] mb-1">
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setErrors({});
-                    setSubmitError(null);
-                  }}
-                  className="text-[#10B981] font-bold hover:underline"
-                >
-                  {isSignUp ? "Sign In" : "Sign Up"}
-                </button>
+                New accounts are not open yet.{" "}
+                <span className="text-[#10B981] font-bold">Coming soon.</span>
               </p>
             </div>
           </form>
