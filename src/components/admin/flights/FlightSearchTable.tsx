@@ -17,7 +17,6 @@ import {
 } from "@/components/admin/FlightSearchDetailDrawer";
 import type { FlightSearchSnapshotSummary, ColumnKey, ColumnDef } from "./types";
 import { ALL_COLUMN_DEFS } from "./types";
-import { FlightRouteMiniPreview } from "./FlightRouteMiniPreview";
 import { GoWildSignalMini } from "./GoWildSignalMini";
 import {
   formatRouteLabel,
@@ -249,12 +248,7 @@ function FlightRow({ row, summary, visibleCols, gridTemplate, onSelect }: RowPro
     >
       {/* Route */}
       {visibleCols.has("route") && (
-        <div className="flex items-center gap-2 min-w-0">
-          <FlightRouteMiniPreview
-            isAllDestinations={isAllDest}
-            isGoWild={!!row.gowild_found}
-            bestDestination={summary?.best_destination}
-          />
+        <div className="flex items-center min-w-0">
           <div className="min-w-0">
             <p className="text-sm font-bold text-[#102625] font-mono leading-tight truncate">
               {isAllDest

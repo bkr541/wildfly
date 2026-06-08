@@ -15,8 +15,6 @@ import type { FlightSearchFiltersState, FlightSearchViewMode, ColumnKey } from "
 import { ALL_COLUMN_DEFS } from "./types";
 import { countActiveFilters } from "./types";
 import {
-  SAVED_VIEWS,
-  getActiveViewId,
   getTopOrigins,
   getFreshnessBreakdown,
 } from "./flightSearchMetrics";
@@ -274,7 +272,6 @@ export function FlightSearchToolbar({
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const activeFilterCount = countActiveFilters(filters);
-  const activeViewId = getActiveViewId(filters);
 
   return (
     <div className="flex flex-col gap-2">
@@ -305,7 +302,8 @@ export function FlightSearchToolbar({
             value={filters.goWildStatus}
             onChange={(e) => onFilterChange({ goWildStatus: e.target.value as FlightSearchFiltersState["goWildStatus"] })}
             aria-label="GoWild filter"
-            className="h-9 bg-[#F2F3F3] rounded-xl px-2.5 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer"
+            className="h-9 bg-[#F2F3F3] rounded-xl pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center" }}
           >
             <option value="all">All GoWild</option>
             <option value="found">GoWild Found</option>
@@ -316,7 +314,8 @@ export function FlightSearchToolbar({
             value={filters.freshness}
             onChange={(e) => onFilterChange({ freshness: e.target.value as FlightSearchFiltersState["freshness"] })}
             aria-label="Freshness filter"
-            className="h-9 bg-[#F2F3F3] rounded-xl px-2.5 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer"
+            className="h-9 bg-[#F2F3F3] rounded-xl pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center" }}
           >
             <option value="all">All Freshness</option>
             <option value="fresh">Fresh</option>
@@ -329,7 +328,8 @@ export function FlightSearchToolbar({
             value={filters.resultSource}
             onChange={(e) => onFilterChange({ resultSource: e.target.value })}
             aria-label="Source filter"
-            className="h-9 bg-[#F2F3F3] rounded-xl px-2.5 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer hidden sm:block"
+            className="h-9 bg-[#F2F3F3] rounded-xl pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none hidden sm:block"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center" }}
           >
             <option value="">All Sources</option>
             <option value="cache">Cache Hit</option>
@@ -415,38 +415,6 @@ export function FlightSearchToolbar({
             </span>
             {updatedLabel && <span className="text-[10px] text-[#9CA3AF] hidden sm:inline">· {updatedLabel}</span>}
           </div>
-        </div>
-
-        {/* Row 2: Saved view pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1">
-          {SAVED_VIEWS.map((sv) => {
-            const isActive = activeViewId === sv.id;
-            return (
-              <button
-                key={sv.id}
-                onClick={() => {
-                  if (isActive) return;
-                  onFilterChange(sv.filters);
-                }}
-                className={cn(
-                  "flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap",
-                  isActive
-                    ? "border-emerald-500 text-emerald-700 bg-emerald-50"
-                    : "border-[#E3EBE8] text-[#7A8B8A] bg-white hover:border-emerald-300 hover:text-emerald-600",
-                )}
-              >
-                {sv.label}
-              </button>
-            );
-          })}
-          {isFiltered && activeViewId === null && (
-            <button
-              onClick={onClearFilters}
-              className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 transition-colors whitespace-nowrap"
-            >
-              Clear filters
-            </button>
-          )}
         </div>
 
         {/* Analytics panel */}
