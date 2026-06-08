@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SplitFlapHeader } from "@/components/SplitFlapHeader";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -24,7 +25,6 @@ import AppearanceScreen from "@/components/account/AppearanceScreen";
 
 import HelpSupportScreen from "@/components/account/HelpSupportScreen";
 import SecurityPrivacyScreen from "@/components/account/SecurityPrivacyScreen";
-import DeveloperToolsScreen from "@/components/account/DeveloperToolsScreen";
 import ManageUsersScreen from "@/components/account/ManageUsersScreen";
 
 interface AccountHubProps {
@@ -71,6 +71,7 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavi
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [...baseMenuItems];
 
@@ -93,11 +94,11 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavi
   }, [backRef]);
 
   useEffect(() => {
-    if (devRef && isDeveloper) devRef.current = () => openScreen("developer");
+    if (devRef && isDeveloper) devRef.current = () => navigate("/admin/console?view=developer-debug");
     return () => {
       if (devRef) devRef.current = null;
     };
-  }, [devRef, isDeveloper]);
+  }, [devRef, isDeveloper, navigate]);
 
   useEffect(() => {
     if (manageUsersRef && isDeveloper) manageUsersRef.current = () => openScreen("manage-users");
@@ -144,7 +145,6 @@ const AccountHub = ({ onSubScreenChange, backRef, devRef, manageUsersRef, onNavi
   if (activeScreen === "subscription") return <SubscriptionPage onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} backRef={backRef} />;
   if (activeScreen === "help") return <HelpSupportScreen onBack={handleBack} />;
   if (activeScreen === "security") return <SecurityPrivacyScreen onBack={handleBack} />;
-  if (activeScreen === "developer") return <DeveloperToolsScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} onNavigate={onNavigate} backRef={backRef} />;
   if (activeScreen === "manage-users") return <ManageUsersScreen onBack={handleBack} onTitleChange={(t) => onSubScreenChange?.(t)} />;
 
   return (

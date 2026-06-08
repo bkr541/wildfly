@@ -91,15 +91,30 @@ export function useDeveloperSettings() {
     });
   }, []);
 
-  const updateSettings = useCallback(async (partial: Partial<DeveloperSettings>) => {
-    if (!settings) return;
+  const updateSettings = useCallback(async (partial: Partial<DeveloperSettings>): Promise<{ error: string | null | undefined }> => {
+    if (!settings) return { error: "No settings loaded" };
+    const previous = settings;
     const updated = { ...settings, ...partial };
     setSettings(updated);
     cachedSettings = updated;
 
-    await (supabase.from("developer_settings") as any)
-      .update(partial as any)
-      .eq("user_id", settings.user_id);
+    try {
+      const { error } = await (supabase.from("developer_settings") as any)
+        .update(partial as any)
+        .eq("user_id", settings.user_id);
+
+      if (error) {
+        setSettings(previous);
+        cachedSettings = previous;
+      }
+
+      return { error };
+    } catch (err: unknown) {
+      // Network / unexpected errors must also roll back optimistic state.
+      setSettings(previous);
+      cachedSettings = previous;
+      return { error: err instanceof Error ? err.message : "Network error" };
+    }
   }, [settings]);
 
   return { settings, loading, refreshSettings: refresh, updateSettings };

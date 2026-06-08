@@ -1,10 +1,15 @@
+// DEPRECATED: The admin console (/admin/console → Developer Tools) is now the
+// source of truth for all developer tooling. This screen is no longer reachable
+// via the normal account flow — the devRef now navigates to the admin console
+// instead. This file is kept only as a reference until it is fully removed.
 import React, { useState, useEffect } from "react";
 import { useDeveloperSettings } from "@/lib/logSettings";
+import { useGoWilderToken } from "@/hooks/useGoWilderToken";
+import { useClearFlightCache } from "@/hooks/useClearFlightCache";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppInput } from "@/components/ui/app-input";
 import { PlusSignIcon, Cancel01Icon, ArrowRight01Icon, ArrowDown01Icon, Bug01Icon, File01Icon, SqlIcon, Tick02Icon, CreditCardIcon, Megaphone02Icon, Key01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 import { AnnouncementsScreen } from "@/components/account/AnnouncementsScreen";
 import {
@@ -26,7 +31,7 @@ interface DeveloperToolsScreenProps {
 
 const LOG_LEVELS = ["silent", "error", "warn", "info", "debug"] as const;
 
-const KNOWN_NAMESPACES = [
+const KNOWN_NAMESPACES: string[] = [
   "FlightSearch",
   "FlightResults",
   "Normalizer",
@@ -37,121 +42,16 @@ const KNOWN_NAMESPACES = [
   "Wallet",
 ];
 
-function getJWTExpiry(token: string): Date | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-    if (!payload.exp) return null;
-    return new Date(payload.exp * 1000);
-  } catch {
-    return null;
-  }
-}
-
 const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: DeveloperToolsScreenProps) => {
   const { settings, loading, updateSettings } = useDeveloperSettings();
+  const { token, setToken, savedToken, loading: tokenLoading, expiry, save: saveToken, remove: deleteToken } = useGoWilderToken();
+  const { clearing: clearingFlights, cleared, setCleared, clear: clearFlightSearchAndCache } = useClearFlightCache();
+
   const [newNs, setNewNs] = useState("");
   const [newDebugNs, setNewDebugNs] = useState("");
   const [showAnnouncements, setShowAnnouncements] = useState(false);
-  
   const [sqlTriggersOpen, setSqlTriggersOpen] = useState(false);
-  const [clearingFlights, setClearingFlights] = useState(false);
-  const [clearCompleteOpen, setClearCompleteOpen] = useState(false);
-
-  // Tokens section state
   const [tokensOpen, setTokensOpen] = useState(false);
-  const [gowilderToken, setGowilderToken] = useState("");
-  const [gowilderTokenSaved, setGowilderTokenSaved] = useState("");
-  const [gowilderTokenLoading, setGowilderTokenLoading] = useState(false);
-
-  // Load GoWilder token on mount
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("app_config")
-        .select("config_value")
-        .eq("config_key", "gowilder_token")
-        .limit(1)
-        .maybeSingle();
-      if (data) {
-        setGowilderToken(data.config_value);
-        setGowilderTokenSaved(data.config_value);
-      }
-    })();
-  }, []);
-
-  const saveGowilderToken = async () => {
-    setGowilderTokenLoading(true);
-    try {
-      // Try to update the existing global row first
-      // Try update existing row first
-      const { data: updated, error: updateErr } = await supabase
-        .from("app_config")
-        .update({ config_value: gowilderToken } as any)
-        .eq("config_key", "gowilder_token")
-        .select("id");
-      if (updateErr) throw updateErr;
-
-      // If no row existed yet, insert with user's own id (user_id is NOT NULL)
-      if (!updated || updated.length === 0) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not authenticated");
-        const { error: insertErr } = await supabase
-          .from("app_config")
-          .insert({ user_id: user.id, config_key: "gowilder_token", config_value: gowilderToken } as any);
-        if (insertErr) throw insertErr;
-      }
-
-      setGowilderTokenSaved(gowilderToken);
-      toast.success("GoWilder Token saved");
-    } catch (err: any) {
-      toast.error(`Save failed: ${err?.message ?? "Unknown error"}`);
-    } finally {
-      setGowilderTokenLoading(false);
-    }
-  };
-
-  const deleteGowilderToken = async () => {
-    setGowilderTokenLoading(true);
-    try {
-      const { error } = await supabase
-        .from("app_config")
-        .delete()
-        .eq("config_key", "gowilder_token");
-      if (error) throw error;
-      setGowilderToken("");
-      setGowilderTokenSaved("");
-      toast.success("GoWilder Token deleted");
-    } catch (err: any) {
-      toast.error(`Delete failed: ${err?.message ?? "Unknown error"}`);
-    } finally {
-      setGowilderTokenLoading(false);
-    }
-  };
-
-  const clearFlightSearchAndCache = async () => {
-    setClearingFlights(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("Not authenticated"); return; }
-
-      const { error: searchErr } = await supabase
-        .from("flight_searches")
-        .delete()
-        .eq("user_id", user.id);
-      if (searchErr) throw searchErr;
-
-      const { error: cacheErr } = await supabase.functions.invoke("clear-flight-cache");
-      if (cacheErr) throw cacheErr;
-
-      setClearCompleteOpen(true);
-    } catch (err: any) {
-      toast.error(`Clear failed: ${err?.message ?? "Unknown error"}`);
-    } finally {
-      setClearingFlights(false);
-    }
-  };
 
   useEffect(() => {
     onTitleChange?.("Developer Tools");
@@ -187,13 +87,15 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
   }
 
   const toggle = async (key: "logging_enabled" | "debug_enabled" | "show_raw_payload") => {
-    await updateSettings({ [key]: !settings[key] });
-    toast.success("Setting updated");
+    const { error } = await updateSettings({ [key]: !settings[key] });
+    if (error) toast.error("Failed to save — change reverted");
+    else toast.success("Setting updated");
   };
 
   const setLogLevel = async (level: string) => {
-    await updateSettings({ log_level: level });
-    toast.success(`Log level set to ${level}`);
+    const { error } = await updateSettings({ log_level: level });
+    if (error) toast.error("Failed to save — change reverted");
+    else toast.success(`Log level set to ${level}`);
   };
 
   const addNamespace = async (ns: string, field: "enabled_component_logging" | "enabled_debug_components") => {
@@ -201,16 +103,21 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
     const list = [...(settings[field] || [])];
     if (list.includes(ns.trim())) return;
     list.push(ns.trim());
-    await updateSettings({ [field]: list });
-    if (field === "enabled_component_logging") setNewNs("");
-    else setNewDebugNs("");
-    toast.success(`Added ${ns.trim()}`);
+    const { error } = await updateSettings({ [field]: list });
+    if (error) {
+      toast.error("Failed to save — change reverted");
+    } else {
+      if (field === "enabled_component_logging") setNewNs("");
+      else setNewDebugNs("");
+      toast.success(`Added ${ns.trim()}`);
+    }
   };
 
   const removeNamespace = async (ns: string, field: "enabled_component_logging" | "enabled_debug_components") => {
     const list = (settings[field] || []).filter((n) => n !== ns);
-    await updateSettings({ [field]: list });
-    toast.success(`Removed ${ns}`);
+    const { error } = await updateSettings({ [field]: list });
+    if (error) toast.error("Failed to save — change reverted");
+    else toast.success(`Removed ${ns}`);
   };
 
   const availableSuggestions = KNOWN_NAMESPACES.filter(
@@ -410,38 +317,33 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
             <div className="border-t border-[#F0F1F1] border-b border-[#F0F1F1] px-4 py-3 animate-fade-in bg-[#F8F9F9] space-y-3">
               <AppInput
                 label="GoWilder Token"
-                value={gowilderToken}
-                onChange={(e) => setGowilderToken(e.target.value)}
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
                 placeholder="Enter your GoWilder token..."
                 isPassword
               />
-              {(() => {
-                const expiry = gowilderTokenSaved ? getJWTExpiry(gowilderTokenSaved) : null;
-                if (!expiry) return null;
-                const expired = expiry < new Date();
-                return (
-                  <p className="text-xs text-[#6B7B7B]">
-                    Expiration Date:{" "}
-                    <span className={`font-medium ${expired ? "text-red-500" : "text-[#2E4A4A]"}`}>
-                      {expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-                    </span>
-                  </p>
-                );
-              })()}
+              {expiry && (
+                <p className="text-xs text-[#6B7B7B]">
+                  Expiration Date:{" "}
+                  <span className={`font-medium ${expiry < new Date() ? "text-red-500" : "text-[#2E4A4A]"}`}>
+                    {expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  </span>
+                </p>
+              )}
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={saveGowilderToken}
-                  disabled={gowilderTokenLoading || !gowilderToken.trim() || gowilderToken === gowilderTokenSaved}
+                  onClick={saveToken}
+                  disabled={tokenLoading || !token.trim() || token === savedToken}
                   className="flex-1 px-4 py-2 rounded-xl bg-[#345C5A] text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
-                  {gowilderTokenLoading ? "Saving..." : "Save"}
+                  {tokenLoading ? "Saving..." : "Save"}
                 </button>
-                {gowilderTokenSaved && (
+                {savedToken && (
                   <button
                     type="button"
-                    onClick={deleteGowilderToken}
-                    disabled={gowilderTokenLoading}
+                    onClick={deleteToken}
+                    disabled={tokenLoading}
                     className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
                   >
                     <HugeiconsIcon icon={Delete02Icon} size={14} color="currentColor" strokeWidth={1.5} />
@@ -524,7 +426,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
         </div>
 
         {/* Clear Complete Dialog */}
-        <AlertDialog open={clearCompleteOpen} onOpenChange={setClearCompleteOpen}>
+        <AlertDialog open={cleared} onOpenChange={(open) => { if (!open) setCleared(false); }}>
           <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#047857]">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#D1FAE5] border-2 border-[#047857] flex items-center justify-center shadow-sm">
               <HugeiconsIcon icon={Tick02Icon} size={22} color="#047857" strokeWidth={1.5} />
@@ -536,7 +438,7 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-row gap-2 mt-3">
-              <AlertDialogAction onClick={() => setClearCompleteOpen(false)} className="w-full bg-[#059669] hover:bg-[#047857] text-xs py-1">
+              <AlertDialogAction onClick={() => setCleared(false)} className="w-full bg-[#059669] hover:bg-[#047857] text-xs py-1">
                 Done
               </AlertDialogAction>
             </AlertDialogFooter>

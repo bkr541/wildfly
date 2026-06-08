@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
@@ -15,24 +14,7 @@ import { ChevronDown } from "lucide-react";
 import { AppInput } from "@/components/ui/app-input";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-
-interface Announcement {
-  id: string;
-  title: string;
-  body: string;
-  cta_label: string | null;
-  cta_url: string | null;
-  image_url: string | null;
-  audience: string;
-  priority: number;
-  is_published: boolean;
-  publish_at: string | null;
-  expires_at: string | null;
-  created_by: string | null;
-  created_at: string;
-  _view_count?: number;
-  _seen_by?: string[];
-}
+import { useAnnouncementsAdmin } from "@/hooks/useAnnouncementsAdmin";
 
 interface AnnouncementsScreenProps {
   onBack: () => void;
@@ -74,10 +56,8 @@ const EMPTY_FORM = {
 };
 
 export function AnnouncementsScreen({ onBack, onTitleChange }: AnnouncementsScreenProps) {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { announcements, loading, saving, create } = useAnnouncementsAdmin();
   const [showAdd, setShowAdd] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
@@ -85,103 +65,26 @@ export function AnnouncementsScreen({ onBack, onTitleChange }: AnnouncementsScre
     onTitleChange?.("Announcements");
   }, [onTitleChange]);
 
-  const loadAnnouncements = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Fetch all announcements via service-role bypass (dev tool — RLS only shows published)
-      // We use the anon key but as a dev tool the user is in the allowlist so we just
-      // use the regular client and rely on the service-role edge function pattern.
-      // Since dev tools query as the authenticated user and RLS only shows published,
-      // we'll show all that are visible to them + merge view counts.
-      const { data: rows, error } = await (supabase as any)
-        .from("announcements")
-        .select("*")
-        .order("priority", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      // Get view counts grouped by announcement_id
-      const { data: viewRows } = await (supabase as any)
-        .from("announcement_views")
-        .select("announcement_id, user_id");
-
-      // Build a map: announcement_id -> { count, userIds[] }
-      const viewMap: Record<string, { count: number; userIds: string[] }> = {};
-      for (const v of viewRows ?? []) {
-        if (!viewMap[v.announcement_id]) viewMap[v.announcement_id] = { count: 0, userIds: [] };
-        viewMap[v.announcement_id].count += 1;
-        viewMap[v.announcement_id].userIds.push(v.user_id);
-      }
-
-      const enriched: Announcement[] = (rows ?? []).map((a: Announcement) => ({
-        ...a,
-        _view_count: viewMap[a.id]?.count ?? 0,
-        _seen_by: viewMap[a.id]?.userIds ?? [],
-      }));
-
-      setAnnouncements(enriched);
-    } catch (err: any) {
-      toast.error(`Failed to load: ${err?.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAnnouncements();
-  }, [loadAnnouncements]);
-
   const handleSave = async () => {
     if (!form.title.trim() || !form.body.trim()) {
       toast.error("Title and body are required.");
       return;
     }
-    setSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const payload: Record<string, any> = {
-        title: form.title.trim(),
-        body: form.body.trim(),
-        cta_label: form.cta_label.trim() || null,
-        cta_url: form.cta_url.trim() || null,
-        image_url: form.image_url.trim() || null,
-        audience: form.audience,
-        priority: parseInt(form.priority, 10) || 0,
-        is_published: form.is_published,
-        publish_at: form.publish_at || null,
-        expires_at: form.expires_at || null,
-        created_by: user?.id ?? null,
-      };
-
-      // Use service-role via edge function to bypass RLS insert block
-      const { data: { session } } = await supabase.auth.getSession();
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/announcements`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${session?.access_token}`,
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || `HTTP ${res.status}`);
-      }
-
-      toast.success("Announcement created!");
+    const ok = await create({
+      title: form.title.trim(),
+      body: form.body.trim(),
+      cta_label: form.cta_label.trim() || null,
+      cta_url: form.cta_url.trim() || null,
+      image_url: form.image_url.trim() || null,
+      audience: form.audience,
+      priority: parseInt(form.priority, 10) || 0,
+      is_published: form.is_published,
+      publish_at: form.publish_at || null,
+      expires_at: form.expires_at || null,
+    });
+    if (ok) {
       setForm({ ...EMPTY_FORM });
       setShowAdd(false);
-      await loadAnnouncements();
-    } catch (err: any) {
-      toast.error(`Save failed: ${err?.message}`);
-    } finally {
-      setSaving(false);
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -48,10 +48,20 @@ import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardView from "@/components/admin/AdminDashboardView";
 import AdminBetaApplications from "./AdminBetaApplications";
+import { DeveloperToolsAdminShell, AdminCard } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
+import { DesignSystemAdminView } from "@/components/admin/developer-tools/DesignSystemAdminView";
+import { DebugSettingsAdminView } from "@/components/admin/developer-tools/DebugSettingsAdminView";
+import { GoWilderTokenAdminView } from "@/components/admin/developer-tools/GoWilderTokenAdminView";
+import { LoggingSettingsAdminView } from "@/components/admin/developer-tools/LoggingSettingsAdminView";
+import { AnnouncementsAdminView } from "@/components/admin/developer-tools/AnnouncementsAdminView";
+import { SqlCacheAdminView } from "@/components/admin/developer-tools/SqlCacheAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications";
+type View =
+  | "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications"
+  | "developer-design-system" | "developer-announcements" | "developer-debug"
+  | "developer-sql-cache" | "developer-token" | "developer-logging";
 
 interface UserRow {
   id: number;
@@ -95,6 +105,15 @@ const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "gowild",    label: "GoWild Insights", icon: Analytics01Icon },
   { id: "radar",             label: "GoWild Radar",    icon: Radar01Icon },
   { id: "beta-applications", label: "Beta Applications", icon: Notebook01Icon },
+];
+
+const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "developer-design-system", label: "Design System",    icon: BookOpen01Icon },
+  { id: "developer-announcements", label: "Announcements",    icon: UserGroupIcon },
+  { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
+  { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
+  { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
+  { id: "developer-logging",       label: "Logging Settings", icon: FilterMailSquareIcon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1623,6 +1642,18 @@ function LoadingInsightsOverlay() {
   );
 }
 
+// ── Developer Tools placeholder views ────────────────────────────────────────
+
+function DeveloperUnauthorizedView() {
+  return (
+    <DeveloperToolsAdminShell
+      title="Developer Tools"
+      description="Restricted access"
+      error="Your account is not on the developer allowlist. Contact an admin to request access."
+    />
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
@@ -1632,17 +1663,45 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   data:               { prefix: "Admin",  label: "DATA" },
   gowild:             { prefix: "GoWild", label: "INSIGHTS" },
   radar:              { prefix: "GoWild", label: "RADAR" },
-  "beta-applications": { prefix: "Beta",  label: "APPLICATIONS" },
+  "beta-applications":         { prefix: "Beta",      label: "APPLICATIONS" },
+  "developer-design-system":   { prefix: "Developer", label: "DESIGN SYSTEM" },
+  "developer-announcements":   { prefix: "Developer", label: "ANNOUNCEMENTS" },
+  "developer-debug":           { prefix: "Developer", label: "DEBUG SETTINGS" },
+  "developer-sql-cache":       { prefix: "Developer", label: "SQL / CACHE TOOLS" },
+  "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
+  "developer-logging":         { prefix: "Developer", label: "LOGGING SETTINGS" },
 };
 
 const DRAWER_WIDTH_PCT = 80;
 const DRAWER_MAX_PX = 320;
 
 export default function AdminConsole() {
-  const [view, setView]               = useState<View>("dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Read a deep-link view from ?view= on first render so callers can land on a
+  // specific section (e.g. /admin/console?view=developer-debug).
+  const _paramView = searchParams.get("view") as View | null;
+  const _initialView: View = (_paramView && _paramView in VIEW_HEADERS) ? _paramView : "dashboard";
+
+  const [view, setView]               = useState<View>(_initialView);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [gowildLoading, setGowildLoading] = useState(false);
+  const [devToolsExpanded, setDevToolsExpanded] = useState(
+    (_initialView as string).startsWith("developer-")
+  );
+  const [isDeveloper, setIsDeveloper]           = useState(false);
+  const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
+
+  const devToolsActive = (view as string).startsWith("developer-");
   const navigate = useNavigate();
+
+  // Remove the ?view= param from the URL once state is initialised so the
+  // address bar stays clean and refreshing doesn't re-trigger the deep-link.
+  useEffect(() => {
+    if (searchParams.get("view")) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const { avatarUrl, initials: profileInitials, fullName } = useProfile();
 
   const { prefix, label } = VIEW_HEADERS[view];
@@ -1660,6 +1719,22 @@ export default function AdminConsole() {
     };
     setTimeout(fire, 280);
   };
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user || !active) return;
+      const { data: dev } = await supabase
+        .from("developer_allowlist")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      setIsDeveloper(!!dev);
+      setIsDeveloperChecked(true);
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
@@ -1736,6 +1811,81 @@ export default function AdminConsole() {
               </button>
             );
           })}
+
+          {/* Developer Tools expandable section — only shown to developer_allowlist members */}
+          {isDeveloper && (
+            <>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-4 pb-0.5">
+                Developer
+              </p>
+              <button
+                type="button"
+                onClick={() => setDevToolsExpanded((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  devToolsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon
+                  icon={CodeCircleIcon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={devToolsActive ? 2 : 1.5}
+                />
+                <span className={cn("text-base flex-1 text-left", devToolsActive ? "font-extrabold" : "font-semibold")}>
+                  Developer Tools
+                </span>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={2}
+                  style={{
+                    transform: devToolsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {devToolsExpanded && (
+                  <motion.div
+                    key="dev-tools-children"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    {DEV_ITEMS.map((item) => {
+                      const active = view === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleNavClick(item.id)}
+                          className={cn(
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-8 transition-colors w-full hover:bg-[#F2F3F3]",
+                            active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            size={18}
+                            color="currentColor"
+                            strokeWidth={active ? 2 : 1.5}
+                          />
+                          <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
         </nav>
 
         <div className="mt-auto">
@@ -1833,6 +1983,13 @@ export default function AdminConsole() {
         {view === "gowild"             && <GoWildInsightsView />}
         {view === "radar"              && <GoWildRadarMap />}
         {view === "beta-applications"  && <AdminBetaApplications embedded />}
+        {devToolsActive && isDeveloperChecked && !isDeveloper && <DeveloperUnauthorizedView />}
+        {devToolsActive && isDeveloper && view === "developer-design-system" && <DesignSystemAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-announcements" && <AnnouncementsAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-debug"         && <DebugSettingsAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-sql-cache"     && <SqlCacheAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-logging"       && <LoggingSettingsAdminView />}
         </motion.div>
         </AnimatePresence>
         </div>

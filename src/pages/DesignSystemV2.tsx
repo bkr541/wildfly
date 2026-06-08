@@ -1316,7 +1316,7 @@ function CollapsibleRow({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function DesignSystemV2Page() {
+export function DesignSystemContent() {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
 
   const toggleSection = (key: string) => {
@@ -1333,7 +1333,7 @@ export default function DesignSystemV2Page() {
   const totalTokens = tokenSections.length;
 
   return (
-    <div className="space-y-5 px-4 pb-24 pt-3 sm:px-5">
+    <div className="space-y-5">
 
       {/* Hero */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#E3E6E6] overflow-hidden">
@@ -1427,6 +1427,14 @@ export default function DesignSystemV2Page() {
         </div>
       </div>
 
+    </div>
+  );
+}
+
+export default function DesignSystemV2Page() {
+  return (
+    <div className="px-4 pb-24 pt-3 sm:px-5">
+      <DesignSystemContent />
     </div>
   );
 }
