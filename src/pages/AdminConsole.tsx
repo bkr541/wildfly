@@ -1445,27 +1445,25 @@ function GoWildInsightsView() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="rounded-2xl p-5 animate-pulse flex flex-col gap-3" style={CARD_STYLE}>
-          <div className="h-5 w-40 rounded-lg bg-[#F0F1F1]" />
-          <div className="h-3 w-56 rounded bg-[#F0F1F1]" />
-          <div className="h-48 w-full rounded-xl bg-[#F0F1F1]" />
-        </div>
-      ) : error ? (
-        <div className="rounded-2xl p-5" style={CARD_STYLE}>
-          <p className="text-sm font-medium text-red-500">Failed to load GoWild data</p>
-          <p className="text-xs text-[#9CA3AF] mt-1">{error}</p>
-        </div>
-      ) : (
-        <>
-          <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} period={period} />
-          <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
-          <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
-          <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
-          <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
-          <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
-        </>
-      )}
+      <div className="relative min-h-[400px]">
+        {loading && <LoadingInsightsOverlay />}
+
+        {error ? (
+          <div className="rounded-2xl p-5" style={CARD_STYLE}>
+            <p className="text-sm font-medium text-red-500">Failed to load GoWild data</p>
+            <p className="text-xs text-[#9CA3AF] mt-1">{error}</p>
+          </div>
+        ) : !loading && (
+          <div className="flex flex-col gap-4">
+            <GoWildSnapshotCard itineraries={groupLegsIntoItineraries(snapshots as any)} period={period} />
+            <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
+            <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
+            <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
+            <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
+            <SeatAvailabilityIntelligence snapshots={currentSnapshots} airportDict={airportDict} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1634,7 +1632,7 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
 
 function LoadingInsightsOverlay() {
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#F2F3F3]/95 backdrop-blur-sm rounded-2xl gap-5">
       <SplitFlapWord word="LOADING" delay={0} />
       <SplitFlapWord word="INSIGHTS" green delay={100} />
       <p className="text-sm text-[#6B7B7B] mt-2">Fetching GoWild analytics…</p>
