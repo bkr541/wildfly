@@ -30,7 +30,7 @@ import {
   Menu03Icon,
   Logout01Icon,
   Notebook01Icon,
-  Play01Icon,
+  PlayIcon,
   StopIcon,
   Copy01Icon,
   Delete01Icon,
@@ -1521,7 +1521,7 @@ function DataView() {
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                 >
-                  <HugeiconsIcon icon={Play01Icon} size={11} color="white" strokeWidth={2.5} />
+                  <HugeiconsIcon icon={PlayIcon} size={11} color="white" strokeWidth={2.5} />
                   Run
                 </button>
                 {/* Stop */}
