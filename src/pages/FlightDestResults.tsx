@@ -729,7 +729,7 @@ const FlightDestResults = ({
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
+                    "linear-gradient(to bottom, rgba(6, 78, 59, 0.45) 0%, rgba(6, 78, 59, 0.22) 25%, rgba(6, 78, 59, 0.35) 50%, rgba(6, 78, 59, 0.48) 75%, rgba(6, 78, 59, 0.55) 100%)",
                 }}
               />
               {/* Metrics scrim — bottom gradient */}
@@ -751,14 +751,14 @@ const FlightDestResults = ({
               <div className="relative mt-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p
-                    className="text-white/70 text-[22px] font-light leading-tight"
-                    style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                    className="text-white text-[22px] font-light leading-tight"
+                    style={{ textShadow: "0 1px 5px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.60)" }}
                   >
                     {airportMap[departureAirport]?.city || departureAirport} to
                   </p>
                   <p
                     className="text-white leading-tight uppercase tracking-wide"
-                    style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
+                    style={{ textShadow: "0 1px 5px rgba(0,0,0,0.75), 0 2px 10px rgba(0,0,0,0.50)" }}
                   >
                     {arrivalAirport && arrivalAirport !== "All" ? (
                       <>
@@ -806,25 +806,6 @@ const FlightDestResults = ({
                   ) : null}
                 </div>
 
-                {/* Flight count badge */}
-                <div
-                  className="flex-shrink-0 rounded-2xl overflow-hidden self-center"
-                  style={{
-                    minWidth: 62,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.30)",
-                  }}
-                >
-                  <div className="flex flex-col items-center px-2 pt-3 pb-2.5" style={{ background: "#4E7B6A" }}>
-                    <span className="text-[34px] font-black text-white leading-none tabular-nums">
-                      {activeFlights.length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center py-2 bg-white">
-                    <span className="text-[13px] font-semibold text-[#2E4A4A]">
-                      Flights
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Metrics strip — flows naturally below route text */}
@@ -853,12 +834,7 @@ const FlightDestResults = ({
                       d.setHours(h, 0, 0, 0);
                       return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     };
-                    return [
-                      { label: "EARLIEST", value: earliestH !== null ? fmt(earliestH) : "—" },
-                      { label: "LATEST", value: latestH !== null ? fmt(latestH) : "—" },
-                      { label: "NONSTOP", value: nonstopCnt },
-                      { label: "GOWILD", value: goWildCnt },
-                    ].map(({ label, value }) => (
+                    const statItem = (label: string, value: string | number) => (
                       <div key={label} className="flex-1 flex flex-col items-center">
                         <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">
                           {label}
@@ -867,7 +843,23 @@ const FlightDestResults = ({
                           {value}
                         </span>
                       </div>
-                    ));
+                    );
+                    return (
+                      <>
+                        {statItem("EARLIEST", earliestH !== null ? fmt(earliestH) : "—")}
+                        {statItem("LATEST", latestH !== null ? fmt(latestH) : "—")}
+                        <div className="flex flex-col items-center px-3 py-1.5 rounded-xl bg-[#2D6A4F] border border-[#D1FAE5]">
+                          <span className="text-[11px] font-bold text-white uppercase tracking-wide leading-tight text-center">
+                            FLIGHTS
+                          </span>
+                          <span className="text-[26px] font-black text-white leading-none text-center tabular-nums">
+                            {activeFlights.length}
+                          </span>
+                        </div>
+                        {statItem("NONSTOP", nonstopCnt)}
+                        {statItem("GOWILD", goWildCnt)}
+                      </>
+                    );
                   })()}
                 </div>
               )}
