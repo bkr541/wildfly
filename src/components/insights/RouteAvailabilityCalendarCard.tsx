@@ -217,20 +217,11 @@ export default function RouteAvailabilityCalendarCard({
   return (
     <div className="rounded-2xl bg-white p-5 flex flex-col gap-4" style={{ boxShadow: CARD_SHADOW }}>
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div
-          className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #059669 0%, #10B981 100%)" }}
-        >
-          <HugeiconsIcon icon={Calendar03Icon} size={18} color="white" strokeWidth={2} />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-[#059669]">
-            Route Availability
-          </div>
-          <div className="text-sm text-[#6B7280] leading-tight">
-            Current GoWild seat inventory by travel date
-          </div>
+      <div className="flex items-center gap-2">
+        <HugeiconsIcon icon={Calendar03Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+        <div className="flex-1 ml-2">
+          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Route Availability</p>
+          <p className="text-xs text-[#6B7B7B]">Current GoWild seat inventory by travel date</p>
         </div>
       </div>
 
