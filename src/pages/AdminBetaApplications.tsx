@@ -197,6 +197,143 @@ function fmt(iso: string | null | undefined): string {
   try { return format(parseISO(iso), "MMM d, yyyy"); } catch { return iso; }
 }
 
+// ── KPI strip ─────────────────────────────────────────────────────────────────
+
+interface BetaKpiCardProps {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: "green" | "amber" | "rose" | "cyan" | "default";
+  icon: React.ReactNode;
+}
+
+function BetaKpiCard({ label, value, sub, accent = "default", icon }: BetaKpiCardProps) {
+  const accentColor = {
+    green:   "text-emerald-600",
+    amber:   "text-amber-500",
+    rose:    "text-rose-500",
+    cyan:    "text-cyan-600",
+    default: "text-[#102625]",
+  }[accent];
+  return (
+    <div
+      className="flex-1 min-w-[120px] rounded-2xl bg-white border border-[#E3EBE8] px-4 py-3 flex flex-col gap-1"
+      style={{ boxShadow: "0 1px 4px 0 rgba(16,38,37,0.06)" }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold text-[#7A8B8A] uppercase tracking-wide leading-tight">{label}</span>
+        <span className="flex-shrink-0 text-[#B0BDB9]">{icon}</span>
+      </div>
+      <p className={cn("text-xl font-black leading-none mt-0.5", accentColor)}>{value}</p>
+      {sub && <p className="text-[10px] text-[#7A8B8A] leading-tight">{sub}</p>}
+    </div>
+  );
+}
+
+function IconUsers() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconInbox() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
+    </svg>
+  );
+}
+function IconStar() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+function IconSend() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  );
+}
+function IconCheckCircle() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  );
+}
+function IconLayers() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
+    </svg>
+  );
+}
+
+function BetaKpiStrip({ applications }: { applications: BetaApplication[] }) {
+  const total        = applications.length;
+  const newCount     = applications.filter(a => a.status === "new").length;
+  const shortlisted  = applications.filter(a => a.status === "shortlisted").length;
+  const invited      = applications.filter(a => a.status === "invited").length;
+  const accepted     = applications.filter(a => a.status === "accepted").length;
+  const goWildActive = applications.filter(a => a.gowild_status === "current_pass_holder").length;
+
+  const acceptPct  = total > 0 ? ((accepted / total) * 100).toFixed(1) : "—";
+  const goWildPct  = total > 0 ? ((goWildActive / total) * 100).toFixed(0) : "—";
+
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-0.5">
+      <BetaKpiCard
+        label="Total"
+        value={total.toLocaleString()}
+        sub="all applications"
+        accent="default"
+        icon={<IconUsers />}
+      />
+      <BetaKpiCard
+        label="Unreviewed"
+        value={newCount.toString()}
+        sub={newCount === 0 ? "none pending" : "awaiting review"}
+        accent={newCount > 0 ? "amber" : "default"}
+        icon={<IconInbox />}
+      />
+      <BetaKpiCard
+        label="Shortlisted"
+        value={shortlisted.toString()}
+        sub="in consideration"
+        accent={shortlisted > 0 ? "cyan" : "default"}
+        icon={<IconStar />}
+      />
+      <BetaKpiCard
+        label="Invited"
+        value={invited.toString()}
+        sub="awaiting acceptance"
+        accent={invited > 0 ? "amber" : "default"}
+        icon={<IconSend />}
+      />
+      <BetaKpiCard
+        label="Accepted"
+        value={`${acceptPct}%`}
+        sub={`${accepted} approved`}
+        accent={accepted > 0 ? "green" : "default"}
+        icon={<IconCheckCircle />}
+      />
+      <BetaKpiCard
+        label="GoWild Pass"
+        value={goWildActive.toString()}
+        sub={`${goWildPct}% of applicants`}
+        accent={goWildActive > 0 ? "green" : "default"}
+        icon={<IconLayers />}
+      />
+    </div>
+  );
+}
+
 // ── Analytics panel ────────────────────────────────────────────────────────────
 
 function BetaAnalyticsPanel({ applications, filtered }: { applications: BetaApplication[]; filtered: BetaApplication[] }) {
@@ -1056,6 +1193,9 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
             </button>
           </div>
         )}
+
+        {/* ── KPI Strip ────────────────────────────────────────────────────────── */}
+        <BetaKpiStrip applications={applications} />
 
         {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2">
