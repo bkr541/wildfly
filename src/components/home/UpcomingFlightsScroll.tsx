@@ -153,10 +153,12 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
       {/* Section header */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
-        className="w-full flex items-center justify-between mb-1 px-1 group"
+        onKeyDown={(e) => e.key === "Enter" && onToggle?.()}
+        className="w-full flex items-center justify-between mb-1 px-1 group cursor-pointer"
       >
         <div className="flex items-center gap-1.5">
           <HugeiconsIcon icon={Timer02Icon} size={13} color="#059669" strokeWidth={2} />
@@ -176,7 +178,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
             <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
           </motion.div>
         </div>
-      </button>
+      </div>
 
       <AnimatePresence initial={false}>
         {!isCollapsed && (

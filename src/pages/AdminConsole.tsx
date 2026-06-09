@@ -1358,6 +1358,8 @@ function DataView() {
     return () => document.removeEventListener("mousedown", handler);
   }, [exportOpen]);
 
+  const columns = selected ? (COLUMN_MAP[selected] ?? []) : [];
+
   const getExportData = useCallback((): { rows: Record<string, unknown>[]; cols: string[]; name: string } | null => {
     if (sqlResult && sqlResult.rows.length > 0) {
       return { rows: sqlResult.rows, cols: sqlResult.cols, name: "query_result" };
@@ -1429,8 +1431,6 @@ function DataView() {
 
   const toggleFieldsPanel = (name: string) =>
     setFieldsOpen((prev) => ({ ...prev, [name]: !prev[name] }));
-
-  const columns = selected ? (COLUMN_MAP[selected] ?? []) : [];
 
   useEffect(() => {
     if (!selected) return;
