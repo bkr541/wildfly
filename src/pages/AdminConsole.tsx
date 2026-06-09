@@ -30,6 +30,11 @@ import {
   Menu03Icon,
   Logout01Icon,
   Notebook01Icon,
+  Play01Icon,
+  StopIcon,
+  Copy01Icon,
+  Delete01Icon,
+  SourceCodeSquareIcon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -1264,94 +1269,20 @@ const ALL_TABLES = [
 
 const ALL_VIEWS = ["friends_with_profiles", "pending_friend_requests", "user_public_profiles"];
 
-function QueryView() {
-  const [tablesOpen, setTablesOpen] = useState(true);
-  const [viewsOpen, setViewsOpen]   = useState(true);
 
-  return (
-    <div className="flex flex-row gap-4 items-start">
-      {/* Left group */}
-      <div className="flex flex-col gap-3 w-1/4 min-w-0 flex-shrink-0">
-        <div className="rounded-2xl p-5" style={CARD_STYLE}>
-          <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-3">Schemas</p>
-          <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-            {/* Tables section */}
-            <div>
-              <button
-                onClick={() => setTablesOpen((v) => !v)}
-                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#F2F3F3] transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={DatabaseIcon} size={16} color="#2E4A4A" strokeWidth={2} className="flex-shrink-0" />
-                  <span className="text-sm font-semibold text-[#2E4A4A]">Tables</span>
-                  <span className="text-[11px] text-[#9CA3AF]">{ALL_TABLES.length}</span>
-                </div>
-                <HugeiconsIcon
-                  icon={ArrowDown01Icon} size={13} color="#9CA3AF" strokeWidth={2.5}
-                  className={`flex-shrink-0 transition-transform duration-200 ${tablesOpen ? "" : "-rotate-90"}`}
-                />
-              </button>
-              {tablesOpen && (
-                <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
-                  {ALL_TABLES.map((t) => (
-                    <div key={t} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-[#F2F3F3] transition-colors">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] flex-shrink-0" />
-                      <span className="text-xs font-mono text-[#2E4A4A] truncate">{t}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {/* Views section */}
-            <div>
-              <button
-                onClick={() => setViewsOpen((v) => !v)}
-                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#F2F3F3] transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={CodeCircleIcon} size={16} color="#2E4A4A" strokeWidth={2} className="flex-shrink-0" />
-                  <span className="text-sm font-semibold text-[#2E4A4A]">Views</span>
-                  <span className="text-[11px] text-[#9CA3AF]">{ALL_VIEWS.length}</span>
-                </div>
-                <HugeiconsIcon
-                  icon={ArrowDown01Icon} size={13} color="#9CA3AF" strokeWidth={2.5}
-                  className={`flex-shrink-0 transition-transform duration-200 ${viewsOpen ? "" : "-rotate-90"}`}
-                />
-              </button>
-              {viewsOpen && (
-                <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
-                  {ALL_VIEWS.map((v) => (
-                    <div key={v} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-[#F2F3F3] transition-colors">
-                      <span className="w-1.5 h-1.5 rounded-sm bg-[#6B7B7B] flex-shrink-0" />
-                      <span className="text-xs font-mono text-[#9CA3AF] truncate">{v}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right group */}
-      <div className="flex flex-col gap-3 flex-1 min-w-0">
-        <div className="rounded-2xl overflow-hidden p-3 flex items-center justify-center" style={{ ...CARD_STYLE, minHeight: 240 }}>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <div className="h-12 w-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-1">
-              <HugeiconsIcon icon={DatabaseIcon} size={22} color="#059669" strokeWidth={1.5} />
-            </div>
-            <p className="text-base font-bold text-[#2E4A4A]">Query editor coming soon</p>
-            <p className="text-sm text-[#9CA3AF]">Run SQL queries against your tables and views.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function formatSQLQuery(sql: string): string {
+  const BREAK_BEFORE = /\b(FROM|WHERE|(?:(?:LEFT|RIGHT|INNER|OUTER|CROSS)\s+)?JOIN|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|UNION(?:\s+ALL)?|ON|SET|VALUES)\b/gi;
+  const KEYWORDS = /\b(SELECT|DISTINCT|FROM|WHERE|AND|OR|NOT|IN|EXISTS|BETWEEN|LIKE|IS|NULL|JOIN|LEFT|RIGHT|INNER|OUTER|CROSS|ON|AS|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|UNION|ALL|INSERT\s+INTO|UPDATE|DELETE\s+FROM|SET|VALUES|RETURNING|WITH|CASE|WHEN|THEN|ELSE|END|ASC|DESC)\b/gi;
+  return sql
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(KEYWORDS, (m) => m.toUpperCase())
+    .replace(BREAK_BEFORE, "\n$1")
+    .trim();
 }
 
 function DataView() {
-  const [mode, setMode] = useState<"tables" | "query">("tables");
   const [expanded, setExpanded] = useState<Record<string, boolean>>(
     Object.fromEntries(TABLE_GROUPS.map((g) => [g.label, true]))
   );
@@ -1361,6 +1292,47 @@ function DataView() {
   const [jsonPopup, setJsonPopup] = useState<{ col: string; val: unknown } | null>(null);
 
   const [fieldsOpen, setFieldsOpen] = useState<Record<string, boolean>>({});
+
+  // SQL editor state
+  const [sqlOpen, setSqlOpen]     = useState(false);
+  const [sqlText, setSqlText]     = useState("");
+  const [sqlRunning, setSqlRunning] = useState(false);
+  const [sqlResult, setSqlResult] = useState<{ rows: Record<string, unknown>[]; cols: string[]; ms: number } | null>(null);
+  const [sqlError, setSqlError]   = useState<string | null>(null);
+  const [sqlCopied, setSqlCopied] = useState(false);
+  const sqlAbortRef               = useRef(false);
+
+  const runSql = useCallback(async () => {
+    if (!sqlText.trim() || sqlRunning) return;
+    sqlAbortRef.current = false;
+    setSqlRunning(true);
+    setSqlError(null);
+    setSqlResult(null);
+    const t0 = performance.now();
+    try {
+      const { data, error } = await (supabase.rpc as any)("exec_sql", { query: sqlText.trim() });
+      if (sqlAbortRef.current) return;
+      if (error) throw error;
+      const resultRows: Record<string, unknown>[] = Array.isArray(data) ? data : data != null ? [data] : [];
+      const cols = resultRows.length > 0 ? Object.keys(resultRows[0]) : [];
+      setSqlResult({ rows: resultRows, cols, ms: Math.round(performance.now() - t0) });
+    } catch (err: any) {
+      if (!sqlAbortRef.current) setSqlError(err?.message ?? "Query failed");
+    } finally {
+      if (!sqlAbortRef.current) setSqlRunning(false);
+    }
+  }, [sqlText, sqlRunning]);
+
+  const stopSql = useCallback(() => {
+    sqlAbortRef.current = true;
+    setSqlRunning(false);
+  }, []);
+
+  const copySql = useCallback(async () => {
+    await navigator.clipboard.writeText(sqlText);
+    setSqlCopied(true);
+    setTimeout(() => setSqlCopied(false), 1500);
+  }, [sqlText]);
 
   const toggle = (label: string) =>
     setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -1385,27 +1357,7 @@ function DataView() {
   }, [selected]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Mode toggle */}
-      <div className="flex justify-end">
-        <div className="flex items-center bg-white rounded-xl p-1 gap-0.5" style={{ boxShadow: "0 1px 4px 0 rgba(52,92,90,0.08)", border: "1px solid rgba(255,255,255,0.6)" }}>
-          {(["tables", "query"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors capitalize ${
-                mode === m ? "text-white" : "text-[#6B7280] hover:text-[#2E4A4A]"
-              }`}
-              style={mode === m ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
-            >
-              {m.charAt(0).toUpperCase() + m.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {mode === "query" && <QueryView />}
-      {mode === "tables" && <div className="flex flex-row gap-4 items-start">
+    <div className="flex flex-row gap-4 items-start">
       {/* Left group — max 25% */}
       <div className="flex flex-col gap-3 w-1/4 min-w-0 flex-shrink-0">
         <div className="rounded-2xl p-5" style={CARD_STYLE}>
@@ -1540,72 +1492,231 @@ function DataView() {
 
       {/* Right group — remaining space */}
       <div className="flex flex-col gap-3 flex-1 min-w-0">
-        <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
-          {selected ? (
-            <>
-              {/* Table name + stats */}
-              <div className="px-5 py-3 border-b border-[#F0F1F1] bg-[#F8F9F9] flex items-center gap-2">
-                <span className="text-sm font-bold text-[#1A2E2E] font-mono">{selected}</span>
-                <span className="text-xs text-[#9CA3AF] ml-1">{columns.length} columns</span>
-                {!loadingRows && <span className="text-xs text-[#9CA3AF]">· {rows.length} rows</span>}
+        <div className="rounded-2xl overflow-hidden p-5" style={CARD_STYLE}>
+
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">Records</p>
+            <button
+              onClick={() => { setSqlOpen((v) => !v); setSqlResult(null); setSqlError(null); }}
+              className={cn(
+                "text-xs font-semibold uppercase tracking-wide transition-colors",
+                sqlOpen ? "text-[#059669]" : "text-[#9CA3AF] hover:text-[#059669]",
+              )}
+            >
+              SQL Query
+            </button>
+          </div>
+
+          {/* SQL Editor */}
+          {sqlOpen && (
+            <div className="mb-4 rounded-xl border border-[#E8EBEB] overflow-hidden">
+              {/* Toolbar */}
+              <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[#F8F9F9] border-b border-[#E8EBEB]">
+                {/* Run */}
+                <button
+                  onClick={runSql}
+                  disabled={!sqlText.trim() || sqlRunning}
+                  title="Run (⌘ Enter)"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+                >
+                  <HugeiconsIcon icon={Play01Icon} size={11} color="white" strokeWidth={2.5} />
+                  Run
+                </button>
+                {/* Stop */}
+                <button
+                  onClick={stopSql}
+                  disabled={!sqlRunning}
+                  title="Stop"
+                  className="flex items-center justify-center w-7 h-7 rounded-md text-red-400 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <HugeiconsIcon icon={StopIcon} size={13} color="currentColor" strokeWidth={2.5} />
+                </button>
+                <div className="w-px h-4 bg-[#E8EBEB] mx-1" />
+                {/* Format */}
+                <button
+                  onClick={() => setSqlText(formatSQLQuery(sqlText))}
+                  title="Format SQL"
+                  className="flex items-center justify-center w-7 h-7 rounded-md text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+                >
+                  <HugeiconsIcon icon={SourceCodeSquareIcon} size={13} color="currentColor" strokeWidth={2} />
+                </button>
+                {/* Clear */}
+                <button
+                  onClick={() => { setSqlText(""); setSqlResult(null); setSqlError(null); }}
+                  title="Clear editor"
+                  className="flex items-center justify-center w-7 h-7 rounded-md text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+                >
+                  <HugeiconsIcon icon={Delete01Icon} size={13} color="currentColor" strokeWidth={2} />
+                </button>
+                <div className="w-px h-4 bg-[#E8EBEB] mx-1" />
+                {/* Copy */}
+                <button
+                  onClick={copySql}
+                  title={sqlCopied ? "Copied!" : "Copy query"}
+                  className={cn(
+                    "flex items-center justify-center w-7 h-7 rounded-md transition-colors",
+                    sqlCopied ? "text-[#059669]" : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
+                  )}
+                >
+                  <HugeiconsIcon icon={Copy01Icon} size={13} color="currentColor" strokeWidth={2} />
+                </button>
+                {/* Status */}
+                <div className="ml-auto flex items-center gap-2 pl-2">
+                  {sqlRunning && (
+                    <span className="flex items-center gap-1.5 text-[11px] font-medium text-amber-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      Running…
+                    </span>
+                  )}
+                  {sqlResult && !sqlRunning && (
+                    <span className="text-[11px] font-medium text-[#059669]">
+                      {sqlResult.rows.length} row{sqlResult.rows.length !== 1 ? "s" : ""} · {sqlResult.ms}ms
+                    </span>
+                  )}
+                  {sqlError && !sqlRunning && (
+                    <span className="text-[11px] font-medium text-red-500">Error</span>
+                  )}
+                </div>
               </div>
-              {/* Table */}
-              <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 230px)" }}>
-                {loadingRows ? (
-                  <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">Loading…</div>
-                ) : (
-                  <table className="w-full border-collapse">
-                    <thead className="sticky top-0 z-10">
-                      <tr className="bg-[#F8F9F9] border-b border-[#F0F1F1]">
-                        {columns.map((col) => (
-                          <th
-                            key={col.name}
-                            className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide whitespace-nowrap font-mono border-r border-[#F0F1F1] last:border-r-0"
-                          >
-                            {col.name}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#F0F1F1]">
-                      {rows.length === 0 ? (
-                        <tr>
-                          <td colSpan={columns.length} className="px-5 py-8 text-center text-sm text-[#9CA3AF]">
-                            No records found.
+              {/* Textarea */}
+              <textarea
+                value={sqlText}
+                onChange={(e) => setSqlText(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    runSql();
+                  }
+                }}
+                placeholder={"SELECT *\nFROM users\nLIMIT 10;"}
+                rows={6}
+                className="w-full px-4 py-3 text-xs font-mono text-[#1A2E2E] bg-white resize-y outline-none placeholder:text-[#D1D5DB] leading-relaxed"
+                spellCheck={false}
+              />
+              {/* Error */}
+              {sqlError && (
+                <div className="px-4 py-2.5 bg-red-50 border-t border-red-100 flex items-start gap-2">
+                  <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wide shrink-0 mt-0.5">Error</span>
+                  <p className="text-xs font-mono text-red-600 break-all">{sqlError}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Meta line */}
+          {(selected || sqlResult) && (
+            <div className="flex items-center gap-2 px-2 pt-4 pb-1.5 mb-3">
+              {sqlResult ? (
+                <>
+                  <span className="text-xs font-mono font-semibold text-[#2E4A4A] uppercase">Query Result</span>
+                  <span className="text-[11px] text-[#9CA3AF]">{sqlResult.rows.length} rows · {sqlResult.ms}ms</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-mono font-semibold text-[#2E4A4A] uppercase">{selected}</span>
+                  {!loadingRows && <span className="text-[11px] text-[#9CA3AF]">{rows.length} rows · {columns.length} cols</span>}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Records — SQL result */}
+          {sqlResult ? (
+            <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 230px)" }}>
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-[#F8F9F9] border-b border-[#F0F1F1]">
+                    {sqlResult.cols.map((col) => (
+                      <th key={col} className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide whitespace-nowrap font-mono border-r border-[#F0F1F1] last:border-r-0">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F1F1]">
+                  {sqlResult.rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={Math.max(sqlResult.cols.length, 1)} className="px-5 py-8 text-center text-sm text-[#9CA3AF]">
+                        No rows returned.
+                      </td>
+                    </tr>
+                  ) : sqlResult.rows.map((row, i) => (
+                    <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
+                      {sqlResult.cols.map((col) => {
+                        const { text, muted, isJson } = fmtCell(row[col]);
+                        return (
+                          <td key={col} className="px-4 py-2.5 border-r border-[#F0F1F1] last:border-r-0 whitespace-nowrap max-w-[200px] group/cell relative">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-xs font-mono truncate block ${muted ? "text-[#D1D5DB]" : "text-[#1A2E2E]"}`}>{text}</span>
+                              {isJson && (
+                                <button
+                                  onClick={() => setJsonPopup({ col, val: row[col] })}
+                                  className="opacity-0 group-hover/cell:opacity-100 flex-shrink-0 text-[#9CA3AF] hover:text-[#059669] transition-all"
+                                >
+                                  <HugeiconsIcon icon={CodeCircleIcon} size={14} color="currentColor" strokeWidth={2} />
+                                </button>
+                              )}
+                            </div>
                           </td>
-                        </tr>
-                      ) : rows.map((row, i) => (
-                        <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
-                          {columns.map((col) => {
-                            const { text, muted, isJson } = fmtCell(row[col.name]);
-                            return (
-                              <td
-                                key={col.name}
-                                className="px-4 py-2.5 border-r border-[#F0F1F1] last:border-r-0 whitespace-nowrap max-w-[200px] group/cell relative"
-                              >
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`text-xs font-mono truncate block ${muted ? "text-[#D1D5DB]" : "text-[#1A2E2E]"}`}>
-                                    {text}
-                                  </span>
-                                  {isJson && (
-                                    <button
-                                      onClick={() => setJsonPopup({ col: col.name, val: row[col.name] })}
-                                      className="opacity-0 group-hover/cell:opacity-100 flex-shrink-0 text-[#9CA3AF] hover:text-[#059669] transition-all"
-                                    >
-                                      <HugeiconsIcon icon={CodeCircleIcon} size={14} color="currentColor" strokeWidth={2} />
-                                    </button>
-                                  )}
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+          {/* Records — table selection */}
+          ) : selected ? (
+            <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 230px)" }}>
+              {loadingRows ? (
+                <div className="px-5 py-10 text-center text-sm text-[#9CA3AF]">Loading…</div>
+              ) : (
+                <table className="w-full border-collapse">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-[#F8F9F9] border-b border-[#F0F1F1]">
+                      {columns.map((col) => (
+                        <th key={col.name} className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide whitespace-nowrap font-mono border-r border-[#F0F1F1] last:border-r-0">
+                          {col.name}
+                        </th>
                       ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F1F1]">
+                    {rows.length === 0 ? (
+                      <tr>
+                        <td colSpan={columns.length} className="px-5 py-8 text-center text-sm text-[#9CA3AF]">No records found.</td>
+                      </tr>
+                    ) : rows.map((row, i) => (
+                      <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
+                        {columns.map((col) => {
+                          const { text, muted, isJson } = fmtCell(row[col.name]);
+                          return (
+                            <td key={col.name} className="px-4 py-2.5 border-r border-[#F0F1F1] last:border-r-0 whitespace-nowrap max-w-[200px] group/cell relative">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-xs font-mono truncate block ${muted ? "text-[#D1D5DB]" : "text-[#1A2E2E]"}`}>{text}</span>
+                                {isJson && (
+                                  <button
+                                    onClick={() => setJsonPopup({ col: col.name, val: row[col.name] })}
+                                    className="opacity-0 group-hover/cell:opacity-100 flex-shrink-0 text-[#9CA3AF] hover:text-[#059669] transition-all"
+                                  >
+                                    <HugeiconsIcon icon={CodeCircleIcon} size={14} color="currentColor" strokeWidth={2} />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+          {/* Empty state */}
           ) : (
             <div className="p-5 flex items-center justify-center" style={{ minHeight: 240 }}>
               <div className="flex flex-col items-center gap-2 text-center">
@@ -1617,12 +1728,12 @@ function DataView() {
               </div>
             </div>
           )}
+
         </div>
       </div>
       {jsonPopup && (
         <JsonPopup col={jsonPopup.col} val={jsonPopup.val} onClose={() => setJsonPopup(null)} />
       )}
-      </div>}
     </div>
   );
 }
