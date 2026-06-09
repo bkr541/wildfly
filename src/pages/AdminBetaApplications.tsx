@@ -1307,7 +1307,7 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
           {advancedOpen && (
             <div className="rounded-2xl px-5 py-4 flex flex-col gap-4" style={CARD_STYLE}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-[#6B7B7B] uppercase tracking-wide">More Filters</p>
+                <p className="text-xs font-semibold text-[#6B7B7B] uppercase tracking-wide">Filters</p>
                 <button onClick={clearFilters} className="text-[10px] font-semibold text-[#9CA3AF] hover:text-rose-500 transition-colors">
                   Clear all
                 </button>
