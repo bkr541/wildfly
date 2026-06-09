@@ -1668,7 +1668,6 @@ function DataView() {
               </table>
             </div>
 
-          {/* Records — table selection */}
           ) : selected ? (
             <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 230px)" }}>
               {loadingRows ? (
