@@ -243,7 +243,7 @@ export function DestCardItem({
     <motion.div
       ref={cardRef}
       className="rounded-2xl overflow-hidden bg-white"
-      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "2px solid #FFD700" : "1px solid #E8EBEB" }}
+      style={{ boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)", border: isGoWild ? "2px solid #059669" : "1px solid #E8EBEB" }}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -286,32 +286,28 @@ export function DestCardItem({
         </div>
         {/* GoWild badge — top left */}
         {card.hasGoWild && (
-          <div
-            className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 bg-[#059669]"
-            style={{ border: "2px solid #FFFFFF", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+          <span
+            className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+            style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
           >
-            <HugeiconsIcon icon={Rocket01Icon} size={12} color="white" strokeWidth={2} />
-            <span className="text-[10px] font-bold leading-none text-white">GoWild</span>
-          </div>
+            <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+            GoWild
+          </span>
         )}
         {/* Min price badge — top right */}
         {card.minFare != null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
-            style={
-              isGoWild
-                ? { background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }
-                : { background: "rgba(255,255,255,0.88)", backdropFilter: "blur(6px)", boxShadow: "0 2px 8px rgba(0,0,0,0.14)" }
-            }
+            style={{ background: "#059669", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
-            <span className="text-[14px] font-semibold leading-none" style={{ color: isGoWild ? "rgba(255,255,255,0.80)" : "#6B7B7B" }}>From</span>
-            <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: isGoWild ? "#FFFFFF" : "#1A2E2E" }}>${Math.round(card.minFare)}</span>
+            <span className="text-[14px] font-semibold leading-none" style={{ color: "rgba(255,255,255,0.80)" }}>From</span>
+            <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: "#FFFFFF" }}>${Math.round(card.minFare)}</span>
           </div>
         )}
         {card.hasGoWild && card.minFare == null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
-            style={{ background: "#059669", border: "2px solid #FFD700", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+            style={{ background: "#059669", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
           >
             <span className="text-[14px] font-semibold leading-none text-white/80">From</span>
             <span className="text-[20px] font-black leading-none tracking-tight text-white">GoWild</span>

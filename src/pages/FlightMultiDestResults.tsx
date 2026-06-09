@@ -358,7 +358,7 @@ const FlightMultiDestResults = ({
         {/* ── Hero Header ─────────────────────────────────────── */}
         <header
           ref={heroRef}
-          className="flex flex-col px-5 pt-6 pb-20 overflow-hidden relative"
+          className="flex flex-col px-5 pt-6 pb-4 overflow-hidden relative"
           style={{
             backgroundImage: `url('/assets/locations/init_background.png')`,
             backgroundSize: "cover",
@@ -371,7 +371,7 @@ const FlightMultiDestResults = ({
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "linear-gradient(to bottom, rgba(6, 78, 59, 0.65) 0%, rgba(6, 78, 59, 0.40) 25%, rgba(6, 78, 59, 0.55) 50%, rgba(6, 78, 59, 0.65) 75%, rgba(6, 78, 59, 0.70) 100%)",
+                "linear-gradient(to bottom, rgba(6, 78, 59, 0.45) 0%, rgba(6, 78, 59, 0.22) 25%, rgba(6, 78, 59, 0.35) 50%, rgba(6, 78, 59, 0.48) 75%, rgba(6, 78, 59, 0.55) 100%)",
             }}
           />
           <div
@@ -379,8 +379,8 @@ const FlightMultiDestResults = ({
             style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
           />
 
-          {/* Back button */}
-          <div className="relative flex items-center w-full">
+          {/* Back button + controls */}
+          <div className="relative flex items-center justify-between w-full">
             <button
               type="button"
               onClick={onBack}
@@ -388,6 +388,35 @@ const FlightMultiDestResults = ({
             >
               <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
             </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMapSheet(true)}
+                className="h-9 w-9 flex items-center justify-center rounded-full bg-white/15 border border-white/30 transition-all"
+              >
+                <HugeiconsIcon icon={MapsLocation02Icon} size={16} color="white" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortSheet(true)}
+                className={cn(
+                  "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+                  sortBy !== "city" ? "bg-white/25 border-white/50" : "bg-white/15 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "#FFD700" : "white"} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterSheet(true)}
+                className={cn(
+                  "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+                  filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/25 border-white/50" : "bg-white/15 border-white/30",
+                )}
+              >
+                <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
+              </button>
+            </div>
           </div>
 
           {/* Title */}
@@ -396,10 +425,23 @@ const FlightMultiDestResults = ({
               <span className="text-white text-[22px] font-light" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>{originCity} to</span>
               <span className="text-white text-[36px] font-black">{destinationLabel}</span>
             </div>
+            {departureDate && (
+              <div className="flex items-center gap-2 mt-2">
+                <div
+                  className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex-shrink-0"
+                  style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)" }}
+                >
+                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
+                  <span className="text-[#065F46] text-xs font-semibold leading-none whitespace-nowrap">
+                    {new Date(departureDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Stats strip */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
+          <div className="relative mt-4 flex items-center justify-between w-full gap-2">
             {[
               { label: "DESTINATIONS", value: cards.length },
               { label: "TOTAL FLIGHTS", value: rawFlights.length },
@@ -414,62 +456,21 @@ const FlightMultiDestResults = ({
           </div>
         </header>
 
-        {/* ── Sort / filter bar ───────────────────────────────── */}
-        <div className="bg-white border-b border-[#E8EBEB] px-4 py-2 flex items-center justify-between gap-2">
-          {/* Left: date */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            {formattedDate && (
-              <div className="inline-flex items-center gap-1.5 flex-shrink-0">
-                <HugeiconsIcon icon={Calendar03Icon} size={19} color="#10B981" strokeWidth={1.5} />
-                <span className="text-[18px] font-semibold text-[#2E4A4A]">{formattedDate}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Right-aligned controls */}
-          <div className="flex items-center gap-2 justify-end flex-shrink-0">
-            {/* Map button */}
-            <button
-              type="button"
-              onClick={() => setMapSheet(true)}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E8EBEB] bg-white transition-all flex-shrink-0"
-            >
-              <HugeiconsIcon icon={MapsLocation02Icon} size={16} color="#10B981" strokeWidth={2} />
-            </button>
-            {/* Sort button */}
-            <button
-              type="button"
-              onClick={() => setSortSheet(true)}
-              className={cn(
-                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                sortBy !== "city" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
-              )}
-            >
-              <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "city" ? "#FFD700" : "#10B981"} strokeWidth={2} />
-            </button>
-            {/* Filter button */}
-            <button
-              type="button"
-              onClick={() => setFilterSheet(true)}
-              className={cn(
-                "h-9 w-9 flex items-center justify-center rounded-full border transition-all flex-shrink-0",
-                filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-[#10B981] border-[#10B981]" : "bg-white border-[#E8EBEB]",
-              )}
-            >
-              <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "#10B981"} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-
         {/* ── Destination cards list ───────────────────────────── */}
         <div className="flex-1 flex flex-col px-4 py-4 gap-6 relative z-10">
           {sortedCards.map((card, index) => (
-            <DestCardItem
+            <motion.div
               key={card.destination}
-              card={card}
-              index={index}
-              onViewDest={handleViewDest}
-            />
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1], delay: index * 0.06 }}
+            >
+              <DestCardItem
+                card={card}
+                index={index}
+                onViewDest={handleViewDest}
+              />
+            </motion.div>
           ))}
 
           {sortedCards.length === 0 && (

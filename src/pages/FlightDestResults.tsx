@@ -746,13 +746,13 @@ const FlightDestResults = ({
                 >
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
                 </button>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setSortSheet(true)}
                     className={cn(
-                      "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                      sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                      "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+                      sortBy !== "time" ? "bg-white/25 border-white/50" : "bg-white/15 border-white/30",
                     )}
                   >
                     <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -761,8 +761,8 @@ const FlightDestResults = ({
                     type="button"
                     onClick={() => setFilterSheet(true)}
                     className={cn(
-                      "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                      filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                      "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+                      filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/25 border-white/50" : "bg-white/15 border-white/30",
                     )}
                   >
                     <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
@@ -797,29 +797,29 @@ const FlightDestResults = ({
                     )}
                   </p>
                   {(arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name) || departureDate ? (
-                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                    <div className="flex items-center gap-2 mt-2">
                       {arrivalAirport && arrivalAirport !== "All" && airportMap[arrivalAirport]?.name && (
                         <div
-                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 min-w-0 overflow-hidden"
                           style={{
                             boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
                           }}
                         >
-                          <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                          <span className="text-[#065F46] text-xs font-semibold leading-none">
+                          <HugeiconsIcon icon={Location01Icon} size={13} color="#065F46" strokeWidth={1.5} className="flex-shrink-0" />
+                          <span className="text-[#065F46] text-xs font-semibold leading-none truncate">
                             {airportMap[arrivalAirport].name}
                           </span>
                         </div>
                       )}
                       {departureDate && (
                         <div
-                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5"
+                          className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex-shrink-0"
                           style={{
                             boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
                           }}
                         >
                           <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                          <span className="text-[#065F46] text-xs font-semibold leading-none">
+                          <span className="text-[#065F46] text-xs font-semibold leading-none whitespace-nowrap">
                             {new Date(departureDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" })}
                           </span>
                         </div>
@@ -1153,14 +1153,13 @@ const FlightDestResults = ({
                         const hasBadges = isGoWild || isBlackout || flight.is_plus_one_day || isRedEye || isCheapest || isQuickest;
 
                         return (
-                          <div
+                          <motion.div
                             key={`flight-${idx}`}
                             data-flight-card
                             className="relative flex justify-center w-full py-1.5 px-[6px]"
-                            style={{
-                              animationDelay: `${tIdx * 70}ms`,
-                              animation: "cascade-down 0.4s cubic-bezier(0.22,1,0.36,1) both",
-                            }}
+                            initial={{ opacity: 0, y: 24 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1], delay: tIdx * 0.06 }}
                           >
                             {(hasAlert || hasGoing) && (
                               <div className="absolute top-[8px] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
@@ -1450,7 +1449,7 @@ const FlightDestResults = ({
                                 </div>
                               )}
                             </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
 
