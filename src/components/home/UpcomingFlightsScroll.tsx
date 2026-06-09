@@ -292,7 +292,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                                 <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
                                 <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
                               </span>
-                              <span className="text-[13px] font-medium text-[#9AADAD] uppercase">
+                              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#065F46] bg-[#D1FAE5]">
                                 {formatDuration(flight.departure_time, flight.arrival_time)}
                               </span>
                               <span className="leading-tight text-right">

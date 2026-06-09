@@ -184,7 +184,7 @@ export function WatchedFlightsScroll({
                     {[1, 2].map((i) => (
                       <div
                         key={i}
-                        className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-3 pt-2 pb-4"
+                        className="rounded-2xl overflow-hidden flex-shrink-0 w-[256px] px-3 pt-2 pb-4"
                         style={{
                           background: "rgba(255,255,255,0.72)",
                           backdropFilter: "blur(18px)",
@@ -238,7 +238,7 @@ export function WatchedFlightsScroll({
                             y: 0,
                             transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                           }}
-                          className="relative flex-shrink-0 w-[232px]"
+                          className="relative flex-shrink-0 w-[256px]"
                           style={{ scrollSnapAlign: "start" }}
                         >
                           <div

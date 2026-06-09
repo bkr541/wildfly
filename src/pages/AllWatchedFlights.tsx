@@ -121,6 +121,7 @@ function getDayLabel(d: Date) {
 
 const FRONTIER_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
+const AMBER = "#F59E0B";
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 const CARD_STYLE = {
@@ -148,7 +149,7 @@ function FlightCard({ flight, onRemove }: { flight: UserFlight; onRemove: (f: Us
 
   return (
     <div
-      className="relative rounded-2xl border-l-4 border-[#F59E0B] overflow-hidden"
+      className="relative rounded-2xl overflow-hidden"
       style={CARD_STYLE}
     >
       {/* Amber bottom strip */}
@@ -247,19 +248,24 @@ function MonthGroup({
   const flightCount = flights.length;
 
   return (
-    <div className="mb-8">
+    <div className="mb-5">
       {/* Month header row */}
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="w-full flex items-center gap-3 pr-2 mb-1"
+        className="w-full flex items-center gap-3 pr-2"
       >
-        {/* Month badge — sits on top of the vertical timeline line */}
+        {/* Calendar chip badge */}
         <div
-          className="relative w-[52px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "#F59E0B" }}
+          className="relative w-[46px] h-[50px] rounded-xl overflow-hidden flex-shrink-0 flex flex-col"
+          style={{ border: `1.5px solid ${AMBER}` }}
         >
-          <span className="text-white font-black text-sm tracking-wide leading-none">{monthAbbr}</span>
+          <div className="w-full flex items-center justify-center py-1" style={{ background: AMBER }}>
+            <span className="text-white text-[9px] font-black tracking-wider leading-none">{monthAbbr}</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-white">
+            <span className="text-[18px] font-black leading-none" style={{ color: AMBER }}>{flightCount}</span>
+          </div>
         </div>
 
         {/* Month name + count */}
@@ -290,36 +296,40 @@ function MonthGroup({
             transition={{ duration: 0.25, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            {dayGroups.map(([dayKey, { date, flights: dayFlights }]) => (
-              <div key={dayKey} className="mt-3">
-                {/* Day header: circle + label */}
-                <div className="flex items-center gap-3 mb-2.5">
-                  {/* Day circle — centered on the timeline line (line at x=26, circle 28px wide at ml=12) */}
-                  <div
-                    className="relative w-[28px] h-[28px] rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#374151] flex-shrink-0"
-                    style={{ border: "2px solid #F59E0B", marginLeft: 12 }}
-                  >
-                    {date.getDate()}
-                  </div>
-                  <p className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest">
-                    {getDayLabel(date)}
-                  </p>
-                </div>
+            <div style={{ marginLeft: 54 }}>
+              {dayGroups.map(([dayKey, { date, flights: dayFlights }]) => (
+                <div key={dayKey} className="mt-2 relative">
+                  {/* ╰ connector: line extends up from each day circle, curves left, attaches to trunk */}
+                  <div style={{ position: "absolute", left: -31, top: 0, width: 31, height: 18, borderLeft: `2px solid ${AMBER}`, borderBottom: `2px solid ${AMBER}`, borderBottomLeftRadius: 8 }} />
 
-                {/* Flight cards — aligned with right-side content (past 52px badge + 12px gap) */}
-                <div className="flex flex-col gap-2.5" style={{ marginLeft: 64 }}>
-                  {dayFlights.map((flight, i) => (
-                    <motion.div
-                      key={flight.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0, transition: { duration: 0.22, delay: i * 0.05, ease: EASE } }}
+                  {/* Day header: z-index raises circle above the absolute connector so the circle covers the line */}
+                  <div className="flex items-center gap-2.5 mb-1.5" style={{ position: "relative", zIndex: 1 }}>
+                    <div
+                      className="w-[36px] h-[36px] rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ background: AMBER, border: "2px solid #ffffff", color: "#ffffff", marginLeft: -19 }}
                     >
-                      <FlightCard flight={flight} onRemove={onRemove} />
-                    </motion.div>
-                  ))}
+                      {date.getDate()}
+                    </div>
+                    <p className="text-xs font-semibold text-[#4B5563] uppercase tracking-wide">
+                      {getDayLabel(date)}
+                    </p>
+                  </div>
+
+                  {/* Flight cards */}
+                  <div className="flex flex-col gap-2" style={{ marginLeft: 49 }}>
+                    {dayFlights.map((flight, i) => (
+                      <motion.div
+                        key={flight.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0, transition: { duration: 0.22, delay: i * 0.05, ease: EASE } }}
+                      >
+                        <FlightCard flight={flight} onRemove={onRemove} />
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -368,19 +378,12 @@ export default function AllWatchedFlights() {
   return (
     <div className="w-full flex justify-center pt-4 pb-10">
       <div className="relative w-full px-4 lg:max-w-[50%]">
-      {/* Vertical timeline line — runs behind month badges and day circles */}
-      {!loading && flights.length > 0 && (
-        <div
-          className="absolute top-0 bottom-0 rounded-full"
-          style={{ left: 42, width: 2, background: "#F59E0B" }}
-        />
-      )}
 
       {loading ? (
         <div className="flex flex-col gap-6 pt-2">
           {[1, 2].map((i) => (
             <div key={i} className="flex items-start gap-3">
-              <div className="w-[52px] h-[52px] rounded-xl bg-[#e5e7eb] animate-pulse flex-shrink-0" />
+              <div className="w-[46px] h-[50px] rounded-xl bg-[#e5e7eb] animate-pulse flex-shrink-0" />
               <div className="flex-1 pt-2 space-y-1.5">
                 <div className="h-4 w-28 rounded bg-[#e5e7eb] animate-pulse" />
                 <div className="h-3 w-16 rounded bg-[#e5e7eb] animate-pulse" />
@@ -400,7 +403,9 @@ export default function AllWatchedFlights() {
           <p className="text-xs text-[#9AADAD] font-medium">Set an alert on a flight to track it here</p>
         </div>
       ) : (
-        <>
+        <div className="relative">
+          {/* Vertical line centered on badge (23px from content start = 39px from outer padded edge) */}
+          <div style={{ position: "absolute", left: 23, top: 25, bottom: 0, width: 2, background: AMBER }} />
           {months.map(([key, { date, flights: monthFlights }]) => (
             <MonthGroup
               key={key}
@@ -409,13 +414,12 @@ export default function AllWatchedFlights() {
               onRemove={setFlightToRemove}
             />
           ))}
-          {months.length > 0 && (
-            <div
-              className="relative rounded-full"
-              style={{ width: 12, height: 12, background: "#F59E0B", border: "2px solid white", marginLeft: 20 }}
-            />
-          )}
-        </>
+          {/* End dot — white fill + amber border, centered on the line */}
+          <div
+            className="relative w-3 h-3 rounded-full bg-white z-10"
+            style={{ border: `2px solid ${AMBER}`, marginLeft: 17 }}
+          />
+        </div>
       )}
 
       <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>

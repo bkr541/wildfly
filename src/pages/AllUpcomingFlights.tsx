@@ -207,7 +207,7 @@ function FlightCard({ flight, onRemove }: { flight: UserFlight; onRemove: (f: Us
             <span className="block text-xs font-semibold" style={{ color: GREEN }}>{formatTime(flight.departure_time)}</span>
             <span className="block text-[10px] font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
           </span>
-          <span className="text-[12px] font-medium text-[#9AADAD] uppercase">
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#065F46] bg-[#D1FAE5]">
             {formatDuration(flight.departure_time, flight.arrival_time)}
           </span>
           <span className="leading-tight text-right">
@@ -326,8 +326,8 @@ function MonthGroup({
                   {/* Day header: z-index raises circle above the absolute connector so the circle covers the line */}
                   <div className="flex items-center gap-2.5 mb-1.5" style={{ position: "relative", zIndex: 1 }}>
                     <div
-                      className="w-[36px] h-[36px] rounded-full bg-white flex items-center justify-center text-sm font-bold flex-shrink-0"
-                      style={{ border: `2px solid ${GREEN}`, color: "#1A2E2E", marginLeft: -19 }}
+                      className="w-[36px] h-[36px] rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ background: GREEN, border: "2px solid #ffffff", color: "#ffffff", marginLeft: -19 }}
                     >
                       {date.getDate()}
                     </div>
@@ -337,7 +337,7 @@ function MonthGroup({
                   </div>
 
                   {/* Flight cards */}
-                  <div className="flex flex-col gap-2" style={{ marginLeft: 25 }}>
+                  <div className="flex flex-col gap-2" style={{ marginLeft: 49 }}>
                     {dayFlights.map((flight, i) => (
                       <motion.div
                         key={flight.id}
@@ -424,9 +424,9 @@ export default function AllUpcomingFlights() {
             <p className="text-xs text-[#9AADAD] font-medium">Book a trip or save a route to build your itinerary</p>
           </div>
         ) : (
-          <>
-            {/* Global line at badge center: content starts at x=16 (px-4 padding) + 23 (half of 46px badge) = x=39 */}
-            <div style={{ position: "absolute", left: 39, top: 25, bottom: 0, width: 2, background: GREEN }} />
+          <div className="relative">
+            {/* Vertical line centered on badge (23px from content start = 39px from outer padded edge) */}
+            <div style={{ position: "absolute", left: 23, top: 25, bottom: 0, width: 2, background: GREEN }} />
             {months.map(([key, { date, flights: monthFlights }]) => (
               <MonthGroup
                 key={key}
@@ -435,7 +435,12 @@ export default function AllUpcomingFlights() {
                 onRemove={setFlightToRemove}
               />
             ))}
-          </>
+            {/* End dot — white fill + green border, centered on the line */}
+            <div
+              className="relative w-3 h-3 rounded-full bg-white z-10"
+              style={{ border: `2px solid ${GREEN}`, marginLeft: 17 }}
+            />
+          </div>
         )}
 
         <AlertDialog open={!!flightToRemove} onOpenChange={(open) => { if (!open) setFlightToRemove(null); }}>

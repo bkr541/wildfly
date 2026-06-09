@@ -140,7 +140,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                       ? [1, 2].map((i) => (
                           <div
                             key={i}
-                            className="rounded-2xl overflow-hidden flex-shrink-0 w-[232px] px-3 pt-2 pb-4"
+                            className="rounded-2xl overflow-hidden flex-shrink-0 w-[256px] px-3 pt-2 pb-4"
                             style={CARD_STYLE}
                           >
                             <div className="h-[14px] w-28 rounded bg-[#e5e7eb] mb-3" />
@@ -196,7 +196,7 @@ export function RecentSearches({ searches, loading, onNavigate, isCollapsed = fa
                                 y: 0,
                                 transition: { duration: 0.28, delay: i * 0.07, ease: EASE },
                               }}
-                              className="relative flex-shrink-0 w-[232px] cursor-pointer active:scale-[0.98] transition-transform"
+                              className="relative flex-shrink-0 w-[256px] cursor-pointer active:scale-[0.98] transition-transform"
                               style={{ scrollSnapAlign: "start" }}
                               onClick={() => {
                                 const payload = JSON.stringify({
