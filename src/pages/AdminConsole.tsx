@@ -744,58 +744,190 @@ interface TableEntry {
   views?: string[];
 }
 
-const COLUMN_MAP: Record<string, string[]> = {
+interface ColumnInfo { name: string; type: string; length: number | null; }
+function c(name: string, type: string, length?: number): ColumnInfo {
+  return { name, type, length: length ?? null };
+}
+
+const COLUMN_MAP: Record<string, ColumnInfo[]> = {
   // Users
-  users: ["id", "email", "first_name", "last_name", "username", "dob", "image_file", "home_location_id", "bio", "onboarding_complete", "auth_user_id", "mobile_number", "display_name", "avatar_url", "home_city", "home_airport", "is_discoverable", "status", "signup_type", "last_login"],
-  user_public_profiles: ["auth_user_id", "username", "display_name", "first_name", "last_name", "avatar_url", "home_city", "home_airport", "is_discoverable"],
-  user_settings: ["user_id", "notifications_enabled", "notify_gowild_availability", "notify_new_routes", "notify_pass_sales", "notify_new_features", "theme_preference", "created_at", "updated_at", "default_departure_to_home", "allow_friend_requests", "show_home_city_to_friends", "show_upcoming_trips_to_friends", "show_activity_feed_to_friends", "show_trip_overlap_alerts"],
-  user_locations: ["id", "user_id", "location_id", "created_at"],
-  user_homepage: ["id", "user_id", "component_name", "order", "status", "created_at", "updated_at"],
-  user_flights: ["id", "user_id", "flight_key", "provider", "provider_offer_id", "origin_iata", "destination_iata", "start_time", "end_time", "trip_type", "airline", "flight_number", "stops", "duration_minutes", "price_total", "currency", "gowild_eligible", "nonstop", "cabin_class", "seats_remaining", "saved_at", "snapshot_json", "snapshot_updated_at"],
-  user_events: ["id", "user_id", "edmtrain_event_id", "start_time", "end_time", "saved_at", "snapshot_json"],
-  user_credit_wallet: ["user_id", "monthly_used", "monthly_period_start", "monthly_period_end", "purchased_balance", "updated_at"],
-  user_favorite_artists: ["user_id", "artist_id"],
-  user_favorite_genres: ["user_id", "genre_id"],
-  user_favorite_locations: ["user_id", "location_id"],
-  user_subscriptions: ["user_id", "plan_id", "status", "stripe_customer_id", "stripe_subscription_id", "stripe_price_id", "current_period_start", "current_period_end", "updated_at", "cancel_at_period_end"],
+  users: [
+    c("id","uuid"), c("email","text"), c("first_name","text"), c("last_name","text"),
+    c("username","text"), c("dob","date"), c("image_file","text"), c("home_location_id","uuid"),
+    c("bio","text"), c("onboarding_complete","bool"), c("auth_user_id","uuid"),
+    c("mobile_number","text"), c("display_name","text"), c("avatar_url","text"),
+    c("home_city","text"), c("home_airport","varchar",3), c("is_discoverable","bool"),
+    c("status","text"), c("signup_type","text"), c("last_login","timestamptz"),
+  ],
+  user_public_profiles: [
+    c("auth_user_id","uuid"), c("username","text"), c("display_name","text"),
+    c("first_name","text"), c("last_name","text"), c("avatar_url","text"),
+    c("home_city","text"), c("home_airport","varchar",3), c("is_discoverable","bool"),
+  ],
+  user_settings: [
+    c("user_id","uuid"), c("notifications_enabled","bool"), c("notify_gowild_availability","bool"),
+    c("notify_new_routes","bool"), c("notify_pass_sales","bool"), c("notify_new_features","bool"),
+    c("theme_preference","text"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
+    c("default_departure_to_home","bool"), c("allow_friend_requests","bool"),
+    c("show_home_city_to_friends","bool"), c("show_upcoming_trips_to_friends","bool"),
+    c("show_activity_feed_to_friends","bool"), c("show_trip_overlap_alerts","bool"),
+  ],
+  user_locations: [
+    c("id","uuid"), c("user_id","uuid"), c("location_id","uuid"), c("created_at","timestamptz"),
+  ],
+  user_homepage: [
+    c("id","uuid"), c("user_id","uuid"), c("component_name","text"),
+    c("order","int4"), c("status","text"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
+  ],
+  user_flights: [
+    c("id","uuid"), c("user_id","uuid"), c("flight_key","text"), c("provider","text"),
+    c("provider_offer_id","text"), c("origin_iata","varchar",3), c("destination_iata","varchar",3),
+    c("start_time","timestamptz"), c("end_time","timestamptz"), c("trip_type","text"),
+    c("airline","text"), c("flight_number","text"), c("stops","int4"), c("duration_minutes","int4"),
+    c("price_total","float8"), c("currency","varchar",3), c("gowild_eligible","bool"),
+    c("nonstop","bool"), c("cabin_class","text"), c("seats_remaining","int4"),
+    c("saved_at","timestamptz"), c("snapshot_json","jsonb"), c("snapshot_updated_at","timestamptz"),
+  ],
+  user_events: [
+    c("id","uuid"), c("user_id","uuid"), c("edmtrain_event_id","text"),
+    c("start_time","timestamptz"), c("end_time","timestamptz"),
+    c("saved_at","timestamptz"), c("snapshot_json","jsonb"),
+  ],
+  user_credit_wallet: [
+    c("user_id","uuid"), c("monthly_used","int4"), c("monthly_period_start","timestamptz"),
+    c("monthly_period_end","timestamptz"), c("purchased_balance","int4"), c("updated_at","timestamptz"),
+  ],
+  user_favorite_artists: [c("user_id","uuid"), c("artist_id","int4")],
+  user_favorite_genres:  [c("user_id","uuid"), c("genre_id","uuid")],
+  user_favorite_locations: [c("user_id","uuid"), c("location_id","uuid")],
+  user_subscriptions: [
+    c("user_id","uuid"), c("plan_id","uuid"), c("status","text"),
+    c("stripe_customer_id","text"), c("stripe_subscription_id","text"), c("stripe_price_id","text"),
+    c("current_period_start","timestamptz"), c("current_period_end","timestamptz"),
+    c("updated_at","timestamptz"), c("cancel_at_period_end","bool"),
+  ],
   // Flights
-  flight_searches: ["id", "user_id", "search_timestamp", "departure_airport", "arrival_airport", "departure_date", "return_date", "trip_type", "all_destinations", "json_body", "request_body", "gowild_found", "flight_results_count", "triggered_by"],
-  flight_search_cache: ["id", "cache_key", "reset_bucket", "canonical_request", "provider", "status", "payload", "error", "created_at", "updated_at"],
-  gowild_snapshots: ["id", "observed_at", "observed_date", "origin_iata", "destination_iata", "travel_date", "total_flights", "gowild_flights", "nonstop_total", "nonstop_gowild", "gowild_avalseats", "min_gowild_fare", "min_fare", "raw_response"],
-  route_favorites: ["id", "user_id", "origin_iata", "dest_iata", "created_at"],
+  flight_searches: [
+    c("id","uuid"), c("user_id","uuid"), c("search_timestamp","timestamptz"),
+    c("departure_airport","varchar",3), c("arrival_airport","varchar",3),
+    c("departure_date","date"), c("return_date","date"), c("trip_type","text"),
+    c("all_destinations","bool"), c("json_body","jsonb"), c("request_body","jsonb"),
+    c("gowild_found","bool"), c("flight_results_count","int4"), c("triggered_by","text"),
+  ],
+  flight_search_cache: [
+    c("id","uuid"), c("cache_key","text"), c("reset_bucket","text"),
+    c("canonical_request","text"), c("provider","text"), c("status","text"),
+    c("payload","jsonb"), c("error","text"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
+  ],
+  gowild_snapshots: [
+    c("id","uuid"), c("observed_at","timestamptz"), c("observed_date","date"),
+    c("origin_iata","varchar",3), c("destination_iata","varchar",3), c("travel_date","date"),
+    c("total_flights","int4"), c("gowild_flights","int4"), c("nonstop_total","int4"),
+    c("nonstop_gowild","int4"), c("gowild_avalseats","int4"),
+    c("min_gowild_fare","float8"), c("min_fare","float8"), c("raw_response","jsonb"),
+  ],
+  route_favorites: [
+    c("id","uuid"), c("user_id","uuid"), c("origin_iata","varchar",3),
+    c("dest_iata","varchar",3), c("created_at","timestamptz"),
+  ],
   // Social
-  friends: ["id", "user_id", "friend_user_id", "created_at", "source_request_id"],
-  friends_with_profiles: ["user_id", "friend_user_id", "username", "display_name", "avatar_url", "home_city", "home_airport"],
-  friend_requests: ["id", "requester_user_id", "recipient_user_id", "status", "created_at", "responded_at"],
-  pending_friend_requests: ["id", "requester_user_id", "recipient_user_id", "requester_username", "requester_avatar", "created_at"],
-  notifications: ["id", "user_id", "type", "title", "body", "data", "is_read", "created_at"],
-  trip_shares: ["id", "user_flight_id", "owner_user_id", "shared_with_user_id", "status", "created_at"],
+  friends: [
+    c("id","uuid"), c("user_id","uuid"), c("friend_user_id","uuid"),
+    c("created_at","timestamptz"), c("source_request_id","uuid"),
+  ],
+  friends_with_profiles: [
+    c("user_id","uuid"), c("friend_user_id","uuid"), c("username","text"),
+    c("display_name","text"), c("avatar_url","text"),
+    c("home_city","text"), c("home_airport","varchar",3),
+  ],
+  friend_requests: [
+    c("id","uuid"), c("requester_user_id","uuid"), c("recipient_user_id","uuid"),
+    c("status","text"), c("created_at","timestamptz"), c("responded_at","timestamptz"),
+  ],
+  pending_friend_requests: [
+    c("id","uuid"), c("requester_user_id","uuid"), c("recipient_user_id","uuid"),
+    c("requester_username","text"), c("requester_avatar","text"), c("created_at","timestamptz"),
+  ],
+  notifications: [
+    c("id","uuid"), c("user_id","uuid"), c("type","text"), c("title","text"),
+    c("body","text"), c("data","jsonb"), c("is_read","bool"), c("created_at","timestamptz"),
+  ],
+  trip_shares: [
+    c("id","uuid"), c("user_flight_id","uuid"), c("owner_user_id","uuid"),
+    c("shared_with_user_id","uuid"), c("status","text"), c("created_at","timestamptz"),
+  ],
   // Content
-  artists: ["id", "display_name", "edmtrain_id", "normalized_name", "genres", "image_url", "spotify_id"],
-  artist_genres: ["artist_id", "genre_id"],
-  genres: ["id", "genre_name", "parent_genre", "energy", "mood_tags"],
-  announcements: ["id", "title", "body", "cta_label", "cta_url", "image_url", "audience", "priority", "is_published", "publish_at", "expires_at", "created_by", "created_at"],
-  announcement_views: ["id", "announcement_id", "user_id", "seen_at", "dismissed_at"],
+  artists: [
+    c("id","int4"), c("display_name","text"), c("edmtrain_id","int4"),
+    c("normalized_name","text"), c("genres","text[]"), c("image_url","text"), c("spotify_id","text"),
+  ],
+  artist_genres: [c("artist_id","int4"), c("genre_id","uuid")],
+  genres: [
+    c("id","uuid"), c("genre_name","text"), c("parent_genre","text"),
+    c("energy","float8"), c("mood_tags","text[]"),
+  ],
+  announcements: [
+    c("id","uuid"), c("title","text"), c("body","text"), c("cta_label","text"),
+    c("cta_url","text"), c("image_url","text"), c("audience","text"), c("priority","int4"),
+    c("is_published","bool"), c("publish_at","timestamptz"), c("expires_at","timestamptz"),
+    c("created_by","uuid"), c("created_at","timestamptz"),
+  ],
+  announcement_views: [
+    c("id","uuid"), c("announcement_id","uuid"), c("user_id","uuid"),
+    c("seen_at","timestamptz"), c("dismissed_at","timestamptz"),
+  ],
   // Credits
-  credit_packs: ["id", "name", "credits_amount", "stripe_price_id", "price_usd", "is_active", "display_order", "created_at"],
-  credit_transactions: ["id", "user_id", "transaction_type", "source_type", "source_id", "amount", "bucket", "balance_before", "balance_after", "metadata", "created_at"],
+  credit_packs: [
+    c("id","uuid"), c("name","text"), c("credits_amount","int4"), c("stripe_price_id","text"),
+    c("price_usd","float8"), c("is_active","bool"), c("display_order","int4"), c("created_at","timestamptz"),
+  ],
+  credit_transactions: [
+    c("id","uuid"), c("user_id","uuid"), c("transaction_type","text"), c("source_type","text"),
+    c("source_id","text"), c("amount","int4"), c("bucket","text"),
+    c("balance_before","int4"), c("balance_after","int4"),
+    c("metadata","jsonb"), c("created_at","timestamptz"),
+  ],
   // Beta
   beta_applications: [
-    "id", "full_name", "email", "home_airport", "gowild_status", "gowild_pass_duration",
-    "gowild_search_frequency", "frontier_flight_frequency", "uses_gowild_search_tool",
-    "gowild_search_tool_name", "beta_testing_experience", "beta_testing_details",
-    "feedback_commitment", "primary_device", "preferred_feedback_method",
-    "frequent_destinations", "interested_features", "value_expectation", "additional_notes",
-    "source", "utm_source", "utm_medium", "utm_campaign", "referrer",
-    "status", "internal_notes", "selected_at", "invited_at", "created_at", "updated_at",
+    c("id","uuid"), c("full_name","text"), c("email","text"), c("home_airport","varchar",3),
+    c("gowild_status","text"), c("gowild_pass_duration","text"),
+    c("gowild_search_frequency","text"), c("frontier_flight_frequency","text"),
+    c("uses_gowild_search_tool","text"), c("gowild_search_tool_name","text"),
+    c("beta_testing_experience","text"), c("beta_testing_details","text"),
+    c("feedback_commitment","bool"), c("primary_device","text"),
+    c("preferred_feedback_method","text"), c("frequent_destinations","text"),
+    c("interested_features","text[]"), c("value_expectation","text"),
+    c("additional_notes","text"), c("source","text"), c("utm_source","text"),
+    c("utm_medium","text"), c("utm_campaign","text"), c("referrer","text"),
+    c("status","text"), c("internal_notes","text"), c("selected_at","timestamptz"),
+    c("invited_at","timestamptz"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
   ],
   // System
-  app_config: ["id", "user_id", "config_key", "config_value", "created_at", "updated_at"],
-  developer_allowlist: ["user_id"],
-  developer_settings: ["user_id", "debug_enabled", "show_raw_payload", "log_level", "flags", "created_at", "updated_at", "enabled_debug_components", "logging_enabled", "enabled_component_logging"],
-  locations: ["id", "name", "city", "state", "state_code", "region", "country", "latitude", "longitude", "edmtrain_locationid"],
-  airports: ["id", "name", "iata_code", "icao_code", "latitude", "longitude", "timezone", "location_id", "is_hub"],
-  plans: ["id", "name", "monthly_allowance_credits", "features", "created_at"],
+  app_config: [
+    c("id","uuid"), c("user_id","uuid"), c("config_key","text"),
+    c("config_value","jsonb"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
+  ],
+  developer_allowlist: [c("user_id","uuid")],
+  developer_settings: [
+    c("user_id","uuid"), c("debug_enabled","bool"), c("show_raw_payload","bool"),
+    c("log_level","text"), c("flags","jsonb"), c("created_at","timestamptz"),
+    c("updated_at","timestamptz"), c("enabled_debug_components","text[]"),
+    c("logging_enabled","bool"), c("enabled_component_logging","text[]"),
+  ],
+  locations: [
+    c("id","uuid"), c("name","text"), c("city","text"), c("state","text"),
+    c("state_code","varchar",2), c("region","text"), c("country","text"),
+    c("latitude","float8"), c("longitude","float8"), c("edmtrain_locationid","int4"),
+  ],
+  airports: [
+    c("id","uuid"), c("name","text"), c("iata_code","varchar",3), c("icao_code","varchar",4),
+    c("latitude","float8"), c("longitude","float8"), c("timezone","text"),
+    c("location_id","uuid"), c("is_hub","bool"),
+  ],
+  plans: [
+    c("id","uuid"), c("name","text"), c("monthly_allowance_credits","int4"),
+    c("features","jsonb"), c("created_at","timestamptz"),
+  ],
 };
 
 const TABLE_GROUPS: { label: string; icon: any; tables: TableEntry[] }[] = [
@@ -1228,8 +1360,13 @@ function DataView() {
   const [loadingRows, setLoading] = useState(false);
   const [jsonPopup, setJsonPopup] = useState<{ col: string; val: unknown } | null>(null);
 
+  const [fieldsOpen, setFieldsOpen] = useState<Record<string, boolean>>({});
+
   const toggle = (label: string) =>
     setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const toggleFieldsPanel = (name: string) =>
+    setFieldsOpen((prev) => ({ ...prev, [name]: !prev[name] }));
 
   const columns = selected ? (COLUMN_MAP[selected] ?? []) : [];
 
@@ -1314,39 +1451,84 @@ function DataView() {
                   </button>
                   {isOpen && (
                     <div className="flex flex-col gap-0.5 mt-0.5 ml-5">
-                      {group.tables.map((table) => (
-                        <div key={table.name}>
-                          <button
-                            onClick={() => setSelected(table.name)}
-                            className={`w-full flex items-center gap-2 py-1 px-2 rounded-lg transition-colors text-left ${
-                              selected === table.name
-                                ? "bg-[#F0FDF4] text-[#059669]"
-                                : "hover:bg-[#F2F3F3]"
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selected === table.name ? "bg-[#059669]" : "bg-[#10B981]"}`} />
-                            <span className="text-xs font-mono truncate text-[#2E4A4A]">{table.name}</span>
-                          </button>
-                          {table.views && (
-                            <div className="flex flex-col gap-0.5 ml-4">
-                              {table.views.map((view) => (
+                      {group.tables.map((table) => {
+                        const isSelected = selected === table.name;
+                        const isFieldsOpen = fieldsOpen[table.name] ?? false;
+                        const fields = COLUMN_MAP[table.name] ?? [];
+                        return (
+                          <div key={table.name}>
+                            <div
+                              className={cn(
+                                "group flex items-center gap-1 py-1 px-2 rounded-lg transition-colors",
+                                isSelected ? "bg-[#F0FDF4]" : "hover:bg-[#F2F3F3]",
+                              )}
+                            >
+                              <button
+                                onClick={() => setSelected(table.name)}
+                                className="flex items-center gap-2 min-w-0 text-left"
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSelected ? "bg-[#059669]" : "bg-[#10B981]"}`} />
+                                <span className="text-xs font-mono truncate text-[#2E4A4A]">{table.name}</span>
+                              </button>
+                              {fields.length > 0 && (
                                 <button
-                                  key={view}
-                                  onClick={() => setSelected(view)}
-                                  className={`w-full flex items-center gap-2 py-1 px-2 rounded-lg transition-colors text-left ${
-                                    selected === view
-                                      ? "bg-[#F0FDF4] text-[#059669]"
-                                      : "hover:bg-[#F2F3F3]"
-                                  }`}
+                                  onClick={(e) => { e.stopPropagation(); toggleFieldsPanel(table.name); }}
+                                  title="Show fields"
+                                  className={cn(
+                                    "h-5 px-1 flex items-center justify-center rounded transition-all flex-shrink-0",
+                                    isFieldsOpen
+                                      ? "opacity-100 text-[#059669]"
+                                      : "opacity-0 group-hover:opacity-100 text-[#9CA3AF] hover:text-[#059669]",
+                                  )}
                                 >
-                                  <span className={`w-1.5 h-1.5 rounded-sm flex-shrink-0 ${selected === view ? "bg-[#059669]" : "bg-[#6B7B7B]"}`} />
-                                  <span className="text-xs font-mono truncate text-[#9CA3AF]">{view}</span>
+                                  <span className="text-[9px] font-semibold whitespace-nowrap">{isFieldsOpen ? "Hide Fields" : "Show Fields"}</span>
                                 </button>
-                              ))}
+                              )}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {isFieldsOpen && fields.length > 0 && (
+                              <div className="ml-5 mt-0.5 mb-1 rounded-lg overflow-hidden bg-[#F8F9F9] border border-[#F0F1F1]">
+                                {/* Header */}
+                                <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 px-2.5 py-1 border-b border-[#E8EEEE] bg-[#F0F1F1]">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#9CA3AF]">Name</span>
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#9CA3AF]">Type</span>
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#9CA3AF] text-right">Len</span>
+                                </div>
+                                {fields.map((field, i) => (
+                                  <div
+                                    key={field.name}
+                                    className={cn(
+                                      "grid grid-cols-[1fr_auto_auto] gap-x-2 px-2.5 py-0.5 text-[10px] font-mono",
+                                      i < fields.length - 1 && "border-b border-[#F0F1F1]",
+                                    )}
+                                  >
+                                    <span className="text-[#2E4A4A] truncate">{field.name}</span>
+                                    <span className="text-[#059669]">{field.type}</span>
+                                    <span className="text-[#9CA3AF] text-right">{field.length ?? "—"}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {table.views && (
+                              <div className="flex flex-col gap-0.5 ml-4">
+                                {table.views.map((view) => (
+                                  <button
+                                    key={view}
+                                    onClick={() => setSelected(view)}
+                                    className={`w-full flex items-center gap-2 py-1 px-2 rounded-lg transition-colors text-left ${
+                                      selected === view
+                                        ? "bg-[#F0FDF4] text-[#059669]"
+                                        : "hover:bg-[#F2F3F3]"
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-sm flex-shrink-0 ${selected === view ? "bg-[#059669]" : "bg-[#6B7B7B]"}`} />
+                                    <span className="text-xs font-mono truncate text-[#9CA3AF]">{view}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1377,10 +1559,10 @@ function DataView() {
                       <tr className="bg-[#F8F9F9] border-b border-[#F0F1F1]">
                         {columns.map((col) => (
                           <th
-                            key={col}
+                            key={col.name}
                             className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide whitespace-nowrap font-mono border-r border-[#F0F1F1] last:border-r-0"
                           >
-                            {col}
+                            {col.name}
                           </th>
                         ))}
                       </tr>
@@ -1395,10 +1577,10 @@ function DataView() {
                       ) : rows.map((row, i) => (
                         <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
                           {columns.map((col) => {
-                            const { text, muted, isJson } = fmtCell(row[col]);
+                            const { text, muted, isJson } = fmtCell(row[col.name]);
                             return (
                               <td
-                                key={col}
+                                key={col.name}
                                 className="px-4 py-2.5 border-r border-[#F0F1F1] last:border-r-0 whitespace-nowrap max-w-[200px] group/cell relative"
                               >
                                 <div className="flex items-center gap-1.5">
@@ -1407,7 +1589,7 @@ function DataView() {
                                   </span>
                                   {isJson && (
                                     <button
-                                      onClick={() => setJsonPopup({ col, val: row[col] })}
+                                      onClick={() => setJsonPopup({ col: col.name, val: row[col.name] })}
                                       className="opacity-0 group-hover/cell:opacity-100 flex-shrink-0 text-[#9CA3AF] hover:text-[#059669] transition-all"
                                     >
                                       <HugeiconsIcon icon={CodeCircleIcon} size={14} color="currentColor" strokeWidth={2} />
