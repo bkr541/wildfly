@@ -1715,7 +1715,6 @@ function DataView() {
               )}
             </div>
 
-          {/* Empty state */}
           ) : (
             <div className="p-5 flex items-center justify-center" style={{ minHeight: 240 }}>
               <div className="flex flex-col items-center gap-2 text-center">
