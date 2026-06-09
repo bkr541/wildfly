@@ -56,7 +56,7 @@ const EMPTY_FORM = {
 };
 
 export function AnnouncementsScreen({ onBack, onTitleChange }: AnnouncementsScreenProps) {
-  const { announcements, loading, saving, create } = useAnnouncementsAdmin();
+  const { announcements, loading, saving, upsert: create } = useAnnouncementsAdmin();
   const [showAdd, setShowAdd] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
