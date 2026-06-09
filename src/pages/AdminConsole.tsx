@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import * as XLSX from "xlsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
@@ -35,6 +36,8 @@ import {
   Copy01Icon,
   Delete01Icon,
   SourceCodeSquareIcon,
+  FileExportIcon,
+  ShieldKeyIcon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -62,13 +65,16 @@ import { GoWilderTokenAdminView } from "@/components/admin/developer-tools/GoWil
 import { LoggingSettingsAdminView } from "@/components/admin/developer-tools/LoggingSettingsAdminView";
 import { AnnouncementsAdminView } from "@/components/admin/developer-tools/AnnouncementsAdminView";
 import { SqlCacheAdminView } from "@/components/admin/developer-tools/SqlCacheAdminView";
+import { DeveloperAllowlistAdminView } from "@/components/admin/developer-tools/DeveloperAllowlistAdminView";
+import { SignupControlsAdminView } from "@/components/admin/developer-tools/SignupControlsAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type View =
   | "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications"
   | "developer-design-system" | "developer-announcements" | "developer-debug"
-  | "developer-sql-cache" | "developer-token" | "developer-logging";
+  | "developer-sql-cache" | "developer-token" | "developer-logging"
+  | "auth-developer-allowlist" | "auth-signup-controls";
 
 interface UserRow {
   id: number;
@@ -121,6 +127,11 @@ const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
   { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
   { id: "developer-logging",       label: "Logging Settings", icon: FilterMailSquareIcon },
+];
+
+const AUTH_ACCESS_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "auth-developer-allowlist", label: "Developer Allowlist", icon: UserGroupIcon },
+  { id: "auth-signup-controls",     label: "Signup Controls",     icon: Settings01Icon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1301,6 +1312,8 @@ function DataView() {
   const [sqlError, setSqlError]   = useState<string | null>(null);
   const [sqlCopied, setSqlCopied] = useState(false);
   const sqlAbortRef               = useRef(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef                   = useRef<HTMLDivElement>(null);
 
   const runSql = useCallback(async () => {
     if (!sqlText.trim() || sqlRunning) return;
@@ -1333,6 +1346,83 @@ function DataView() {
     setSqlCopied(true);
     setTimeout(() => setSqlCopied(false), 1500);
   }, [sqlText]);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [exportOpen]);
+
+  const getExportData = useCallback((): { rows: Record<string, unknown>[]; cols: string[]; name: string } | null => {
+    if (sqlResult && sqlResult.rows.length > 0) {
+      return { rows: sqlResult.rows, cols: sqlResult.cols, name: "query_result" };
+    }
+    if (selected && rows.length > 0) {
+      const cols = columns.map((c) => c.name);
+      return { rows, cols, name: selected };
+    }
+    return null;
+  }, [sqlResult, selected, rows, columns]);
+
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportAsXLSX = useCallback(() => {
+    const d = getExportData();
+    if (!d) return;
+    const ws = XLSX.utils.json_to_sheet(d.rows, { header: d.cols });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, d.name.slice(0, 31));
+    XLSX.writeFile(wb, `${d.name}.xlsx`);
+    setExportOpen(false);
+  }, [getExportData]);
+
+  const exportAsCSV = useCallback(() => {
+    const d = getExportData();
+    if (!d) return;
+    const esc = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [d.cols.join(","), ...d.rows.map((r) => d.cols.map((c) => esc(r[c])).join(","))];
+    triggerDownload(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" }), `${d.name}.csv`);
+    setExportOpen(false);
+  }, [getExportData]);
+
+  const exportAsJSON = useCallback(() => {
+    const d = getExportData();
+    if (!d) return;
+    triggerDownload(new Blob([JSON.stringify(d.rows, null, 2)], { type: "application/json" }), `${d.name}.json`);
+    setExportOpen(false);
+  }, [getExportData]);
+
+  const exportAsSQLInsert = useCallback(() => {
+    const d = getExportData();
+    if (!d) return;
+    const fmtVal = (v: unknown): string => {
+      if (v == null) return "NULL";
+      if (typeof v === "number" || typeof v === "bigint") return String(v);
+      if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
+      return `'${String(v).replace(/'/g, "''")}'`;
+    };
+    const colList = d.cols.map((c) => `"${c}"`).join(", ");
+    const stmts = d.rows.map(
+      (r) => `INSERT INTO "${d.name}" (${colList}) VALUES (${d.cols.map((c) => fmtVal(r[c])).join(", ")});`,
+    );
+    triggerDownload(new Blob([stmts.join("\n")], { type: "text/plain;charset=utf-8;" }), `${d.name}_inserts.sql`);
+    setExportOpen(false);
+  }, [getExportData]);
 
   const toggle = (label: string) =>
     setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -1562,6 +1652,44 @@ function DataView() {
                 >
                   <HugeiconsIcon icon={Copy01Icon} size={13} color="currentColor" strokeWidth={2} />
                 </button>
+                <div className="w-px h-4 bg-[#E8EBEB] mx-1" />
+                {/* Export */}
+                <div className="relative" ref={exportRef}>
+                  <button
+                    onClick={() => setExportOpen((v) => !v)}
+                    disabled={!getExportData()}
+                    title="Export data"
+                    className={cn(
+                      "flex items-center justify-center w-7 h-7 rounded-md transition-colors",
+                      exportOpen ? "bg-[#F0FDF4] text-[#059669]" : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
+                      !getExportData() && "opacity-30 cursor-not-allowed",
+                    )}
+                  >
+                    <HugeiconsIcon icon={FileExportIcon} size={13} color="currentColor" strokeWidth={2} />
+                  </button>
+                  {exportOpen && (
+                    <div className="absolute left-0 top-[calc(100%+4px)] z-50 w-52 rounded-xl overflow-hidden border border-[#E8EBEB] bg-white" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
+                      <div className="px-3 py-2 border-b border-[#F0F1F1]">
+                        <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide">Export as…</p>
+                      </div>
+                      {[
+                        { label: "Excel (.xlsx)", desc: "Microsoft Excel workbook", fn: exportAsXLSX },
+                        { label: "CSV",           desc: "Comma-separated values",   fn: exportAsCSV },
+                        { label: "JSON",          desc: "JSON array of objects",    fn: exportAsJSON },
+                        { label: "SQL Insert",    desc: "INSERT INTO statements",   fn: exportAsSQLInsert },
+                      ].map(({ label, desc, fn }) => (
+                        <button
+                          key={label}
+                          onClick={fn}
+                          className="w-full flex flex-col items-start px-3 py-2.5 hover:bg-[#F8F9F9] transition-colors border-b border-[#F0F1F1] last:border-b-0"
+                        >
+                          <span className="text-xs font-semibold text-[#1A2E2E]">{label}</span>
+                          <span className="text-[11px] text-[#9CA3AF]">{desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {/* Status */}
                 <div className="ml-auto flex items-center gap-2 pl-2">
                   {sqlRunning && (
@@ -2074,7 +2202,9 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "developer-debug":           { prefix: "Developer", label: "DEBUG SETTINGS" },
   "developer-sql-cache":       { prefix: "Developer", label: "SQL / CACHE TOOLS" },
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
-  "developer-logging":         { prefix: "Developer", label: "LOGGING SETTINGS" },
+  "developer-logging":            { prefix: "Developer",    label: "LOGGING SETTINGS" },
+  "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
+  "auth-signup-controls":        { prefix: "Auth & Access", label: "SIGNUP CONTROLS" },
 };
 
 const DRAWER_WIDTH_PCT = 80;
@@ -2094,10 +2224,14 @@ export default function AdminConsole() {
   const [devToolsExpanded, setDevToolsExpanded] = useState(
     (_initialView as string).startsWith("developer-")
   );
+  const [authAccessExpanded, setAuthAccessExpanded] = useState(
+    (_initialView as string).startsWith("auth-")
+  );
   const [isDeveloper, setIsDeveloper]           = useState(false);
   const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
 
-  const devToolsActive = (view as string).startsWith("developer-");
+  const devToolsActive  = (view as string).startsWith("developer-");
+  const authAccessActive = (view as string).startsWith("auth-");
   const navigate = useNavigate();
 
   // Remove the ?view= param from the URL once state is initialised so the
@@ -2297,6 +2431,74 @@ export default function AdminConsole() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Auth & Access — expandable group below Developer Tools */}
+              <button
+                type="button"
+                onClick={() => setAuthAccessExpanded((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  authAccessActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon
+                  icon={ShieldKeyIcon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={authAccessActive ? 2 : 1.5}
+                />
+                <span className={cn("text-base flex-1 text-left", authAccessActive ? "font-extrabold" : "font-semibold")}>
+                  Auth & Access
+                </span>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={2}
+                  style={{
+                    transform: authAccessExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {authAccessExpanded && (
+                  <motion.div
+                    key="auth-access-children"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    {AUTH_ACCESS_ITEMS.map((item) => {
+                      const active = view === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleNavClick(item.id)}
+                          className={cn(
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-8 transition-colors w-full hover:bg-[#F2F3F3]",
+                            active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            size={18}
+                            color="currentColor"
+                            strokeWidth={active ? 2 : 1.5}
+                          />
+                          <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
         </nav>
@@ -2403,6 +2605,8 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-sql-cache"     && <SqlCacheAdminView />}
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
         {devToolsActive && isDeveloper && view === "developer-logging"       && <LoggingSettingsAdminView />}
+        {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
+        {isDeveloper && view === "auth-signup-controls"     && <SignupControlsAdminView />}
         </motion.div>
         </AnimatePresence>
         </div>

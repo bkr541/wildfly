@@ -112,7 +112,7 @@ export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} style={{ maxHeight: "82vh" }}>
+    <BottomSheet open={open} onClose={onClose} style={{ top: "5%" }}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
               <div className="flex items-center gap-2.5">
