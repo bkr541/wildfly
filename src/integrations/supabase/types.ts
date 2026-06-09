@@ -1503,6 +1503,7 @@ export type Database = {
         }
         Returns: number
       }
+      notify_bulk_search_issues: { Args: never; Returns: number }
       refund_paid_search: {
         Args: { p_reason?: string; p_source_id: string; p_user_id: string }
         Returns: Json
