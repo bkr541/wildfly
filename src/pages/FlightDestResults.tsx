@@ -737,8 +737,8 @@ const FlightDestResults = ({
                 className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
                 style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
               />
-              {/* Top row: back only */}
-              <div className="relative flex items-center w-full">
+              {/* Top row: back + sort/filter */}
+              <div className="relative flex items-center justify-between w-full">
                 <button
                   type="button"
                   onClick={handleBack}
@@ -746,6 +746,28 @@ const FlightDestResults = ({
                 >
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
                 </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSortSheet(true)}
+                    className={cn(
+                      "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                      sortBy !== "time" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                    )}
+                  >
+                    <HugeiconsIcon icon={SortByDown02Icon} size={16} color={sortBy !== "time" ? "#FFD700" : "white"} strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterSheet(true)}
+                    className={cn(
+                      "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                      filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
+                    )}
+                  >
+                    <HugeiconsIcon icon={FilterIcon} size={16} color={filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "#FFD700" : "white"} strokeWidth={2} />
+                  </button>
+                </div>
               </div>
               {/* Route text below icons — POLISHED WITH TEXT-SHADOW */}
               <div className="relative mt-3 flex items-start gap-3">
@@ -810,7 +832,7 @@ const FlightDestResults = ({
 
               {/* Metrics strip — flows naturally below route text */}
               {arrivalAirport && arrivalAirport !== "All" && (
-                <div className="relative mt-4 flex items-center justify-between w-full gap-2 pt-3 border-t border-white/20">
+                <div className="relative mt-4 flex items-center justify-between w-full gap-2">
                   {(() => {
                     const allFlights = activeFlights;
                     let earliestH: number | null = null;
@@ -985,52 +1007,6 @@ const FlightDestResults = ({
       {/* Tab: Flights */}
       {activeTab === "Flights" && (
         <div className="flex flex-col px-4 pt-3 pb-6 gap-3.5 relative z-10">
-          {/* Count row + sort/filter */}
-          {(() => {
-            const isFiltered = filterNonstopOnly || filterGoWildOnly || filterDestType !== "all";
-            const isSorted = sortBy !== "time";
-            const filterCount = (filterNonstopOnly ? 1 : 0) + (filterGoWildOnly ? 1 : 0) + (filterDestType !== "all" ? 1 : 0);
-            const sortCount = isSorted ? 1 : 0;
-            return (
-              <div className="flex items-center justify-end bg-white border-b border-gray-200 px-3 -mx-4 -mt-3">
-                {/* Sort + Filter tab-style buttons */}
-                <button
-                  type="button"
-                  onClick={() => setSortSheet(true)}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] transition-colors relative",
-                    isSorted ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
-                  )}
-                >
-                  <HugeiconsIcon icon={SortByDown02Icon} size={15} strokeWidth={isSorted ? 2.5 : 1.5} color={isSorted ? "#10B981" : undefined} />
-                  Sort
-                  {sortCount > 0 && (
-                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#10B981] text-white text-[10px] font-bold leading-none">
-                      {sortCount}
-                    </span>
-                  )}
-                  {isSorted && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterSheet(true)}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 px-3 py-3.5 text-[15px] transition-colors relative",
-                    isFiltered ? "text-[#10B981] font-bold" : "text-gray-400 hover:text-gray-600 font-semibold",
-                  )}
-                >
-                  <HugeiconsIcon icon={FilterIcon} size={15} strokeWidth={isFiltered ? 2.5 : 1.5} color={isFiltered ? "#10B981" : undefined} />
-                  Filter
-                  {filterCount > 0 && (
-                    <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#10B981] text-white text-[10px] font-bold leading-none">
-                      {filterCount}
-                    </span>
-                  )}
-                  {isFiltered && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981] rounded-full" />}
-                </button>
-              </div>
-            );
-          })()}
           <div className="flex flex-col gap-2.5">
             {sortedGroups.map((group) => {
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
@@ -1105,7 +1081,9 @@ const FlightDestResults = ({
                   {/* Timeline */}
                   <div>
                   <div className="relative flex flex-col items-center">
-                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-[#C8D5D5]" />
+                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#059669]" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#059669] z-10" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#059669] z-10" />
                     <div className="flex flex-col items-center w-full gap-0">
                       {timelineItems.map((item, tIdx) => {
                         if (item.type === "hour") {
@@ -1117,7 +1095,7 @@ const FlightDestResults = ({
                               style={{ animationDelay: `${tIdx * 60}ms`, animation: "fade-in 0.35s ease-out both" }}
                             >
                               <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
-                              <span className="z-10 bg-[#F1F5F5] px-2 text-[13px] font-semibold text-[#6B7B7B] leading-tight">
+                              <span className="z-10 bg-[#F1F5F5] px-[14px] py-1 text-[15px] font-semibold text-[#6B7B7B] leading-tight">
                                 {h12} {ampm}
                               </span>
                             </div>
@@ -1230,17 +1208,17 @@ const FlightDestResults = ({
                                   {hasBadges && (
                                     <div className="flex items-center gap-1">
                                       {isGoWild && goWildSeats != null && (
-                                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 h-5 shrink-0 text-[10px] font-bold text-white" style={{ background: seatColor }}>
-                                          <HugeiconsIcon icon={AirplaneSeatIcon} size={10} color="#FFFFFF" strokeWidth={2.5} />
+                                        <span className="inline-flex items-center gap-0.5 rounded-full px-2 h-6 shrink-0 text-[11px] font-bold text-white" style={{ background: seatColor }}>
+                                          <HugeiconsIcon icon={AirplaneSeatIcon} size={12} color="#FFFFFF" strokeWidth={2.5} />
                                           {goWildSeats}
                                         </span>
                                       )}
-                                      {isGoWild && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
-                                      {isCheapest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
-                                      {isQuickest && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={11} color="#1A1A1A" strokeWidth={2.5} /></span>}
-                                      {isBlackout && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
-                                      {flight.is_plus_one_day && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#E89830" }}><HugeiconsIcon icon={Clock01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
-                                      {isRedEye && <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0" style={{ background: "#DC2626" }}><HugeiconsIcon icon={Alert01Icon} size={11} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isGoWild && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#059669" }}><HugeiconsIcon icon={Rocket01Icon} size={13} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isCheapest && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#1E3A5F" }}><HugeiconsIcon icon={DollarCircleIcon} size={13} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isQuickest && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#D4AF37" }}><HugeiconsIcon icon={TrafficLightIcon} size={13} color="#1A1A1A" strokeWidth={2.5} /></span>}
+                                      {isBlackout && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#111827" }}><HugeiconsIcon icon={UnavailableIcon} size={13} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {flight.is_plus_one_day && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#E89830" }}><HugeiconsIcon icon={Clock01Icon} size={13} color="#FFFFFF" strokeWidth={2.5} /></span>}
+                                      {isRedEye && <span className="flex items-center justify-center w-6 h-6 rounded-full shrink-0" style={{ background: "#DC2626" }}><HugeiconsIcon icon={Alert01Icon} size={13} color="#FFFFFF" strokeWidth={2.5} /></span>}
                                     </div>
                                   )}
                                 </div>
@@ -1263,11 +1241,11 @@ const FlightDestResults = ({
                                       <span className="text-[20px] font-bold text-[#1a2e2e] leading-none tabular-nums">{formatTime(arrLeg?.arrival_time)}</span>
                                     </div>
                                     {/* Row 2 left: origin city */}
-                                    <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">{originCity}</span>
+                                    <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight">{originCity}{originState ? `, ${originState}` : ""}</span>
                                     {/* Row 2 center: duration chip — same column as plane, so always aligned */}
                                     <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-center justify-self-center", hasAlert || hasGoing ? "text-white bg-[#065F46]" : "text-[#065F46] bg-[#D1FAE5]")}>{formatDuration(flight.total_duration)}</span>
                                     {/* Row 2 right: dest city */}
-                                    <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">{destCity}</span>
+                                    <span className="text-[13px] text-[#6B7B7B] font-medium leading-tight text-right">{destCity}{destState ? `, ${destState}` : ""}</span>
                                   </div>
                               </div>
 
@@ -1343,15 +1321,17 @@ const FlightDestResults = ({
                                           merged.push({ key, label, price, isGoWild: false });
                                         }
                                       }
-                                      if (merged.length === 0) return null;
-                                      const cheapestPrice = Math.min(...merged.map((m) => m.price));
+                                      const HIDDEN_FARE_KEYS = new Set(["basic", "miles"]);
+                                      const visible = merged.filter((f) => !HIDDEN_FARE_KEYS.has(f.key));
+                                      if (visible.length === 0) return null;
+                                      const cheapestPrice = Math.min(...visible.map((m) => m.price));
                                       return (
                                         <div className="px-3 pt-3">
                                           <div className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7B7B] mb-1.5">
                                             Fare Options
                                           </div>
                                           <div className="rounded-xl border border-[#E8EBEB] overflow-hidden bg-white">
-                                            {merged.map((fare, i) => {
+                                            {visible.map((fare, i) => {
                                               const isLowest = fare.price === cheapestPrice;
                                               return (
                                                 <div
@@ -1369,7 +1349,7 @@ const FlightDestResults = ({
                                                     <span className={cn("text-[13px] font-semibold", fare.isGoWild ? "text-[#047857]" : "text-[#1A2E2E]")}>
                                                       {fare.label}
                                                     </span>
-                                                    {isLowest && merged.length > 1 && (
+                                                    {isLowest && visible.length > 1 && (
                                                       <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[#1E3A5F] text-white">
                                                         Lowest
                                                       </span>
@@ -1474,21 +1454,20 @@ const FlightDestResults = ({
                         );
                       })}
 
+                      {/* Trailing time label — inside container so the line passes through it */}
+                      {(() => {
+                        const { h12, ampm } = fmtHourLabel(trailingHour);
+                        return (
+                          <div className="relative flex items-center justify-center w-full py-2">
+                            <div className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#A8BEBE] z-10" />
+                            <span className="z-10 bg-[#F1F5F5] px-[14px] py-1 text-[15px] font-semibold text-[#6B7B7B] leading-tight">
+                              {h12} {ampm}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
-                  {/* Trailing time label — outside the line container so the line ends above it */}
-                  {(() => {
-                    const { h12, ampm } = fmtHourLabel(trailingHour);
-                    return (
-                      <div className="flex items-center justify-center w-full py-2">
-                       <div className="bg-[#E8EBEB] px-2.5 py-0.5 rounded-full border border-[#C8D5D5]">
-                           <span className="text-[11px] font-semibold text-[#6B7B7B] leading-tight">
-                              {h12} {ampm}
-                           </span>
-                         </div>
-                      </div>
-                    );
-                  })()}
                 </div>
                 </div>
               );
