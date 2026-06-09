@@ -12,6 +12,9 @@ import {
   Alert01Icon,
   ArrowDown01Icon,
   Notebook01Icon,
+  UserAdd01Icon,
+  CheckmarkCircle01Icon,
+  Copy01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -60,6 +63,8 @@ interface BetaApplication {
   invited_at: string | null;
   created_at: string;
   updated_at: string;
+  auth_user_id: string | null;
+  provisioned_at: string | null;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -176,14 +181,18 @@ function DetailPanel({
   app,
   onStatusChange,
   onNotesSave,
+  onApprove,
   updatingStatus,
   savingNotes,
+  approvingId,
 }: {
   app: BetaApplication;
   onStatusChange: (id: string, status: AppStatus) => void;
   onNotesSave: (id: string, notes: string) => void;
+  onApprove: (id: string) => void;
   updatingStatus: boolean;
   savingNotes: boolean;
+  approvingId: string | null;
 }) {
   const [localNotes, setLocalNotes] = useState(app.internal_notes ?? "");
   const notesDirty = localNotes !== (app.internal_notes ?? "");
@@ -330,6 +339,37 @@ function DetailPanel({
               </div>
             )}
           </div>
+
+          {/* Provision account */}
+          <div className="mt-4 pt-3 border-t border-[#E8EEEE]">
+            <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <HugeiconsIcon icon={UserAdd01Icon} size={12} color="currentColor" strokeWidth={2} />
+              Account
+            </p>
+            {app.provisioned_at ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#059669" strokeWidth={2} />
+                  <span className="text-xs font-semibold text-[#059669]">Account provisioned</span>
+                </div>
+                <p className="text-[11px] text-[#9CA3AF]">{fmt(app.provisioned_at)}</p>
+                {app.auth_user_id && (
+                  <p className="text-[10px] text-[#C4C9CA] font-mono">{app.auth_user_id}</p>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={approvingId === app.id}
+                onClick={() => onApprove(app.id)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={UserAdd01Icon} size={15} color="white" strokeWidth={2.5} />
+                {approvingId === app.id ? "Creating account…" : "Approve & Create Account"}
+              </button>
+            )}
+          </div>
         </div>
 
       </div>
@@ -362,6 +402,15 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
   // Per-row action state
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [savingNotesId, setSavingNotesId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  // Approve result modal
+  const [approveResult, setApproveResult] = useState<{
+    name: string;
+    email: string;
+    actionLink: string | null;
+    alreadyExisted: boolean;
+  } | null>(null);
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
@@ -466,6 +515,71 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
       toast.error((e as Error).message);
     } finally {
       setSavingNotesId(null);
+    }
+  }
+
+  // ── Approve + provision ────────────────────────────────────────────────────
+
+  async function handleApprove(id: string) {
+    const app = applications.find((a) => a.id === id);
+    if (!app) return;
+
+    setApprovingId(id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Not signed in."); return; }
+
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-approve-beta-application`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            application_id: id,
+            redirect_to: `${window.location.origin}/reset-password`,
+          }),
+        }
+      );
+      const json = await res.json();
+
+      if (!res.ok || json?.error) {
+        if (json?.already_provisioned) {
+          toast.info("This application has already been provisioned.");
+        } else {
+          toast.error(json?.error ?? "Failed to create account.");
+        }
+        return;
+      }
+
+      // Update local application state
+      setApplications((prev) =>
+        prev.map((a) =>
+          a.id === id
+            ? {
+                ...a,
+                status: "accepted",
+                auth_user_id: json.user_id,
+                provisioned_at: new Date().toISOString(),
+                selected_at: a.selected_at ?? new Date().toISOString(),
+              }
+            : a
+        )
+      );
+
+      setApproveResult({
+        name: app.full_name,
+        email: app.email,
+        actionLink: json.action_link ?? null,
+        alreadyExisted: json.already_existed ?? false,
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setApprovingId(null);
     }
   }
 
@@ -751,8 +865,10 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
                         app={app}
                         onStatusChange={handleStatusChange}
                         onNotesSave={handleNotesSave}
+                        onApprove={handleApprove}
                         updatingStatus={updatingStatusId === app.id}
                         savingNotes={savingNotesId === app.id}
+                        approvingId={approvingId}
                       />
                     )}
                   </div>
@@ -767,6 +883,96 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
         </div>
 
       </div>
+
+      {/* ── Approve result modal ─────────────────────────────────────────── */}
+      {approveResult && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className="rounded-2xl p-6 max-w-md w-full flex flex-col gap-4"
+            style={{
+              background: "rgba(255,255,255,0.96)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              boxShadow: "0 8px 32px 0 rgba(52,92,90,0.18)",
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-start gap-3">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              >
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <p className="text-[15px] font-black text-[#1A2E2E]">
+                  {approveResult.alreadyExisted ? "Account Upgraded" : "Account Created"}
+                </p>
+                <p className="text-xs text-[#6B7B7B] mt-0.5">{approveResult.name}</p>
+                <p className="text-xs text-[#9CA3AF]">{approveResult.email}</p>
+              </div>
+            </div>
+
+            {/* What was provisioned */}
+            <div className="rounded-xl bg-[#F0FDF4] border border-[#D1FAE5] px-4 py-3 flex flex-col gap-1.5">
+              <p className="text-[11px] font-bold text-[#059669] uppercase tracking-wide">What was set up</p>
+              {([
+                approveResult.alreadyExisted ? "Existing account activated" : "Auth account created",
+                "Account status → active",
+                approveResult.alreadyExisted ? null : "Homepage components added",
+                "Subscription upgraded → Gold (unlimited)",
+                "Beta application → Accepted",
+              ] as (string | null)[])
+                .filter(Boolean)
+                .map((item) => (
+                  <div key={item} className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669] flex-shrink-0" />
+                    <span className="text-xs text-[#374151]">{item}</span>
+                  </div>
+                ))}
+            </div>
+
+            {/* Password reset link */}
+            {approveResult.actionLink ? (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+                  Password reset link — share with user
+                </p>
+                <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 py-2">
+                  <p className="flex-1 text-xs text-[#2E4A4A] truncate font-mono">{approveResult.actionLink}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(approveResult.actionLink!);
+                      toast.success("Link copied!");
+                    }}
+                    className="flex-shrink-0 p-1.5 rounded-lg hover:bg-[#E5E7EB] transition-colors"
+                    aria-label="Copy link"
+                  >
+                    <HugeiconsIcon icon={Copy01Icon} size={14} color="#6B7B7B" strokeWidth={2} />
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#9CA3AF]">
+                  User clicks the link → sets their password → goes through onboarding → full Gold access.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-[#9CA3AF]">
+                No reset link was generated. The user can use "Forgot Password" on the login screen to set their password.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setApproveResult(null)}
+              className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

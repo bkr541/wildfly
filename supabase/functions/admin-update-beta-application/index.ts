@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
         "feedback_commitment, primary_device, preferred_feedback_method, " +
         "frequent_destinations, interested_features, value_expectation, additional_notes, " +
         "source, utm_source, utm_medium, utm_campaign, referrer, " +
-        "status, internal_notes, selected_at, invited_at, created_at, updated_at"
+        "status, internal_notes, selected_at, invited_at, created_at, updated_at, auth_user_id, provisioned_at"
       )
       .single();
 
