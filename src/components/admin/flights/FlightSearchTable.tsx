@@ -4,6 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
   SquareArrowUpDownIcon,
+  ArrowUp01Icon,
+  ArrowDown01Icon,
   Copy01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
@@ -143,15 +145,22 @@ function SortableHeader({ children, sortKey, currentKey, currentDir, onSort }: S
       onClick={() => sortKey && onSort(sortKey)}
       disabled={!sortKey}
       className={cn(
-        "flex items-center gap-1 text-left text-[10px] font-semibold uppercase tracking-wide transition-colors",
+        "flex items-center gap-1 text-left text-[10px] uppercase tracking-wide transition-all self-stretch w-full",
         sortKey ? "cursor-pointer hover:text-[#2E4A4A]" : "cursor-default",
-        active ? "text-emerald-600" : "text-[#9CA3AF]",
+        active
+          ? "font-extrabold text-emerald-700 bg-emerald-50 px-1.5 rounded-sm"
+          : "font-semibold text-[#9CA3AF] py-2.5",
       )}
     >
       {children}
-      {sortKey && (
-        <span className={cn("opacity-40", active && "opacity-100")}>
-          <HugeiconsIcon icon={SquareArrowUpDownIcon} size={10} color="currentColor" strokeWidth={2} />
+      {active && (
+        <span>
+          <HugeiconsIcon
+            icon={currentDir === "asc" ? ArrowUp01Icon : ArrowDown01Icon}
+            size={10}
+            color="currentColor"
+            strokeWidth={2}
+          />
         </span>
       )}
     </button>
@@ -446,13 +455,22 @@ export function FlightSearchTable({
 }: FlightSearchTableProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>("search_timestamp");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
+  const [sortClickCount, setSortClickCount] = useState(1);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
-      setSortDir(d => d === "asc" ? "desc" : "asc");
+      if (sortClickCount >= 2) {
+        setSortKey(null);
+        setSortDir("desc");
+        setSortClickCount(0);
+      } else {
+        setSortDir(d => d === "asc" ? "desc" : "asc");
+        setSortClickCount(c => c + 1);
+      }
     } else {
       setSortKey(k);
       setSortDir("desc");
+      setSortClickCount(1);
     }
   };
 
@@ -527,12 +545,12 @@ export function FlightSearchTable({
       <div className="hidden md:block">
         {/* Header */}
         <div
-          className="px-4 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]"
-          style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: "12px" }}
+          className="px-4 border-b border-[#F0F1F1] bg-[#F8F9F9]"
+          style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: "12px", alignItems: "stretch" }}
         >
-          {activeCols.map((col) => (
+          {activeCols.map((col, idx) => (
+            <div key={col.key} className="relative flex items-stretch">
             <SortableHeader
-              key={col.key}
               sortKey={SORT_KEY_MAP[col.key]}
               currentKey={sortKey}
               currentDir={sortDir}
@@ -540,6 +558,10 @@ export function FlightSearchTable({
             >
               {col.label}
             </SortableHeader>
+              {idx < activeCols.length - 1 && (
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-px bg-[#E5E7EB]" />
+              )}
+            </div>
           ))}
         </div>
 

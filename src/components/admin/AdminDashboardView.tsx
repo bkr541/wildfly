@@ -405,7 +405,7 @@ function SemiGauge({
   const fillRad = Math.PI + (clamped / 100) * Math.PI;
   const fx = cx + r * Math.cos(fillRad);
   const fy = cy + r * Math.sin(fillRad);
-  const largeArc = clamped > 50 ? 1 : 0;
+  const largeArc = 0;
 
   return (
     <svg width={width} height={h} viewBox={`0 0 ${width} ${h}`} fill="none" role="img" aria-label={`GoWild availability gauge: ${clamped.toFixed(0)}%`}>

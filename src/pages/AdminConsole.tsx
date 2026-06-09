@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
@@ -11,7 +11,9 @@ import {
   ArrowRight01Icon,
   Search01Icon,
   Cancel01Icon,
+  ArrowUp01Icon,
   ArrowDown01Icon,
+  ArrowReloadHorizontalIcon,
   DatabaseIcon,
   CodeCircleIcon,
   UserGroupIcon,
@@ -227,46 +229,205 @@ function newSortCondition(): SortCondition {
   return { id: Math.random().toString(36).slice(2), field: "", direction: "" };
 }
 
-function UsersView() {
-  const [users, setUsers]               = useState<UserRow[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [search, setSearch]             = useState("");
-  const [page, setPage]                 = useState(0);
-  const [filterOpen, setFilterOpen]     = useState(false);
-  const [conditions, setConditions]     = useState<FilterCondition[]>([newCondition()]);
-  const [appliedConditions, setApplied] = useState<FilterCondition[]>([]);
-  const [sortOpen, setSortOpen]         = useState(false);
-  const [sortConditions, setSortConds]  = useState<SortCondition[]>([newSortCondition()]);
-  const [appliedSorts, setAppliedSorts] = useState<SortCondition[]>([]);
+const USERS_DROPDOWN_ARROW: React.CSSProperties = {
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 6px center",
+};
+const USERS_INPUT_CLS  = "w-full h-8 bg-[#F2F3F3] rounded-lg px-2.5 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400";
+const USERS_SELECT_CLS = "w-full h-8 bg-[#F2F3F3] rounded-lg pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none";
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) { setUsers([]); return; }
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/admin-list-users`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
-        );
-        const json = await res.json();
-        if (json?.users) setUsers(json.users as UserRow[]);
-      } catch (e) {
-        console.error("Failed to load users", e);
-      } finally {
-        setLoading(false);
+function UserAnalyticsPanel({ users, filtered }: { users: UserRow[]; filtered: UserRow[] }) {
+  const total    = users.length;
+  const vis      = filtered.length;
+  const active   = filtered.filter(u => u.status === "active").length;
+  const inactive = vis - active;
+
+  const signupMap: Record<string, number> = {};
+  for (const u of filtered) {
+    const t = u.signup_type || "unknown";
+    signupMap[t] = (signupMap[t] ?? 0) + 1;
+  }
+  const signupRows = Object.entries(signupMap).sort((a, b) => b[1] - a[1]);
+  const maxSignup  = signupRows[0]?.[1] ?? 1;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-3 border-t border-[#F0F1F1]">
+      {/* Quick stats */}
+      <div>
+        <p className="text-[10px] font-bold text-[#7A8B8A] uppercase tracking-wide mb-2">Quick Stats</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Total",    value: total },
+            { label: "Visible",  value: vis },
+            { label: "Active",   value: active },
+            { label: "Inactive", value: inactive },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded-xl bg-[#F8F9F9] border border-[#F0F1F1] px-2.5 py-2">
+              <p className="text-[9px] font-bold text-[#9CA3AF] uppercase tracking-wider">{label}</p>
+              <p className="text-base font-black text-[#1A2E2E] leading-tight">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Signup type breakdown */}
+      <div className="flex flex-col gap-2">
+        <p className="text-[10px] font-bold text-[#7A8B8A] uppercase tracking-wide">By Signup Type</p>
+        <div className="flex flex-col gap-1.5">
+          {signupRows.map(([type, count]) => (
+            <div key={type} className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold w-16 flex-shrink-0 capitalize text-[#2E4A4A]">{type}</span>
+              <div className="flex-1 h-2.5 bg-[#F0F1F1] rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${(count / maxSignup) * 100}%`, background: "linear-gradient(90deg, #059669, #10b981)" }} />
+              </div>
+              <span className="text-[10px] text-[#9CA3AF] w-5 text-right flex-shrink-0">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Status breakdown */}
+      <div className="flex flex-col gap-2">
+        <p className="text-[10px] font-bold text-[#7A8B8A] uppercase tracking-wide">Status</p>
+        <div className="flex flex-col gap-1.5">
+          {[
+            { label: "Active",   count: active,   color: "#059669" },
+            { label: "Inactive", count: inactive, color: "#9CA3AF" },
+          ].map(({ label, count, color }) => (
+            <div key={label} className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold w-14 flex-shrink-0" style={{ color }}>{label}</span>
+              <div className="flex-1 h-2.5 bg-[#F0F1F1] rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: vis ? `${(count / vis) * 100}%` : "0%", backgroundColor: color }} />
+              </div>
+              <span className="text-[10px] text-[#9CA3AF] w-5 text-right flex-shrink-0">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const USER_COLS = [
+  { label: "User",          sortKey: "first_name" },
+  { label: "Email",         sortKey: "email" },
+  { label: "Home Location", sortKey: "home_city" },
+  { label: "Signup",        sortKey: "signup_type" },
+  { label: "Status",        sortKey: "status" },
+  { label: "Last Login",    sortKey: "last_login" },
+];
+
+function UserSortableHeader({
+  children,
+  sortKey,
+  currentKey,
+  currentDir,
+  onSort,
+}: {
+  children: React.ReactNode;
+  sortKey: string | null;
+  currentKey: string | null;
+  currentDir: "asc" | "desc";
+  onSort: (k: string) => void;
+}) {
+  const active = sortKey != null && currentKey === sortKey;
+  return (
+    <button
+      onClick={() => sortKey && onSort(sortKey)}
+      disabled={!sortKey}
+      className={cn(
+        "flex items-center gap-1 text-left text-[10px] uppercase tracking-wide transition-all self-stretch w-full",
+        sortKey ? "cursor-pointer hover:text-[#2E4A4A]" : "cursor-default",
+        active
+          ? "font-extrabold text-emerald-700 bg-emerald-50 px-1.5 rounded-sm"
+          : "font-semibold text-[#9CA3AF] py-2.5",
+      )}
+    >
+      {children}
+      {active && (
+        <span>
+          <HugeiconsIcon
+            icon={currentDir === "asc" ? ArrowUp01Icon : ArrowDown01Icon}
+            size={10}
+            color="currentColor"
+            strokeWidth={2}
+          />
+        </span>
+      )}
+    </button>
+  );
+}
+
+function UsersView() {
+  const [users, setUsers]   = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch]   = useState("");
+  const [page, setPage]       = useState(0);
+
+  // Quick filters
+  const [filterStatus, setFilterStatus]   = useState("");
+  const [filterSignup, setFilterSignup]   = useState("");
+
+  // Advanced ("More") filters
+  const [filterHomeAirport, setFilterHomeAirport]       = useState("");
+  const [filterHomeCity, setFilterHomeCity]             = useState("");
+  const [filterOnboarding, setFilterOnboarding]         = useState("");
+  const [filterDiscoverable, setFilterDiscoverable]     = useState("");
+
+  // Toolbar panels
+  const [advancedOpen, setAdvancedOpen]   = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+
+  // Column-header sort (click-to-sort, 3rd click clears)
+  const [colSortKey, setColSortKey]               = useState<string | null>(null);
+  const [colSortDir, setColSortDir]               = useState<"asc" | "desc">("desc");
+  const [colSortClickCount, setColSortClickCount] = useState(0);
+
+  const handleColSort = (k: string) => {
+    if (colSortKey === k) {
+      if (colSortClickCount >= 2) {
+        setColSortKey(null);
+        setColSortDir("desc");
+        setColSortClickCount(0);
+      } else {
+        setColSortDir(d => d === "asc" ? "desc" : "asc");
+        setColSortClickCount(c => c + 1);
       }
-    };
-    load();
+    } else {
+      setColSortKey(k);
+      setColSortDir("desc");
+      setColSortClickCount(1);
+    }
+  };
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setUsers([]); return; }
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-list-users`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        }
+      );
+      const json = await res.json();
+      if (json?.users) setUsers(json.users as UserRow[]);
+    } catch (e) {
+      console.error("Failed to load users", e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
   const filtered = useMemo(() => {
     let result = users;
@@ -277,289 +438,243 @@ function UsersView() {
           .some((v) => v?.toLowerCase().includes(q))
       );
     }
-    for (const cond of appliedConditions) {
-      result = result.filter((u) => applyCondition(u, cond));
+    if (filterStatus)  result = result.filter((u) => u.status === filterStatus);
+    if (filterSignup)  result = result.filter((u) => u.signup_type === filterSignup);
+    if (filterHomeAirport.trim()) {
+      const q = filterHomeAirport.trim().toLowerCase();
+      result = result.filter((u) => u.home_airport?.toLowerCase().includes(q));
     }
-    if (appliedSorts.length > 0) {
-      result = [...result].sort((a, b) => {
-        for (const s of appliedSorts) {
-          const av = String((a as unknown as Record<string, unknown>)[s.field] ?? "").toLowerCase();
-          const bv = String((b as unknown as Record<string, unknown>)[s.field] ?? "").toLowerCase();
-          if (av < bv) return s.direction === "asc" ? -1 : 1;
-          if (av > bv) return s.direction === "asc" ? 1 : -1;
-        }
-        return 0;
-      });
+    if (filterHomeCity.trim()) {
+      const q = filterHomeCity.trim().toLowerCase();
+      result = result.filter((u) =>
+        (u.home_city ?? u.locations?.city ?? "").toLowerCase().includes(q)
+      );
     }
+    if (filterOnboarding === "yes") result = result.filter((u) => u.onboarding_complete === "yes");
+    if (filterOnboarding === "no")  result = result.filter((u) => u.onboarding_complete !== "yes");
+    if (filterDiscoverable === "yes") result = result.filter((u) => u.is_discoverable === true);
+    if (filterDiscoverable === "no")  result = result.filter((u) => u.is_discoverable === false);
     return result;
-  }, [users, search, appliedConditions, appliedSorts]);
+  }, [users, search, filterStatus, filterSignup, filterHomeAirport, filterHomeCity, filterOnboarding, filterDiscoverable]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const sortedFiltered = useMemo(() => {
+    if (!colSortKey) return filtered;
+    return [...filtered].sort((a, b) => {
+      const av = String((a as unknown as Record<string, unknown>)[colSortKey] ?? "").toLowerCase();
+      const bv = String((b as unknown as Record<string, unknown>)[colSortKey] ?? "").toLowerCase();
+      if (av < bv) return colSortDir === "asc" ? -1 : 1;
+      if (av > bv) return colSortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filtered, colSortKey, colSortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedFiltered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages - 1);
-  const pageRows   = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+  const pageRows   = sortedFiltered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
-  const canApply = conditions.length > 0 && conditions.every(
-    (c) => c.field && c.operator && (NO_VALUE_OPS.has(c.operator) || c.value.trim())
-  );
+  const hasFilters = !!(search || filterStatus || filterSignup || filterHomeAirport || filterHomeCity || filterOnboarding || filterDiscoverable);
+  const advancedFilterCount = [filterHomeAirport, filterHomeCity, filterOnboarding, filterDiscoverable].filter(Boolean).length;
 
-  const updateCondition = (id: string, patch: Partial<FilterCondition>) =>
-    setConditions((prev) => prev.map((c) => c.id === id ? { ...c, ...patch } : c));
-
-  const handleApply = () => {
-    setApplied(conditions.filter((c) => c.field && c.operator && (NO_VALUE_OPS.has(c.operator) || c.value.trim())));
-    setFilterOpen(false);
+  function clearFilters() {
+    setSearch("");
+    setFilterStatus("");
+    setFilterSignup("");
+    setFilterHomeAirport("");
+    setFilterHomeCity("");
+    setFilterOnboarding("");
+    setFilterDiscoverable("");
     setPage(0);
-  };
-
-  const clearAll = () => {
-    setConditions([newCondition()]);
-    setApplied([]);
-    setPage(0);
-  };
-
-  const hasApplied    = appliedConditions.length > 0;
-  const hasAppliedSort = appliedSorts.length > 0;
-
-  const canApplySort = sortConditions.length > 0 && sortConditions.every((s) => s.field && s.direction);
-
-  const handleApplySort = () => {
-    setAppliedSorts(sortConditions.filter((s) => s.field && s.direction));
-    setSortOpen(false);
-    setPage(0);
-  };
-
-  const clearAllSorts = () => {
-    setSortConds([newSortCondition()]);
-    setAppliedSorts([]);
-    setPage(0);
-  };
-
+  }
 
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <div className="rounded-2xl px-4 py-3 flex items-center gap-3" style={CARD_STYLE}>
-        <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 max-w-xs">
-          <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            placeholder="Search users…"
-            className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-[#9CA3AF] hover:text-[#6B7B7B]">
-              <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
+      <div className="flex flex-col gap-2">
+        <div className="rounded-2xl px-4 py-3 flex flex-col gap-3" style={CARD_STYLE}>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Search */}
+            <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 h-9 flex-1 min-w-[180px] max-w-md">
+              <HugeiconsIcon icon={Search01Icon} size={14} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                placeholder="Search users..."
+                className="flex-1 bg-transparent text-sm text-[#2E4A4A] placeholder:text-[#9CA3AF] outline-none"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="text-[#9CA3AF] hover:text-[#6B7B7B]">
+                  <HugeiconsIcon icon={Cancel01Icon} size={12} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            {/* Status quick filter */}
+            <select
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
+              aria-label="Filter by status"
+              className="h-9 bg-[#F2F3F3] rounded-xl pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none"
+              style={USERS_DROPDOWN_ARROW}
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+
+            {/* Signup type quick filter */}
+            <select
+              value={filterSignup}
+              onChange={(e) => { setFilterSignup(e.target.value); setPage(0); }}
+              aria-label="Filter by signup type"
+              className="h-9 bg-[#F2F3F3] rounded-xl pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none"
+              style={USERS_DROPDOWN_ARROW}
+            >
+              <option value="">All Signup Types</option>
+              <option value="google">Google</option>
+              <option value="email">Email</option>
+              <option value="apple">Apple</option>
+            </select>
+
+            {/* More filters */}
+            <button
+              onClick={() => setAdvancedOpen(v => !v)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-xl text-xs font-semibold transition-colors",
+                advancedFilterCount > 0
+                  ? "bg-[#345C5A] text-white"
+                  : advancedOpen
+                  ? "bg-[#F2F3F3] text-emerald-600"
+                  : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
+              )}
+            >
+              <HugeiconsIcon icon={FilterMailSquareIcon} size={15} color="currentColor" strokeWidth={2} />
+              <span>More</span>
+              {advancedFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center leading-none">
+                  {advancedFilterCount}
+                </span>
+              )}
             </button>
+
+            <div className="flex-1" />
+
+            {/* Analytics toggle */}
+            <button
+              onClick={() => setAnalyticsOpen(v => !v)}
+              aria-label="Toggle analytics"
+              className={cn(
+                "w-9 h-9 flex items-center justify-center rounded-xl transition-colors",
+                analyticsOpen ? "bg-emerald-50 text-emerald-600" : "text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A]",
+              )}
+            >
+              <HugeiconsIcon icon={Analytics01Icon} size={16} color="currentColor" strokeWidth={2} />
+            </button>
+
+            {/* Refresh */}
+            <button
+              onClick={loadUsers}
+              disabled={loading}
+              aria-label="Refresh"
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors disabled:opacity-40"
+            >
+              <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={16} color="currentColor" strokeWidth={2} />
+            </button>
+
+            {/* Count */}
+            <span className="text-xs font-semibold text-[#6B7B7B] flex-shrink-0">
+              {sortedFiltered.length.toLocaleString()} {hasFilters ? "matching" : "total"}
+            </span>
+          </div>
+
+          {/* Analytics panel */}
+          {analyticsOpen && (
+            <UserAnalyticsPanel users={users} filtered={filtered} />
           )}
         </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            onClick={() => setSortOpen((v) => !v)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors duration-200"
-            style={hasAppliedSort
-              ? { background: "#345C5A", color: "white" }
-              : sortOpen
-              ? { background: "#F2F3F3", color: "#059669" }
-              : { color: "#9CA3AF" }
-            }
-          >
-            <HugeiconsIcon icon={SquareArrowUpDownIcon} size={17} color="currentColor" strokeWidth={2} />
-            <span className="text-[11px] font-semibold uppercase tracking-wide">Sort</span>
-            {hasAppliedSort && (
-              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center flex-shrink-0 leading-none">
-                {appliedSorts.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setFilterOpen((v) => !v)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors duration-200"
-            style={hasApplied
-              ? { background: "#345C5A", color: "white" }
-              : filterOpen
-              ? { background: "#F2F3F3", color: "#059669" }
-              : { color: "#9CA3AF" }
-            }
-          >
-            <HugeiconsIcon icon={FilterMailSquareIcon} size={17} color="currentColor" strokeWidth={2} />
-            <span className="text-[11px] font-semibold uppercase tracking-wide">Filter</span>
-            {hasApplied && (
-              <span className="w-4 h-4 rounded-full bg-white text-[#345C5A] text-[9px] font-bold flex items-center justify-center flex-shrink-0 leading-none">
-                {appliedConditions.length}
-              </span>
-            )}
-          </button>
-        </div>
+
+        {/* Advanced filters panel */}
+        {advancedOpen && (
+          <div className="rounded-2xl px-5 py-4 flex flex-col gap-4" style={CARD_STYLE}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-[#6B7B7B] uppercase tracking-wide">More Filters</p>
+              <button onClick={clearFilters} className="text-[10px] font-semibold text-[#9CA3AF] hover:text-rose-500 transition-colors">
+                Clear all
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1">Home Airport</label>
+                <input
+                  type="text"
+                  value={filterHomeAirport}
+                  onChange={(e) => { setFilterHomeAirport(e.target.value.toUpperCase().slice(0, 4)); setPage(0); }}
+                  placeholder="ATL"
+                  className={USERS_INPUT_CLS}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1">Home City</label>
+                <input
+                  type="text"
+                  value={filterHomeCity}
+                  onChange={(e) => { setFilterHomeCity(e.target.value); setPage(0); }}
+                  placeholder="Atlanta"
+                  className={USERS_INPUT_CLS}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1">Onboarding</label>
+                <select
+                  value={filterOnboarding}
+                  onChange={(e) => { setFilterOnboarding(e.target.value); setPage(0); }}
+                  className={USERS_SELECT_CLS}
+                  style={USERS_DROPDOWN_ARROW}
+                >
+                  <option value="">All</option>
+                  <option value="yes">Complete</option>
+                  <option value="no">Incomplete</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1">Discoverable</label>
+                <select
+                  value={filterDiscoverable}
+                  onChange={(e) => { setFilterDiscoverable(e.target.value); setPage(0); }}
+                  className={USERS_SELECT_CLS}
+                  style={USERS_DROPDOWN_ARROW}
+                >
+                  <option value="">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Sort panel */}
-      {sortOpen && (
-        <div className="rounded-2xl px-5 py-4 flex flex-col gap-3" style={CARD_STYLE}>
-          <p className="text-xs font-semibold text-[#6B7B7B]">Sort records by</p>
-          <div className="flex flex-col gap-2">
-            {sortConditions.map((s, idx) => (
-              <div key={s.id} className="flex items-center gap-3">
-                <span className="text-xs text-[#9CA3AF] w-10 flex-shrink-0 text-right">
-                  {idx === 0 ? "By" : "Then"}
-                </span>
-                <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
-                  <select
-                    value={s.field}
-                    onChange={(e) => setSortConds((prev) => prev.map((c) => c.id === s.id ? { ...c, field: e.target.value } : c))}
-                    className="app-input"
-                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-                  >
-                    <option value="">Field…</option>
-                    {USER_FILTER_FIELDS.map((f) => (
-                      <option key={f.key} value={f.key}>{f.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
-                  <select
-                    value={s.direction}
-                    onChange={(e) => setSortConds((prev) => prev.map((c) => c.id === s.id ? { ...c, direction: e.target.value as "asc" | "desc" } : c))}
-                    className="app-input"
-                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-                    disabled={!s.field}
-                  >
-                    <option value="">Direction…</option>
-                    {SORT_DIRECTIONS.map((d) => (
-                      <option key={d.key} value={d.key}>{d.label}</option>
-                    ))}
-                  </select>
-                </div>
-                {sortConditions.length > 1 && (
-                  <button
-                    onClick={() => setSortConds((prev) => prev.filter((c) => c.id !== s.id))}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2.5} />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              onClick={() => setSortConds((prev) => [...prev, newSortCondition()])}
-              className="self-start flex items-center gap-1.5 text-xs font-semibold mt-1 text-[#059669] hover:text-[#047857] transition-colors"
-            >
-              <span className="text-sm leading-none">+</span> Add sort
-            </button>
-          </div>
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E8EEEE]">
-            <button
-              onClick={clearAllSorts}
-              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors"
-            >
-              Clear all sorts
-            </button>
-            <button
-              onClick={handleApplySort}
-              disabled={!canApplySort}
-              className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-            >
-              Apply
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Filter panel */}
-      {filterOpen && (
-        <div className="rounded-2xl px-5 py-4 flex flex-col gap-3" style={CARD_STYLE}>
-          <p className="text-xs font-semibold text-[#6B7B7B]">In this view show records</p>
-          <div className="flex flex-col gap-2">
-            {conditions.map((cond, idx) => (
-              <div key={cond.id} className="flex items-center gap-3">
-                <span className="text-xs text-[#9CA3AF] w-10 flex-shrink-0 text-right">
-                  {idx === 0 ? "Where" : "And"}
-                </span>
-                <div className="app-input-container" style={{ minHeight: 38, width: 140, flexShrink: 0 }}>
-                  <select
-                    value={cond.field}
-                    onChange={(e) => updateCondition(cond.id, { field: e.target.value, operator: "", value: "" })}
-                    className="app-input"
-                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-                  >
-                    <option value="">Field…</option>
-                    {USER_FILTER_FIELDS.map((f) => (
-                      <option key={f.key} value={f.key}>{f.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="app-input-container" style={{ minHeight: 38, width: 160, flexShrink: 0 }}>
-                  <select
-                    value={cond.operator}
-                    onChange={(e) => updateCondition(cond.id, { operator: e.target.value, value: "" })}
-                    className="app-input"
-                    style={{ fontSize: 13, paddingBlock: "0.3em", cursor: "pointer" }}
-                    disabled={!cond.field}
-                  >
-                    <option value="">Operator…</option>
-                    {FILTER_OPERATORS.map((op) => (
-                      <option key={op.key} value={op.key}>{op.label}</option>
-                    ))}
-                  </select>
-                </div>
-                {!NO_VALUE_OPS.has(cond.operator) && (
-                  <div className="app-input-container flex-1" style={{ minHeight: 38 }}>
-                    <input
-                      type="text"
-                      value={cond.value}
-                      onChange={(e) => updateCondition(cond.id, { value: e.target.value })}
-                      placeholder="Enter value…"
-                      disabled={!cond.operator}
-                      className="app-input disabled:opacity-40"
-                      style={{ fontSize: 13, paddingBlock: "0.3em" }}
-                    />
-                  </div>
-                )}
-                {conditions.length > 1 && (
-                  <button
-                    onClick={() => setConditions((prev) => prev.filter((c) => c.id !== cond.id))}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors flex-shrink-0"
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} size={11} color="currentColor" strokeWidth={2.5} />
-                  </button>
-                )}
-              </div>
-            ))}
-            {/* Add filter — always below last condition */}
-            <button
-              onClick={() => setConditions((prev) => [...prev, newCondition()])}
-              className="self-start flex items-center gap-1.5 text-xs font-semibold mt-1 text-[#059669] hover:text-[#047857] transition-colors"
-            >
-              <span className="text-sm leading-none">+</span> Add filter
-            </button>
-          </div>
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E8EEEE]">
-            <button
-              onClick={clearAll}
-              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#6B7B7B] transition-colors"
-            >
-              Clear all filters
-            </button>
-            <button
-              onClick={handleApply}
-              disabled={!canApply}
-              className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-            >
-              Apply
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden p-3" style={CARD_STYLE}>
         {/* Header */}
-        <div className="grid grid-cols-[1.5fr_1.5fr_1fr_0.7fr_0.7fr_0.9fr] gap-3 px-5 py-2.5 border-b border-[#F0F1F1] bg-[#F8F9F9]">
-          {["User", "Email", "Home Location", "Signup", "Status", "Last Login"].map((h) => (
-            <span key={h} className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">{h}</span>
+        <div
+          className="px-5 border-b border-[#F0F1F1] bg-[#F8F9F9]"
+          style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 1fr 0.7fr 0.7fr 0.9fr", gap: "12px", alignItems: "stretch" }}
+        >
+          {USER_COLS.map((col, idx) => (
+            <div key={col.label} className="relative flex items-stretch">
+              <UserSortableHeader
+                sortKey={col.sortKey}
+                currentKey={colSortKey}
+                currentDir={colSortDir}
+                onSort={handleColSort}
+              >
+                {col.label}
+              </UserSortableHeader>
+              {idx < USER_COLS.length - 1 && (
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-px bg-[#E5E7EB]" />
+              )}
+            </div>
           ))}
         </div>
 
@@ -591,17 +706,18 @@ function UsersView() {
                   )}
                 </div>
                 {/* Signup */}
-                <span className="text-xs text-[#6B7B7B] capitalize">{u.signup_type}</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border w-fit bg-slate-100 text-slate-600 border-slate-200 capitalize">
+                  {u.signup_type || "—"}
+                </span>
                 {/* Status */}
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: u.status === "active" ? "#059669" : "#9CA3AF" }}
-                  />
-                  <span className="text-xs font-medium capitalize" style={{ color: u.status === "active" ? "#059669" : "#9CA3AF" }}>
-                    {u.status}
-                  </span>
-                </div>
+                <span className={cn(
+                  "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border w-fit",
+                  u.status === "active"
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                    : "bg-gray-100 text-gray-500 border-gray-200"
+                )}>
+                  {u.status ?? "—"}
+                </span>
                 {/* Last Login */}
                 <span className="text-xs text-[#9CA3AF]">{fmtDate(u.last_login)}</span>
               </div>
