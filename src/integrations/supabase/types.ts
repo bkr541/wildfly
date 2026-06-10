@@ -946,33 +946,120 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_type_configs: {
+        Row: {
+          audience: string
+          authority: string
+          background_color: string | null
+          border_color: string | null
+          created_at: string
+          default_body: string | null
+          default_detail_text: string | null
+          default_title: string | null
+          description: string | null
+          display_type: string | null
+          group_color: string
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          label: string
+          main_color: string | null
+          notification_group: string
+          severity: string
+          show_in_admin: boolean
+          show_in_user_notifications: boolean
+          sort_order: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          authority?: string
+          background_color?: string | null
+          border_color?: string | null
+          created_at?: string
+          default_body?: string | null
+          default_detail_text?: string | null
+          default_title?: string | null
+          description?: string | null
+          display_type?: string | null
+          group_color?: string
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          main_color?: string | null
+          notification_group?: string
+          severity?: string
+          show_in_admin?: boolean
+          show_in_user_notifications?: boolean
+          sort_order?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          authority?: string
+          background_color?: string | null
+          border_color?: string | null
+          created_at?: string
+          default_body?: string | null
+          default_detail_text?: string | null
+          default_title?: string | null
+          description?: string | null
+          display_type?: string | null
+          group_color?: string
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          main_color?: string | null
+          notification_group?: string
+          severity?: string
+          show_in_admin?: boolean
+          show_in_user_notifications?: boolean
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
+          audience: string
           body: string | null
           created_at: string
           data: Json | null
+          detail_text: string | null
           id: string
           is_read: boolean
+          notification_group: string
           title: string
           type: string
           user_id: string
         }
         Insert: {
+          audience?: string
           body?: string | null
           created_at?: string
           data?: Json | null
+          detail_text?: string | null
           id?: string
           is_read?: boolean
+          notification_group?: string
           title: string
           type: string
           user_id: string
         }
         Update: {
+          audience?: string
           body?: string | null
           created_at?: string
           data?: Json | null
+          detail_text?: string | null
           id?: string
           is_read?: boolean
+          notification_group?: string
           title?: string
           type?: string
           user_id?: string
@@ -1386,6 +1473,33 @@ export type Database = {
       }
     }
     Views: {
+      notification_feed_view: {
+        Row: {
+          audience: string | null
+          authority: string | null
+          background_color: string | null
+          border_color: string | null
+          config_is_active: boolean | null
+          config_label: string | null
+          created_at: string | null
+          data: Json | null
+          detail_text: string | null
+          display_type: string | null
+          icon_name: string | null
+          id: string | null
+          is_read: boolean | null
+          main_color: string | null
+          notification_group: string | null
+          severity: string | null
+          show_in_admin: boolean | null
+          show_in_user_notifications: boolean | null
+          title: string | null
+          body: string | null
+          type: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       friends_with_profiles: {
         Row: {
           avatar_url: string | null
