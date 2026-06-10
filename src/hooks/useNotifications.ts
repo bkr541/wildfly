@@ -8,8 +8,11 @@ export interface AppNotification {
   type: string;
   title: string;
   body: string | null;
+  detail_text: string | null;
   data: Record<string, unknown> | null;
   is_read: boolean;
+  notification_group: string;
+  audience: string;
   created_at: string;
 }
 
@@ -35,6 +38,8 @@ export function useUnreadNotificationCount() {
 }
 
 // ── Full notification list — lazy, only fetches when enabled=true ─────────
+// audience filtering will be enforced once Admin-audience notifications exist;
+// for now all notifications default to audience='All' so no client-side filter needed.
 export function useNotifications(enabled = true) {
   const { userId } = useAuth();
   return useQuery<AppNotification[]>({

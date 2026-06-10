@@ -1,0 +1,339 @@
+import { useState, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, CheckCheck, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Analytics01Icon,
+  ShieldKeyIcon,
+  UserGroupIcon,
+  Notification01Icon,
+} from "@hugeicons/core-free-icons";
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  type AppNotification,
+} from "@/hooks/useNotifications";
+import { cn } from "@/lib/utils";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type FilterOption = "All" | "Unread";
+type DateGroup = "Today" | "Yesterday" | "Older";
+
+const SECTION_ORDER: DateGroup[] = ["Today", "Yesterday", "Older"];
+
+// ── Group color config ────────────────────────────────────────────────────────
+
+const GROUP_CONFIG: Record<string, { dot: string; iconBg: string }> = {
+  System:      { dot: "#059669", iconBg: "rgba(5,150,105,0.10)"   },
+  General:     { dot: "#059669", iconBg: "rgba(5,150,105,0.10)"   },
+  Friends:     { dot: "#3B82F6", iconBg: "rgba(59,130,246,0.10)"  },
+  Flights:     { dot: "#F59E0B", iconBg: "rgba(245,158,11,0.10)"  },
+  Trip:        { dot: "#8B5CF6", iconBg: "rgba(139,92,246,0.10)"  },
+  Admin:       { dot: "#EF4444", iconBg: "rgba(239,68,68,0.10)"   },
+  Performance: { dot: "#EC4899", iconBg: "rgba(236,72,153,0.10)"  },
+};
+const DEFAULT_CFG = { dot: "#9CA3AF", iconBg: "rgba(156,163,175,0.10)" };
+
+function groupCfg(group: string | undefined) {
+  return GROUP_CONFIG[group ?? "General"] ?? DEFAULT_CFG;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getDateGroup(dateStr: string): DateGroup {
+  const d = new Date(dateStr);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const notifStart = new Date(d);
+  notifStart.setHours(0, 0, 0, 0);
+  const diff = todayStart.getTime() - notifStart.getTime();
+  if (diff === 0) return "Today";
+  if (diff === 86_400_000) return "Yesterday";
+  return "Older";
+}
+
+// ── Notification icon components ──────────────────────────────────────────────
+
+function NotificationEmoji({
+  type,
+  group,
+}: {
+  type: string;
+  group: string | undefined;
+}) {
+  const cfg = groupCfg(group);
+  const base = "h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-[22px]";
+  let emoji = "🔔";
+  if (type.startsWith("friend_request_accepted")) emoji = "🤝";
+  else if (type.startsWith("friend_request_received")) emoji = "👋";
+  else if (type.startsWith("trip_invite_received")) emoji = "✈️";
+  else if (type.startsWith("trip_invite_accepted")) emoji = "🎉";
+  else if (type.includes("failed") || type.includes("error")) emoji = "⚠️";
+  return (
+    <div className={base} style={{ background: cfg.iconBg }}>
+      {emoji}
+    </div>
+  );
+}
+
+function NotificationTypeIcon({
+  type,
+  group,
+}: {
+  type: string;
+  group: string | undefined;
+}) {
+  const cfg = groupCfg(group);
+  let icon = Notification01Icon;
+  if (type.includes("failed") || type.includes("error") || type.includes("stuck")) {
+    icon = type.includes("failed") ? ShieldKeyIcon : Analytics01Icon;
+  } else if (type.includes("accepted")) {
+    icon = UserGroupIcon;
+  } else if (type.includes("received") || type.includes("invite")) {
+    icon = UserGroupIcon;
+  }
+  return (
+    <div
+      className="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0"
+      style={{ background: cfg.iconBg }}
+    >
+      <HugeiconsIcon icon={icon} size={15} color={cfg.dot} strokeWidth={2} />
+    </div>
+  );
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+function NotificationCard({ notification }: { notification: AppNotification }) {
+  const markRead = useMarkNotificationRead();
+  const group = notification.notification_group ?? "General";
+  const cfg = groupCfg(group);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      onClick={() => {
+        if (!notification.is_read) markRead.mutate(notification.id);
+      }}
+      className={cn(
+        "bg-white rounded-2xl border p-4 cursor-pointer transition-colors active:bg-[#FAFAFA]",
+        !notification.is_read ? "border-emerald-100" : "border-[#F0F1F1]",
+      )}
+      style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.05)" }}
+    >
+      {/* Top row: group badge + unread dot + type icon */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+            style={{ background: cfg.dot }}
+          />
+          <span
+            className="text-[10px] font-bold uppercase tracking-widest"
+            style={{ color: cfg.dot }}
+          >
+            {group}
+          </span>
+          {!notification.is_read && (
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 flex-shrink-0 ml-0.5" />
+          )}
+        </div>
+        <NotificationTypeIcon type={notification.type} group={group} />
+      </div>
+
+      {/* Content row: large emoji + text */}
+      <div className="flex items-start gap-3">
+        <NotificationEmoji type={notification.type} group={group} />
+        <div className="flex-1 min-w-0">
+          <p
+            className={cn(
+              "text-[17px] leading-snug text-[#1A1A1A]",
+              !notification.is_read ? "font-bold" : "font-semibold",
+            )}
+          >
+            {notification.title}
+          </p>
+          {notification.body && (
+            <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+              {notification.body}
+            </p>
+          )}
+          <div className="flex items-center gap-1 mt-2">
+            <Clock size={10} className="text-[#9CA3AF] flex-shrink-0" />
+            <span className="text-[11px] text-[#9CA3AF]">
+              {formatDistanceToNow(new Date(notification.created_at), {
+                addSuffix: true,
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function NotificationSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-[#F0F1F1] p-4 animate-pulse">
+      <div className="flex items-center justify-between mb-3">
+        <div className="h-2.5 w-14 bg-[#E8EEEE] rounded-full" />
+        <div className="h-8 w-8 rounded-xl bg-[#E8EEEE]" />
+      </div>
+      <div className="flex items-start gap-3">
+        <div className="h-14 w-14 rounded-2xl bg-[#E8EEEE] flex-shrink-0" />
+        <div className="flex-1 space-y-2 pt-1">
+          <div className="h-4 bg-[#E8EEEE] rounded-lg w-3/4" />
+          <div className="h-3 bg-[#E8EEEE] rounded-lg w-full" />
+          <div className="h-3 bg-[#E8EEEE] rounded-lg w-1/3" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function NotificationsPage() {
+  const [filter, setFilter] = useState<FilterOption>("All");
+  const { data: notifications, isLoading } = useNotifications(true);
+  const markAll = useMarkAllNotificationsRead();
+
+  const unreadCount = (notifications ?? []).filter((n) => !n.is_read).length;
+
+  const grouped = useMemo(() => {
+    const list = notifications ?? [];
+    const visible =
+      filter === "Unread" ? list.filter((n) => !n.is_read) : list;
+    const map: Partial<Record<DateGroup, AppNotification[]>> = {};
+    for (const n of visible) {
+      const g = getDateGroup(n.created_at);
+      (map[g] ??= []).push(n);
+    }
+    return map;
+  }, [notifications, filter]);
+
+  const hasVisible = SECTION_ORDER.some((g) => (grouped[g]?.length ?? 0) > 0);
+
+  return (
+    <div className="flex flex-col min-h-full bg-[#F4F6F6]">
+      {/* ── Toggle bar ── */}
+      <div className="bg-white px-4 pt-3 pb-3 flex items-center gap-3 border-b border-[#F0F1F1]">
+        {/* All / Unread toggle — exact same pattern as Flight Type switch */}
+        <div
+          className="rounded-full p-[2px] flex relative flex-1"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07), 0 1px 3px 0 rgba(0,0,0,0.06)",
+          }}
+        >
+          {/* Sliding indicator */}
+          <div
+            className="absolute top-[2px] bottom-[2px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+            style={{
+              background: "#10B981",
+              width: "calc((100% - 4px) / 2)",
+              left: filter === "All" ? "2px" : "calc(50%)",
+            }}
+          />
+          {(["All", "Unread"] as FilterOption[]).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setFilter(opt)}
+              className={cn(
+                "flex-1 py-2.5 text-sm font-semibold rounded-full transition-colors duration-300 relative z-10",
+                filter === opt
+                  ? "text-white"
+                  : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+              )}
+            >
+              {opt}
+              {opt === "Unread" && unreadCount > 0 ? ` (${unreadCount})` : ""}
+            </button>
+          ))}
+        </div>
+
+        {/* Mark all read — only shown when there are unread */}
+        {unreadCount > 0 && (
+          <button
+            type="button"
+            onClick={() => markAll.mutate()}
+            disabled={markAll.isPending}
+            className="flex items-center gap-1.5 h-10 px-3 rounded-full text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors disabled:opacity-50 flex-shrink-0"
+          >
+            <CheckCheck size={13} strokeWidth={2} />
+            <span className="whitespace-nowrap">Mark all read</span>
+          </button>
+        )}
+      </div>
+
+      {/* ── Content ── */}
+      <div className="flex-1 px-4 py-4">
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <NotificationSkeleton key={i} />
+            ))}
+          </div>
+        ) : !hasVisible ? (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+            <div
+              className="h-16 w-16 rounded-full flex items-center justify-center mb-4"
+              style={{
+                background:
+                  "linear-gradient(135deg, #E3FEEF 0%, #D1FAE5 100%)",
+              }}
+            >
+              <Bell size={24} className="text-[#059669]" />
+            </div>
+            <p className="text-[#2E4A4A] font-semibold text-sm mb-1">
+              {filter === "Unread"
+                ? "No unread notifications"
+                : "All caught up!"}
+            </p>
+            <p className="text-[#9CA3AF] text-xs">
+              {filter === "Unread"
+                ? "Switch to All to see your full history."
+                : "You have no notifications yet."}
+            </p>
+          </div>
+        ) : (
+          <AnimatePresence initial={false}>
+            {SECTION_ORDER.map((section) => {
+              const items = grouped[section];
+              if (!items?.length) return null;
+              return (
+                <motion.div
+                  key={section}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mb-5"
+                >
+                  <p className="text-[13px] font-bold text-[#2E4A4A] mb-3 px-0.5">
+                    {section}
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    {items.map((n) => (
+                      <NotificationCard key={n.id} notification={n} />
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        )}
+      </div>
+    </div>
+  );
+}

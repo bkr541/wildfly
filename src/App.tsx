@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { CreditCardIcon, Timer02Icon, Alert01Icon } from "@hugeicons/core-free-icons";
+import { CreditCardIcon, Timer02Icon, Alert01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ import AdminGate from "./components/AdminGate";
 import PreviewPage from "./pages/Preview";
 import AllUpcomingFlights from "./pages/AllUpcomingFlights";
 import AllWatchedFlights from "./pages/AllWatchedFlights";
+import NotificationsPage from "./pages/Notifications";
 import BetaSignup from "./pages/BetaSignup";
 import AdminBetaApplications from "./pages/AdminBetaApplications";
 
@@ -51,7 +52,7 @@ const MainApp = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [accountPending, setAccountPending] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights" | "all-upcoming-flights" | "all-watched-flights" | "radar">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights" | "all-upcoming-flights" | "all-watched-flights" | "radar" | "notifications">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
   /** When true, the flight-results back button returns to flight-multi-results */
@@ -354,6 +355,9 @@ const MainApp = () => {
     } else if (page === "all-watched-flights") {
       setSubScreenTitle("Watched Flights");
       setSubScreenIcon(Alert01Icon);
+    } else if (page === "notifications") {
+      setSubScreenTitle("Notifications");
+      setSubScreenIcon(Notification01Icon);
     } else {
       setSubScreenTitle(null);
       setSubScreenIcon(null);
@@ -366,7 +370,7 @@ const MainApp = () => {
 
   // Pages that use the shared MainLayout
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
-    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights", "all-upcoming-flights", "all-watched-flights", "radar"].includes(currentPage);
+    ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights", "all-upcoming-flights", "all-watched-flights", "radar", "notifications"].includes(currentPage);
 
   return (
     <div className="flex justify-center">
@@ -423,7 +427,7 @@ const MainApp = () => {
                 if (currentPage === "design-system") {
                   setCurrentPage("account");
                   accountDevRef.current?.();
-                } else if (currentPage === "all-upcoming-flights" || currentPage === "all-watched-flights") {
+                } else if (currentPage === "all-upcoming-flights" || currentPage === "all-watched-flights" || currentPage === "notifications") {
                   setCurrentPage("home");
                   setSubScreenTitle(null);
                   setSubScreenIcon(null);
@@ -452,6 +456,7 @@ const MainApp = () => {
               {currentPage === "design-system" && <DesignSystemPage />}
               {currentPage === "all-upcoming-flights" && <AllUpcomingFlights />}
               {currentPage === "all-watched-flights" && <AllWatchedFlights />}
+              {currentPage === "notifications" && <NotificationsPage />}
             </MainLayout>
           </ProfileProvider>
         )}

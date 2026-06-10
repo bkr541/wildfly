@@ -41,6 +41,8 @@ import {
   Clock01Icon,
   CpuIcon,
   Calendar01Icon,
+  BubbleChatNotificationIcon,
+  Notification01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -71,6 +73,7 @@ import { SqlCacheAdminView } from "@/components/admin/developer-tools/SqlCacheAd
 import { DeveloperAllowlistAdminView } from "@/components/admin/developer-tools/DeveloperAllowlistAdminView";
 import { SignupControlsAdminView } from "@/components/admin/developer-tools/SignupControlsAdminView";
 import { ScheduledJobsAdminView } from "@/components/admin/developer-tools/ScheduledJobsAdminView";
+import { NotificationsAdminView } from "@/components/admin/communications/NotificationsAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -79,7 +82,8 @@ type View =
   | "developer-design-system" | "developer-announcements" | "developer-debug"
   | "developer-sql-cache" | "developer-token" | "developer-logging"
   | "auth-developer-allowlist" | "auth-signup-controls"
-  | "system-scheduled-jobs";
+  | "system-scheduled-jobs"
+  | "communications-notifications";
 
 interface UserRow {
   id: number;
@@ -148,6 +152,10 @@ const AUTH_ACCESS_ITEMS: { id: View; label: string; icon: any }[] = [
 const SYSTEM_PROCESS_ITEMS: { id: string; label: string; icon: any; disabled?: boolean }[] = [
   { id: "system-scheduled-jobs", label: "System Jobs", icon: Clock01Icon },
   { id: "system-scheduler",      label: "Scheduler",      icon: Calendar01Icon, disabled: true },
+];
+
+const COMMUNICATIONS_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "communications-notifications", label: "Notifications", icon: Notification01Icon },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2220,8 +2228,9 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
   "developer-logging":            { prefix: "Developer",      label: "LOGGING SETTINGS" },
   "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
-  "system-scheduled-jobs":       { prefix: "Operations", label: "SYSTEM JOBS" },
-  "auth-signup-controls":        { prefix: "Auth & Access", label: "SIGNUP CONTROLS" },
+  "system-scheduled-jobs":              { prefix: "Operations",     label: "SYSTEM JOBS" },
+  "auth-signup-controls":               { prefix: "Auth & Access",  label: "SIGNUP CONTROLS" },
+  "communications-notifications":       { prefix: "Communications", label: "NOTIFICATIONS" },
 };
 
 const DRAWER_WIDTH_PCT = 80;
@@ -2253,6 +2262,9 @@ export default function AdminConsole() {
   const [systemProcessExpanded, setSystemProcessExpanded] = useState(
     (_initialView as string).startsWith("system-")
   );
+  const [communicationsExpanded, setCommunicationsExpanded] = useState(
+    (_initialView as string).startsWith("communications-")
+  );
   const [isDeveloper, setIsDeveloper]           = useState(false);
   const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
 
@@ -2260,7 +2272,8 @@ export default function AdminConsole() {
   const wildflyToolsActive   = view === "gowild" || view === "radar";
   const devToolsActive       = (view as string).startsWith("developer-");
   const authAccessActive     = (view as string).startsWith("auth-");
-  const systemProcessActive  = (view as string).startsWith("system-");
+  const systemProcessActive    = (view as string).startsWith("system-");
+  const communicationsActive   = (view as string).startsWith("communications-");
   const navigate = useNavigate();
 
   // Remove the ?view= param from the URL once state is initialised so the
@@ -2756,6 +2769,77 @@ export default function AdminConsole() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Communications — expandable group below Operations */}
+              <button
+                type="button"
+                onClick={() => setCommunicationsExpanded((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  communicationsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon
+                  icon={BubbleChatNotificationIcon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={communicationsActive ? 2 : 1.5}
+                />
+                <span className={cn("text-base flex-1 text-left", communicationsActive ? "font-extrabold" : "font-semibold")}>
+                  Communications
+                </span>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={2}
+                  style={{
+                    transform: communicationsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {communicationsExpanded && (
+                  <motion.div
+                    key="communications-children"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="pb-1.5"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {COMMUNICATIONS_ITEMS.map((item) => {
+                      const active = view === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleNavClick(item.id)}
+                          className={cn(
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full",
+                            active
+                              ? "text-[#059669]"
+                              : "text-[#2E4A4A] hover:bg-[#F2F3F3] hover:text-[#345C5A]",
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            size={18}
+                            color="currentColor"
+                            strokeWidth={active ? 2 : 1.5}
+                          />
+                          <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
         </nav>
@@ -2864,8 +2948,9 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
         {devToolsActive && isDeveloper && view === "developer-logging"    && <LoggingSettingsAdminView />}
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
-        {isDeveloper && view === "system-scheduled-jobs"    && <ScheduledJobsAdminView />}
-        {isDeveloper && view === "auth-signup-controls"     && <SignupControlsAdminView />}
+        {isDeveloper && view === "system-scheduled-jobs"              && <ScheduledJobsAdminView />}
+        {isDeveloper && view === "auth-signup-controls"             && <SignupControlsAdminView />}
+        {isDeveloper && view === "communications-notifications"     && <NotificationsAdminView />}
         </motion.div>
         </AnimatePresence>
         </div>

@@ -28,7 +28,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
-import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { HomeLayoutSheet } from "@/components/home/HomeLayoutSheet";
 import {
@@ -100,7 +99,6 @@ const MainLayout = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [homeLayoutOpen, setHomeLayoutOpen] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [tokenExpiryPopupOpen, setTokenExpiryPopupOpen] = useState(false);
@@ -455,7 +453,7 @@ const MainLayout = ({
                   )}
                   <button
                     type="button"
-                    onClick={() => setNotificationsOpen(true)}
+                    onClick={() => onNavigate("notifications")}
                     className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5 relative"
                   >
                     <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={2} />
@@ -503,9 +501,6 @@ const MainLayout = ({
 
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
-
-      {/* Global notifications sheet (triggered from Home bell icon) */}
-      <NotificationsSheet open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
       {/* Home layout quick-editor sheet */}
       <HomeLayoutSheet
