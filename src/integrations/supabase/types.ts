@@ -1379,6 +1379,7 @@ export type Database = {
             }
             Returns: Json
           }
+      exec_sql: { Args: { query: string }; Returns: Json }
       fulfill_stripe_credit_pack: {
         Args: {
           p_credits: number
