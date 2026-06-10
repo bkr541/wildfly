@@ -11,8 +11,10 @@ import {
   Notification01Icon,
   UserGroupIcon,
   Settings01Icon,
+  SentIcon,
+  ListViewIcon,
 } from "@hugeicons/core-free-icons";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DeveloperToolsAdminShell,
@@ -44,6 +46,20 @@ interface TypeStat {
   total_count: number;
   last_sent: string | null;
 }
+
+interface SentNotification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  notification_group: string;
+  audience: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+type TabOption = "types" | "sent";
 
 type FormState = {
   type: string;
@@ -148,6 +164,9 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function NotificationsAdminView() {
+  const [activeTab, setActiveTab] = useState<TabOption>("types");
+
+  // ── Types tab state ──
   const [configs, setConfigs] = useState<NotificationTypeConfig[]>([]);
   const [stats, setStats] = useState<Record<string, TypeStat>>({});
   const [loading, setLoading] = useState(true);
@@ -159,6 +178,12 @@ export function NotificationsAdminView() {
   const [modal, setModal] = useState<null | "new" | NotificationTypeConfig>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [confirmDelete, setConfirmDelete] = useState<NotificationTypeConfig | null>(null);
+
+  // ── Sent tab state ──
+  const [sent, setSent] = useState<SentNotification[]>([]);
+  const [sentLoading, setSentLoading] = useState(false);
+  const [sentError, setSentError] = useState<string | null>(null);
+  const [sentSearch, setSentSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -191,7 +216,29 @@ export function NotificationsAdminView() {
     }
   };
 
+  const loadSent = async () => {
+    setSentLoading(true);
+    setSentError(null);
+    try {
+      const { data, error: err } = await supabase
+        .from("notifications")
+        .select("id, user_id, type, title, body, notification_group, audience, is_read, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (err) throw err;
+      setSent((data ?? []) as SentNotification[]);
+    } catch (e: unknown) {
+      setSentError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSentLoading(false);
+    }
+  };
+
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (activeTab === "sent" && sent.length === 0 && !sentLoading) loadSent();
+  }, [activeTab]);
 
   const byGroup = useMemo(() => {
     const map: Record<string, NotificationTypeConfig[]> = {};
@@ -205,6 +252,17 @@ export function NotificationsAdminView() {
     () => Object.values(stats).reduce((s, v) => s + v.total_count, 0),
     [stats],
   );
+
+  const sentFiltered = useMemo(() => {
+    if (!sentSearch.trim()) return sent;
+    const q = sentSearch.toLowerCase();
+    return sent.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        n.type.toLowerCase().includes(q) ||
+        n.notification_group.toLowerCase().includes(q),
+    );
+  }, [sent, sentSearch]);
 
   const openEdit = (cfg: NotificationTypeConfig) => {
     setForm(configToForm(cfg));
@@ -301,104 +359,209 @@ export function NotificationsAdminView() {
         <>
           <button
             type="button"
-            onClick={load}
+            onClick={activeTab === "types" ? load : loadSent}
             className="h-9 w-9 flex items-center justify-center rounded-xl text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
             title="Refresh"
           >
             <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={17} color="currentColor" strokeWidth={2} />
           </button>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-[#059669] text-white text-xs font-bold hover:bg-[#047857] transition-colors"
-          >
-            <HugeiconsIcon icon={PlusSignIcon} size={14} color="white" strokeWidth={2.5} />
-            New Type
-          </button>
+          {activeTab === "types" && (
+            <button
+              type="button"
+              onClick={openCreate}
+              className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-[#059669] text-white text-xs font-bold hover:bg-[#047857] transition-colors"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} size={14} color="white" strokeWidth={2.5} />
+              New Type
+            </button>
+          )}
         </>
       }
       loading={loading}
       error={error}
     >
-      {/* ── Stats ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Types Configured" value={configs.length} />
-        <StatCard label="Active Types" value={configs.filter((c) => c.is_active).length} />
-        <StatCard label="Total Sent" value={totalSent.toLocaleString()} sub="all time" />
-        <StatCard label="Groups" value={Object.keys(byGroup).length} />
+      {/* ── Tab bar ── */}
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-[#F2F3F3] self-start">
+        {([
+          { id: "types" as TabOption, label: "Types", icon: ListViewIcon },
+          { id: "sent"  as TabOption, label: "Sent",  icon: SentIcon },
+        ] as const).map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveTab(id)}
+            className={cn(
+              "flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-bold transition-all",
+              activeTab === id
+                ? "bg-white text-[#1A2E2E] shadow-sm"
+                : "text-[#9CA3AF] hover:text-[#6B7280]",
+            )}
+          >
+            <HugeiconsIcon icon={icon} size={13} color="currentColor" strokeWidth={2} />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* ── Type list ── */}
-      {Object.keys(byGroup).length === 0 && !loading && (
-        <AdminCard className="flex flex-col items-center py-10 gap-3 text-center">
-          <HugeiconsIcon icon={Notification01Icon} size={28} color="#9CA3AF" strokeWidth={1.5} />
-          <p className="text-sm font-semibold text-[#6B7280]">No notification types configured yet.</p>
-          <button type="button" onClick={openCreate} className="text-xs font-bold text-[#059669] hover:underline">
-            Add the first type
-          </button>
-        </AdminCard>
+      {/* ══ TYPES TAB ══ */}
+      {activeTab === "types" && (
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Types Configured" value={configs.length} />
+            <StatCard label="Active Types" value={configs.filter((c) => c.is_active).length} />
+            <StatCard label="Total Sent" value={totalSent.toLocaleString()} sub="all time" />
+            <StatCard label="Groups" value={Object.keys(byGroup).length} />
+          </div>
+
+          {Object.keys(byGroup).length === 0 && !loading && (
+            <AdminCard className="flex flex-col items-center py-10 gap-3 text-center">
+              <HugeiconsIcon icon={Notification01Icon} size={28} color="#9CA3AF" strokeWidth={1.5} />
+              <p className="text-sm font-semibold text-[#6B7280]">No notification types configured yet.</p>
+              <button type="button" onClick={openCreate} className="text-xs font-bold text-[#059669] hover:underline">
+                Add the first type
+              </button>
+            </AdminCard>
+          )}
+
+          {Object.entries(byGroup).map(([group, items]) => (
+            <div key={group} className="flex flex-col gap-2">
+              <AdminSectionLabel>{group}</AdminSectionLabel>
+              {items.map((cfg) => {
+                const stat = stats[cfg.type];
+                return (
+                  <AdminCard key={cfg.id} className="flex items-center gap-3 py-3.5">
+                    <div
+                      className="w-1 self-stretch rounded-full flex-shrink-0"
+                      style={{ background: cfg.group_color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={cn("text-sm font-bold text-[#1A2E2E]", !cfg.is_active && "opacity-40 line-through")}>
+                          {cfg.label}
+                        </span>
+                        <AudienceBadge audience={cfg.audience} />
+                        {!cfg.is_active && (
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border bg-[#F3F4F6] text-[#9CA3AF] border-[#E5E7EB]">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-mono text-[#9CA3AF] mt-0.5">{cfg.type}</p>
+                      {cfg.description && (
+                        <p className="text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-1">{cfg.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#9CA3AF]">
+                        <span>{stat ? `${stat.total_count.toLocaleString()} sent` : "0 sent"}</span>
+                        {stat?.last_sent && <span>· Last: {fmtDate(stat.last_sent)}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(cfg)}
+                        className="h-8 w-8 flex items-center justify-center rounded-xl text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
+                        title="Edit"
+                      >
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={15} color="currentColor" strokeWidth={2} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(cfg)}
+                        className="h-8 w-8 flex items-center justify-center rounded-xl text-[#6B7280] hover:bg-red-50 hover:text-red-500 transition-colors"
+                        title="Delete"
+                      >
+                        <HugeiconsIcon icon={Delete01Icon} size={15} color="currentColor" strokeWidth={2} />
+                      </button>
+                    </div>
+                  </AdminCard>
+                );
+              })}
+            </div>
+          ))}
+        </>
       )}
 
-      {Object.entries(byGroup).map(([group, items]) => (
-        <div key={group} className="flex flex-col gap-2">
-          <AdminSectionLabel>{group}</AdminSectionLabel>
-          {items.map((cfg) => {
-            const stat = stats[cfg.type];
-            return (
-              <AdminCard key={cfg.id} className="flex items-center gap-3 py-3.5">
-                {/* Color indicator */}
-                <div
-                  className="w-1 self-stretch rounded-full flex-shrink-0"
-                  style={{ background: cfg.group_color }}
-                />
+      {/* ══ SENT TAB ══ */}
+      {activeTab === "sent" && (
+        <>
+          {/* Search bar */}
+          <input
+            className="w-full h-10 rounded-xl border border-[#E5E7EB] bg-white px-3 text-sm text-[#1A2E2E] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#059669]/30"
+            placeholder="Search by title, type, or group…"
+            value={sentSearch}
+            onChange={(e) => setSentSearch(e.target.value)}
+          />
 
-                {/* Main info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={cn("text-sm font-bold", !cfg.is_active && "opacity-40 line-through")}>
-                      {cfg.label}
-                    </span>
-                    <AudienceBadge audience={cfg.audience} />
-                    {!cfg.is_active && (
-                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border bg-[#F3F4F6] text-[#9CA3AF] border-[#E5E7EB]">
-                        Inactive
+          {sentError && (
+            <AdminCard className="text-xs text-red-500 font-semibold">{sentError}</AdminCard>
+          )}
+
+          {sentLoading && (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <AdminCard key={i} className="animate-pulse h-16" />
+              ))}
+            </div>
+          )}
+
+          {!sentLoading && sentFiltered.length === 0 && (
+            <AdminCard className="flex flex-col items-center py-10 gap-3 text-center">
+              <HugeiconsIcon icon={SentIcon} size={28} color="#9CA3AF" strokeWidth={1.5} />
+              <p className="text-sm font-semibold text-[#6B7280]">
+                {sentSearch ? "No notifications match your search." : "No sent notifications found."}
+              </p>
+            </AdminCard>
+          )}
+
+          {!sentLoading && sentFiltered.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] text-[#9CA3AF] font-semibold px-0.5">
+                {sentFiltered.length} notification{sentFiltered.length !== 1 ? "s" : ""}
+                {sentSearch ? " matching search" : ""}
+              </p>
+              {sentFiltered.map((n) => (
+                <AdminCard key={n.id} className="flex items-center gap-3 py-3">
+                  {/* Read/unread indicator strip */}
+                  <div
+                    className="w-1 self-stretch rounded-full flex-shrink-0"
+                    style={{ background: n.is_read ? "#E5E7EB" : "#EF4444" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-[#1A2E2E]">{n.title}</span>
+                      <span
+                        className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border"
+                        style={{
+                          background: n.is_read ? "#F3F4F6" : "#FEF2F2",
+                          color: n.is_read ? "#9CA3AF" : "#EF4444",
+                          borderColor: n.is_read ? "#E5E7EB" : "#FECACA",
+                        }}
+                      >
+                        {n.is_read ? "Read" : "Unread"}
                       </span>
+                      <AudienceBadge audience={n.audience ?? "All"} />
+                    </div>
+                    <p className="text-[11px] font-mono text-[#9CA3AF] mt-0.5">{n.type}</p>
+                    {n.body && (
+                      <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-1">{n.body}</p>
                     )}
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-[#9CA3AF]">
+                      <span className="font-mono">{n.user_id.slice(-8)}</span>
+                      <span>·</span>
+                      <span>
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                      </span>
+                      <span>·</span>
+                      <span>{fmtDate(n.created_at)}</span>
+                    </div>
                   </div>
-                  <p className="text-[11px] font-mono text-[#9CA3AF] mt-0.5">{cfg.type}</p>
-                  {cfg.description && (
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-1">{cfg.description}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#9CA3AF]">
-                    <span>{stat ? `${stat.total_count.toLocaleString()} sent` : "0 sent"}</span>
-                    {stat?.last_sent && <span>· Last: {fmtDate(stat.last_sent)}</span>}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(cfg)}
-                    className="h-8 w-8 flex items-center justify-center rounded-xl text-[#6B7280] hover:bg-[#F2F3F3] hover:text-[#2E4A4A] transition-colors"
-                    title="Edit"
-                  >
-                    <HugeiconsIcon icon={PencilEdit01Icon} size={15} color="currentColor" strokeWidth={2} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(cfg)}
-                    className="h-8 w-8 flex items-center justify-center rounded-xl text-[#6B7280] hover:bg-red-50 hover:text-red-500 transition-colors"
-                    title="Delete"
-                  >
-                    <HugeiconsIcon icon={Delete01Icon} size={15} color="currentColor" strokeWidth={2} />
-                  </button>
-                </div>
-              </AdminCard>
-            );
-          })}
-        </div>
-      ))}
+                </AdminCard>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {/* ── Edit / Create modal ── */}
       <AnimatePresence>

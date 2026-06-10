@@ -55,31 +55,9 @@ function getDateGroup(dateStr: string): DateGroup {
   return "Older";
 }
 
-// ── Notification icon components ──────────────────────────────────────────────
+// ── Notification icon ─────────────────────────────────────────────────────────
 
-function NotificationEmoji({
-  type,
-  group,
-}: {
-  type: string;
-  group: string | undefined;
-}) {
-  const cfg = groupCfg(group);
-  const base = "h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-[22px]";
-  let emoji = "🔔";
-  if (type.startsWith("friend_request_accepted")) emoji = "🤝";
-  else if (type.startsWith("friend_request_received")) emoji = "👋";
-  else if (type.startsWith("trip_invite_received")) emoji = "✈️";
-  else if (type.startsWith("trip_invite_accepted")) emoji = "🎉";
-  else if (type.includes("failed") || type.includes("error")) emoji = "⚠️";
-  return (
-    <div className={base} style={{ background: cfg.iconBg }}>
-      {emoji}
-    </div>
-  );
-}
-
-function NotificationTypeIcon({
+function NotificationIcon({
   type,
   group,
 }: {
@@ -88,20 +66,34 @@ function NotificationTypeIcon({
 }) {
   const cfg = groupCfg(group);
   let icon = Notification01Icon;
-  if (type.includes("failed") || type.includes("error") || type.includes("stuck")) {
-    icon = type.includes("failed") ? ShieldKeyIcon : Analytics01Icon;
-  } else if (type.includes("accepted")) {
+  if (type.includes("friend_request") || type.includes("accepted") || type.includes("received")) {
     icon = UserGroupIcon;
-  } else if (type.includes("received") || type.includes("invite")) {
-    icon = UserGroupIcon;
+  } else if (type.includes("trip") || type.includes("invite")) {
+    icon = Analytics01Icon;
+  } else if (type.includes("failed") || type.includes("error") || type.includes("stuck")) {
+    icon = ShieldKeyIcon;
   }
   return (
     <div
-      className="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0"
+      className="h-16 w-16 rounded-full flex items-center justify-center flex-shrink-0"
       style={{ background: cfg.iconBg }}
     >
-      <HugeiconsIcon icon={icon} size={15} color={cfg.dot} strokeWidth={2} />
+      <HugeiconsIcon icon={icon} size={28} color={cfg.dot} strokeWidth={1.5} />
     </div>
+  );
+}
+
+// ── Group badge pill ──────────────────────────────────────────────────────────
+
+function GroupBadge({ group, cfg }: { group: string; cfg: { dot: string; iconBg: string } }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex-shrink-0"
+      style={{ background: cfg.iconBg, color: cfg.dot }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
+      {group}
+    </span>
   );
 }
 
@@ -111,6 +103,7 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
   const markRead = useMarkNotificationRead();
   const group = notification.notification_group ?? "General";
   const cfg = groupCfg(group);
+  const unread = !notification.is_read;
 
   return (
     <motion.div
@@ -118,48 +111,41 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       onClick={() => {
-        if (!notification.is_read) markRead.mutate(notification.id);
+        if (unread) markRead.mutate(notification.id);
       }}
       className={cn(
-        "bg-white rounded-2xl border p-4 cursor-pointer transition-colors active:bg-[#FAFAFA]",
-        !notification.is_read ? "border-emerald-100" : "border-[#F0F1F1]",
+        "relative bg-white rounded-2xl border p-4 cursor-pointer transition-colors active:bg-[#FAFAFA]",
+        unread ? "border-red-400" : "border-[#F0F1F1]",
       )}
-      style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.05)" }}
+      style={{
+        boxShadow: unread
+          ? "0 4px 20px 0 rgba(239,68,68,0.14), 0 2px 8px 0 rgba(0,0,0,0.08)"
+          : "0 1px 4px 0 rgba(0,0,0,0.05)",
+      }}
     >
-      {/* Top row: group badge + unread dot + type icon */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          <span
-            className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-            style={{ background: cfg.dot }}
-          />
-          <span
-            className="text-[10px] font-bold uppercase tracking-widest"
-            style={{ color: cfg.dot }}
-          >
-            {group}
-          </span>
-          {!notification.is_read && (
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 flex-shrink-0 ml-0.5" />
-          )}
-        </div>
-        <NotificationTypeIcon type={notification.type} group={group} />
-      </div>
+      {/* Floating unread dot — top-right corner */}
+      {unread && (
+        <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 border-2 border-white" />
+      )}
 
-      {/* Content row: large emoji + text */}
-      <div className="flex items-start gap-3">
-        <NotificationEmoji type={notification.type} group={group} />
+      {/* Content row: circle icon + text */}
+      <div className="flex items-start gap-3.5">
+        <NotificationIcon type={notification.type} group={group} />
         <div className="flex-1 min-w-0">
-          <p
-            className={cn(
-              "text-[17px] leading-snug text-[#1A1A1A]",
-              !notification.is_read ? "font-bold" : "font-semibold",
-            )}
-          >
-            {notification.title}
-          </p>
+          {/* Title + group badge inline */}
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <p
+              className={cn(
+                "text-[17px] leading-snug text-[#1A1A1A]",
+                unread ? "font-bold" : "font-semibold",
+              )}
+            >
+              {notification.title}
+            </p>
+            <GroupBadge group={group} cfg={cfg} />
+          </div>
           {notification.body && (
-            <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+            <p className="text-sm text-[#6B7280] leading-relaxed">
               {notification.body}
             </p>
           )}
@@ -222,9 +208,9 @@ export default function NotificationsPage() {
   const hasVisible = SECTION_ORDER.some((g) => (grouped[g]?.length ?? 0) > 0);
 
   return (
-    <div className="flex flex-col min-h-full bg-[#F4F6F6]">
+    <div className="flex flex-col min-h-full">
       {/* ── Toggle bar ── */}
-      <div className="bg-white px-4 pt-3 pb-3 flex items-center gap-3 border-b border-[#F0F1F1]">
+      <div className="px-4 pt-3 pb-3 flex items-center gap-3">
         {/* All / Unread toggle — exact same pattern as Flight Type switch */}
         <div
           className="rounded-full p-[2px] flex relative flex-1"
