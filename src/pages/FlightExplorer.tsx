@@ -13,6 +13,10 @@ import {
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import {
+  activeFrontierStationCodes,
+  filterAirportsToCodes,
+} from "@/lib/frontierMarketOfferings";
 import { format, startOfDay } from "date-fns";
 import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { DestCardItem, DestCard, buildDestCards } from "@/components/DestCardItem";
@@ -305,6 +309,10 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // To filter a future Arrival/Destination sheet, use:
+  //   const destinationCodes = getDestinationCodesForOrigin(departure?.iata_code);
+  //   const destinationAirports = filterAirportsToCodes(airports, destinationCodes);
+  // Then pass destinationAirports to that sheet's `airports` prop.
   const [departureDate, setDepartureDate] = useState<Date | undefined>(undefined);
   const [depDateOpen, setDepDateOpen] = useState(false);
   const today = startOfDay(new Date());
@@ -321,8 +329,15 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
       const { data } = await supabase
         .from("airports")
         .select("id, name, iata_code, locations(city, state_code, region)")
+        .eq("is_active", true)
         .order("name");
-      if (data) setAirports(data as unknown as Airport[]);
+      if (data) {
+        const filtered = filterAirportsToCodes(
+          data as unknown as Airport[],
+          activeFrontierStationCodes,
+        );
+        setAirports(filtered);
+      }
     };
     loadAirports();
   }, []);

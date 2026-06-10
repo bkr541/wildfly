@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync:routes": "node scripts/sync-routes-from-market-offerings.mjs",
+    "sync:routes:check": "node scripts/sync-routes-from-market-offerings.mjs --check"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

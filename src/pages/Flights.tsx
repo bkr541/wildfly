@@ -31,6 +31,11 @@ import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { writeFlightSnapshots, markDisappearedGoWildObservations } from "@/utils/flightSnapshotWriter";
+import {
+  activeFrontierStationCodes,
+  filterAirportsToCodes,
+  getDestinationCodesForOrigin,
+} from "@/lib/frontierMarketOfferings";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
@@ -121,6 +126,7 @@ function AirportSearchSheet({
   airports,
   selected,
   onChange,
+  emptySearchMessage,
 }: {
   open: boolean;
   onClose: () => void;
@@ -128,6 +134,7 @@ function AirportSearchSheet({
   airports: Airport[];
   selected: Airport[];
   onChange: (a: Airport[]) => void;
+  emptySearchMessage?: string;
 }) {
   const [query, setQuery] = useState("");
   const sheetInputRef = useRef<HTMLInputElement>(null);
@@ -310,7 +317,9 @@ function AirportSearchSheet({
               ) : Object.keys(groupedAirports).length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
                   <p className="text-[#2E4A4A] font-bold text-base mb-1">No airports found</p>
-                  <p className="text-[#9CA3AF] text-sm">Try a different city or airport code</p>
+                  <p className="text-[#9CA3AF] text-sm">
+                    {emptySearchMessage ?? "Try a different city or airport code"}
+                  </p>
                 </div>
               ) : (
                 <div className="py-3 px-4">
@@ -388,6 +397,7 @@ const MultiAirportSearchbox = ({
   containerClassName,
   disabled = false,
   placeholder = "Search airport or city...",
+  emptySearchMessage,
 }: {
   label: string;
   icon: any;
@@ -397,6 +407,7 @@ const MultiAirportSearchbox = ({
   containerClassName?: string;
   disabled?: boolean;
   placeholder?: string;
+  emptySearchMessage?: string;
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -418,6 +429,7 @@ const MultiAirportSearchbox = ({
         airports={airports}
         selected={selected}
         onChange={handleSelect}
+        emptySearchMessage={emptySearchMessage}
       />
 
       <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">{label}</label>
@@ -438,7 +450,7 @@ const MultiAirportSearchbox = ({
           className={cn("app-input truncate flex-1 flex items-center", disabled && "cursor-not-allowed")}
           style={{ color: displayValue ? "#1F2937" : "#6B7280" }}
         >
-          {displayValue || (disabled ? "" : placeholder)}
+          {displayValue || placeholder}
         </span>
 
         {selected.length > 0 && !disabled && (
@@ -591,13 +603,41 @@ const FlightsPage = ({
   const [departures, setDepartures] = useState<Airport[]>([]);
   const [arrivals, setArrivals] = useState<Airport[]>([]);
   const [defaultHomeApplied, setDefaultHomeApplied] = useState(false);
+  const [searchAll, setSearchAll] = useState(false);
 
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
   const [depDateOpen, setDepDateOpen] = useState(false);
   const [retDateOpen, setRetDateOpen] = useState(false);
 
-  const [searchAll, setSearchAll] = useState(false);
+  // ── Route-aware airport lists ─────────────────────────────────────────────
+  // Departure: all active Frontier station airports.
+  const departureAirports = useMemo(
+    () => filterAirportsToCodes(airports, activeFrontierStationCodes),
+    [airports],
+  );
+
+  // Arrival: union of valid destinations for all selected departures.
+  // Empty when no departures are selected (arrival sheet will be disabled).
+  const arrivalAirports = useMemo(() => {
+    if (departures.length === 0 || searchAll) return [];
+    const destinationCodes = new Set(
+      departures.flatMap((dep) => getDestinationCodesForOrigin(dep.iata_code)),
+    );
+    return filterAirportsToCodes(airports, destinationCodes);
+  }, [airports, departures, searchAll]);
+
+  // Auto-remove any arrival airports that are no longer valid when departure changes.
+  useEffect(() => {
+    if (departures.length === 0 || searchAll) return;
+    const allowedCodes = new Set(
+      departures.flatMap((dep) => getDestinationCodesForOrigin(dep.iata_code)),
+    );
+    setArrivals((prev) => {
+      const next = prev.filter((a) => allowedCodes.has(a.iata_code));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [departures, searchAll]);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creditError, setCreditError] = useState<{
@@ -617,7 +657,13 @@ const FlightsPage = ({
         .select("id, name, iata_code, locations(city, state_code, region)")
         .eq("is_active", true)
         .order("name");
-      if (data) setAirports(data as unknown as Airport[]);
+      if (data) {
+        const filtered = filterAirportsToCodes(
+          data as unknown as Airport[],
+          activeFrontierStationCodes,
+        );
+        setAirports(filtered);
+      }
     };
     loadAirports();
   }, []);
@@ -868,13 +914,13 @@ const FlightsPage = ({
           }}
         >
           <div className="relative">
-            {/* Departure now uses MultiAirportSearchbox */}
+            {/* Departure: only active Frontier station airports */}
             <MultiAirportSearchbox
               label="Departure"
               icon={AirplaneTakeOff01Icon}
               selected={departures}
               onChange={setDepartures}
-              airports={airports}
+              airports={departureAirports}
               containerClassName="px-5 pt-5 pb-3"
             />
 
@@ -888,14 +934,20 @@ const FlightsPage = ({
                   transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
                   style={{ overflow: "visible" }}
                 >
+                  {/* Arrival: only destinations offered from the selected departure(s) */}
                   <MultiAirportSearchbox
                     label="Arrival"
                     icon={AirplaneLanding01Icon}
                     selected={arrivals}
                     onChange={setArrivals}
-                    airports={airports}
-                    disabled={false}
-                    placeholder="Search airport or city..."
+                    airports={arrivalAirports}
+                    disabled={departures.length === 0}
+                    placeholder={
+                      departures.length === 0
+                        ? "Select departure first"
+                        : "Search airport or city..."
+                    }
+                    emptySearchMessage="No Frontier routes offered from selected departure"
                     containerClassName="px-5 pt-3 pb-3"
                   />
                 </motion.div>
