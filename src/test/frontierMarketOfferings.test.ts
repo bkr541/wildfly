@@ -36,13 +36,13 @@ describe("frontierRouteMap", () => {
 
   it("all destination arrays are sorted alphabetically", () => {
     for (const [origin, dests] of Object.entries(frontierRouteMap)) {
-      expect(dests).toEqual([...dests].sort(), `${origin} destinations not sorted`);
+      expect(dests).toEqual([...dests].sort());
     }
   });
 
   it("no duplicate destinations within an origin", () => {
     for (const [origin, dests] of Object.entries(frontierRouteMap)) {
-      expect(new Set(dests).size).toBe(dests.length, `${origin} has duplicate destinations`);
+      expect(new Set(dests).size).toBe(dests.length);
     }
   });
 
