@@ -36,6 +36,15 @@ import {
   filterAirportsToCodes,
   getDestinationCodesForOrigin,
 } from "@/lib/frontierMarketOfferings";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 /** SHA-256 hex hash (Web Crypto) */
 async function sha256(input: string): Promise<string> {
@@ -200,13 +209,12 @@ function AirportSearchSheet({
   }, [query, airports, shouldShow]);
 
   const addAirport = (a: Airport) => {
-    if (!selectedIds.has(a.id)) onChange([...selected, a]);
+    onChange([a]);
     onClose();
   };
 
   const addAreaAirports = (areaAirports: Airport[]) => {
-    const newOnes = areaAirports.filter((a) => !selectedIds.has(a.id));
-    if (newOnes.length > 0) onChange([...selected, ...newOnes]);
+    if (areaAirports.length > 0) onChange(areaAirports);
     onClose();
   };
 
@@ -799,51 +807,42 @@ const FlightsPage = ({
       {loading && <SearchingOverlay />}
 
       {/* Error popup dialog */}
-      {(searchError || creditError) && (
-        <div className="fixed inset-0 z-[10000] flex items-end justify-center sm:items-center px-4 pb-6 sm:pb-0">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => { setSearchError(null); setCreditError(null); }}
-          />
-          {/* Sheet */}
-          <div className="relative w-full max-w-sm rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-            {/* Red header bar */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-red-400 to-red-500 rounded-t-3xl" />
-
-            <div className="px-6 pt-5 pb-2">
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-[#1F2937] mb-1">
-                    {creditError ? "Not Enough Credits" : "Search Failed"}
-                  </p>
-                  <p className="text-sm text-[#6B7280] leading-relaxed">
-                    {creditError
-                      ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
-                      : searchError}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-6 pb-6 pt-4">
-              <button
-                type="button"
-                onClick={() => { setSearchError(null); setCreditError(null); }}
-                className="w-full h-12 rounded-full text-white text-sm font-black uppercase tracking-[0.35em] flex items-center justify-center transition-all active:scale-[0.98]"
-                style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
-              >
-                Continue
-              </button>
-            </div>
+      <AlertDialog
+        open={!!(searchError || creditError)}
+        onOpenChange={(open) => { if (!open) { setSearchError(null); setCreditError(null); } }}
+      >
+        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
+            <svg className="h-5 w-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
           </div>
-        </div>
-      )}
+          <AlertDialogHeader className="space-y-1 text-center">
+            <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
+              {creditError
+                ? "Not Enough Credits"
+                : searchError === "Edge Function returned a non-2xx status code"
+                  ? "No Flights Offered"
+                  : "Search Failed"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
+              {creditError
+                ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
+                : searchError === "Edge Function returned a non-2xx status code"
+                  ? "Oops! Looks like the airports and flight date(s) you provided didn't return any flights."
+                  : searchError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-3">
+            <AlertDialogAction
+              onClick={() => { setSearchError(null); setCreditError(null); }}
+              className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
 
       <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-6 animate-fade-in">
