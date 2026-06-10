@@ -36,6 +36,11 @@ export const activeFrontierStationCodes: Set<string> = new Set(
     .filter(Boolean),
 );
 
+/** Fast lookup: uppercase IATA code → MarketOfferingStation entry. */
+export const marketDetailsByCode: Map<string, MarketOfferingStation> = new Map(
+  data.marketDetails.map((s) => [s.stationCode.trim().toUpperCase(), s]),
+);
+
 // ── Route map (from markets) ──────────────────────────────────────────────────
 
 /** origin IATA → sorted, deduplicated destination IATA codes. */

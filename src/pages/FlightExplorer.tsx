@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
+  AirplaneLanding01Icon,
   Location01Icon,
   Location04Icon,
   AddCircleIcon,
@@ -16,6 +17,8 @@ import { cn } from "@/lib/utils";
 import {
   activeFrontierStationCodes,
   filterAirportsToCodes,
+  isFrontierRouteOffered,
+  marketDetailsByCode,
 } from "@/lib/frontierMarketOfferings";
 import { format, startOfDay } from "date-fns";
 import { DatePickerSheet } from "@/components/DatePickerSheet";
@@ -31,6 +34,11 @@ interface Airport {
     region: string;
   };
 }
+
+type AirportSheetOption = Airport & {
+  disabled?: boolean;
+  disabledReason?: string;
+};
 
 /* ── Recent IATA codes from flight_searches ─────────── */
 function useRecentAirports() {
@@ -67,13 +75,15 @@ function useRecentAirports() {
 function AirportSearchSheet({
   open,
   onClose,
+  label,
   airports,
   selected,
   onChange,
 }: {
   open: boolean;
   onClose: () => void;
-  airports: Airport[];
+  label: string;
+  airports: AirportSheetOption[];
   selected: Airport | null;
   onChange: (a: Airport | null) => void;
 }) {
@@ -82,7 +92,7 @@ function AirportSearchSheet({
   const recentCodes = useRecentAirports();
 
   const recentAirports = useMemo(
-    () => recentCodes.map((code) => airports.find((a) => a.iata_code === code)).filter(Boolean) as Airport[],
+    () => recentCodes.map((code) => airports.find((a) => a.iata_code === code)).filter(Boolean) as AirportSheetOption[],
     [recentCodes, airports],
   );
 
@@ -125,14 +135,15 @@ function AirportSearchSheet({
         acc[groupKey].push(airport);
         return acc;
       },
-      {} as Record<string, Airport[]>,
+      {} as Record<string, AirportSheetOption[]>,
     );
     return Object.fromEntries(
       Object.entries(grouped).map(([key, aps]) => [aps.length > 1 ? key : `__single__${key}`, aps]),
     );
   }, [query, airports, shouldShow]);
 
-  const addAirport = (a: Airport) => {
+  const addAirport = (a: AirportSheetOption) => {
+    if (a.disabled) return;
     onChange(a);
     onClose();
   };
@@ -149,7 +160,7 @@ function AirportSearchSheet({
             <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
           </div>
           <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">
-            Select Departure
+            Select {label}
           </h2>
         </div>
         <button
@@ -216,14 +227,21 @@ function AirportSearchSheet({
                       key={a.id}
                       type="button"
                       onClick={() => addAirport(a)}
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-semibold transition-colors shrink-0 whitespace-nowrap"
-                      style={{
+                      className={cn(
+                        "flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-semibold transition-colors shrink-0 whitespace-nowrap",
+                        a.disabled ? "cursor-not-allowed opacity-50" : "",
+                      )}
+                      style={a.disabled ? {
+                        background: "#F3F4F6",
+                        color: "#9CA3AF",
+                        border: "1px solid #E5E7EB",
+                      } : {
                         background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
                         color: "#065F46",
                         border: "1px solid #6EE7B7",
                       }}
                     >
-                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={14} color="#059669" strokeWidth={2.5} />
+                      <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={14} color={a.disabled ? "#9CA3AF" : "#059669"} strokeWidth={2.5} />
                       <span className="font-bold">{a.iata_code}</span>
                       {a.locations?.city && (
                         <span className="opacity-60 font-medium">{a.locations.city}</span>
@@ -253,13 +271,18 @@ function AirportSearchSheet({
             {Object.entries(groupedAirports).map(([cityGroup, cityAirports]) => {
               const isSingle = cityGroup.startsWith("__single__");
               const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+              const areaAllDisabled = cityAirports.every((a) => a.disabled);
+              const firstEnabled = cityAirports.find((a) => !a.disabled);
               return (
                 <div key={cityGroup} className="mb-2 last:mb-0">
                   {!isSingle && (
                     <button
                       type="button"
-                      onClick={() => { onChange(cityAirports[0]); onClose(); }}
-                      className="w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2 hover:bg-[#F2F3F3] transition-colors"
+                      onClick={() => { if (firstEnabled) addAirport(firstEnabled); }}
+                      className={cn(
+                        "w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2 transition-colors",
+                        areaAllDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-[#F2F3F3]",
+                      )}
                     >
                       <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
                       {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
@@ -271,22 +294,34 @@ function AirportSearchSheet({
                       <button
                         type="button"
                         onClick={() => addAirport(a)}
+                        aria-disabled={a.disabled || undefined}
                         className={cn(
-                          "w-full text-left pr-4 py-1.5 text-base hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-3 overflow-hidden",
+                          "w-full text-left pr-4 py-1.5 text-base transition-colors flex items-center gap-3 overflow-hidden",
                           isSingle ? "pl-4" : "pl-14",
+                          a.disabled
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-[#F2F3F3] active:bg-[#E8F5F0]",
                         )}
                       >
-                        <HugeiconsIcon icon={AirportIcon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                        <HugeiconsIcon icon={AirportIcon} size={22} color={a.disabled ? "#C4C4C4" : "#6B7B7B"} strokeWidth={2} className="shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#345C5A] text-sm shrink-0">{a.iata_code}</span>
+                            <span className={cn("font-bold text-sm shrink-0", a.disabled ? "text-[#9CA3AF]" : "text-[#345C5A]")}>{a.iata_code}</span>
                             <span className="text-[#9CA3AF] text-xs shrink-0">•</span>
-                            <span className="text-[#2E4A4A] truncate text-sm font-medium">{a.name}</span>
+                            <span className={cn("truncate text-sm font-medium", a.disabled ? "text-[#9CA3AF]" : "text-[#2E4A4A]")}>{a.name}</span>
                           </div>
                           {a.locations?.city && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2F3F3] text-[#6B7B7B] text-xs font-medium mt-0.5">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-0.5",
+                              a.disabled ? "bg-[#F3F4F6] text-[#D1D5DB]" : "bg-[#F2F3F3] text-[#6B7B7B]",
+                            )}>
                               <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
                               <span className="truncate">{a.locations.city}{a.locations.state_code ? `, ${a.locations.state_code}` : ""}</span>
+                            </span>
+                          )}
+                          {a.disabledReason && (
+                            <span className="block text-[10px] text-[#9CA3AF] mt-0.5 leading-tight">
+                              {a.disabledReason}
                             </span>
                           )}
                         </div>
@@ -308,11 +343,9 @@ function AirportSearchSheet({
 const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: string) => void }) => {
   const [airports, setAirports] = useState<Airport[]>([]);
   const [departure, setDeparture] = useState<Airport | null>(null);
+  const [arrival, setArrival] = useState<Airport | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // To filter a future Arrival/Destination sheet, use:
-  //   const destinationCodes = getDestinationCodesForOrigin(departure?.iata_code);
-  //   const destinationAirports = filterAirportsToCodes(airports, destinationCodes);
-  // Then pass destinationAirports to that sheet's `airports` prop.
+  const [airportSheetMode, setAirportSheetMode] = useState<"departure" | "arrival">("departure");
   const [departureDate, setDepartureDate] = useState<Date | undefined>(undefined);
   const [depDateOpen, setDepDateOpen] = useState(false);
   const today = startOfDay(new Date());
@@ -323,6 +356,82 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
     Record<string, { city: string; stateCode: string; country: string; name: string; locationId: number | null }>
   >({});
   const [explorerLoading, setExplorerLoading] = useState(false);
+
+  const departureAirportOptions = useMemo<AirportSheetOption[]>(() => {
+    const dbMap = new Map(airports.map((a) => [a.iata_code.toUpperCase(), a]));
+
+    const options = [...marketDetailsByCode.entries()].map(([code, station], index) => {
+      const dbAirport = dbMap.get(code);
+      const cityName = station.cityAndCode.replace(` (${station.stationCode})`, "").trim();
+
+      const airport: Airport = dbAirport ?? {
+        id: -(index + 1),
+        name: station.stationName,
+        iata_code: code,
+        locations: {
+          city: cityName,
+          state_code: station.stateCode ?? "",
+          region: station.countryCode ?? "",
+        },
+      };
+
+      return { ...airport } as AirportSheetOption;
+    });
+
+    return options.sort((a, b) =>
+      (a.locations?.city ?? a.name).localeCompare(b.locations?.city ?? b.name),
+    );
+  }, [airports]);
+
+  const arrivalAirportOptions = useMemo<AirportSheetOption[]>(() => {
+    // Use a DB-airport map for rich name/location data when available.
+    // Falls back to market_offerings.json station data so every active Frontier
+    // station appears regardless of its is_active state in the DB.
+    const dbMap = new Map(airports.map((a) => [a.iata_code.toUpperCase(), a]));
+
+    const options = [...marketDetailsByCode.entries()].map(([code, station], index) => {
+      const dbAirport = dbMap.get(code);
+      const cityName = station.cityAndCode.replace(` (${station.stationCode})`, "").trim();
+
+      const airport: Airport = dbAirport ?? {
+        id: -(index + 1),
+        name: station.stationName,
+        iata_code: code,
+        locations: {
+          city: cityName,
+          state_code: station.stateCode ?? "",
+          region: station.countryCode ?? "",
+        },
+      };
+
+      const offered = departure?.iata_code
+        ? isFrontierRouteOffered(departure.iata_code, code)
+        : false;
+
+      return {
+        ...airport,
+        disabled: !offered,
+        disabledReason: !departure?.iata_code
+          ? "Select a departure airport first"
+          : !offered
+            ? `This route is not offered with ${departure.iata_code}`
+            : undefined,
+      };
+    });
+
+    return options.sort((a, b) =>
+      (a.locations?.city ?? a.name).localeCompare(b.locations?.city ?? b.name),
+    );
+  }, [airports, departure?.iata_code]);
+
+  // Clear arrival when departure changes and the selected arrival is no longer valid.
+  const departureCode = departure?.iata_code;
+  const arrivalCode = arrival?.iata_code;
+  useEffect(() => {
+    if (!departureCode) { setArrival(null); return; }
+    if (!arrivalCode) return;
+    if (!isFrontierRouteOffered(departureCode, arrivalCode)) setArrival(null);
+  }, [departureCode, arrivalCode]);
 
   useEffect(() => {
     const loadAirports = async () => {
@@ -431,13 +540,17 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
 
   return (
     <div className="flex-1 flex flex-col relative z-10 animate-fade-in">
-      {/* Airport Search Sheet */}
+      {/* Airport Search Sheet — shared for departure and arrival */}
       <AirportSearchSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        airports={airports}
-        selected={departure}
-        onChange={setDeparture}
+        label={airportSheetMode === "departure" ? "Departure" : "Arrival"}
+        airports={airportSheetMode === "departure" ? departureAirportOptions : arrivalAirportOptions}
+        selected={airportSheetMode === "departure" ? departure : arrival}
+        onChange={(a) => {
+          if (airportSheetMode === "departure") setDeparture(a);
+          else setArrival(a);
+        }}
       />
 
       {/* Departure Date Sheet */}
@@ -464,12 +577,12 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
           }}
         >
           <div className="relative px-5 pt-4 pb-3">
-            {/* Airport */}
+            {/* Departure */}
             <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure</label>
             <div
               className="app-input-container cursor-pointer"
               style={{ minHeight: 48 }}
-              onClick={() => setSheetOpen(true)}
+              onClick={() => { setAirportSheetMode("departure"); setSheetOpen(true); }}
             >
               <button type="button" tabIndex={-1} className="app-input-icon-btn">
                 <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
@@ -487,6 +600,45 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
                   onClick={(e) => {
                     e.stopPropagation();
                     setDeparture(null);
+                  }}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            {/* Arrival */}
+            <label className={cn("text-sm font-bold ml-1 mb-0 block mt-3", departure ? "text-[#059669]" : "text-[#9CA3AF]")}>
+              Arrival
+            </label>
+            <div
+              className={cn("app-input-container", departure ? "cursor-pointer" : "cursor-not-allowed opacity-70")}
+              style={{ minHeight: 48 }}
+              onClick={() => {
+                if (!departure) return;
+                setAirportSheetMode("arrival");
+                setSheetOpen(true);
+              }}
+            >
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={AirplaneLanding01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <span
+                className={cn("app-input truncate flex-1 flex items-center", !departure && "cursor-not-allowed")}
+                style={{ color: arrival ? "#1F2937" : "#6B7280" }}
+              >
+                {arrival
+                  ? `${arrival.iata_code} | ${arrival.locations?.city ?? arrival.name}`
+                  : departure ? "Search airport or city..." : "Select departure first"}
+              </span>
+              {arrival && departure && (
+                <button
+                  type="button"
+                  aria-label="Clear arrival"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setArrival(null);
                   }}
                   className="app-input-reset app-input-reset--visible"
                 >
