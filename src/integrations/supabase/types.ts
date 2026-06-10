@@ -16,6 +16,9 @@ export type Database = {
     Tables: {
       airports: {
         Row: {
+          frontier_image_url: string | null
+          frontier_last_seen_at: string | null
+          frontier_source: string | null
           iata_code: string
           icao_code: string | null
           id: number
@@ -24,10 +27,14 @@ export type Database = {
           latitude: number | null
           location_id: number | null
           longitude: number | null
+          metadata_status: string
           name: string
           timezone: string | null
         }
         Insert: {
+          frontier_image_url?: string | null
+          frontier_last_seen_at?: string | null
+          frontier_source?: string | null
           iata_code: string
           icao_code?: string | null
           id?: number
@@ -36,10 +43,14 @@ export type Database = {
           latitude?: number | null
           location_id?: number | null
           longitude?: number | null
+          metadata_status?: string
           name: string
           timezone?: string | null
         }
         Update: {
+          frontier_image_url?: string | null
+          frontier_last_seen_at?: string | null
+          frontier_source?: string | null
           iata_code?: string
           icao_code?: string | null
           id?: number
@@ -48,6 +59,7 @@ export type Database = {
           latitude?: number | null
           location_id?: number | null
           longitude?: number | null
+          metadata_status?: string
           name?: string
           timezone?: string | null
         }
@@ -148,7 +160,7 @@ export type Database = {
           created_at: string
           id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           config_key: string
@@ -156,7 +168,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           config_key?: string
@@ -164,13 +176,14 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       beta_applications: {
         Row: {
           additional_notes: string | null
+          auth_user_id: string | null
           beta_testing_details: string | null
           beta_testing_experience: string
           created_at: string
@@ -191,6 +204,7 @@ export type Database = {
           normalized_email: string | null
           preferred_feedback_method: string | null
           primary_device: string
+          provisioned_at: string | null
           referrer: string | null
           selected_at: string | null
           source: string
@@ -204,6 +218,7 @@ export type Database = {
         }
         Insert: {
           additional_notes?: string | null
+          auth_user_id?: string | null
           beta_testing_details?: string | null
           beta_testing_experience: string
           created_at?: string
@@ -224,6 +239,7 @@ export type Database = {
           normalized_email?: string | null
           preferred_feedback_method?: string | null
           primary_device: string
+          provisioned_at?: string | null
           referrer?: string | null
           selected_at?: string | null
           source?: string
@@ -237,6 +253,7 @@ export type Database = {
         }
         Update: {
           additional_notes?: string | null
+          auth_user_id?: string | null
           beta_testing_details?: string | null
           beta_testing_experience?: string
           created_at?: string
@@ -257,6 +274,7 @@ export type Database = {
           normalized_email?: string | null
           preferred_feedback_method?: string | null
           primary_device?: string
+          provisioned_at?: string | null
           referrer?: string | null
           selected_at?: string | null
           source?: string
@@ -758,6 +776,86 @@ export type Database = {
           },
         ]
       }
+      frontier_market_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          origin_count: number
+          raw_json: Json
+          route_pair_count: number
+          source_checksum: string | null
+          source_path: string | null
+          source_type: string
+          station_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          origin_count?: number
+          raw_json: Json
+          route_pair_count?: number
+          source_checksum?: string | null
+          source_path?: string | null
+          source_type?: string
+          station_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          origin_count?: number
+          raw_json?: Json
+          route_pair_count?: number
+          source_checksum?: string | null
+          source_path?: string | null
+          source_type?: string
+          station_count?: number
+        }
+        Relationships: []
+      }
+      frontier_routes: {
+        Row: {
+          created_at: string
+          destination_iata: string
+          first_seen_at: string
+          id: string
+          is_active: boolean
+          last_seen_at: string
+          last_snapshot_id: string | null
+          origin_iata: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination_iata: string
+          first_seen_at?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          last_snapshot_id?: string | null
+          origin_iata: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination_iata?: string
+          first_seen_at?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          last_snapshot_id?: string | null
+          origin_iata?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frontier_routes_last_snapshot_id_fkey"
+            columns: ["last_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "frontier_market_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gowild_snapshots: {
         Row: {
           destination_iata: string
@@ -1241,6 +1339,7 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          cancel_at_period_end: boolean
           current_period_end: string | null
           current_period_start: string | null
           plan_id: string
@@ -1252,6 +1351,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancel_at_period_end?: boolean
           current_period_end?: string | null
           current_period_start?: string | null
           plan_id?: string
@@ -1263,6 +1363,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancel_at_period_end?: boolean
           current_period_end?: string | null
           current_period_start?: string | null
           plan_id?: string
@@ -1294,6 +1395,46 @@ export type Database = {
           home_city: string | null
           user_id: string | null
           username: string | null
+        }
+        Relationships: []
+      }
+      frontier_active_airports: {
+        Row: {
+          city: string | null
+          country: string | null
+          frontier_image_url: string | null
+          frontier_last_seen_at: string | null
+          frontier_source: string | null
+          iata_code: string | null
+          icao_code: string | null
+          id: number | null
+          is_active: boolean | null
+          is_hub: boolean | null
+          latitude: number | null
+          location_id: number | null
+          location_name: string | null
+          longitude: number | null
+          metadata_status: string | null
+          name: string | null
+          region: string | null
+          state: string | null
+          state_code: string | null
+          timezone: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airports_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      frontier_active_route_map: {
+        Row: {
+          destinations: string[] | null
+          origin_iata: string | null
         }
         Relationships: []
       }
