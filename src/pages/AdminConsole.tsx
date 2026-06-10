@@ -2904,9 +2904,9 @@ export default function AdminConsole() {
             >
               <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
             </button>
-            <div className="flex-1 flex items-baseline gap-1.5 select-none -ml-1 min-w-0">
-              <span className="text-[22px] font-medium text-[#6B7280]">{prefix}</span>
-              <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981]">{label}</span>
+            <div className="flex-1 flex flex-col select-none -ml-1 min-w-0">
+              <span className="text-[11px] font-semibold text-[#9CA3AF] leading-none mb-0.5">{prefix}</span>
+              <span className="text-[22px] font-black tracking-widest uppercase text-[#10B981] leading-none">{label}</span>
             </div>
             <button
               type="button"

@@ -281,22 +281,18 @@ function CardTitle({
     return <p className="text-base font-bold text-[#2E4A4A] mb-3">{children}</p>;
   }
   return (
-    <div className="flex items-center gap-2 mb-4">
+    <div className="flex items-start gap-2 mb-4">
       {icon && (
-        <HugeiconsIcon
-          icon={icon}
-          size={28}
-          color="#059669"
-          strokeWidth={1.5}
-          className="shrink-0"
-        />
+        <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+          <HugeiconsIcon icon={icon} size={15} color="#059669" strokeWidth={2} />
+        </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-base font-semibold text-[#059669] uppercase tracking-wider leading-tight">
+        <p className="text-sm font-bold text-[#059669] uppercase tracking-wider leading-tight">
           {children}
         </p>
         {subtitle && (
-          <p className="text-[13px] text-[#6B7B7B] mt-0.5">{subtitle}</p>
+          <p className="text-xs text-[#6B7B7B] mt-0.5">{subtitle}</p>
         )}
       </div>
     </div>
@@ -594,7 +590,7 @@ function GoWildHitsCard({ d }: { d: DashboardData }) {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <HugeiconsIcon icon={ChartRoseIcon} size={15} color="#059669" strokeWidth={2} />
           </div>
@@ -795,7 +791,7 @@ function EstimatedSavingsCard({ d }: { d: DashboardData }) {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <HugeiconsIcon icon={Coins01Icon} size={15} color="#059669" strokeWidth={2} />
           </div>
@@ -1097,16 +1093,9 @@ function RouteLeaderboardCard({ d }: { d: DashboardData }) {
   return (
     <CardShell>
 
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider leading-tight">
-            Route Performance
-          </p>
-          <p className="text-xs text-[#6B7B7B] mt-0.5">Best and weakest GoWild availability by route</p>
-        </div>
-      </div>
+      <CardTitle icon={AirplaneTakeOff01Icon} subtitle="Best and weakest GoWild availability by route">
+        Route Performance
+      </CardTitle>
 
       {/* Segmented toggle */}
       <div className="flex rounded-xl bg-[#F2F3F3] p-0.5 mb-4">
@@ -1522,13 +1511,12 @@ function FunnelCard({ d }: { d: DashboardData }) {
   return (
     <CardShell>
 
-      {/* Header */}
-      <div className="flex items-start gap-2 mb-5">
+      <div className="flex items-start gap-2 mb-4">
         <div className="w-8 h-8 rounded-xl bg-cyan-50 flex items-center justify-center flex-shrink-0">
           <HugeiconsIcon icon={FilterIcon} size={15} color="#0891B2" strokeWidth={2} />
         </div>
         <div>
-          <p className="text-sm font-bold text-[#2E4A4A] uppercase tracking-wider leading-tight">
+          <p className="text-sm font-bold text-[#059669] uppercase tracking-wider leading-tight">
             Searches → Saved Flights Funnel
           </p>
           <p className="text-xs text-[#6B7B7B] mt-0.5">Conversion from search to saved flight</p>

@@ -60,6 +60,19 @@ function getDateGroup(dateStr: string): DateGroup {
   return "Older";
 }
 
+// ── Section label — matches AdminDashboardView SectionLabel style ─────────────
+
+function SectionLabelRow({ children, count }: { children: React.ReactNode; count?: number }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-3">
+      <span className="text-[13px] font-bold uppercase tracking-[0.12em] text-[#9CA3AF] whitespace-nowrap">
+        {children}{count != null && count > 0 ? ` (${count})` : ""}
+      </span>
+      <div className="flex-1 h-px bg-[#EEF0F0]" />
+    </div>
+  );
+}
+
 // ── Notification icon (config-driven with keyword fallback) ───────────────────
 
 function NotificationIcon({ notification }: { notification: AppNotification }) {
@@ -67,10 +80,10 @@ function NotificationIcon({ notification }: { notification: AppNotification }) {
   const IconComponent = getNotificationIcon(notification.icon_name);
   return (
     <div
-      className="h-16 w-16 rounded-full flex items-center justify-center flex-shrink-0"
+      className="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0"
       style={{ background: colors.bg }}
     >
-      <HugeiconsIcon icon={IconComponent} size={28} color={colors.main} strokeWidth={1.5} />
+      <HugeiconsIcon icon={IconComponent} size={15} color={colors.main} strokeWidth={2} />
     </div>
   );
 }
@@ -82,19 +95,25 @@ function DisplayBadge({ notification }: { notification: AppNotification }) {
   const label = notification.display_type ?? notification.notification_group ?? "General";
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex-shrink-0"
+      className="inline-flex items-center gap-0.5 px-1.5 py-px rounded-full text-[9px] font-medium capitalize flex-shrink-0"
       style={{
         background: colors.bg,
         color: colors.main,
       }}
     >
-      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: colors.main }} />
+      <span className="h-1 w-1 rounded-full flex-shrink-0" style={{ background: colors.main }} />
       {label}
     </span>
   );
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  exit:   { opacity: 0, transition: { duration: 0.15 } },
+};
 
 function NotificationCard({ notification }: { notification: AppNotification }) {
   const markRead = useMarkNotificationRead();
@@ -103,15 +122,14 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
+      variants={cardVariants}
+      exit="exit"
       onClick={() => {
         if (unread) markRead.mutate(notification.id);
       }}
       className={cn(
-        "relative bg-white rounded-2xl border p-4 cursor-pointer transition-colors active:bg-[#FAFAFA]",
-        unread ? "border-red-400" : "border-[#F0F1F1]",
+        "relative bg-white rounded-2xl border px-3.5 py-3 cursor-pointer transition-colors active:bg-[#FAFAFA]",
+        unread ? "border-gray-600" : "border-[#F0F1F1]",
       )}
       style={{
         boxShadow: unread
@@ -119,20 +137,19 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
           : "0 1px 4px 0 rgba(0,0,0,0.05)",
       }}
     >
-      {/* Floating unread indicator — top-right corner */}
+      {/* Floating unread indicator */}
       {unread && (
         <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 border-2 border-white" />
       )}
 
-      {/* Content row: circle icon + text */}
-      <div className="flex items-start gap-3.5">
+      {/* Content row */}
+      <div className="flex items-start gap-3">
         <NotificationIcon notification={notification} />
         <div className="flex-1 min-w-0">
-          {/* Title + display-type badge inline */}
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <p
               className={cn(
-                "text-[17px] leading-snug text-[#1A1A1A]",
+                "text-sm uppercase tracking-wider leading-tight text-[#2E4A4A]",
                 unread ? "font-bold" : "font-semibold",
               )}
             >
@@ -141,11 +158,11 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
             <DisplayBadge notification={notification} />
           </div>
           {notification.body && (
-            <p className="text-sm text-[#6B7280] leading-relaxed">{notification.body}</p>
+            <p className="text-xs text-[#6B7B7B] mt-0.5">{notification.body}</p>
           )}
-          <div className="flex items-center gap-1 mt-2">
-            <Clock size={10} className="text-[#9CA3AF] flex-shrink-0" />
-            <span className="text-[11px] text-[#9CA3AF]">
+          <div className="flex items-center gap-1 mt-1">
+            <Clock size={9} className="text-[#9CA3AF] flex-shrink-0" />
+            <span className="text-[10px] text-[#9CA3AF]">
               {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
             </span>
           </div>
@@ -159,9 +176,9 @@ function NotificationCard({ notification }: { notification: AppNotification }) {
 
 function NotificationSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-[#F0F1F1] p-4 animate-pulse">
-      <div className="flex items-start gap-3.5">
-        <div className="h-16 w-16 rounded-full bg-[#E8EEEE] flex-shrink-0" />
+    <div className="bg-white rounded-2xl border border-[#F0F1F1] px-3.5 py-3 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="h-8 w-8 rounded-xl bg-[#E8EEEE] flex-shrink-0" />
         <div className="flex-1 space-y-2 pt-1">
           <div className="flex items-center gap-2">
             <div className="h-4 bg-[#E8EEEE] rounded-lg w-1/2" />
@@ -277,26 +294,28 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          <AnimatePresence initial={false}>
-            {SECTION_ORDER.map((section) => {
-              const items = grouped[section];
-              if (!items?.length) return null;
-              return (
-                <motion.div
-                  key={section}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mb-5"
-                >
-                  <p className="text-[13px] font-bold text-[#2E4A4A] mb-3 px-0.5">{section}</p>
-                  <div className="flex flex-col gap-3">
-                    {items.map((n) => (
-                      <NotificationCard key={n.id} notification={n} />
-                    ))}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={filter}
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06, delayChildren: 0.02 } } }}
+            >
+              {SECTION_ORDER.map((section) => {
+                const items = grouped[section];
+                if (!items?.length) return null;
+                return (
+                  <div key={section} className="mb-5">
+                    <SectionLabelRow count={items.length}>{section}</SectionLabelRow>
+                    <div className="flex flex-col gap-2.5">
+                      {items.map((n) => (
+                        <NotificationCard key={n.id} notification={n} />
+                      ))}
+                    </div>
                   </div>
-                </motion.div>
-              );
-            })}
+                );
+              })}
+            </motion.div>
           </AnimatePresence>
         )}
       </div>
