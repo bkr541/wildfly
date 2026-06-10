@@ -81,7 +81,6 @@ interface MainLayoutProps {
   currentPage?: string;
   onHomeLayoutSaved?: () => void;
   onAccountDevPress?: () => void;
-  onAccountManageUsersPress?: () => void;
   headerActions?: React.ReactNode;
 }
 
@@ -96,7 +95,6 @@ const MainLayout = ({
   currentPage,
   onHomeLayoutSaved,
   onAccountDevPress,
-  onAccountManageUsersPress,
   headerActions,
 }: MainLayoutProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -433,13 +431,6 @@ const MainLayout = ({
                     className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
                   >
                     <HugeiconsIcon icon={ConsoleIcon} size={22} color="currentColor" strokeWidth={2} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onAccountManageUsersPress}
-                    className="h-10 w-10 flex items-center justify-center text-[#2E4A4A]/60 hover:text-[#2E4A4A] transition-colors rounded-full hover:bg-black/5"
-                  >
-                    <HugeiconsIcon icon={UserGroupIcon} size={22} color="currentColor" strokeWidth={2} />
                   </button>
                   <button
                     type="button"
