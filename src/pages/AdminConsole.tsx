@@ -39,6 +39,8 @@ import {
   FileExportIcon,
   ShieldKeyIcon,
   Clock01Icon,
+  CpuIcon,
+  Calendar01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -76,8 +78,8 @@ type View =
   | "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications"
   | "developer-design-system" | "developer-announcements" | "developer-debug"
   | "developer-sql-cache" | "developer-token" | "developer-logging"
-  | "developer-scheduled-jobs"
-  | "auth-developer-allowlist" | "auth-signup-controls";
+  | "auth-developer-allowlist" | "auth-signup-controls"
+  | "system-scheduled-jobs";
 
 interface UserRow {
   id: number;
@@ -114,12 +116,18 @@ const CARD_STYLE: React.CSSProperties = {
 };
 
 const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
-  { id: "dashboard", label: "Dashboard",      icon: ChartRoseIcon },
-  { id: "users",     label: "Users",          icon: UserIcon },
-  { id: "flights",   label: "Flights",        icon: AirplaneTakeOff01Icon },
-  { id: "data",      label: "Data",           icon: DatabaseIcon },
-  { id: "gowild",    label: "GoWild Insights", icon: Analytics01Icon },
-  { id: "radar",             label: "GoWild Radar",    icon: Radar01Icon },
+  { id: "dashboard", label: "Dashboard", icon: ChartRoseIcon },
+  { id: "flights",   label: "Flights",   icon: AirplaneTakeOff01Icon },
+  { id: "data",      label: "Data",      icon: DatabaseIcon },
+];
+
+const WILDFLY_TOOLS_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "gowild", label: "GoWild Insights", icon: Analytics01Icon },
+  { id: "radar",  label: "GoWild Radar",    icon: Radar01Icon },
+];
+
+const ACCOUNTS_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "users",             label: "Users",             icon: UserIcon },
   { id: "beta-applications", label: "Beta Applications", icon: Notebook01Icon },
 ];
 
@@ -129,13 +137,17 @@ const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
   { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
   { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
-  { id: "developer-logging",         label: "Logging Settings", icon: FilterMailSquareIcon },
-  { id: "developer-scheduled-jobs", label: "Scheduled Jobs",   icon: Clock01Icon },
+  { id: "developer-logging",       label: "Logging Settings", icon: FilterMailSquareIcon },
 ];
 
 const AUTH_ACCESS_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "auth-developer-allowlist", label: "Developer Allowlist", icon: UserGroupIcon },
   { id: "auth-signup-controls",     label: "Signup Controls",     icon: Settings01Icon },
+];
+
+const SYSTEM_PROCESS_ITEMS: { id: string; label: string; icon: any; disabled?: boolean }[] = [
+  { id: "system-scheduled-jobs", label: "System Jobs", icon: Clock01Icon },
+  { id: "system-scheduler",      label: "Scheduler",      icon: Calendar01Icon, disabled: true },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2206,9 +2218,9 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "developer-debug":           { prefix: "Developer", label: "DEBUG SETTINGS" },
   "developer-sql-cache":       { prefix: "Developer", label: "SQL / CACHE TOOLS" },
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
-  "developer-logging":            { prefix: "Developer",    label: "LOGGING SETTINGS" },
-  "developer-scheduled-jobs":    { prefix: "Developer",    label: "SCHEDULED JOBS" },
+  "developer-logging":            { prefix: "Developer",      label: "LOGGING SETTINGS" },
   "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
+  "system-scheduled-jobs":       { prefix: "Operations", label: "SYSTEM JOBS" },
   "auth-signup-controls":        { prefix: "Auth & Access", label: "SIGNUP CONTROLS" },
 };
 
@@ -2226,17 +2238,29 @@ export default function AdminConsole() {
   const [view, setView]               = useState<View>(_initialView);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [gowildLoading, setGowildLoading] = useState(false);
+  const [accountsExpanded, setAccountsExpanded] = useState(
+    _initialView === "users" || _initialView === "beta-applications"
+  );
+  const [wildflyToolsExpanded, setWildflyToolsExpanded] = useState(
+    _initialView === "gowild" || _initialView === "radar"
+  );
   const [devToolsExpanded, setDevToolsExpanded] = useState(
     (_initialView as string).startsWith("developer-")
   );
   const [authAccessExpanded, setAuthAccessExpanded] = useState(
     (_initialView as string).startsWith("auth-")
   );
+  const [systemProcessExpanded, setSystemProcessExpanded] = useState(
+    (_initialView as string).startsWith("system-")
+  );
   const [isDeveloper, setIsDeveloper]           = useState(false);
   const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
 
-  const devToolsActive  = (view as string).startsWith("developer-");
-  const authAccessActive = (view as string).startsWith("auth-");
+  const accountsActive       = view === "users" || view === "beta-applications";
+  const wildflyToolsActive   = view === "gowild" || view === "radar";
+  const devToolsActive       = (view as string).startsWith("developer-");
+  const authAccessActive     = (view as string).startsWith("auth-");
+  const systemProcessActive  = (view as string).startsWith("system-");
   const navigate = useNavigate();
 
   // Remove the ?view= param from the URL once state is initialised so the
@@ -2335,11 +2359,13 @@ export default function AdminConsole() {
 
         <div className="h-px bg-[#E5E7EB] mx-6" />
 
-        <nav className="flex-1 px-6 pt-2 flex flex-col justify-start gap-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
+        <nav className="px-6 pt-2 pb-6 flex flex-col justify-start gap-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-3 pb-0.5">
             Console
           </p>
-          {NAV_ITEMS.map((item) => {
+          {/* Dashboard */}
+          {NAV_ITEMS.slice(0, 1).map((item) => {
             const active = view === item.id;
             return (
               <button
@@ -2351,24 +2377,174 @@ export default function AdminConsole() {
                   active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
                 )}
               >
-                <HugeiconsIcon
-                  icon={item.icon}
-                  size={20}
-                  color="currentColor"
-                  strokeWidth={active ? 2 : 1.5}
-                />
-                <span className={cn("text-base", active ? "font-extrabold" : "font-semibold")}>
-                  {item.label}
-                </span>
+                <HugeiconsIcon icon={item.icon} size={20} color="currentColor" strokeWidth={active ? 2 : 1.5} />
+                <span className={cn("text-base", active ? "font-extrabold" : "font-semibold")}>{item.label}</span>
               </button>
             );
           })}
+
+          {/* Accounts — expandable group */}
+          <button
+            type="button"
+            onClick={() => setAccountsExpanded((v) => !v)}
+            className={cn(
+              "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+              accountsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+            )}
+          >
+            <HugeiconsIcon
+              icon={UserGroupIcon}
+              size={20}
+              color="currentColor"
+              strokeWidth={accountsActive ? 2 : 1.5}
+            />
+            <span className={cn("text-base flex-1 text-left", accountsActive ? "font-extrabold" : "font-semibold")}>
+              Accounts
+            </span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={16}
+              color="currentColor"
+              strokeWidth={2}
+              style={{
+                transform: accountsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
+          </button>
+
+          <AnimatePresence initial={false}>
+            {accountsExpanded && (
+              <motion.div
+                key="accounts-children"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                className="pb-1.5"
+                style={{ overflow: "hidden" }}
+              >
+                {ACCOUNTS_ITEMS.map((item) => {
+                  const active = view === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNavClick(item.id)}
+                      className={cn(
+                        "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full hover:bg-[#F2F3F3]",
+                        active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                      )}
+                    >
+                      <HugeiconsIcon
+                        icon={item.icon}
+                        size={18}
+                        color="currentColor"
+                        strokeWidth={active ? 2 : 1.5}
+                      />
+                      <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Flights, Data */}
+          {NAV_ITEMS.slice(1).map((item) => {
+            const active = view === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleNavClick(item.id)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon icon={item.icon} size={20} color="currentColor" strokeWidth={active ? 2 : 1.5} />
+                <span className={cn("text-base", active ? "font-extrabold" : "font-semibold")}>{item.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Wildfly Tools — expandable group */}
+          <button
+            type="button"
+            onClick={() => setWildflyToolsExpanded((v) => !v)}
+            className={cn(
+              "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+              wildflyToolsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+            )}
+          >
+            <HugeiconsIcon
+              icon={Analytics01Icon}
+              size={20}
+              color="currentColor"
+              strokeWidth={wildflyToolsActive ? 2 : 1.5}
+            />
+            <span className={cn("text-base flex-1 text-left", wildflyToolsActive ? "font-extrabold" : "font-semibold")}>
+              Wildfly Tools
+            </span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={16}
+              color="currentColor"
+              strokeWidth={2}
+              style={{
+                transform: wildflyToolsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
+          </button>
+
+          <AnimatePresence initial={false}>
+            {wildflyToolsExpanded && (
+              <motion.div
+                key="wildfly-tools-children"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                className="pb-1.5"
+                style={{ overflow: "hidden" }}
+              >
+                {WILDFLY_TOOLS_ITEMS.map((item) => {
+                  const active = view === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNavClick(item.id)}
+                      className={cn(
+                        "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full hover:bg-[#F2F3F3]",
+                        active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                      )}
+                    >
+                      <HugeiconsIcon
+                        icon={item.icon}
+                        size={18}
+                        color="currentColor"
+                        strokeWidth={active ? 2 : 1.5}
+                      />
+                      <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Developer Tools expandable section — only shown to developer_allowlist members */}
           {isDeveloper && (
             <>
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pt-4 pb-0.5">
-                Developer
+                Administration
               </p>
               <button
                 type="button"
@@ -2407,6 +2583,7 @@ export default function AdminConsole() {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="pb-1.5"
                     style={{ overflow: "hidden" }}
                   >
                     {DEV_ITEMS.map((item) => {
@@ -2417,7 +2594,7 @@ export default function AdminConsole() {
                           type="button"
                           onClick={() => handleNavClick(item.id)}
                           className={cn(
-                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-8 transition-colors w-full hover:bg-[#F2F3F3]",
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full hover:bg-[#F2F3F3]",
                             active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
                           )}
                         >
@@ -2475,6 +2652,7 @@ export default function AdminConsole() {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="pb-1.5"
                     style={{ overflow: "hidden" }}
                   >
                     {AUTH_ACCESS_ITEMS.map((item) => {
@@ -2485,8 +2663,82 @@ export default function AdminConsole() {
                           type="button"
                           onClick={() => handleNavClick(item.id)}
                           className={cn(
-                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-8 transition-colors w-full hover:bg-[#F2F3F3]",
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full hover:bg-[#F2F3F3]",
                             active ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            size={18}
+                            color="currentColor"
+                            strokeWidth={active ? 2 : 1.5}
+                          />
+                          <span className={cn("text-sm", active ? "font-extrabold" : "font-semibold")}>
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Operations — expandable group below Auth & Access */}
+              <button
+                type="button"
+                onClick={() => setSystemProcessExpanded((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
+                  systemProcessActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                )}
+              >
+                <HugeiconsIcon
+                  icon={CpuIcon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={systemProcessActive ? 2 : 1.5}
+                />
+                <span className={cn("text-base flex-1 text-left", systemProcessActive ? "font-extrabold" : "font-semibold")}>
+                  Operations
+                </span>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={2}
+                  style={{
+                    transform: systemProcessExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {systemProcessExpanded && (
+                  <motion.div
+                    key="operations-children"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="pb-1.5"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {SYSTEM_PROCESS_ITEMS.map((item) => {
+                      const active = view === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          disabled={item.disabled}
+                          onClick={() => !item.disabled && handleNavClick(item.id as View)}
+                          className={cn(
+                            "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full",
+                            item.disabled
+                              ? "opacity-40 cursor-not-allowed text-[#2E4A4A]"
+                              : active
+                                ? "text-[#059669]"
+                                : "text-[#2E4A4A] hover:bg-[#F2F3F3] hover:text-[#345C5A]",
                           )}
                         >
                           <HugeiconsIcon
@@ -2507,8 +2759,9 @@ export default function AdminConsole() {
             </>
           )}
         </nav>
+        </div>
 
-        <div className="mt-auto">
+        <div className="flex-shrink-0">
           <div className="h-px bg-[#E5E7EB] mx-6" />
           <button
             onClick={() => { setDrawerOpen(false); sessionStorage.setItem("adminReturn", "1"); setTimeout(() => navigate("/"), 280); }}
@@ -2609,9 +2862,9 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-debug"         && <DebugSettingsAdminView />}
         {devToolsActive && isDeveloper && view === "developer-sql-cache"     && <SqlCacheAdminView />}
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
-        {devToolsActive && isDeveloper && view === "developer-logging"         && <LoggingSettingsAdminView />}
-        {devToolsActive && isDeveloper && view === "developer-scheduled-jobs" && <ScheduledJobsAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-logging"    && <LoggingSettingsAdminView />}
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
+        {isDeveloper && view === "system-scheduled-jobs"    && <ScheduledJobsAdminView />}
         {isDeveloper && view === "auth-signup-controls"     && <SignupControlsAdminView />}
         </motion.div>
         </AnimatePresence>
