@@ -38,6 +38,7 @@ import {
   SourceCodeSquareIcon,
   FileExportIcon,
   ShieldKeyIcon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -67,6 +68,7 @@ import { AnnouncementsAdminView } from "@/components/admin/developer-tools/Annou
 import { SqlCacheAdminView } from "@/components/admin/developer-tools/SqlCacheAdminView";
 import { DeveloperAllowlistAdminView } from "@/components/admin/developer-tools/DeveloperAllowlistAdminView";
 import { SignupControlsAdminView } from "@/components/admin/developer-tools/SignupControlsAdminView";
+import { ScheduledJobsAdminView } from "@/components/admin/developer-tools/ScheduledJobsAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -74,6 +76,7 @@ type View =
   | "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications"
   | "developer-design-system" | "developer-announcements" | "developer-debug"
   | "developer-sql-cache" | "developer-token" | "developer-logging"
+  | "developer-scheduled-jobs"
   | "auth-developer-allowlist" | "auth-signup-controls";
 
 interface UserRow {
@@ -126,7 +129,8 @@ const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
   { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
   { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
-  { id: "developer-logging",       label: "Logging Settings", icon: FilterMailSquareIcon },
+  { id: "developer-logging",         label: "Logging Settings", icon: FilterMailSquareIcon },
+  { id: "developer-scheduled-jobs", label: "Scheduled Jobs",   icon: Clock01Icon },
 ];
 
 const AUTH_ACCESS_ITEMS: { id: View; label: string; icon: any }[] = [
@@ -2203,6 +2207,7 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "developer-sql-cache":       { prefix: "Developer", label: "SQL / CACHE TOOLS" },
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
   "developer-logging":            { prefix: "Developer",    label: "LOGGING SETTINGS" },
+  "developer-scheduled-jobs":    { prefix: "Developer",    label: "SCHEDULED JOBS" },
   "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
   "auth-signup-controls":        { prefix: "Auth & Access", label: "SIGNUP CONTROLS" },
 };
@@ -2604,7 +2609,8 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-debug"         && <DebugSettingsAdminView />}
         {devToolsActive && isDeveloper && view === "developer-sql-cache"     && <SqlCacheAdminView />}
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
-        {devToolsActive && isDeveloper && view === "developer-logging"       && <LoggingSettingsAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-logging"         && <LoggingSettingsAdminView />}
+        {devToolsActive && isDeveloper && view === "developer-scheduled-jobs" && <ScheduledJobsAdminView />}
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
         {isDeveloper && view === "auth-signup-controls"     && <SignupControlsAdminView />}
         </motion.div>
