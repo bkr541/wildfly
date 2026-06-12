@@ -551,7 +551,7 @@ export function NotificationsAdminView() {
             (a, b) => (a.sort_order ?? 100) - (b.sort_order ?? 100) || a.label.localeCompare(b.label),
           ),
         );
-      } else if (modal && modal !== "new") {
+      } else if (modal) {
         const { data, error: err } = await supabase
           .from("notification_type_configs")
           .update(payload)
