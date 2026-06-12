@@ -805,22 +805,28 @@ const FlightDestResults = ({
                     className="text-white text-[22px] font-light leading-tight"
                     style={{ textShadow: "0 1px 5px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.60)" }}
                   >
-                    {airportMap[departureAirport]?.city || departureAirport} to
+                    {airportMap[departureAirport]?.city || prettifyCityCode(departureAirport)} to
                   </p>
                   <p
                     className="text-white leading-tight uppercase tracking-wide"
                     style={{ textShadow: "0 1px 5px rgba(0,0,0,0.75), 0 2px 10px rgba(0,0,0,0.50)" }}
                   >
                     {arrivalAirport && arrivalAirport !== "All" ? (
-                      <>
-                        <span className="text-[30px] font-black">{arrivalAirport}</span>
-                        {airportMap[arrivalAirport]?.city ? (
-                          <span className="text-[30px] font-light">
-                            {" "}
-                            | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
-                          </span>
-                        ) : null}
-                      </>
+                      arrivalAirport.startsWith("CITY:") ? (
+                        <span className="text-[30px] font-black">
+                          {prettifyCityCode(arrivalAirport)}
+                        </span>
+                      ) : (
+                        <>
+                          <span className="text-[30px] font-black">{arrivalAirport}</span>
+                          {airportMap[arrivalAirport]?.city ? (
+                            <span className="text-[30px] font-light">
+                              {" "}
+                              | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
+                            </span>
+                          ) : null}
+                        </>
+                      )
                     ) : (
                       <span className="text-[36px] font-black">All Destinations</span>
                     )}
