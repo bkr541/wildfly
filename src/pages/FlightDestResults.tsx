@@ -1113,10 +1113,58 @@ const FlightDestResults = ({
                 return { h12: `${h12}:00`, ampm };
               };
 
+              const isExpanded = !isMultiOrigin || expandedOriginGroups.has(group.destination);
+              const groupAirportInfo = airportMap[group.destination];
+              const groupCity = groupAirportInfo?.city ?? "";
+              const groupState = groupAirportInfo?.stateCode ?? "";
               return (
                 <div key={group.destination} className="pt-1 pb-2">
-                  {/* Timeline */}
-                  <div>
+                  {isMultiOrigin && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedOriginGroups((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(group.destination)) next.delete(group.destination);
+                          else next.add(group.destination);
+                          return next;
+                        })
+                      }
+                      className={cn(
+                        "w-full flex items-center justify-between gap-3 mb-2 rounded-2xl border bg-white px-4 py-3 transition-all active:scale-[0.99]",
+                        isExpanded ? "border-[#059669]" : "border-[#E8EBEB] hover:border-[#A8BEBE]",
+                      )}
+                      style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#E6F2EF] flex items-center justify-center shrink-0">
+                          <span className="text-[#059669] text-xs font-black tracking-tight">
+                            {group.destination}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-start min-w-0">
+                          <span className="text-sm font-bold text-[#2E4A4A] truncate">
+                            {groupCity || group.destination}
+                            {groupState ? `, ${groupState}` : ""}
+                          </span>
+                          <span className="text-[11px] text-[#6B7B7B] font-medium">
+                            {group.flights.length} flight{group.flights.length === 1 ? "" : "s"}
+                            {group.hasNonstop ? " · Nonstop" : ""}
+                            {group.hasGoWild ? " · GoWild" : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className={cn(
+                          "w-3 h-3 text-[#6B7B7B] transition-transform shrink-0",
+                          isExpanded ? "rotate-180" : "rotate-0",
+                        )}
+                      />
+                    </button>
+                  )}
+                  {isExpanded && (
+                  <div>{/* Timeline */}
                   <div className="relative flex flex-col items-center">
                     <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#059669]" />
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#059669] z-10" />
