@@ -553,26 +553,37 @@ const FlightDestResults = ({
     [airportMap, airportCoords],
   );
 
+  // When the departure was a city-area (multiple origins), we group flights by
+  // the FIRST-leg origin airport so each individual airport appears under a
+  // collapsible parent. Otherwise (single origin) we group by destination as
+  // before.
+  const isMultiOrigin = useMemo(
+    () => typeof departureAirport === "string" && departureAirport.startsWith("CITY:"),
+    [departureAirport],
+  );
+
   // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
     for (const f of activeFlights) {
-      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
-      if (!grouped[dest]) grouped[dest] = [];
-      grouped[dest].push(f);
+      const key = isMultiOrigin
+        ? (f.legs[0]?.origin ?? "???")
+        : (f.legs.length ? f.legs[f.legs.length - 1].destination : "???");
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(f);
     }
     return Object.entries(grouped)
-      .map(([dest, flts]) => ({
-        destination: dest,
-        city: airportMap[dest]?.city ?? "",
-        stateCode: airportMap[dest]?.stateCode ?? "",
-        airportName: airportMap[dest]?.name ?? "",
+      .map(([code, flts]) => ({
+        destination: code,
+        city: airportMap[code]?.city ?? "",
+        stateCode: airportMap[code]?.stateCode ?? "",
+        airportName: airportMap[code]?.name ?? "",
         flights: flts,
         hasGoWild: flts.some((f) => isGoWildFlight(f)),
         hasNonstop: flts.some((f) => f.legs.length === 1),
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
-  }, [activeFlights, airportMap]);
+  }, [activeFlights, airportMap, isMultiOrigin]);
 
   // Per-group sorted+filtered flights for the timeline
   const sortedGroups: DestinationGroup[] = useMemo(() => {
