@@ -1030,8 +1030,10 @@ const FlightDestResults = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#6B7B7B]">Origin</span>
                   <span className="text-sm font-semibold text-[#2E4A4A]">
-                    {departureAirport}
-                    {airportMap[departureAirport]?.city ? ` — ${airportMap[departureAirport].city}` : ""}
+                    {prettifyCityCode(departureAirport)}
+                    {airportMap[departureAirport]?.city && !departureAirport.startsWith("CITY:")
+                      ? ` — ${airportMap[departureAirport].city}`
+                      : ""}
                   </span>
                 </div>
               </div>
