@@ -270,6 +270,9 @@ const FlightDestResults = ({
   >({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
+  // Which origin-airport parent groups are expanded (only used when grouping
+  // by origin — i.e. a city-area departure was selected).
+  const [expandedOriginGroups, setExpandedOriginGroups] = useState<Set<string>>(() => new Set());
   const [debugEnabled, setDebugEnabled] = useState(false);
   // Sort & filter state
   const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
