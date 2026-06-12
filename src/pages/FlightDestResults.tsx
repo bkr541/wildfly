@@ -67,6 +67,19 @@ interface DestinationGroup {
   hasNonstop: boolean;
 }
 
+/** Strip a "CITY:NEW+YORK+CITY" / "CITY:CHICAGO" prefix and title-case the city. */
+function prettifyCityCode(raw: string): string {
+  if (!raw) return "";
+  if (!raw.startsWith("CITY:")) return raw;
+  return raw
+    .slice(5)
+    .toLowerCase()
+    .split(/[\s+]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function formatTime(raw: string): string {
   try {
     const d = new Date(raw);
