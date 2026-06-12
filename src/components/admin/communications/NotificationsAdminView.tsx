@@ -760,7 +760,7 @@ export function NotificationsAdminView() {
           {sentError && <AdminCard className="text-xs text-red-500 font-semibold">{sentError}</AdminCard>}
           {sentLoading && (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 5 }).map((_, i) => <AdminCard key={i} className="animate-pulse h-16" />)}
+              {Array.from({ length: 5 }).map((_, i) => <AdminCard key={i} className="animate-pulse h-16">{null}</AdminCard>)}
             </div>
           )}
           {!sentLoading && sentFiltered.length === 0 && (
