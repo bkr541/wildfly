@@ -20,11 +20,12 @@ import {
   Megaphone01Icon,
   ShieldKeyIcon,
 } from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
 
 export interface NotificationIconEntry {
   name: string;
   label: string;
-  Icon: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number; color?: string; strokeWidth?: number }>;
+  Icon: IconSvgElement;
 }
 
 export const NOTIFICATION_ICON_REGISTRY: NotificationIconEntry[] = [

@@ -67,6 +67,19 @@ interface DestinationGroup {
   hasNonstop: boolean;
 }
 
+/** Strip a "CITY:NEW+YORK+CITY" / "CITY:CHICAGO" prefix and title-case the city. */
+function prettifyCityCode(raw: string): string {
+  if (!raw) return "";
+  if (!raw.startsWith("CITY:")) return raw;
+  return raw
+    .slice(5)
+    .toLowerCase()
+    .split(/[\s+]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function formatTime(raw: string): string {
   try {
     const d = new Date(raw);
@@ -257,6 +270,9 @@ const FlightDestResults = ({
   >({});
   const [showRaw, setShowRaw] = useState(false);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
+  // Which origin-airport parent groups are expanded (only used when grouping
+  // by origin — i.e. a city-area departure was selected).
+  const [expandedOriginGroups, setExpandedOriginGroups] = useState<Set<string>>(() => new Set());
   const [debugEnabled, setDebugEnabled] = useState(false);
   // Sort & filter state
   const [sortBy, setSortBy] = useState<"time" | "fare" | "duration" | "stops">("time");
@@ -540,26 +556,37 @@ const FlightDestResults = ({
     [airportMap, airportCoords],
   );
 
+  // When the departure was a city-area (multiple origins), we group flights by
+  // the FIRST-leg origin airport so each individual airport appears under a
+  // collapsible parent. Otherwise (single origin) we group by destination as
+  // before.
+  const isMultiOrigin = useMemo(
+    () => typeof departureAirport === "string" && departureAirport.startsWith("CITY:"),
+    [departureAirport],
+  );
+
   // Base groups (ungrouped for single-dest case — always one group)
   const groups: DestinationGroup[] = useMemo(() => {
     const grouped: Record<string, ParsedFlight[]> = {};
     for (const f of activeFlights) {
-      const dest = f.legs.length ? f.legs[f.legs.length - 1].destination : "???";
-      if (!grouped[dest]) grouped[dest] = [];
-      grouped[dest].push(f);
+      const key = isMultiOrigin
+        ? (f.legs[0]?.origin ?? "???")
+        : (f.legs.length ? f.legs[f.legs.length - 1].destination : "???");
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(f);
     }
     return Object.entries(grouped)
-      .map(([dest, flts]) => ({
-        destination: dest,
-        city: airportMap[dest]?.city ?? "",
-        stateCode: airportMap[dest]?.stateCode ?? "",
-        airportName: airportMap[dest]?.name ?? "",
+      .map(([code, flts]) => ({
+        destination: code,
+        city: airportMap[code]?.city ?? "",
+        stateCode: airportMap[code]?.stateCode ?? "",
+        airportName: airportMap[code]?.name ?? "",
         flights: flts,
         hasGoWild: flts.some((f) => isGoWildFlight(f)),
         hasNonstop: flts.some((f) => f.legs.length === 1),
       }))
       .sort((a, b) => a.city.localeCompare(b.city));
-  }, [activeFlights, airportMap]);
+  }, [activeFlights, airportMap, isMultiOrigin]);
 
   // Per-group sorted+filtered flights for the timeline
   const sortedGroups: DestinationGroup[] = useMemo(() => {
@@ -658,11 +685,13 @@ const FlightDestResults = ({
             </button>
 
             <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
-              <span className="text-[17px] font-black text-white tracking-tight">{departureAirport}</span>
+              <span className="text-[17px] font-black text-white tracking-tight">
+                {prettifyCityCode(departureAirport)}
+              </span>
               <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="white" strokeWidth={2} />
               <span className="text-[17px] font-black text-white tracking-tight truncate">
                 {arrivalAirport && arrivalAirport !== "All"
-                  ? arrivalAirport
+                  ? prettifyCityCode(arrivalAirport)
                   : "All Destinations"}
               </span>
             </div>
@@ -776,22 +805,28 @@ const FlightDestResults = ({
                     className="text-white text-[22px] font-light leading-tight"
                     style={{ textShadow: "0 1px 5px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.60)" }}
                   >
-                    {airportMap[departureAirport]?.city || departureAirport} to
+                    {airportMap[departureAirport]?.city || prettifyCityCode(departureAirport)} to
                   </p>
                   <p
                     className="text-white leading-tight uppercase tracking-wide"
                     style={{ textShadow: "0 1px 5px rgba(0,0,0,0.75), 0 2px 10px rgba(0,0,0,0.50)" }}
                   >
                     {arrivalAirport && arrivalAirport !== "All" ? (
-                      <>
-                        <span className="text-[30px] font-black">{arrivalAirport}</span>
-                        {airportMap[arrivalAirport]?.city ? (
-                          <span className="text-[30px] font-light">
-                            {" "}
-                            | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
-                          </span>
-                        ) : null}
-                      </>
+                      arrivalAirport.startsWith("CITY:") ? (
+                        <span className="text-[30px] font-black">
+                          {prettifyCityCode(arrivalAirport)}
+                        </span>
+                      ) : (
+                        <>
+                          <span className="text-[30px] font-black">{arrivalAirport}</span>
+                          {airportMap[arrivalAirport]?.city ? (
+                            <span className="text-[30px] font-light">
+                              {" "}
+                              | {airportMap[arrivalAirport].city}{airportMap[arrivalAirport].stateCode ? `, ${airportMap[arrivalAirport].stateCode}` : ""}
+                            </span>
+                          ) : null}
+                        </>
+                      )
                     ) : (
                       <span className="text-[36px] font-black">All Destinations</span>
                     )}
@@ -995,8 +1030,10 @@ const FlightDestResults = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#6B7B7B]">Origin</span>
                   <span className="text-sm font-semibold text-[#2E4A4A]">
-                    {departureAirport}
-                    {airportMap[departureAirport]?.city ? ` — ${airportMap[departureAirport].city}` : ""}
+                    {prettifyCityCode(departureAirport)}
+                    {airportMap[departureAirport]?.city && !departureAirport.startsWith("CITY:")
+                      ? ` — ${airportMap[departureAirport].city}`
+                      : ""}
                   </span>
                 </div>
               </div>
@@ -1076,10 +1113,58 @@ const FlightDestResults = ({
                 return { h12: `${h12}:00`, ampm };
               };
 
+              const isExpanded = !isMultiOrigin || expandedOriginGroups.has(group.destination);
+              const groupAirportInfo = airportMap[group.destination];
+              const groupCity = groupAirportInfo?.city ?? "";
+              const groupState = groupAirportInfo?.stateCode ?? "";
               return (
                 <div key={group.destination} className="pt-1 pb-2">
-                  {/* Timeline */}
-                  <div>
+                  {isMultiOrigin && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedOriginGroups((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(group.destination)) next.delete(group.destination);
+                          else next.add(group.destination);
+                          return next;
+                        })
+                      }
+                      className={cn(
+                        "w-full flex items-center justify-between gap-3 mb-2 rounded-2xl border bg-white px-4 py-3 transition-all active:scale-[0.99]",
+                        isExpanded ? "border-[#059669]" : "border-[#E8EBEB] hover:border-[#A8BEBE]",
+                      )}
+                      style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#E6F2EF] flex items-center justify-center shrink-0">
+                          <span className="text-[#059669] text-xs font-black tracking-tight">
+                            {group.destination}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-start min-w-0">
+                          <span className="text-sm font-bold text-[#2E4A4A] truncate">
+                            {groupCity || group.destination}
+                            {groupState ? `, ${groupState}` : ""}
+                          </span>
+                          <span className="text-[11px] text-[#6B7B7B] font-medium">
+                            {group.flights.length} flight{group.flights.length === 1 ? "" : "s"}
+                            {group.hasNonstop ? " · Nonstop" : ""}
+                            {group.hasGoWild ? " · GoWild" : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className={cn(
+                          "w-3 h-3 text-[#6B7B7B] transition-transform shrink-0",
+                          isExpanded ? "rotate-180" : "rotate-0",
+                        )}
+                      />
+                    </button>
+                  )}
+                  {isExpanded && (
+                  <div>{/* Timeline */}
                   <div className="relative flex flex-col items-center">
                     <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#059669]" />
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#059669] z-10" />
@@ -1467,7 +1552,8 @@ const FlightDestResults = ({
                       })()}
                     </div>
                   </div>
-                </div>
+                  </div>
+                  )}
                 </div>
               );
             })}

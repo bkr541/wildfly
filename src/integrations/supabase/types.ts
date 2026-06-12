@@ -946,6 +946,65 @@ export type Database = {
         }
         Relationships: []
       }
+      market_offering_sync_logs: {
+        Row: {
+          airports_created: number
+          airports_deactivated: number
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          routes_deactivated: number
+          routes_upserted: number
+          snapshot_id: string | null
+          started_at: string
+          stations_upserted: number
+          status: string
+          triggered_by: string
+        }
+        Insert: {
+          airports_created?: number
+          airports_deactivated?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          routes_deactivated?: number
+          routes_upserted?: number
+          snapshot_id?: string | null
+          started_at?: string
+          stations_upserted?: number
+          status: string
+          triggered_by?: string
+        }
+        Update: {
+          airports_created?: number
+          airports_deactivated?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          routes_deactivated?: number
+          routes_upserted?: number
+          snapshot_id?: string | null
+          started_at?: string
+          stations_upserted?: number
+          status?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_offering_sync_logs_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "frontier_market_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_type_configs: {
         Row: {
           audience: string
@@ -1473,33 +1532,6 @@ export type Database = {
       }
     }
     Views: {
-      notification_feed_view: {
-        Row: {
-          audience: string | null
-          authority: string | null
-          background_color: string | null
-          border_color: string | null
-          config_is_active: boolean | null
-          config_label: string | null
-          created_at: string | null
-          data: Json | null
-          detail_text: string | null
-          display_type: string | null
-          icon_name: string | null
-          id: string | null
-          is_read: boolean | null
-          main_color: string | null
-          notification_group: string | null
-          severity: string | null
-          show_in_admin: boolean | null
-          show_in_user_notifications: boolean | null
-          title: string | null
-          body: string | null
-          type: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       friends_with_profiles: {
         Row: {
           avatar_url: string | null
@@ -1549,6 +1581,33 @@ export type Database = {
         Row: {
           destinations: string[] | null
           origin_iata: string | null
+        }
+        Relationships: []
+      }
+      notification_feed_view: {
+        Row: {
+          audience: string | null
+          authority: string | null
+          background_color: string | null
+          body: string | null
+          border_color: string | null
+          config_is_active: boolean | null
+          config_label: string | null
+          created_at: string | null
+          data: Json | null
+          detail_text: string | null
+          display_type: string | null
+          icon_name: string | null
+          id: string | null
+          is_read: boolean | null
+          main_color: string | null
+          notification_group: string | null
+          severity: string | null
+          show_in_admin: boolean | null
+          show_in_user_notifications: boolean | null
+          title: string | null
+          type: string | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -1678,6 +1737,14 @@ export type Database = {
           stops: number
         }[]
       }
+      get_notification_type_stats: {
+        Args: never
+        Returns: {
+          last_sent: string
+          total_count: number
+          type: string
+        }[]
+      }
       get_route_gowild_inventory_calendar: {
         Args: {
           p_destination_iata: string
@@ -1766,6 +1833,7 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      trigger_market_offering_search: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

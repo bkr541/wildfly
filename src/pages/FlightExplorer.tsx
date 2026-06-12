@@ -38,6 +38,9 @@ interface Airport {
 type AirportSheetOption = Airport & {
   disabled?: boolean;
   disabledReason?: string;
+  /** When set, the input renders this label (e.g. "Chicago, IL")
+   *  instead of `IATA | City` — used when a city-area parent is picked. */
+  cityAreaLabel?: string;
 };
 
 /* ── Recent IATA codes from flight_searches ─────────── */
@@ -278,7 +281,12 @@ function AirportSearchSheet({
                   {!isSingle && (
                     <button
                       type="button"
-                      onClick={() => { if (firstEnabled) addAirport(firstEnabled); }}
+                      onClick={() => {
+                        if (!firstEnabled) return;
+                        // Mark this selection as a city-area pick so the input
+                        // displays "City, ST" instead of a single IATA code.
+                        addAirport({ ...firstEnabled, cityAreaLabel: displayGroup } as AirportSheetOption);
+                      }}
                       className={cn(
                         "w-full px-5 py-3 text-sm font-bold text-[#6B7B7B] uppercase tracking-wider flex items-center gap-2 transition-colors",
                         areaAllDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-[#F2F3F3]",
@@ -535,7 +543,12 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
   };
 
   const displayValue = departure
-    ? `${departure.iata_code} | ${departure.locations?.city ?? departure.name}`
+    ? ((departure as AirportSheetOption).cityAreaLabel
+        ?? `${departure.iata_code} | ${departure.locations?.city ?? departure.name}`)
+    : "";
+  const arrivalDisplayValue = arrival
+    ? ((arrival as AirportSheetOption).cityAreaLabel
+        ?? `${arrival.iata_code} | ${arrival.locations?.city ?? arrival.name}`)
     : "";
 
   return (
@@ -629,7 +642,7 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
                 style={{ color: arrival ? "#1F2937" : "#6B7280" }}
               >
                 {arrival
-                  ? `${arrival.iata_code} | ${arrival.locations?.city ?? arrival.name}`
+                  ? arrivalDisplayValue
                   : departure ? "Search airport or city..." : "Select departure first"}
               </span>
               {arrival && departure && (

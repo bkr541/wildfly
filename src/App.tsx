@@ -291,21 +291,21 @@ const MainApp = () => {
       }
 
       // Detect if this is a multi-destination result:
-      // - arrivalAirport is "All"
-      // - OR departureAirport starts with "CITY:" (city-area airports = multiple origins → all dests)
+      // - arrivalAirport is "All" / empty (no specific destination chosen)
       // - OR the response has flights going to multiple different destinations
+      // NOTE: A city-area departure (CITY:...) paired with a specific arrival
+      // is still a single-destination view (rendered with origin-airport grouping
+      // inside FlightDestResults), so we do NOT force multi-results in that case.
       try {
         const parsed = JSON.parse(data);
         const arrAirport: string = parsed.arrivalAirport ?? "";
-        const depAirport: string = parsed.departureAirport ?? "";
         // Raw API format: parsed.response.flights[] with top-level `destination`
         // Normalized format: parsed.response.flights[] with `legs[last].destination`
         const responseFlights: any[] = parsed.response?.flights ?? [];
 
         const isMulti =
           arrAirport === "All" ||
-          arrAirport === "" ||
-          depAirport.startsWith("CITY:");
+          arrAirport === "";
 
         // Check for multiple unique destinations - raw API uses top-level `destination`
         const destSet = new Set<string>();

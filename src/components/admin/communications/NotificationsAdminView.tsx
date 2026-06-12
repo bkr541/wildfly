@@ -551,7 +551,7 @@ export function NotificationsAdminView() {
             (a, b) => (a.sort_order ?? 100) - (b.sort_order ?? 100) || a.label.localeCompare(b.label),
           ),
         );
-      } else if (modal && modal !== "new") {
+      } else if (modal) {
         const { data, error: err } = await supabase
           .from("notification_type_configs")
           .update(payload)
@@ -760,7 +760,7 @@ export function NotificationsAdminView() {
           {sentError && <AdminCard className="text-xs text-red-500 font-semibold">{sentError}</AdminCard>}
           {sentLoading && (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 5 }).map((_, i) => <AdminCard key={i} className="animate-pulse h-16" />)}
+              {Array.from({ length: 5 }).map((_, i) => <AdminCard key={i} className="animate-pulse h-16">{null}</AdminCard>)}
             </div>
           )}
           {!sentLoading && sentFiltered.length === 0 && (
