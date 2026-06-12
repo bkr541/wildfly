@@ -543,7 +543,12 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
   };
 
   const displayValue = departure
-    ? `${departure.iata_code} | ${departure.locations?.city ?? departure.name}`
+    ? ((departure as AirportSheetOption).cityAreaLabel
+        ?? `${departure.iata_code} | ${departure.locations?.city ?? departure.name}`)
+    : "";
+  const arrivalDisplayValue = arrival
+    ? ((arrival as AirportSheetOption).cityAreaLabel
+        ?? `${arrival.iata_code} | ${arrival.locations?.city ?? arrival.name}`)
     : "";
 
   return (
