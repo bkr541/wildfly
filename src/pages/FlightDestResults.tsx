@@ -685,11 +685,13 @@ const FlightDestResults = ({
             </button>
 
             <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
-              <span className="text-[17px] font-black text-white tracking-tight">{departureAirport}</span>
+              <span className="text-[17px] font-black text-white tracking-tight">
+                {prettifyCityCode(departureAirport)}
+              </span>
               <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={16} color="white" strokeWidth={2} />
               <span className="text-[17px] font-black text-white tracking-tight truncate">
                 {arrivalAirport && arrivalAirport !== "All"
-                  ? arrivalAirport
+                  ? prettifyCityCode(arrivalAirport)
                   : "All Destinations"}
               </span>
             </div>
