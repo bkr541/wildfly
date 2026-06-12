@@ -1552,7 +1552,8 @@ const FlightDestResults = ({
                       })()}
                     </div>
                   </div>
-                </div>
+                  </div>
+                  )}
                 </div>
               );
             })}
