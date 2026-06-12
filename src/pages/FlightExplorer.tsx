@@ -38,6 +38,9 @@ interface Airport {
 type AirportSheetOption = Airport & {
   disabled?: boolean;
   disabledReason?: string;
+  /** When set, the input renders this label (e.g. "Chicago, IL")
+   *  instead of `IATA | City` — used when a city-area parent is picked. */
+  cityAreaLabel?: string;
 };
 
 /* ── Recent IATA codes from flight_searches ─────────── */
