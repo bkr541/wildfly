@@ -642,7 +642,7 @@ const FlightExplorer = ({ onNavigate }: { onNavigate?: (page: string, data?: str
                 style={{ color: arrival ? "#1F2937" : "#6B7280" }}
               >
                 {arrival
-                  ? `${arrival.iata_code} | ${arrival.locations?.city ?? arrival.name}`
+                  ? arrivalDisplayValue
                   : departure ? "Search airport or city..." : "Select departure first"}
               </span>
               {arrival && departure && (
