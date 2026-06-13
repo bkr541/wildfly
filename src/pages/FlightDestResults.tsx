@@ -1048,6 +1048,19 @@ const FlightDestResults = ({
             {sortedGroups.map((group) => {
               const nonstopCount = group.flights.filter((f) => f.legs.length === 1).length;
               const goWildCount = group.flights.filter((f) => isGoWildFlight(f)).length;
+              let earliestHour: number | null = null;
+              let latestHour: number | null = null;
+              for (const _gf of group.flights) {
+                const _gh = parseHour(_gf.legs[0]?.departure_time ?? "");
+                if (_gh !== null) {
+                  if (earliestHour === null || _gh < earliestHour) earliestHour = _gh;
+                  if (latestHour === null || _gh > latestHour) latestHour = _gh;
+                }
+              }
+              const fmtHourStr = (h: number) => {
+                const d = new Date(); d.setHours(h, 0, 0, 0);
+                return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+              };
 
               // Compute cheapest and quickest indices for this group
               const parseDurForBadge = (s: string): number => {
@@ -1115,56 +1128,143 @@ const FlightDestResults = ({
 
               const isExpanded = !isMultiOrigin || expandedOriginGroups.has(group.destination);
               const groupAirportInfo = airportMap[group.destination];
-              const groupCity = groupAirportInfo?.city ?? "";
-              const groupState = groupAirportInfo?.stateCode ?? "";
               return (
-                <div key={group.destination} className="pt-1 pb-2">
+                <div key={group.destination} className="mb-4">
                   {isMultiOrigin && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedOriginGroups((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(group.destination)) next.delete(group.destination);
-                          else next.add(group.destination);
-                          return next;
-                        })
-                      }
+                    <div
                       className={cn(
-                        "w-full flex items-center justify-between gap-3 mb-2 rounded-2xl border bg-white px-4 py-3 transition-all active:scale-[0.99]",
-                        isExpanded ? "border-[#059669]" : "border-[#E8EBEB] hover:border-[#A8BEBE]",
+                        "bg-white",
+                        isExpanded ? "rounded-t-2xl overflow-hidden" : "rounded-2xl overflow-hidden",
                       )}
-                      style={{ boxShadow: "0 2px 12px 0 rgba(53,92,90,0.10)" }}
+                      style={
+                        isExpanded
+                          ? {
+                              borderTop: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                              borderLeft: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                              borderRight: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                            }
+                          : {
+                              boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)",
+                              border: "1px solid #E8EBEB",
+                            }
+                      }
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-[#E6F2EF] flex items-center justify-center shrink-0">
-                          <span className="text-[#059669] text-xs font-black tracking-tight">
+                      {/* Airport image */}
+                      <div className="relative h-[158px] overflow-hidden bg-[#C8D5D5]">
+                        <img
+                          src={`/assets/airports/${group.destination}.png`}
+                          alt={group.destination}
+                          className="w-full h-full object-cover absolute inset-0"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background:
+                              "linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.22) 40%, rgba(255,255,255,0.62) 72%, rgba(255,255,255,0.92) 100%)",
+                          }}
+                        />
+                        {/* IATA | Airport Name + City */}
+                        <div className="absolute bottom-0 left-0 right-0 px-4 pb-2 pointer-events-none flex items-stretch">
+                          <span
+                            className="text-[42px] font-black leading-none shrink-0 self-center"
+                            style={{
+                              color: group.hasGoWild ? "#047857" : "#0F2040",
+                              textShadow: "0 1px 3px rgba(255,255,255,0.6)",
+                            }}
+                          >
                             {group.destination}
                           </span>
+                          <div className="flex flex-col justify-center gap-0.5 pl-2 ml-2" style={{ borderLeft: "2px solid #0F2040" }}>
+                            <span
+                              className="uppercase tracking-wide font-semibold text-[13px] leading-tight"
+                              style={{ color: "#0F2040", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
+                            >
+                              {groupAirportInfo?.name ?? group.destination}
+                            </span>
+                            {groupAirportInfo?.city && (
+                              <span
+                                className="text-[12px] font-medium leading-tight"
+                                style={{ color: "#6B7B7B", textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
+                              >
+                                {groupAirportInfo.city}{groupAirportInfo.stateCode ? `, ${groupAirportInfo.stateCode}` : ""}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex flex-col items-start min-w-0">
-                          <span className="text-sm font-bold text-[#2E4A4A] truncate">
-                            {groupCity || group.destination}
-                            {groupState ? `, ${groupState}` : ""}
+                        {/* GoWild badge */}
+                        {group.hasGoWild && (
+                          <span
+                            className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                            style={{ background: "#059669", color: "#FFFFFF", height: "24px", padding: "0 10px" }}
+                          >
+                            <HugeiconsIcon icon={Rocket01Icon} size={11} color="white" strokeWidth={2.5} />
+                            GoWild
                           </span>
-                          <span className="text-[11px] text-[#6B7B7B] font-medium">
-                            {group.flights.length} flight{group.flights.length === 1 ? "" : "s"}
-                            {group.hasNonstop ? " · Nonstop" : ""}
-                            {group.hasGoWild ? " · GoWild" : ""}
-                          </span>
-                        </div>
-                      </div>
-                      <FontAwesomeIcon
-                        icon={faChevronDown}
-                        className={cn(
-                          "w-3 h-3 text-[#6B7B7B] transition-transform shrink-0",
-                          isExpanded ? "rotate-180" : "rotate-0",
                         )}
-                      />
-                    </button>
+                      </div>
+
+                      {/* Card body */}
+                      <div className={cn("px-4 pt-3", isExpanded ? "pb-4" : "")}>
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                          {([
+                            { label: "EARLIEST", value: earliestHour !== null ? fmtHourStr(earliestHour) : "—" },
+                            { label: "LATEST",   value: latestHour !== null ? fmtHourStr(latestHour) : "—" },
+                          ] as { label: string; value: string }[]).map(({ label, value }) => (
+                            <div key={label} className="flex-1 flex flex-col items-center gap-0.5">
+                              <span className="text-[11px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center whitespace-nowrap">{label}</span>
+                              <span className="text-[12px] font-medium text-[#6B7B7B] leading-tight text-center whitespace-nowrap">{value}</span>
+                            </div>
+                          ))}
+                          <div className="flex flex-col items-center px-3 py-1.5">
+                            <span className="text-[11px] font-black text-[#1A2E2E] uppercase tracking-wide leading-tight text-center">FLIGHTS</span>
+                            <span className="text-[26px] font-black text-[#2D6A4F] leading-none text-center tabular-nums">{group.flights.length}</span>
+                          </div>
+                          {([
+                            { label: "NONSTOP", value: nonstopCount },
+                            { label: "GOWILD",  value: goWildCount },
+                          ] as { label: string; value: number }[]).map(({ label, value }) => (
+                            <div key={label} className="flex-1 flex flex-col items-center gap-0.5">
+                              <span className="text-[11px] font-semibold text-[#1A2E2E] uppercase tracking-wide leading-tight text-center whitespace-nowrap">{label}</span>
+                              <span className="text-[12px] font-medium text-[#6B7B7B] leading-tight text-center whitespace-nowrap">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {!isExpanded && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedOriginGroups((prev) => {
+                                const next = new Set(prev);
+                                next.add(group.destination);
+                                return next;
+                              })
+                            }
+                            className={cn(
+                              "w-full flex items-center justify-center gap-1 pt-1 pb-3.5 text-[12px] font-semibold transition-colors",
+                              group.hasGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]",
+                            )}
+                          >
+                            Show {group.destination} Flights
+                            <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
                   {isExpanded && (
-                  <div>{/* Timeline */}
+                  <div
+                    style={isMultiOrigin ? {
+                      borderLeft: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                      borderRight: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                      borderBottom: `2px solid ${group.hasGoWild ? "#059669" : "#C8D5D5"}`,
+                      borderBottomLeftRadius: "1rem",
+                      borderBottomRightRadius: "1rem",
+                      overflow: "hidden",
+                      boxShadow: "0 4px 16px 0 rgba(53,92,90,0.10)",
+                      paddingTop: "16px",
+                    } : {}}
+                  >{/* Timeline */}
                   <div className="relative flex flex-col items-center">
                     <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-[#059669]" />
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#059669] z-10" />
@@ -1552,6 +1652,25 @@ const FlightDestResults = ({
                       })()}
                     </div>
                   </div>
+                  {isMultiOrigin && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedOriginGroups((prev) => {
+                          const next = new Set(prev);
+                          next.delete(group.destination);
+                          return next;
+                        })
+                      }
+                      className={cn(
+                        "w-full flex items-center justify-center gap-1 py-4 text-[12px] font-semibold transition-colors",
+                        group.hasGoWild ? "text-[#10B981] hover:text-[#059669]" : "text-[#6B7B7B] hover:text-[#2E4A4A]",
+                      )}
+                    >
+                      Hide {group.destination} Flights
+                      <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 rotate-180" />
+                    </button>
+                  )}
                   </div>
                   )}
                 </div>
