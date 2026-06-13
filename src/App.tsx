@@ -42,6 +42,7 @@ import AllWatchedFlights from "./pages/AllWatchedFlights";
 import NotificationsPage from "./pages/Notifications";
 import BetaSignup from "./pages/BetaSignup";
 import AdminBetaApplications from "./pages/AdminBetaApplications";
+import PublicFlightSharePage from "./pages/PublicFlightSharePage";
 
 const queryClient = new QueryClient();
 
@@ -527,6 +528,7 @@ const App = () => (
           <Route path="/beta-testers" element={<BetaSignup />} />
           <Route path="/betapreview" element={<BetaSignup />} />
           <Route path="/betasignup" element={<BetaSignup />} />
+          <Route path="/share/flights/:token" element={<PublicFlightSharePage />} />
           <Route path="*" element={<MainApp />} />
         </Routes>
       </BrowserRouter>

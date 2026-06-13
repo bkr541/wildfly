@@ -12,6 +12,9 @@ import {
   faBug,
   faArrowsSpin,
   faArrowsTurnToDots,
+  faDownload,
+  faLink,
+  faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { faBell as faBellRegular, faCalendar as faCalendarRegular } from "@fortawesome/free-regular-svg-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -39,6 +42,7 @@ import {
    Directions02Icon,
    AirplaneSeatIcon,
   Share03Icon,
+  Copy01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -49,6 +53,8 @@ import { cn } from "@/lib/utils";
 import { getGoWildInfo, buildFlightShareModel } from "@/utils/flightShareModel";
 import { FlightShareTemplate } from "@/components/flight-share/FlightShareTemplate";
 import { exportFlightShareImage, buildShareFilename } from "@/utils/exportFlightShareImage";
+import { createFlightSearchShare } from "@/services/flightSearchShares";
+import type { CreateFlightSearchShareResponse } from "@/services/flightSearchShares";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
 import { fetchDeveloperSettings } from "@/lib/logSettings";
 
@@ -294,6 +300,13 @@ const FlightDestResults = ({
   const shareTemplateRef = useRef<HTMLDivElement>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [airportLookupComplete, setAirportLookupComplete] = useState(true);
+  // Share dialog
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [imageExportError, setImageExportError] = useState<string | null>(null);
+  const [isCreatingPublicShare, setIsCreatingPublicShare] = useState(false);
+  const [publicShareError, setPublicShareError] = useState<string | null>(null);
+  const [publicShareResult, setPublicShareResult] = useState<CreateFlightSearchShareResponse | null>(null);
+  const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
   useEffect(() => {
     fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
@@ -661,30 +674,99 @@ const FlightDestResults = ({
     [departureAirport, arrivalAirport, departureDate, arrivalDate, tripType, isRoundTrip, oneWayFlights, outboundFlights, returnFlights, airportMap],
   );
 
-  const handleShareImage = useCallback(async () => {
-    if (isGeneratingShare) return;
+  // Fingerprint changes when the underlying flight data changes (new search).
+  // Automatically clears any cached public share result so the old link
+  // is not re-displayed for a different set of results.
+  const shareModelFingerprint = useMemo(() => JSON.stringify(shareModel), [shareModel]);
+
+  useEffect(() => {
+    setPublicShareResult(null);
+    setPublicShareError(null);
+    setPublicLinkCopied(false);
+  }, [shareModelFingerprint]);
+
+  const handleOpenShareDialog = useCallback(() => {
     if (!shareModel.hasResults) {
       showToast("No flight results to share");
       return;
     }
-    setIsGeneratingShare(true);
+    setImageExportError(null);
+    setIsShareDialogOpen(true);
+  }, [shareModel.hasResults, showToast]);
+
+  const handleDownloadImage = useCallback(async () => {
+    if (isGeneratingShare) return;
     const node = shareTemplateRef.current;
     if (!node) {
-      showToast("Could not create the flight results image");
-      setIsGeneratingShare(false);
+      setImageExportError("Could not create image");
       return;
     }
+    setIsGeneratingShare(true);
+    setImageExportError(null);
     const filename = buildShareFilename(shareModel.originLabel, shareModel.destinationLabel, departureDate);
     try {
       await exportFlightShareImage(node, filename);
-      showToast("Flight results image downloaded");
+      showToast("Image downloaded");
+      setIsShareDialogOpen(false);
     } catch (err) {
       console.error("[Wildfly] exportFlightShareImage failed:", err);
-      showToast("Could not create the flight results image");
+      setImageExportError("Export failed — try again");
     } finally {
       setIsGeneratingShare(false);
     }
   }, [isGeneratingShare, shareModel, departureDate, showToast]);
+
+  const handleCreatePublicShare = useCallback(async () => {
+    if (isCreatingPublicShare) return;
+    setIsCreatingPublicShare(true);
+    setPublicShareError(null);
+    try {
+      const result = await createFlightSearchShare({
+        modelVersion: 1,
+        shareModel,
+        departureDate: departureDate ?? null,
+        returnDate: arrivalDate ?? null,
+      });
+      setPublicShareResult(result);
+    } catch (err: unknown) {
+      const kind =
+        typeof err === "object" && err !== null && "kind" in err
+          ? String((err as { kind: unknown }).kind)
+          : "SERVER_ERROR";
+      if (kind === "UNAUTHENTICATED") {
+        setPublicShareError("Sign in to create a shareable link");
+      } else if (kind === "VALIDATION") {
+        setPublicShareError("Could not process these flight results");
+      } else {
+        setPublicShareError("Failed to create link — try again");
+      }
+      console.error("[Wildfly] createFlightSearchShare failed:", err);
+    } finally {
+      setIsCreatingPublicShare(false);
+    }
+  }, [isCreatingPublicShare, shareModel, departureDate, arrivalDate]);
+
+  const handleCopyPublicLink = useCallback(async () => {
+    if (!publicShareResult) return;
+    try {
+      await navigator.clipboard.writeText(publicShareResult.publicUrl);
+      setPublicLinkCopied(true);
+      setTimeout(() => setPublicLinkCopied(false), 2000);
+    } catch {
+      const input = document.createElement("input");
+      input.value = publicShareResult.publicUrl;
+      input.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+      document.body.appendChild(input);
+      input.focus();
+      input.select();
+      try {
+        document.execCommand("copy");
+        setPublicLinkCopied(true);
+        setTimeout(() => setPublicLinkCopied(false), 2000);
+      } catch { /* silent */ }
+      document.body.removeChild(input);
+    }
+  }, [publicShareResult]);
 
   const selectedGroup = useMemo(() => {
     if (!selectedDest) return null;
@@ -748,20 +830,13 @@ const FlightDestResults = ({
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 type="button"
-                onClick={handleShareImage}
-                disabled={isGeneratingShare || !airportLookupComplete}
-                aria-label="Download flight results image"
-                title="Download flight results image"
-                className={cn(
-                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
-                  isGeneratingShare ? "bg-white/10 border-white/30 opacity-60 cursor-wait" : "bg-white/10 border-white/30",
-                )}
+                onClick={handleOpenShareDialog}
+                disabled={!airportLookupComplete}
+                aria-label="Share flight results"
+                title="Share flight results"
+                className="h-8 w-8 flex items-center justify-center rounded-full border border-white/30 bg-white/10 transition-all"
               >
-                {isGeneratingShare ? (
-                  <FontAwesomeIcon icon={faArrowsSpin} className="w-3.5 h-3.5 text-white animate-spin" />
-                ) : (
-                  <HugeiconsIcon icon={Share03Icon} size={14} color="white" strokeWidth={2} />
-                )}
+                <HugeiconsIcon icon={Share03Icon} size={14} color="white" strokeWidth={2} />
               </button>
               <button
                 type="button"
@@ -844,20 +919,13 @@ const FlightDestResults = ({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={handleShareImage}
-                    disabled={isGeneratingShare || !airportLookupComplete}
-                    aria-label="Download flight results image"
-                    title="Download flight results image"
-                    className={cn(
-                      "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
-                      isGeneratingShare ? "bg-white/10 border-white/30 opacity-60 cursor-wait" : "bg-white/15 border-white/30",
-                    )}
+                    onClick={handleOpenShareDialog}
+                    disabled={!airportLookupComplete}
+                    aria-label="Share flight results"
+                    title="Share flight results"
+                    className="h-9 w-9 flex items-center justify-center rounded-full border border-white/30 bg-white/15 transition-all"
                   >
-                    {isGeneratingShare ? (
-                      <FontAwesomeIcon icon={faArrowsSpin} className="w-4 h-4 text-white animate-spin" />
-                    ) : (
-                      <HugeiconsIcon icon={Share03Icon} size={16} color="white" strokeWidth={2} />
-                    )}
+                    <HugeiconsIcon icon={Share03Icon} size={16} color="white" strokeWidth={2} />
                   </button>
                   <button
                     type="button"
@@ -1998,6 +2066,179 @@ const FlightDestResults = ({
                   Apply Filters
                 </button>
               </div>
+      </BottomSheet>
+
+      {/* ── Share Dialog ─────────────────────────────────────── */}
+      <BottomSheet open={isShareDialogOpen} onClose={() => setIsShareDialogOpen(false)}>
+        {/* Header */}
+        <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+          <div
+            className="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+          >
+            <HugeiconsIcon icon={Share03Icon} size={15} color="white" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-bold text-[#2E4A4A]">Share flight results</h2>
+            <p className="text-xs text-[#9CA3AF] leading-tight">
+              Download an image or create a public link anyone can open.
+            </p>
+          </div>
+        </div>
+
+        {publicShareResult ? (
+          /* ── Result panel: public link was created ── */
+          <div className="flex flex-col gap-3 px-5 py-4 pb-8">
+            {/* Success badge */}
+            <div className="flex items-center gap-2">
+              <div
+                className="h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: "#D1FAE5" }}
+              >
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={15} color="#059669" strokeWidth={2} />
+              </div>
+              <p className="text-sm font-semibold text-[#059669]">Public link created</p>
+            </div>
+
+            {/* URL pill */}
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#E8EBEB] bg-[#F8FAFA]">
+              <p className="flex-1 text-xs font-medium text-[#4B6060] truncate min-w-0 select-all">
+                {publicShareResult.publicUrl}
+              </p>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2">
+              {/* Copy */}
+              <button
+                type="button"
+                onClick={handleCopyPublicLink}
+                className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all active:scale-95"
+                style={{
+                  borderColor: publicLinkCopied ? "#059669" : "#E8EBEB",
+                  background: publicLinkCopied ? "#F0FDF4" : "#FAFAFA",
+                }}
+                aria-label="Copy public link"
+              >
+                <HugeiconsIcon
+                  icon={publicLinkCopied ? CheckmarkCircle02Icon : Copy01Icon}
+                  size={18}
+                  color={publicLinkCopied ? "#059669" : "#4B6060"}
+                  strokeWidth={2}
+                />
+                <span className="text-xs font-semibold" style={{ color: publicLinkCopied ? "#059669" : "#4B6060" }}>
+                  {publicLinkCopied ? "Copied!" : "Copy"}
+                </span>
+              </button>
+
+              {/* Native share — only when Web Share API is available */}
+              {"share" in navigator && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator
+                      .share({
+                        url: publicShareResult.publicUrl,
+                        title: `${shareModel.originLabel} → ${shareModel.destinationLabel} Flights`,
+                      })
+                      .catch(() => {});
+                  }}
+                  className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border border-[#E8EBEB] bg-[#FAFAFA] transition-all active:scale-95"
+                  aria-label="Share link via system share sheet"
+                >
+                  <HugeiconsIcon icon={Share03Icon} size={18} color="#4B6060" strokeWidth={2} />
+                  <span className="text-xs font-semibold text-[#4B6060]">Share</span>
+                </button>
+              )}
+
+              {/* Open in new tab */}
+              <a
+                href={publicShareResult.publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border border-[#E8EBEB] bg-[#FAFAFA] transition-all active:scale-95"
+                aria-label="Open public link in new tab"
+              >
+                <FontAwesomeIcon icon={faUpRightFromSquare} className="w-4 h-4 text-[#4B6060]" />
+                <span className="text-xs font-semibold text-[#4B6060]">Open</span>
+              </a>
+            </div>
+
+            {/* Create another link */}
+            <button
+              type="button"
+              onClick={() => {
+                setPublicShareResult(null);
+                setPublicShareError(null);
+                setPublicLinkCopied(false);
+              }}
+              className="text-xs font-medium text-[#9CA3AF] hover:text-[#4B6060] transition-colors text-center py-2"
+            >
+              Create another link
+            </button>
+          </div>
+        ) : (
+          /* ── Options panel ── */
+          <div className="flex flex-col py-2 pb-8">
+            {/* Download Image */}
+            <button
+              type="button"
+              onClick={handleDownloadImage}
+              disabled={isGeneratingShare}
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5 disabled:opacity-70 disabled:cursor-wait text-left w-full"
+            >
+              <div
+                className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(107,123,123,0.10)" }}
+              >
+                {isGeneratingShare ? (
+                  <FontAwesomeIcon icon={faArrowsSpin} className="w-4 h-4 text-[#6B7B7B] animate-spin" />
+                ) : (
+                  <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-[#6B7B7B]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#2E4A4A]">Download Image</p>
+                <p className="text-xs text-[#9CA3AF]">
+                  {isGeneratingShare ? "Generating image…" : "Save as PNG to share anywhere"}
+                </p>
+                {imageExportError && (
+                  <p className="text-xs text-red-500 mt-0.5">{imageExportError}</p>
+                )}
+              </div>
+            </button>
+
+            <div className="mx-5 border-t border-[#F0F1F1]" />
+
+            {/* Create Public Link */}
+            <button
+              type="button"
+              onClick={handleCreatePublicShare}
+              disabled={isCreatingPublicShare}
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5 disabled:opacity-70 disabled:cursor-wait text-left w-full"
+            >
+              <div
+                className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(107,123,123,0.10)" }}
+              >
+                {isCreatingPublicShare ? (
+                  <FontAwesomeIcon icon={faArrowsSpin} className="w-4 h-4 text-[#6B7B7B] animate-spin" />
+                ) : (
+                  <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-[#6B7B7B]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#2E4A4A]">Create Public Link</p>
+                <p className="text-xs text-[#9CA3AF]">
+                  {isCreatingPublicShare ? "Creating link…" : "Anyone with the link can view these results"}
+                </p>
+                {publicShareError && (
+                  <p className="text-xs text-red-500 mt-0.5">{publicShareError}</p>
+                )}
+              </div>
+            </button>
+          </div>
+        )}
       </BottomSheet>
 
       {/* Booking confirmation popup */}
