@@ -58,6 +58,7 @@ const oneWayModel: FlightShareModel = {
   tripTypeLabel: "One-way",
   combinedDateLabel: "Sat, Jun 13, 2026 • One-way",
   heroImageUrl: "/assets/locations/42_background.png",
+  arrivalImageUrl: "/assets/locations/7_background.png",
   totalOptionCount: 8,
   totalNonstopCount: 3,
   totalGoWildCount: 1,
@@ -141,6 +142,7 @@ const roundTripModel: FlightShareModel = {
   tripTypeLabel: "Round-trip",
   combinedDateLabel: "Sat, Jun 13 – Wed, Jun 17, 2026 • Round-trip",
   heroImageUrl: "/assets/locations/42_background.png",
+  arrivalImageUrl: "/assets/locations/7_background.png",
   totalOptionCount: 6,
   totalNonstopCount: 2,
   totalGoWildCount: 0,
@@ -187,6 +189,7 @@ const emptyModel: FlightShareModel = {
   tripTypeLabel: "One-way",
   combinedDateLabel: "Sat, Jun 13, 2026 • One-way",
   heroImageUrl: "/assets/locations/init_background.png",
+  arrivalImageUrl: "/assets/locations/init_background.png",
   totalOptionCount: 0,
   totalNonstopCount: 0,
   totalGoWildCount: 0,
@@ -307,10 +310,11 @@ describe("FlightShareTemplate", () => {
     expect(screen.getByText("—")).toBeDefined();
   });
 
-  // Date label renders in hero
-  it("renders the combined date label in the hero", () => {
+  // Stats row: date and trip type render as separate chips
+  it("renders departure date and trip type in the stats row", () => {
     render(<FlightShareTemplate model={oneWayModel} />);
-    expect(screen.getByText("Sat, Jun 13, 2026 • One-way")).toBeDefined();
+    expect(screen.getByText("Sat, Jun 13")).toBeDefined();
+    expect(screen.getByText("One-way")).toBeDefined();
   });
 
   // Root has correct data attribute

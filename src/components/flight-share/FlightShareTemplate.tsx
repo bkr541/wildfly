@@ -2,16 +2,16 @@ import React, { forwardRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
-  Rocket01Icon,
-  TicketStarIcon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 import type { FlightShareModel, FlightShareSection } from "@/utils/flightShareModel";
 import { FlightShareAirportGroup } from "./FlightShareAirportGroup";
+import { FlightShareOptionRow } from "./FlightShareOptionRow";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const ROOT_WIDTH = 941;
+const HERO_HEIGHT = 253;
 const FONT_FAMILY =
   "Quicksand, Montserrat, ui-sans-serif, system-ui, -apple-system, sans-serif";
 const PAGE_BG = "#F7F9F8";
@@ -20,95 +20,91 @@ const DARK_TEAL = "#1A2E2E";
 const MUTED = "#6B7B7B";
 const FAINT = "#9AADAD";
 const EMERALD = "#059669";
-const EMERALD_LIGHT = "#10B981";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-/** Three summary chips rendered below the hero. */
-function SummaryChips({ model }: { model: FlightShareModel }) {
-  const chips = [
-    {
-      icon: TicketStarIcon,
-      count: model.totalOptionCount,
-      label: model.totalOptionCount === 1 ? "option" : "options",
-      color: EMERALD,
-      bg: "#F0FAF6",
-      border: "#A7F3D0",
-    },
-    {
-      icon: AirplaneTakeOff01Icon,
-      count: model.totalNonstopCount,
-      label: model.totalNonstopCount === 1 ? "nonstop" : "nonstop",
-      color: DARK_TEAL,
-      bg: "#FFFFFF",
-      border: "#E8EBEB",
-    },
-    {
-      icon: Rocket01Icon,
-      count: model.totalGoWildCount,
-      label: "Go Wild",
-      color: EMERALD,
-      bg: "#F0FAF6",
-      border: "#A7F3D0",
-    },
-  ] as const;
+/** Stats strip below the hero: date, trip type, options (highlighted), nonstop, gowild. */
+function StatsRow({ model }: { model: FlightShareModel }) {
+  const dateLabel = model.sections[0]?.formattedDateLabel ?? "";
+
+  const statItem = (label: string, value: string | number) => (
+    <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+      <span style={{
+        fontSize: 10,
+        fontWeight: 600,
+        color: MUTED,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        lineHeight: 1,
+      }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: 15,
+        fontWeight: 700,
+        color: DARK_TEAL,
+        lineHeight: 1.1,
+        textAlign: "center",
+        fontVariantNumeric: "tabular-nums",
+      }}>
+        {value}
+      </span>
+    </div>
+  );
+
+  const divider = (key: string) => (
+    <div key={key} style={{ width: 1, height: 28, background: "#E8EBEB", flexShrink: 0 }} />
+  );
 
   return (
     <div style={{
       display: "flex",
-      gap: 12,
-      padding: "18px 32px",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "14px 52px",
       background: "#FFFFFF",
       borderBottom: "1px solid #F0F1F1",
     }}>
-      {chips.map(({ icon, count, label, color, bg, border }) => (
-        <div
-          key={label}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            background: bg,
-            border: `1px solid ${border}`,
-            borderRadius: 18,
-            padding: "10px 18px",
-            boxShadow: "0 1px 4px 0 rgba(53,92,90,0.07)",
-          }}
-        >
-          <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: color,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}>
-            <HugeiconsIcon icon={icon} size={14} color="#FFFFFF" strokeWidth={2} />
-          </div>
-          <div>
-            <span style={{
-              fontSize: 18,
-              fontWeight: 900,
-              color: DARK_TEAL,
-              marginRight: 4,
-              fontVariantNumeric: "tabular-nums",
-              lineHeight: 1,
-            }}>
-              {count}
-            </span>
-            <span style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: MUTED,
-              lineHeight: 1,
-            }}>
-              {label}
-            </span>
-          </div>
-        </div>
-      ))}
+      {statItem("DATE", dateLabel)}
+      {divider("d1")}
+      {statItem("TRIP", model.tripTypeLabel)}
+      {divider("d2")}
+
+      {/* Highlighted OPTIONS badge */}
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+        background: EMERALD,
+        borderRadius: 12,
+        padding: "7px 20px",
+      }}>
+        <span style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: "rgba(255,255,255,0.85)",
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          lineHeight: 1,
+        }}>
+          OPTIONS
+        </span>
+        <span style={{
+          fontSize: 22,
+          fontWeight: 900,
+          color: "#FFFFFF",
+          lineHeight: 1.1,
+          fontVariantNumeric: "tabular-nums",
+        }}>
+          {model.totalOptionCount}
+        </span>
+      </div>
+
+      {divider("d3")}
+      {statItem("NONSTOP", model.totalNonstopCount)}
+      {divider("d4")}
+      {statItem("GOWILD", model.totalGoWildCount)}
     </div>
   );
 }
@@ -123,11 +119,7 @@ function SectionHeader({ section }: { section: FlightShareSection }) {
       gap: 10,
       marginBottom: 14,
     }}>
-      <div style={{
-        height: 1,
-        flex: 1,
-        background: "#E8EBEB",
-      }} />
+      <div style={{ height: 1, flex: 1, background: "#E8EBEB" }} />
       <div style={{
         display: "flex",
         alignItems: "center",
@@ -160,7 +152,11 @@ function SectionHeader({ section }: { section: FlightShareSection }) {
   );
 }
 
-/** Body rendered for a single section's airport groups. */
+/**
+ * Renders flights for a section.
+ * Single airport group → rows rendered directly (no card wrapper).
+ * Multiple airport groups → each wrapped in a FlightShareAirportGroup card.
+ */
 function SectionGroups({ section }: { section: FlightShareSection }) {
   if (section.airportGroups.length === 0) {
     return (
@@ -174,6 +170,23 @@ function SectionGroups({ section }: { section: FlightShareSection }) {
       </p>
     );
   }
+
+  if (section.airportGroups.length === 1) {
+    const group = section.airportGroups[0];
+    return (
+      <div>
+        {group.options.map((option, i) => (
+          <FlightShareOptionRow
+            key={option.canonicalKey}
+            option={option}
+            isFirst={i === 0}
+            isLast={i === group.options.length - 1}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {section.airportGroups.map((group) => (
@@ -196,6 +209,8 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
     const isRoundTrip = model.sections.length > 1 ||
       (model.sections[0]?.sectionType !== "ONE-WAY");
 
+    const textShadow = "0 1px 6px rgba(0,0,0,0.90), 0 2px 14px rgba(0,0,0,0.65)";
+
     return (
       <div
         ref={ref}
@@ -208,15 +223,14 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
           boxSizing: "border-box",
           overflow: "hidden",
           position: "relative",
-          // Ensure the root is not affected by any parent scroll containers
           contain: "layout",
         }}
       >
 
         {/* ── Hero section ────────────────────────────────────────────────────── */}
-        <div style={{ position: "relative", height: 380, overflow: "hidden", background: "#C8D5D5" }}>
+        <div style={{ position: "relative", height: HERO_HEIGHT, overflow: "hidden", background: "#C8D5D5" }}>
 
-          {/* City/airport hero image */}
+          {/* Departure city image — upper-left triangle */}
           <img
             src={model.heroImageUrl}
             alt=""
@@ -229,112 +243,135 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
               objectFit: "cover",
               objectPosition: "center",
               display: "block",
+              clipPath: "polygon(0 0, 100% 0, 0 100%)",
             }}
           />
 
-          {/* Translucent white scrim for readability */}
+          {/* Arrival city image — lower-right triangle */}
+          <img
+            src={model.arrivalImageUrl}
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+              display: "block",
+              clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
+            }}
+          />
+
+          {/* Diagonal divider line */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top right, transparent calc(50% - 1px), rgba(255,255,255,0.55) calc(50% - 1px), rgba(255,255,255,0.55) calc(50% + 1px), transparent calc(50% + 1px))",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* Dark overlay for readability */}
           <div style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(255,255,255,0.28)",
+            background: "rgba(8, 18, 32, 0.42)",
             pointerEvents: "none",
           }} />
 
-          {/* Soft bottom gradient — blends hero into the white chip row */}
-          <div style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 160,
-            background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,1) 100%)",
-            pointerEvents: "none",
-          }} />
-
-          {/* Hero text content */}
+          {/* Corner vignettes — darken the text areas */}
           <div style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-start",
-            padding: "40px 40px 0 40px",
-            boxSizing: "border-box",
-            zIndex: 1,
-          }}>
-            {/* Eyebrow */}
-            <div style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: MUTED,
-              marginBottom: 10,
+            background: "linear-gradient(to bottom right, rgba(0,0,0,0.28) 0%, transparent 45%, rgba(0,0,0,0.28) 100%)",
+            pointerEvents: "none",
+          }} />
+
+          {/* ── Content layer ─────────────────────────────────────────────────── */}
+          <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+
+            {/* Logo — top-left */}
+            <img
+              src="/assets/logo/logo_horizontal.png"
+              alt="Wildfly"
+              style={{
+                position: "absolute",
+                top: 20,
+                left: 28,
+                height: 26,
+                objectFit: "contain",
+                objectPosition: "left center",
+              }}
+            />
+
+            {/* Departure city — top-left */}
+            <span style={{
+              position: "absolute",
+              top: 56,
+              left: 28,
+              fontSize: 44,
+              fontWeight: 900,
+              color: "#FFFFFF",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+              textShadow,
             }}>
-              Shared flight search
-            </div>
+              {model.originLabel}
+            </span>
 
-            {/* Route heading */}
+            {/* Arrow — centered */}
             <div style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              background: "rgba(10, 22, 40, 0.65)",
+              border: "1.5px solid rgba(255,255,255,0.45)",
               display: "flex",
               alignItems: "center",
-              gap: 14,
-              flexWrap: "nowrap",
+              justifyContent: "center",
             }}>
-              <span style={{
-                fontSize: 52,
-                fontWeight: 900,
-                color: NAVY,
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-              }}>
-                {model.originLabel}
-              </span>
-              {/* Inline SVG arrow — always renders in capture */}
-              <svg
-                width="36"
-                height="36"
-                viewBox="0 0 36 36"
-                fill="none"
-                style={{ flexShrink: 0 }}
-                aria-hidden="true"
-              >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
-                  d="M6 18h24M22 10l8 8-8 8"
-                  stroke={NAVY}
-                  strokeWidth="3"
+                  d="M5 12h14M13 6l6 6-6 6"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
-              <span style={{
-                fontSize: 52,
-                fontWeight: 900,
-                color: NAVY,
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-              }}>
-                {model.destinationLabel}
-              </span>
             </div>
 
-            {/* Date + trip type */}
-            <div style={{
-              fontSize: 16,
-              fontWeight: 500,
-              color: MUTED,
-              marginTop: 10,
+            {/* Arrival city — bottom-right */}
+            <span style={{
+              position: "absolute",
+              bottom: 20,
+              right: 28,
+              fontSize: 44,
+              fontWeight: 900,
+              color: "#FFFFFF",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+              textShadow,
+              textAlign: "right",
             }}>
-              {model.combinedDateLabel}
-            </div>
+              {model.destinationLabel}
+            </span>
           </div>
         </div>
 
-        {/* ── Summary chips ────────────────────────────────────────────────────── */}
-        <SummaryChips model={model} />
+        {/* ── Stats row ────────────────────────────────────────────────────────── */}
+        <StatsRow model={model} />
 
         {/* ── Body ──────────────────────────────────────────────────────────────── */}
-        <div style={{ padding: "28px 32px 40px 32px", display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ padding: "28px 52px 40px 52px", display: "flex", flexDirection: "column", gap: 24 }}>
 
           {!model.hasResults ? (
             /* Empty state */
@@ -355,22 +392,20 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
               </p>
             </div>
           ) : isRoundTrip ? (
-            /* Round-trip: render each section with its header */
-            model.sections.map((section, i) => (
+            model.sections.map((section) => (
               <div key={section.sectionType}>
                 <SectionHeader section={section} />
                 <SectionGroups section={section} />
               </div>
             ))
           ) : (
-            /* One-way: render groups directly */
             <SectionGroups section={model.sections[0]} />
           )}
         </div>
 
         {/* ── Footer ───────────────────────────────────────────────────────────── */}
         <div style={{
-          margin: "0 32px 32px 32px",
+          margin: "0 52px 40px 52px",
           borderRadius: 16,
           border: "1px solid #E8EBEB",
           background: "#FFFFFF",
@@ -380,7 +415,6 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
           justifyContent: "space-between",
           boxShadow: "0 1px 4px 0 rgba(53,92,90,0.05)",
         }}>
-          {/* Left: disclaimer */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <HugeiconsIcon
               icon={InformationCircleIcon}
@@ -392,8 +426,6 @@ export const FlightShareTemplate = forwardRef<HTMLDivElement, FlightShareTemplat
               Fares and availability may change.
             </span>
           </div>
-
-          {/* Right: branding */}
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ fontSize: 12, color: MUTED, fontWeight: 500 }}>
               Shared from

@@ -139,6 +139,7 @@ export interface FlightShareModel {
   tripTypeLabel: string;
   combinedDateLabel: string;
   heroImageUrl: string;
+  arrivalImageUrl: string;
   totalOptionCount: number;
   totalNonstopCount: number;
   totalGoWildCount: number;
@@ -649,13 +650,26 @@ export function buildFlightShareModel(args: BuildFlightShareModelArgs): FlightSh
       ]
     : [buildFlightShareSection("ONE-WAY", departureDate, oneWayFlights, airportMap)];
 
-  // Hero image: first actual origin airport from the first section
+  // Hero image (departure): first actual origin airport from the first section
   let heroImageUrl = "/assets/locations/init_background.png";
   const firstGroup = sections[0]?.airportGroups[0];
   if (firstGroup) {
     const locationId = airportMap[firstGroup.iata]?.locationId;
     if (locationId) {
       heroImageUrl = `/assets/locations/${locationId}_background.png`;
+    }
+  }
+
+  // Arrival image: destination airport, then return section fallback, then departure
+  let arrivalImageUrl = heroImageUrl;
+  if (arrivalAirport && arrivalAirport !== "All" && !arrivalAirport.startsWith("CITY:")) {
+    const arrLocId = airportMap[arrivalAirport]?.locationId;
+    if (arrLocId) arrivalImageUrl = `/assets/locations/${arrLocId}_background.png`;
+  } else if (isRoundTrip) {
+    const returnGroup = sections[1]?.airportGroups[0];
+    if (returnGroup) {
+      const locId = airportMap[returnGroup.iata]?.locationId;
+      if (locId) arrivalImageUrl = `/assets/locations/${locId}_background.png`;
     }
   }
 
@@ -669,6 +683,7 @@ export function buildFlightShareModel(args: BuildFlightShareModelArgs): FlightSh
     tripTypeLabel,
     combinedDateLabel,
     heroImageUrl,
+    arrivalImageUrl,
     totalOptionCount,
     totalNonstopCount,
     totalGoWildCount,
