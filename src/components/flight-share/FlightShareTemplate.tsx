@@ -181,6 +181,7 @@ function SectionGroups({ section }: { section: FlightShareSection }) {
             option={option}
             isFirst={i === 0}
             isLast={i === group.options.length - 1}
+            sectionLabel={section.label}
           />
         ))}
       </div>
@@ -190,7 +191,7 @@ function SectionGroups({ section }: { section: FlightShareSection }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {section.airportGroups.map((group) => (
-        <FlightShareAirportGroup key={group.iata} group={group} />
+        <FlightShareAirportGroup key={group.iata} group={group} sectionLabel={section.label} />
       ))}
     </div>
   );

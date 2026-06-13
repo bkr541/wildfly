@@ -1,6 +1,6 @@
 import React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AirplaneSeatIcon, Rocket01Icon } from "@hugeicons/core-free-icons";
+import { Rocket01Icon, ArrowRight04Icon, CircleArrowReload01Icon } from "@hugeicons/core-free-icons";
 import type { FlightShareOption } from "@/utils/flightShareModel";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -9,12 +9,12 @@ const DARK_TEAL = "#1A2E2E";
 const EMERALD = "#059669";
 const MUTED = "#6B7B7B";
 const FAINT = "#9AADAD";
-const PAGE_BG = "#F7F9F8";
 const FRONTIER_FULL_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 
-// Horizontal padding inside the boarding-pass card (must match notch math)
-const CARD_PX = 18;
+const CARD_PX = 20;
 const NOTCH_SIZE = 26;
+const NOTCH_BG = "#F7F9F8";
+const STUB_WIDTH = 152;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -33,15 +33,41 @@ function PlaneSVG() {
   );
 }
 
+function daysUntilDeparture(depRaw: string): number | null {
+  if (!depRaw) return null;
+  const d = new Date(depRaw);
+  if (isNaN(d.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+  return diff >= 0 ? diff : null;
+}
+
+function formatDateFromRaw(raw: string): string {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// ── Props ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   option: FlightShareOption;
   isFirst: boolean;
   isLast: boolean;
+  sectionLabel?: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function FlightShareOptionRow({ option, isFirst, isLast }: Props) {
+export function FlightShareOptionRow({ option, isFirst, isLast, sectionLabel }: Props) {
   const {
     timeOfDay,
     departureTimeLabel,
@@ -52,19 +78,19 @@ export function FlightShareOptionRow({ option, isFirst, isLast }: Props) {
     isNonstop,
     isGoWild,
     goWildSeats,
-    flightNumbers,
     formattedDuration,
     emphasizedFare,
+    departureRaw,
+    arrivalRaw,
   } = option;
 
   const originCode = routeAirports[0] ?? "";
   const destCode = routeAirports[routeAirports.length - 1] ?? "";
   const stopLabel = isNonstop ? "NONSTOP" : stopCount === 1 ? "1 STOP" : `${stopCount} STOPS`;
-  const seatsText = goWildSeats != null
-    ? `${goWildSeats} ${goWildSeats === 1 ? "seat" : "seats"}`
-    : null;
-  const flightNumText = flightNumbers.length > 0 ? flightNumbers.join(" + ") : null;
   const fareText = emphasizedFare != null ? `$${emphasizedFare.toFixed(2)}` : "—";
+  const depDateLabel = formatDateFromRaw(departureRaw);
+  const arrDateLabel = formatDateFromRaw(arrivalRaw);
+  const daysUntil = daysUntilDeparture(departureRaw);
 
   return (
     <div style={{ display: "flex", alignItems: "stretch", marginBottom: isLast ? 0 : 14 }}>
@@ -136,235 +162,362 @@ export function FlightShareOptionRow({ option, isFirst, isLast }: Props) {
         background: "#FFFFFF",
         border: isGoWild ? "1.5px solid #A7F3D0" : "1px solid #E8EBEB",
         borderRadius: 18,
-        padding: `14px ${CARD_PX}px 18px ${CARD_PX}px`,
         boxSizing: "border-box",
         boxShadow: "0 2px 10px 0 rgba(52,92,90,0.10)",
+        display: "flex",
+        flexDirection: "row",
       }}>
 
-        {/* Header: Frontier logo + GoWild badge ────────────────────────────── */}
+        {/* ── Main section ──────────────────────────────────────────────────── */}
         <div style={{
+          flex: 1,
+          padding: `14px ${CARD_PX}px 20px ${CARD_PX}px`,
+          boxSizing: "border-box",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 14,
+          flexDirection: "column",
         }}>
-          <img
-            src={FRONTIER_FULL_LOGO}
-            alt="Frontier Airlines"
-            style={{ height: 16, objectFit: "contain", objectPosition: "left center" }}
-          />
-          {isGoWild && (
+
+          {/* Frontier logo */}
+          <div style={{ marginBottom: 12 }}>
+            <img
+              src={FRONTIER_FULL_LOGO}
+              alt="Frontier Airlines"
+              style={{ height: 16, objectFit: "contain", objectPosition: "left center" }}
+            />
+          </div>
+
+          {/* Route: IATA ----[✈ or via]---- IATA */}
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+            <span style={{
+              fontSize: 36,
+              fontWeight: 900,
+              color: DARK_TEAL,
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+              flexShrink: 0,
+            }}>
+              {originCode}
+            </span>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 10px" }}>
+              {isNonstop ? (
+                <>
+                  <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
+                  <div style={{ margin: "0 8px", flexShrink: 0 }}>
+                    <PlaneSVG />
+                  </div>
+                  <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
+                </>
+              ) : (
+                <>
+                  <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
+                  {routeAirports.slice(1, -1).map((via) => (
+                    <React.Fragment key={via}>
+                      <span style={{
+                        margin: "0 7px",
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: MUTED,
+                        letterSpacing: "-0.01em",
+                        lineHeight: 1,
+                        flexShrink: 0,
+                      }}>
+                        {via}
+                      </span>
+                      <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
+                    </React.Fragment>
+                  ))}
+                </>
+              )}
+            </div>
+            <span style={{
+              fontSize: 36,
+              fontWeight: 900,
+              color: DARK_TEAL,
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+              flexShrink: 0,
+            }}>
+              {destCode}
+            </span>
+          </div>
+
+          {/* Times + dates row */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 14,
+          }}>
+            <div>
+              <div style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: EMERALD,
+                lineHeight: 1.2,
+                fontVariantNumeric: "tabular-nums",
+              }}>
+                {departureTimeLabel}
+              </div>
+              {depDateLabel && (
+                <div style={{ fontSize: 11, fontWeight: 500, color: MUTED, lineHeight: 1.3, marginTop: 2 }}>
+                  {depDateLabel}
+                </div>
+              )}
+            </div>
+
+            <span style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#065F46",
+              background: "#D1FAE5",
+              borderRadius: 20,
+              padding: "3px 12px",
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              alignSelf: "center",
+            }}>
+              {formattedDuration}
+            </span>
+
+            <div style={{ textAlign: "right" }}>
+              <div>
+                <span style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: EMERALD,
+                  lineHeight: 1.2,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {arrivalTimeLabel}
+                </span>
+                {isPlusOneDay && (
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#3B82F6",
+                    marginLeft: 3,
+                    verticalAlign: "super",
+                    lineHeight: 1,
+                  }}>
+                    +1
+                  </span>
+                )}
+              </div>
+              {arrDateLabel && (
+                <div style={{ fontSize: 11, fontWeight: 500, color: MUTED, lineHeight: 1.3, marginTop: 2 }}>
+                  {arrDateLabel}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom badges — styled to match UpcomingFlightsScroll exactly */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            {/* Stop badge */}
             <span style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 4,
-              fontSize: 9,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              background: EMERALD,
-              color: "#FFFFFF",
-              borderRadius: 6,
-              padding: "3px 8px",
-              lineHeight: 1.6,
-            }}>
-              <HugeiconsIcon icon={Rocket01Icon} size={9} color="#FFFFFF" strokeWidth={2.5} />
-              GoWild
-            </span>
-          )}
-        </div>
-
-        {/* Route row: IATA ----[✈]---- IATA ───────────────────────────────── */}
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-          <span style={{
-            fontSize: 36,
-            fontWeight: 900,
-            color: DARK_TEAL,
-            lineHeight: 1,
-            letterSpacing: "-0.02em",
-            flexShrink: 0,
-          }}>
-            {originCode}
-          </span>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 10px" }}>
-            <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
-            <div style={{ margin: "0 8px", flexShrink: 0 }}>
-              <PlaneSVG />
-            </div>
-            <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
-          </div>
-          <span style={{
-            fontSize: 36,
-            fontWeight: 900,
-            color: DARK_TEAL,
-            lineHeight: 1,
-            letterSpacing: "-0.02em",
-            flexShrink: 0,
-          }}>
-            {destCode}
-          </span>
-        </div>
-
-        {/* Times row ────────────────────────────────────────────────────────── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: EMERALD,
-            lineHeight: 1.2,
-            fontVariantNumeric: "tabular-nums",
-          }}>
-            {departureTimeLabel}
-          </span>
-          <span style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#065F46",
-            background: "#D1FAE5",
-            borderRadius: 20,
-            padding: "3px 12px",
-            lineHeight: 1.5,
-            whiteSpace: "nowrap",
-          }}>
-            {formattedDuration}
-          </span>
-          <div style={{ textAlign: "right" }}>
-            <span style={{
-              fontSize: 15,
+              height: 24,
+              padding: "0 10px",
+              borderRadius: 9999,
+              background: isNonstop ? "#D1FAE5" : "#F1F5F5",
+              color: isNonstop ? "#047857" : MUTED,
+              fontSize: 11,
               fontWeight: 600,
-              color: EMERALD,
-              lineHeight: 1.2,
-              fontVariantNumeric: "tabular-nums",
+              whiteSpace: "nowrap",
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
             }}>
-              {arrivalTimeLabel}
+              {stopLabel}
             </span>
-            {isPlusOneDay && (
+
+            {/* Departs in Xd — matches UpcomingFlights exactly */}
+            {daysUntil !== null && (
               <span style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#3B82F6",
-                marginLeft: 3,
-                verticalAlign: "super",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                height: 24,
+                padding: "0 10px",
+                borderRadius: 9999,
+                background: "#F0FDF4",
+                border: "1.5px solid #6EE7B7",
+                color: "#047857",
+                fontSize: 11,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
               }}>
-                +1
+                Departs in {daysUntil}d
               </span>
             )}
+
+            {/* Trip type — matches UpcomingFlights exactly */}
+            {sectionLabel && (() => {
+              const isOneWay = sectionLabel === "One-Way";
+              const icon = isOneWay ? ArrowRight04Icon : CircleArrowReload01Icon;
+              const label = isOneWay ? "One Way" : sectionLabel;
+              return (
+                <span style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  height: 24,
+                  padding: "0 10px",
+                  borderRadius: 9999,
+                  background: "#1D4ED8",
+                  color: "#FFFFFF",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}>
+                  <HugeiconsIcon icon={icon} size={11} color="#FFFFFF" strokeWidth={2.5} />
+                  {label}
+                </span>
+              );
+            })()}
           </div>
         </div>
 
-        {/* Ticket divider ────────────────────────────────────────────────────── */}
+        {/* ── Vertical tear divider with notches ────────────────────────────── */}
         <div style={{
           position: "relative",
-          height: 0,
-          marginTop: 14,
-          marginBottom: 14,
-          marginLeft: -CARD_PX,
-          marginRight: -CARD_PX,
+          width: NOTCH_SIZE,
+          flexShrink: 0,
+          alignSelf: "stretch",
         }}>
           <div style={{
             position: "absolute",
             top: 0,
-            left: CARD_PX,
-            right: CARD_PX,
-            height: 0,
-            borderTop: "1px dashed #C2CFCF",
+            bottom: 0,
+            left: NOTCH_SIZE / 2,
+            width: 0,
+            borderLeft: "1px dashed #C2CFCF",
           }} />
           <div style={{
             position: "absolute",
             width: NOTCH_SIZE,
             height: NOTCH_SIZE,
-            left: -NOTCH_SIZE / 2,
             top: -NOTCH_SIZE / 2,
+            left: 0,
             borderRadius: "50%",
-            background: PAGE_BG,
+            background: NOTCH_BG,
           }} />
           <div style={{
             position: "absolute",
             width: NOTCH_SIZE,
             height: NOTCH_SIZE,
-            right: -NOTCH_SIZE / 2,
-            top: -NOTCH_SIZE / 2,
+            bottom: -NOTCH_SIZE / 2,
+            left: 0,
             borderRadius: "50%",
-            background: PAGE_BG,
+            background: NOTCH_BG,
           }} />
         </div>
 
-        {/* Footer: stop/seats badges + fare ──────────────────────────────────── */}
+        {/* ── Right stub ────────────────────────────────────────────────────── */}
         <div style={{
+          width: STUB_WIDTH,
+          flexShrink: 0,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "space-between",
-          gap: 8,
+          overflow: "hidden",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              padding: "3px 8px",
-              borderRadius: 6,
-              background: isNonstop ? "#D1FAE5" : "#F1F5F5",
-              color: isNonstop ? "#047857" : MUTED,
-              lineHeight: 1.5,
-              whiteSpace: "nowrap",
-            }}>
-              {stopLabel}
-            </span>
-            {flightNumText && (
-              <span style={{ fontSize: 10, fontWeight: 600, color: FAINT, lineHeight: 1 }}>
-                {flightNumText}
-              </span>
-            )}
-            {seatsText && (
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 3,
-                fontSize: 10,
-                fontWeight: 600,
-                color: FAINT,
-                lineHeight: 1,
-              }}>
-                <HugeiconsIcon icon={AirplaneSeatIcon} size={10} color={FAINT} strokeWidth={2} />
-                {seatsText}
-              </span>
-            )}
-          </div>
 
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
+          {/* GoWild header bar */}
+          {isGoWild ? (
             <div style={{
-              fontSize: 9,
+              width: "100%",
+              background: EMERALD,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 5,
+              padding: "10px 0 9px 0",
+            }}>
+              <HugeiconsIcon icon={Rocket01Icon} size={12} color="#FFFFFF" strokeWidth={2.5} />
+              <span style={{
+                fontSize: 13,
+                fontWeight: 800,
+                color: "#FFFFFF",
+                letterSpacing: "0.04em",
+              }}>
+                GoWild
+              </span>
+            </div>
+          ) : (
+            <div style={{ height: 14 }} />
+          )}
+
+          {/* Price */}
+          <div style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "14px 10px 10px 10px",
+          }}>
+            <div style={{
+              fontSize: 10,
               color: FAINT,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               lineHeight: 1,
-              marginBottom: 2,
+              marginBottom: 4,
             }}>
               From
             </div>
             <div style={{
-              fontSize: 19,
+              fontSize: 22,
               fontWeight: 800,
               color: isGoWild ? "#047857" : DARK_TEAL,
               fontVariantNumeric: "tabular-nums",
               lineHeight: 1.1,
+              textAlign: "center",
             }}>
               {fareText}
             </div>
           </div>
+
+          {/* Seats (GoWild only) */}
+          {goWildSeats != null && (
+            <>
+              <div style={{
+                width: "72%",
+                height: 0,
+                borderTop: "1px dashed #C2CFCF",
+                marginBottom: 10,
+              }} />
+              <div style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingBottom: 22,
+              }}>
+                <div style={{
+                  fontSize: 34,
+                  fontWeight: 900,
+                  color: EMERALD,
+                  lineHeight: 1,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {goWildSeats}
+                </div>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: MUTED,
+                  marginTop: 3,
+                }}>
+                  Seats
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Green bottom border ─────────────────────────────────────────────── */}
-        <div style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: EMERALD,
-        }} />
       </div>
     </div>
   );

@@ -6,9 +6,10 @@ import { FlightShareOptionRow } from "./FlightShareOptionRow";
 
 interface FlightShareAirportGroupProps {
   group: FlightShareAirportGroupData;
+  sectionLabel?: string;
 }
 
-export function FlightShareAirportGroup({ group }: FlightShareAirportGroupProps) {
+export function FlightShareAirportGroup({ group, sectionLabel }: FlightShareAirportGroupProps) {
   const { iata, name, city, optionCount, options } = group;
 
   // Graceful name display: prefer name, fall back to city, then iata code
@@ -120,6 +121,7 @@ export function FlightShareAirportGroup({ group }: FlightShareAirportGroupProps)
               option={option}
               isFirst={i === 0}
               isLast={i === options.length - 1}
+              sectionLabel={sectionLabel}
             />
           ))
         )}
