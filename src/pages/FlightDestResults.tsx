@@ -38,6 +38,7 @@ import {
    TrafficLightIcon,
    Directions02Icon,
    AirplaneSeatIcon,
+  Share03Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -45,6 +46,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 import { toAirportUTC } from "@/utils/airportTime";
 import { cn } from "@/lib/utils";
+import { getGoWildInfo, buildFlightShareModel } from "@/utils/flightShareModel";
+import { FlightShareTemplate } from "@/components/flight-share/FlightShareTemplate";
+import { exportFlightShareImage, buildShareFilename } from "@/utils/exportFlightShareImage";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
 import { fetchDeveloperSettings } from "@/lib/logSettings";
 
@@ -287,6 +291,9 @@ const FlightDestResults = ({
   const [parallaxY, setParallaxY] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const shareTemplateRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [airportLookupComplete, setAirportLookupComplete] = useState(true);
 
   useEffect(() => {
     fetchDeveloperSettings().then((s) => setDebugEnabled(s?.debug_enabled ?? false));
@@ -313,8 +320,13 @@ const FlightDestResults = ({
     setTimeout(() => setToast((t) => ({ ...t, visible: false })), 1800);
   }, []);
 
-  // Build a unique key for a flight to match against user_flights
-  const isGoWildFlight = (flight: ParsedFlight) => flight.fares.basic != null && flight.fares.basic < 60;
+  // Single memoized parse of responseData — avoids repeated JSON.parse throughout the component
+  const parsedResponse = useMemo(() => {
+    try { return JSON.parse(responseData); } catch { return null; }
+  }, [responseData]);
+
+  // Correct GoWild detection — checks explicit API fields, not a price threshold
+  const isGoWildFlight = (flight: ParsedFlight) => getGoWildInfo(flight as Parameters<typeof getGoWildInfo>[0]).available;
 
   const flightKey = useCallback((flight: ParsedFlight, type: string) => {
     const dep = flight.legs[0];
@@ -365,13 +377,8 @@ const FlightDestResults = ({
       );
 
       // Fallback dates needed when the time string is "HH:MM AM/PM" with no embedded date
-      let depDate: string | null = null;
-      let arrDate: string | null = null;
-      try {
-        const parsed = JSON.parse(responseData);
-        depDate = parsed.departureDate ?? null;
-        arrDate = parsed.arrivalDate ?? parsed.departureDate ?? null;
-      } catch { /* ignore */ }
+      const depDate: string | null = parsedResponse?.departureDate ?? null;
+      const arrDate: string | null = parsedResponse?.arrivalDate ?? parsedResponse?.departureDate ?? null;
 
       const { data: inserted } = (await supabase
         .from("user_flights" as any)
@@ -391,7 +398,7 @@ const FlightDestResults = ({
         setUserFlights((prev) => ({ ...prev, [key]: { id: inserted.id, type } }));
       }
     },
-    [userFlights, flightKey, responseData],
+    [userFlights, flightKey, parsedResponse],
   );
 
   const toggleUserFlight = useCallback(
@@ -428,13 +435,8 @@ const FlightDestResults = ({
         );
 
         // Fallback dates needed when the time string is "HH:MM AM/PM" with no embedded date
-        let depDate: string | null = null;
-        let arrDate: string | null = null;
-        try {
-          const parsed = JSON.parse(responseData);
-          depDate = parsed.departureDate ?? null;
-          arrDate = parsed.arrivalDate ?? parsed.departureDate ?? null;
-        } catch { /* ignore */ }
+        const depDate: string | null = parsedResponse?.departureDate ?? null;
+        const arrDate: string | null = parsedResponse?.arrivalDate ?? parsedResponse?.departureDate ?? null;
 
         const { data: inserted } = (await supabase
           .from("user_flights" as any)
@@ -456,30 +458,12 @@ const FlightDestResults = ({
         }
       }
     },
-    [userFlights, flightKey, showToast],
+    [userFlights, flightKey, showToast, parsedResponse],
   );
 
   const { oneWayFlights, outboundFlights, returnFlights, departureDate, arrivalDate, tripType, departureAirport, arrivalAirport, fromCache, isRoundTrip } = useMemo(() => {
-    try {
-      const parsed = JSON.parse(responseData);
-      const tt = parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way";
-      const outbound = (parsed.response?.outboundFlights ?? []) as ParsedFlight[];
-      const ret = (parsed.response?.returnFlights ?? []) as ParsedFlight[];
-      const oneWay = (parsed.response?.flights ?? []) as ParsedFlight[];
-      const round = outbound.length > 0 || ret.length > 0 || tt.toLowerCase().includes("round");
-      return {
-        oneWayFlights: oneWay,
-        outboundFlights: outbound,
-        returnFlights: ret,
-        departureDate: parsed.departureDate ?? null,
-        arrivalDate: parsed.arrivalDate ?? null,
-        tripType: tt,
-        departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
-        arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "",
-        fromCache: parsed.fromCache === true,
-        isRoundTrip: round,
-      };
-    } catch {
+    const parsed = parsedResponse;
+    if (!parsed) {
       return {
         oneWayFlights: [] as ParsedFlight[],
         outboundFlights: [] as ParsedFlight[],
@@ -493,7 +477,24 @@ const FlightDestResults = ({
         isRoundTrip: false,
       };
     }
-  }, [responseData]);
+    const tt = parsed.tripType ?? parsed.firecrawlRequestBody?.tripType ?? "One Way";
+    const outbound = (parsed.response?.outboundFlights ?? []) as ParsedFlight[];
+    const ret = (parsed.response?.returnFlights ?? []) as ParsedFlight[];
+    const oneWay = (parsed.response?.flights ?? []) as ParsedFlight[];
+    const round = outbound.length > 0 || ret.length > 0 || tt.toLowerCase().includes("round");
+    return {
+      oneWayFlights: oneWay,
+      outboundFlights: outbound,
+      returnFlights: ret,
+      departureDate: parsed.departureDate ?? null,
+      arrivalDate: parsed.arrivalDate ?? null,
+      tripType: tt,
+      departureAirport: parsed.departureAirport ?? parsed.firecrawlRequestBody?.departureAirport ?? "",
+      arrivalAirport: parsed.arrivalAirport ?? parsed.firecrawlRequestBody?.arrivalAirport ?? "",
+      fromCache: parsed.fromCache === true,
+      isRoundTrip: round,
+    };
+  }, [parsedResponse]);
 
   const activeFlights = useMemo(() => {
     if (!isRoundTrip) return oneWayFlights;
@@ -518,31 +519,37 @@ const FlightDestResults = ({
 
   useEffect(() => {
     if (destinationCodes.length === 0) return;
-    const fetchAirports = async () => {
-      const { data } = await supabase
-        .from("airports")
-        .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code, country)")
-        .in("iata_code", destinationCodes);
-      if (data) {
-        const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }> = {};
-        const coords: Record<string, { lat: number; lng: number }> = {};
-        for (const a of data as any[]) {
-          map[a.iata_code] = {
-            city: a.locations?.city ?? "",
-            stateCode: a.locations?.state_code ?? "",
-            name: a.name ?? "",
-            locationId: a.location_id ?? null,
-            country: a.locations?.country ?? undefined,
-          };
-          if (a.latitude != null && a.longitude != null) {
-            coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
+    let cancelled = false;
+    setAirportLookupComplete(false);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("airports")
+          .select("iata_code, name, latitude, longitude, location_id, locations(city, state_code, country)")
+          .in("iata_code", destinationCodes);
+        if (!cancelled && data) {
+          const map: Record<string, { city: string; stateCode: string; name: string; locationId?: number | null; country?: string }> = {};
+          const coords: Record<string, { lat: number; lng: number }> = {};
+          for (const a of data as any[]) {
+            map[a.iata_code] = {
+              city: a.locations?.city ?? "",
+              stateCode: a.locations?.state_code ?? "",
+              name: a.name ?? "",
+              locationId: a.location_id ?? null,
+              country: a.locations?.country ?? undefined,
+            };
+            if (a.latitude != null && a.longitude != null) {
+              coords[a.iata_code] = { lat: a.latitude, lng: a.longitude };
+            }
           }
+          setAirportMap(map);
+          setAirportCoords(coords);
         }
-        setAirportMap(map);
-        setAirportCoords(coords);
+      } finally {
+        if (!cancelled) setAirportLookupComplete(true);
       }
-    };
-    fetchAirports();
+    })();
+    return () => { cancelled = true; };
   }, [destinationCodes]);
 
   const airportMapWithCoords = useMemo(
@@ -637,6 +644,48 @@ const FlightDestResults = ({
     return activeFlights[0].legs[0]?.origin ?? "";
   }, [activeFlights]);
 
+  const shareModel = useMemo(
+    () =>
+      buildFlightShareModel({
+        departureAirport,
+        arrivalAirport,
+        departureDate,
+        arrivalDate,
+        tripType,
+        isRoundTrip,
+        oneWayFlights,
+        outboundFlights,
+        returnFlights,
+        airportMap,
+      }),
+    [departureAirport, arrivalAirport, departureDate, arrivalDate, tripType, isRoundTrip, oneWayFlights, outboundFlights, returnFlights, airportMap],
+  );
+
+  const handleShareImage = useCallback(async () => {
+    if (isGeneratingShare) return;
+    if (!shareModel.hasResults) {
+      showToast("No flight results to share");
+      return;
+    }
+    setIsGeneratingShare(true);
+    const node = shareTemplateRef.current;
+    if (!node) {
+      showToast("Could not create the flight results image");
+      setIsGeneratingShare(false);
+      return;
+    }
+    const filename = buildShareFilename(shareModel.originLabel, shareModel.destinationLabel, departureDate);
+    try {
+      await exportFlightShareImage(node, filename);
+      showToast("Flight results image downloaded");
+    } catch (err) {
+      console.error("[Wildfly] exportFlightShareImage failed:", err);
+      showToast("Could not create the flight results image");
+    } finally {
+      setIsGeneratingShare(false);
+    }
+  }, [isGeneratingShare, shareModel, departureDate, showToast]);
+
   const selectedGroup = useMemo(() => {
     if (!selectedDest) return null;
     return groups.find((g) => g.destination === selectedDest) ?? null;
@@ -697,6 +746,23 @@ const FlightDestResults = ({
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleShareImage}
+                disabled={isGeneratingShare || !airportLookupComplete}
+                aria-label="Download flight results image"
+                title="Download flight results image"
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
+                  isGeneratingShare ? "bg-white/10 border-white/30 opacity-60 cursor-wait" : "bg-white/10 border-white/30",
+                )}
+              >
+                {isGeneratingShare ? (
+                  <FontAwesomeIcon icon={faArrowsSpin} className="w-3.5 h-3.5 text-white animate-spin" />
+                ) : (
+                  <HugeiconsIcon icon={Share03Icon} size={14} color="white" strokeWidth={2} />
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => setSortSheet(true)}
@@ -776,6 +842,23 @@ const FlightDestResults = ({
                   <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleShareImage}
+                    disabled={isGeneratingShare || !airportLookupComplete}
+                    aria-label="Download flight results image"
+                    title="Download flight results image"
+                    className={cn(
+                      "h-9 w-9 flex items-center justify-center rounded-full border transition-all",
+                      isGeneratingShare ? "bg-white/10 border-white/30 opacity-60 cursor-wait" : "bg-white/15 border-white/30",
+                    )}
+                  >
+                    {isGeneratingShare ? (
+                      <FontAwesomeIcon icon={faArrowsSpin} className="w-4 h-4 text-white animate-spin" />
+                    ) : (
+                      <HugeiconsIcon icon={Share03Icon} size={16} color="white" strokeWidth={2} />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setSortSheet(true)}
@@ -1312,10 +1395,9 @@ const FlightDestResults = ({
                         const priceLabel = cheapest != null ? `$${cheapest.toFixed(2)}` : null;
                         const depLeg = flight.legs[0];
                         const arrLeg = flight.legs[flight.legs.length - 1];
-                        const depDate = (() => { try { return JSON.parse(responseData).departureDate ?? ""; } catch { return ""; } })();
-                        const arrDate = (() => { try { return JSON.parse(responseData).arrivalDate ?? depDate; } catch { return depDate; } })();
-                        const tType = (() => { try { return JSON.parse(responseData).tripType ?? "one-way"; } catch { return "one-way"; } })();
-                        const isRound = tType.toLowerCase().includes("round");
+                        const depDate = departureDate ?? "";
+                        const arrDate = arrivalDate ?? depDate;
+                        const isRound = isRoundTrip;
                         const frontierUrl = isRound && arrDate
                           ? `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&dd2=${encodeURIComponent(arrDate + " 00:00:00")}&r=true&adt=1&umnr=false&loy=false&mon=true&ftype=GW`
                           : `https://booking.flyfrontier.com/Flight/InternalSelect?o1=${depLeg?.origin}&d1=${arrLeg?.destination}&dd1=${encodeURIComponent(depDate + " 00:00:00")}&adt=1&umnr=false&loy=false&mon=true&ftype=GW`;
@@ -1728,13 +1810,7 @@ const FlightDestResults = ({
                     </span>
                     <textarea
                       readOnly
-                      value={(() => {
-                        try {
-                          return JSON.stringify(JSON.parse(responseData)?.firecrawlRequestBody ?? null, null, 2);
-                        } catch {
-                          return "N/A";
-                        }
-                      })()}
+                      value={JSON.stringify(parsedResponse?.firecrawlRequestBody ?? null, null, 2)}
                       className="w-full h-40 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
                     />
                   </div>
@@ -1744,13 +1820,7 @@ const FlightDestResults = ({
                     </span>
                     <textarea
                       readOnly
-                      value={(() => {
-                        try {
-                          return JSON.stringify(JSON.parse(responseData), null, 2);
-                        } catch {
-                          return responseData;
-                        }
-                      })()}
+                      value={parsedResponse != null ? JSON.stringify(parsedResponse, null, 2) : responseData}
                       className="w-full h-60 rounded-xl border border-[#E3E6E6] bg-white p-3 text-[10px] font-mono text-[#2E4A4A] resize-none"
                     />
                   </div>
@@ -1970,6 +2040,21 @@ const FlightDestResults = ({
         </div>
       )}
       </div>{/* end scrollRef */}
+
+      {/* Offscreen share template — fixed off-screen so html-to-image can measure it */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: -100000,
+          top: 0,
+          width: 941,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        <FlightShareTemplate ref={shareTemplateRef} model={shareModel} />
+      </div>
     </div>
   );
 };
