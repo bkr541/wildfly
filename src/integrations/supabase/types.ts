@@ -2322,6 +2322,7 @@ export type Database = {
     }
     Functions: {
       accept_friend_request: { Args: { request_id: string }; Returns: Json }
+      admin_exec_ddl: { Args: { p_sql: string }; Returns: Json }
       are_friends: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
