@@ -1728,7 +1728,11 @@ function DataView() {
                   )}
                   {sqlResult && !sqlRunning && (
                     <span className="text-[11px] font-medium text-[#059669]">
-                      {sqlResult.rows.length} row{sqlResult.rows.length !== 1 ? "s" : ""} · {sqlResult.ms}ms
+                      {sqlResult.rows.length} row{sqlResult.rows.length !== 1 ? "s" : ""}
+                      {sqlResult.rows.length === 500 && (
+                        <span className="text-amber-500"> (capped at 500)</span>
+                      )}
+                      {" "}· {sqlResult.ms}ms
                     </span>
                   )}
                   {sqlError && !sqlRunning && (
@@ -1746,7 +1750,7 @@ function DataView() {
                     runSql();
                   }
                 }}
-                placeholder={"SELECT *\nFROM users\nLIMIT 10;"}
+                placeholder={"SELECT *\nFROM users\nLIMIT 10;\n\n-- Results are capped at 500 rows"}
                 rows={6}
                 className="w-full px-4 py-3 text-xs font-mono text-[#1A2E2E] bg-white resize-y outline-none placeholder:text-[#D1D5DB] leading-relaxed"
                 spellCheck={false}
@@ -2259,7 +2263,7 @@ export default function AdminConsole() {
     _initialView === "gowild" || _initialView === "radar"
   );
   const [devToolsExpanded, setDevToolsExpanded] = useState(
-    (_initialView as string).startsWith("developer-")
+    _initialView === "data" || (_initialView as string).startsWith("developer-")
   );
   const [authAccessExpanded, setAuthAccessExpanded] = useState(
     (_initialView as string).startsWith("auth-")
@@ -2275,7 +2279,7 @@ export default function AdminConsole() {
 
   const accountsActive       = view === "users" || view === "beta-applications";
   const wildflyToolsActive   = view === "gowild" || view === "radar";
-  const devToolsActive       = (view as string).startsWith("developer-");
+  const devToolsActive       = view === "data" || (view as string).startsWith("developer-");
   const authAccessActive     = (view as string).startsWith("auth-");
   const systemProcessActive    = (view as string).startsWith("system-");
   const communicationsActive   = (view as string).startsWith("communications-");
