@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   DashboardSquare02Icon,
   Mail01Icon,
@@ -15,7 +15,7 @@ import { MessagingSettingsView } from "./MessagingSettingsView";
 
 type Tab = "overview" | "messages" | "templates" | "delivery" | "settings";
 
-const TABS: { id: Tab; label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }[] = [
+const TABS: { id: Tab; label: string; icon: IconSvgElement }[] = [
   { id: "overview", label: "Overview", icon: DashboardSquare02Icon },
   { id: "messages", label: "Messages", icon: Mail01Icon },
   { id: "templates", label: "Templates", icon: DocumentCodeIcon },

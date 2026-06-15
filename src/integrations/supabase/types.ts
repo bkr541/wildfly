@@ -215,6 +215,10 @@ export type Database = {
           utm_medium: string | null
           utm_source: string | null
           value_expectation: string | null
+          welcome_delivery_status: string
+          welcome_last_error: string | null
+          welcome_message_id: string | null
+          welcome_sent_at: string | null
         }
         Insert: {
           additional_notes?: string | null
@@ -250,6 +254,10 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           value_expectation?: string | null
+          welcome_delivery_status?: string
+          welcome_last_error?: string | null
+          welcome_message_id?: string | null
+          welcome_sent_at?: string | null
         }
         Update: {
           additional_notes?: string | null
@@ -285,8 +293,20 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           value_expectation?: string | null
+          welcome_delivery_status?: string
+          welcome_last_error?: string | null
+          welcome_message_id?: string | null
+          welcome_sent_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "beta_applications_welcome_message_id_fkey"
+            columns: ["welcome_message_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bulk_search_job_logs: {
         Row: {
@@ -1005,6 +1025,531 @@ export type Database = {
           },
         ]
       }
+      messaging_audiences: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          filter_definition: Json
+          id: string
+          is_active: boolean
+          last_estimated_at: string | null
+          last_estimated_count: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          filter_definition?: Json
+          id?: string
+          is_active?: boolean
+          last_estimated_at?: string | null
+          last_estimated_count?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          filter_definition?: Json
+          id?: string
+          is_active?: boolean
+          last_estimated_at?: string | null
+          last_estimated_count?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messaging_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
+      messaging_messages: {
+        Row: {
+          audience_definition: Json
+          audience_id: string | null
+          cancelled_at: string | null
+          category: string
+          channels: string[]
+          classification: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          eligible_count: number
+          email_cta_label: string | null
+          email_cta_url: string | null
+          email_html: string | null
+          email_preheader: string | null
+          email_subject: string | null
+          email_text: string | null
+          id: string
+          idempotency_key: string | null
+          internal_description: string | null
+          internal_name: string
+          invalid_count: number
+          last_error: string | null
+          notification_body: string | null
+          notification_cta_label: string | null
+          notification_cta_url: string | null
+          notification_detail_text: string | null
+          notification_title: string | null
+          notification_type: string | null
+          queued_at: string | null
+          recipient_count: number
+          reply_to: string
+          scheduled_at: string | null
+          started_at: string | null
+          status: string
+          suppressed_count: number
+          template_id: string | null
+          template_version: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audience_definition?: Json
+          audience_id?: string | null
+          cancelled_at?: string | null
+          category?: string
+          channels?: string[]
+          classification?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          eligible_count?: number
+          email_cta_label?: string | null
+          email_cta_url?: string | null
+          email_html?: string | null
+          email_preheader?: string | null
+          email_subject?: string | null
+          email_text?: string | null
+          id?: string
+          idempotency_key?: string | null
+          internal_description?: string | null
+          internal_name: string
+          invalid_count?: number
+          last_error?: string | null
+          notification_body?: string | null
+          notification_cta_label?: string | null
+          notification_cta_url?: string | null
+          notification_detail_text?: string | null
+          notification_title?: string | null
+          notification_type?: string | null
+          queued_at?: string | null
+          recipient_count?: number
+          reply_to?: string
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: string
+          suppressed_count?: number
+          template_id?: string | null
+          template_version?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audience_definition?: Json
+          audience_id?: string | null
+          cancelled_at?: string | null
+          category?: string
+          channels?: string[]
+          classification?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          eligible_count?: number
+          email_cta_label?: string | null
+          email_cta_url?: string | null
+          email_html?: string | null
+          email_preheader?: string | null
+          email_subject?: string | null
+          email_text?: string | null
+          id?: string
+          idempotency_key?: string | null
+          internal_description?: string | null
+          internal_name?: string
+          invalid_count?: number
+          last_error?: string | null
+          notification_body?: string | null
+          notification_cta_label?: string | null
+          notification_cta_url?: string | null
+          notification_detail_text?: string | null
+          notification_title?: string | null
+          notification_type?: string | null
+          queued_at?: string | null
+          recipient_count?: number
+          reply_to?: string
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: string
+          suppressed_count?: number
+          template_id?: string | null
+          template_version?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messaging_messages_audience_id_fkey"
+            columns: ["audience_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_audiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messaging_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_provider_events: {
+        Row: {
+          created_at: string
+          event_payload: Json
+          event_type: string
+          id: string
+          message_id: string | null
+          occurred_at: string
+          provider: string
+          provider_event_id: string | null
+          provider_message_id: string | null
+          recipient_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_payload?: Json
+          event_type: string
+          id?: string
+          message_id?: string | null
+          occurred_at?: string
+          provider: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          recipient_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_payload?: Json
+          event_type?: string
+          id?: string
+          message_id?: string | null
+          occurred_at?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          recipient_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messaging_provider_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messaging_provider_events_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_recipients: {
+        Row: {
+          attempt_count: number
+          beta_application_id: string | null
+          bounced_at: string | null
+          channel: string
+          clicked_at: string | null
+          complained_at: string | null
+          created_at: string
+          delivered_at: string | null
+          email: string | null
+          failed_at: string | null
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          message_id: string
+          next_attempt_at: string | null
+          normalized_email: string | null
+          opened_at: string | null
+          personalization: Json
+          provider: string | null
+          provider_message_id: string | null
+          queued_at: string | null
+          recipient_name: string | null
+          sent_at: string | null
+          status: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          beta_application_id?: string | null
+          bounced_at?: string | null
+          channel: string
+          clicked_at?: string | null
+          complained_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          email?: string | null
+          failed_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          message_id: string
+          next_attempt_at?: string | null
+          normalized_email?: string | null
+          opened_at?: string | null
+          personalization?: Json
+          provider?: string | null
+          provider_message_id?: string | null
+          queued_at?: string | null
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          beta_application_id?: string | null
+          bounced_at?: string | null
+          channel?: string
+          clicked_at?: string | null
+          complained_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          email?: string | null
+          failed_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          message_id?: string
+          next_attempt_at?: string | null
+          normalized_email?: string | null
+          opened_at?: string | null
+          personalization?: Json
+          provider?: string | null
+          provider_message_id?: string | null
+          queued_at?: string | null
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messaging_recipients_beta_application_id_fkey"
+            columns: ["beta_application_id"]
+            isOneToOne: false
+            referencedRelation: "beta_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messaging_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      messaging_suppressions: {
+        Row: {
+          created_at: string
+          id: string
+          normalized_email: string
+          notes: string | null
+          provider: string | null
+          reason: string
+          removed_at: string | null
+          scope: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          normalized_email: string
+          notes?: string | null
+          provider?: string | null
+          reason: string
+          removed_at?: string | null
+          scope?: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          normalized_email?: string
+          notes?: string | null
+          provider?: string | null
+          reason?: string
+          removed_at?: string | null
+          scope?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messaging_templates: {
+        Row: {
+          archived_at: string | null
+          available_variables: string[]
+          category: string
+          created_at: string
+          created_by: string | null
+          default_reply_to: string
+          description: string | null
+          email_cta_label: string | null
+          email_cta_url: string | null
+          email_html: string | null
+          email_preheader: string | null
+          email_subject: string | null
+          email_text: string | null
+          id: string
+          is_active: boolean
+          is_transactional: boolean
+          name: string
+          notification_body: string | null
+          notification_cta_label: string | null
+          notification_cta_url: string | null
+          notification_detail_text: string | null
+          notification_title: string | null
+          notification_type: string | null
+          required_variables: string[]
+          slug: string
+          supported_channels: string[]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          archived_at?: string | null
+          available_variables?: string[]
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          default_reply_to?: string
+          description?: string | null
+          email_cta_label?: string | null
+          email_cta_url?: string | null
+          email_html?: string | null
+          email_preheader?: string | null
+          email_subject?: string | null
+          email_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_transactional?: boolean
+          name: string
+          notification_body?: string | null
+          notification_cta_label?: string | null
+          notification_cta_url?: string | null
+          notification_detail_text?: string | null
+          notification_title?: string | null
+          notification_type?: string | null
+          required_variables?: string[]
+          slug: string
+          supported_channels?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          archived_at?: string | null
+          available_variables?: string[]
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          default_reply_to?: string
+          description?: string | null
+          email_cta_label?: string | null
+          email_cta_url?: string | null
+          email_html?: string | null
+          email_preheader?: string | null
+          email_subject?: string | null
+          email_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_transactional?: boolean
+          name?: string
+          notification_body?: string | null
+          notification_cta_label?: string | null
+          notification_cta_url?: string | null
+          notification_detail_text?: string | null
+          notification_title?: string | null
+          notification_type?: string | null
+          required_variables?: string[]
+          slug?: string
+          supported_channels?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       notification_type_configs: {
         Row: {
           audience: string
@@ -1316,6 +1861,45 @@ export type Database = {
           monthly_period_start?: string
           monthly_used?: number
           purchased_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_email_preferences: {
+        Row: {
+          created_at: string
+          email_account_messages: boolean
+          email_beta_updates: boolean
+          email_enabled: boolean
+          email_gowild_updates: boolean
+          email_marketing: boolean
+          email_product_updates: boolean
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_account_messages?: boolean
+          email_beta_updates?: boolean
+          email_enabled?: boolean
+          email_gowild_updates?: boolean
+          email_marketing?: boolean
+          email_product_updates?: boolean
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_account_messages?: boolean
+          email_beta_updates?: boolean
+          email_enabled?: boolean
+          email_gowild_updates?: boolean
+          email_marketing?: boolean
+          email_product_updates?: boolean
+          unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1738,6 +2322,7 @@ export type Database = {
     }
     Functions: {
       accept_friend_request: { Args: { request_id: string }; Returns: Json }
+      admin_exec_ddl: { Args: { p_sql: string }; Returns: Json }
       are_friends: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
