@@ -53,8 +53,8 @@ import { cn } from "@/lib/utils";
 import { getGoWildInfo, buildFlightShareModel } from "@/utils/flightShareModel";
 import { FlightShareTemplate } from "@/components/flight-share/FlightShareTemplate";
 import { exportFlightShareImage, buildShareFilename } from "@/utils/exportFlightShareImage";
-import { createFlightSearchShare } from "@/services/flightSearchShares";
-import type { CreateFlightSearchShareResponse } from "@/services/flightSearchShares";
+import { createSharedFlightResult } from "@/services/sharedFlightResults";
+import type { CreateSharedFlightResultResponse } from "@/services/sharedFlightResults";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
 import { fetchDeveloperSettings } from "@/lib/logSettings";
 
@@ -305,7 +305,7 @@ const FlightDestResults = ({
   const [imageExportError, setImageExportError] = useState<string | null>(null);
   const [isCreatingPublicShare, setIsCreatingPublicShare] = useState(false);
   const [publicShareError, setPublicShareError] = useState<string | null>(null);
-  const [publicShareResult, setPublicShareResult] = useState<CreateFlightSearchShareResponse | null>(null);
+  const [publicShareResult, setPublicShareResult] = useState<CreateSharedFlightResultResponse | null>(null);
   const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
   useEffect(() => {
@@ -721,11 +721,11 @@ const FlightDestResults = ({
     setIsCreatingPublicShare(true);
     setPublicShareError(null);
     try {
-      const result = await createFlightSearchShare({
-        modelVersion: 1,
-        shareModel,
-        departureDate: departureDate ?? null,
-        returnDate: arrivalDate ?? null,
+      const result = await createSharedFlightResult({
+        payloadVersion:      1,
+        displayModelVersion: 1,
+        rawSearchPayload:    parsedResponse,
+        displayModel:        shareModel,
       });
       setPublicShareResult(result);
     } catch (err: unknown) {
@@ -737,14 +737,16 @@ const FlightDestResults = ({
         setPublicShareError("Sign in to create a shareable link");
       } else if (kind === "VALIDATION") {
         setPublicShareError("Could not process these flight results");
+      } else if (kind === "PAYLOAD_TOO_LARGE") {
+        setPublicShareError("These results are too large to share as a URL");
       } else {
         setPublicShareError("Failed to create link — try again");
       }
-      console.error("[Wildfly] createFlightSearchShare failed:", err);
+      console.error("[Wildfly] createSharedFlightResult failed:", err);
     } finally {
       setIsCreatingPublicShare(false);
     }
-  }, [isCreatingPublicShare, shareModel, departureDate, arrivalDate]);
+  }, [isCreatingPublicShare, parsedResponse, shareModel]);
 
   const handleCopyPublicLink = useCallback(async () => {
     if (!publicShareResult) return;
@@ -2228,9 +2230,9 @@ const FlightDestResults = ({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#2E4A4A]">Create Public Link</p>
+                <p className="text-sm font-semibold text-[#2E4A4A]">Share URL</p>
                 <p className="text-xs text-[#9CA3AF]">
-                  {isCreatingPublicShare ? "Creating link…" : "Anyone with the link can view these results"}
+                  {isCreatingPublicShare ? "Creating link…" : "Anyone with the link can view these exact results"}
                 </p>
                 {publicShareError && (
                   <p className="text-xs text-red-500 mt-0.5">{publicShareError}</p>

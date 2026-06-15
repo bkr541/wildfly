@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import type { FlightShareModel } from "@/utils/flightShareModel";
-import type { PublicFlightSearchShareResponse } from "@/services/flightSearchShares";
+import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
 
 // ── Mock: Supabase client (prevents localStorage init error in jsdom) ──────────
 
@@ -19,12 +19,24 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-// ── Mock: share service — keep it simple, no class definition needed ───────────
-// Page uses duck-typing (checks `err.kind`) not instanceof, so no class required.
+// ── Mock: new share service (the one PublicFlightSharePage now uses) ──────────
+// This is the ONLY share service that should be called by the public page.
+// Tests in the "isolation" describe block explicitly assert that the write
+// path (createSharedFlightResult) and the flight-search functions are never
+// invoked — protecting the boundary between stored-result sharing and
+// scraper-backed searching.
 
-vi.mock("@/services/flightSearchShares", () => ({
-  getPublicFlightSearchShare: vi.fn(),
-  createFlightSearchShare:    vi.fn(),
+vi.mock("@/services/sharedFlightResults", () => ({
+  getPublicSharedFlightResult: vi.fn(),
+  createSharedFlightResult:    vi.fn(),
+}));
+
+// ── Mock: flight search API — must NEVER be called by the public page ─────────
+// Mocking ensures any accidental import/call fails loudly rather than silently.
+
+vi.mock("@/lib/flightApi", () => ({
+  fetchFlightSearch: vi.fn(),
+  flightApiFetch:    vi.fn(),
 }));
 
 // ── Mock: image export ────────────────────────────────────────────────────────
@@ -42,12 +54,19 @@ vi.mock("@hugeicons/react", () => ({
 
 // ── Imports resolved after mocks ──────────────────────────────────────────────
 
-import { getPublicFlightSearchShare } from "@/services/flightSearchShares";
+import {
+  getPublicSharedFlightResult,
+  createSharedFlightResult,
+} from "@/services/sharedFlightResults";
+import { fetchFlightSearch, flightApiFetch } from "@/lib/flightApi";
 import { exportFlightShareImage } from "@/utils/exportFlightShareImage";
 import PublicFlightSharePage from "./PublicFlightSharePage";
 
-const mockGetShare = getPublicFlightSearchShare as ReturnType<typeof vi.fn>;
-const mockExport   = exportFlightShareImage     as ReturnType<typeof vi.fn>;
+const mockGetShare  = vi.mocked(getPublicSharedFlightResult);
+const mockCreate    = vi.mocked(createSharedFlightResult);
+const mockFetchFlight = vi.mocked(fetchFlightSearch);
+const mockApiFetch  = vi.mocked(flightApiFetch);
+const mockExport    = vi.mocked(exportFlightShareImage);
 
 // ── Token factory: unique per test avoids module-level promise cache hits ──────
 
@@ -59,7 +78,7 @@ function nextToken(): string {
 // ── Error factory: plain object with .kind satisfies the page's duck-type check
 
 function makeErr(kind: string): { kind: string; name: string; message: string } {
-  return { kind, name: "FlightShareError", message: kind };
+  return { kind, name: "SharedFlightResultError", message: kind };
 }
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -118,12 +137,13 @@ function makeModel(overrides: Partial<FlightShareModel> = {}): FlightShareModel 
   };
 }
 
-function makeResponse(overrides: Partial<PublicFlightSearchShareResponse> = {}): PublicFlightSearchShareResponse {
+// New response shape: displayModel (not shareModel), displayModelVersion (not modelVersion)
+function makeResponse(overrides: Partial<PublicSharedFlightResultResponse> = {}): PublicSharedFlightResultResponse {
   return {
-    modelVersion: 1,
-    shareModel:   makeModel(),
-    createdAt:    "2026-06-13T12:00:00Z",
-    expiresAt:    "2026-09-13T12:00:00Z",
+    displayModelVersion: 1,
+    displayModel:        makeModel(),
+    createdAt:           "2026-06-13T12:00:00Z",
+    expiresAt:           "2026-09-13T12:00:00Z",
     ...overrides,
   };
 }
@@ -170,7 +190,7 @@ function renderPage(token: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockExport.mockResolvedValue(new Blob());
+  mockExport.mockResolvedValue(undefined as never);
 });
 
 afterEach(() => {
@@ -184,7 +204,7 @@ describe("PublicFlightSharePage", () => {
   // ── Route and access ───────────────────────────────────────────────────────
 
   describe("routing and access", () => {
-    it("calls getPublicFlightSearchShare with the URL token", async () => {
+    it("calls getPublicSharedFlightResult with the URL token", async () => {
       const token = nextToken();
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
@@ -218,7 +238,7 @@ describe("PublicFlightSharePage", () => {
   describe("loading state", () => {
     it("does not show city name while fetch is pending", async () => {
       const token = nextToken();
-      let resolve!: (v: PublicFlightSearchShareResponse) => void;
+      let resolve!: (v: PublicSharedFlightResultResponse) => void;
       mockGetShare.mockReturnValue(new Promise(r => { resolve = r; }));
       await act(async () => { renderPage(token); });
       expect(screen.queryByText("Chicago")).toBeNull();
@@ -229,7 +249,7 @@ describe("PublicFlightSharePage", () => {
   // ── Successful render ──────────────────────────────────────────────────────
 
   describe("successful render", () => {
-    it("renders origin and destination labels", async () => {
+    it("renders origin and destination labels from displayModel", async () => {
       const token = nextToken();
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
@@ -303,14 +323,14 @@ describe("PublicFlightSharePage", () => {
   describe("round-trip snapshot", () => {
     it("renders section tab list", async () => {
       const token = nextToken();
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: makeRoundTripModel() }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: makeRoundTripModel() }));
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(screen.getByRole("tablist")).toBeDefined());
     });
 
     it("Departing tab is selected by default", async () => {
       const token = nextToken();
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: makeRoundTripModel() }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: makeRoundTripModel() }));
       await act(async () => { renderPage(token); });
       await waitFor(() => screen.getByRole("tablist"));
       const tabs = screen.getAllByRole("tab");
@@ -320,7 +340,7 @@ describe("PublicFlightSharePage", () => {
 
     it("clicking Return tab makes it active", async () => {
       const token = nextToken();
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: makeRoundTripModel() }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: makeRoundTripModel() }));
       await act(async () => { renderPage(token); });
       await waitFor(() => screen.getByRole("tablist"));
       const tabs = screen.getAllByRole("tab");
@@ -345,7 +365,7 @@ describe("PublicFlightSharePage", () => {
           ],
         }],
       });
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: model }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: model }));
       await act(async () => { renderPage(token); });
       await waitFor(() => {
         expect(screen.getAllByText("ORD").length).toBeGreaterThan(0);
@@ -381,6 +401,13 @@ describe("PublicFlightSharePage", () => {
     it("shows Try again for SERVER_ERROR", async () => {
       const token = nextToken();
       mockGetShare.mockRejectedValue(makeErr("SERVER_ERROR"));
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(screen.getByText("Try again")).toBeDefined());
+    });
+
+    it("shows Try again for NETWORK_ERROR (transient failures are retryable)", async () => {
+      const token = nextToken();
+      mockGetShare.mockRejectedValue(makeErr("NETWORK_ERROR"));
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(screen.getByText("Try again")).toBeDefined());
     });
@@ -453,10 +480,12 @@ describe("PublicFlightSharePage", () => {
           }],
         }],
       });
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: model }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: model }));
       await act(async () => { renderPage(token); });
-      await waitFor(() => expect(screen.getByText(/2 \/ 2/)).toBeDefined());
+      // Before filtering: count pill shows "2 options" (M === N, so no fraction)
+      await waitFor(() => expect(screen.getByText(/2 options/)).toBeDefined());
       act(() => { fireEvent.click(screen.getByRole("button", { name: /nonstop/i })); });
+      // After Nonstop filter: 1 visible / 2 total → "1 / 2 options"
       await waitFor(() => expect(screen.getByText(/1 \/ 2/)).toBeDefined());
     });
   });
@@ -557,8 +586,8 @@ describe("PublicFlightSharePage", () => {
 
     it("hides Share button when navigator.share is absent", async () => {
       const token = nextToken();
-      const orig = (navigator as any).share;
-      delete (navigator as any).share;
+      const orig = (navigator as Record<string, unknown>).share;
+      delete (navigator as Record<string, unknown>).share;
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
       await waitFor(() => screen.getByText("Copy link"));
@@ -584,7 +613,7 @@ describe("PublicFlightSharePage", () => {
     it("shows 'Exporting…' and disables button while running", async () => {
       const token = nextToken();
       let resolveExport!: () => void;
-      mockExport.mockReturnValue(new Promise(r => { resolveExport = () => r(new Blob()); }));
+      mockExport.mockReturnValue(new Promise(r => { resolveExport = () => r(undefined as never); }));
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
       await waitFor(() => screen.getByText("Download image"));
@@ -598,14 +627,14 @@ describe("PublicFlightSharePage", () => {
   // ── Snapshot immutability ──────────────────────────────────────────────────
 
   describe("snapshot immutability", () => {
-    it("does not mutate the original model from the service response", async () => {
+    it("does not mutate the original displayModel from the service response", async () => {
       const token = nextToken();
       const response = makeResponse();
-      const count = response.shareModel.totalOptionCount;
+      const count = response.displayModel.totalOptionCount;
       mockGetShare.mockResolvedValue(response);
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(screen.getAllByText("Chicago").length).toBeGreaterThan(0));
-      expect(response.shareModel.totalOptionCount).toBe(count);
+      expect(response.displayModel.totalOptionCount).toBe(count);
     });
   });
 
@@ -622,9 +651,126 @@ describe("PublicFlightSharePage", () => {
           airportGroups: [],
         }],
       });
-      mockGetShare.mockResolvedValue(makeResponse({ shareModel: emptyModel }));
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: emptyModel }));
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(screen.getAllByText("No flight options were returned").length).toBeGreaterThan(0));
+    });
+  });
+
+  // ── Unsupported snapshot version ───────────────────────────────────────────
+
+  describe("unsupported snapshot version", () => {
+    it("renders 'Unsupported share format' headline for UNSUPPORTED_VERSION", async () => {
+      const token = nextToken();
+      mockGetShare.mockRejectedValue(makeErr("UNSUPPORTED_VERSION"));
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(screen.getByText("Unsupported share format")).toBeDefined());
+    });
+
+    it("does NOT show Try again for UNSUPPORTED_VERSION (retrying won't help)", async () => {
+      const token = nextToken();
+      mockGetShare.mockRejectedValue(makeErr("UNSUPPORTED_VERSION"));
+      await act(async () => { renderPage(token); });
+      await waitFor(() => screen.getByText("Unsupported share format"));
+      expect(screen.queryByText("Try again")).toBeNull();
+    });
+
+    it("shows Go to Wildfly link for UNSUPPORTED_VERSION", async () => {
+      const token = nextToken();
+      mockGetShare.mockRejectedValue(makeErr("UNSUPPORTED_VERSION"));
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(screen.getByText("Go to Wildfly →")).toBeDefined());
+    });
+  });
+
+  // ── Metadata lifecycle (cleanup on unmount) ────────────────────────────────
+
+  describe("metadata lifecycle", () => {
+    it("removes noindex meta tag when the component unmounts", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      const { unmount } = await act(async () => renderPage(token));
+      await waitFor(() => {
+        const meta = document.querySelector('meta[name="robots"]');
+        expect(meta).not.toBeNull();
+      });
+      act(() => { unmount(); });
+      expect(document.querySelector('meta[name="robots"]')).toBeNull();
+    });
+
+    it("resets document title to 'Wildfly' when the component unmounts", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      const { unmount } = await act(async () => renderPage(token));
+      await waitFor(() => expect(document.title).toBe("Chicago to Orlando Flights | Wildfly"));
+      act(() => { unmount(); });
+      expect(document.title).toBe("Wildfly");
+    });
+  });
+
+  // ── Explicit network-isolation assertions ─────────────────────────────────
+  //
+  // These tests protect the boundary between stored-result sharing and
+  // scraper-backed searching. Loading a public share URL must ONLY call the
+  // snapshot getter — it must never trigger a flight search, call flight-proxy,
+  // consume search credits, or invoke any other function from the create path.
+  //
+  // If any of these assertions fail it means a code change accidentally wired
+  // the public page to the live search infrastructure.
+
+  describe("isolation — snapshot-only, no flight-search or proxy calls", () => {
+    it("calls only getPublicSharedFlightResult — never createSharedFlightResult", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(mockGetShare).toHaveBeenCalledTimes(1));
+      // The create path must never be invoked during a public page load.
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it("never calls fetchFlightSearch (the scraper-backed search function)", async () => {
+      // This test explicitly asserts that the public share page is isolated from
+      // the live flight-search API. fetchFlightSearch calls flight-proxy which
+      // triggers a Playwright search, consumes a search credit, and updates the
+      // cache — none of which should happen when viewing a stored snapshot.
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(mockGetShare).toHaveBeenCalledTimes(1));
+      expect(mockFetchFlight).not.toHaveBeenCalled();
+    });
+
+    it("never calls flightApiFetch (the low-level flight-proxy wrapper)", async () => {
+      // flightApiFetch is the transport layer for all scraper calls.
+      // It must never be invoked when rendering a stored share snapshot.
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(mockGetShare).toHaveBeenCalledTimes(1));
+      expect(mockApiFetch).not.toHaveBeenCalled();
+    });
+
+    it("does not call exportFlightShareImage on initial load (only on explicit download click)", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      await act(async () => { renderPage(token); });
+      await waitFor(() => screen.getByText("Download image"));
+      // Image export must NOT trigger automatically — only on explicit user action.
+      expect(mockExport).not.toHaveBeenCalled();
+    });
+
+    it("displays the stored displayModel — never reruns a search to refresh results", async () => {
+      // The displayed data must come from the snapshot, not a live re-fetch.
+      // Verifies both that the get function was called and the data is rendered.
+      const token = nextToken();
+      const storedModel = makeModel({ originLabel: "Stored City" });
+      mockGetShare.mockResolvedValue(makeResponse({ displayModel: storedModel }));
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(screen.getAllByText("Stored City").length).toBeGreaterThan(0));
+      // Search functions must remain untouched.
+      expect(mockFetchFlight).not.toHaveBeenCalled();
+      expect(mockApiFetch).not.toHaveBeenCalled();
+      expect(mockCreate).not.toHaveBeenCalled();
     });
   });
 

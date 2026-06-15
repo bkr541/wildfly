@@ -7,8 +7,8 @@ import {
   Refresh01Icon,
   CalendarCheckIn01Icon,
 } from "@hugeicons/core-free-icons";
-import { getPublicFlightSearchShare } from "@/services/flightSearchShares";
-import type { PublicFlightSearchShareResponse, FlightShareError } from "@/services/flightSearchShares";
+import { getPublicSharedFlightResult } from "@/services/sharedFlightResults";
+import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
 import { PublicFlightShareView } from "@/components/flight-share/PublicFlightShareView";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -21,12 +21,12 @@ const EMERALD   = "#059669";
 // ── Module-level Promise cache: prevents Strict Mode double fetch ──────────────
 // A second mount (React Strict Mode) finds the same Promise and awaits it;
 // no second network request is made, so view_count is incremented exactly once.
-const sharePromises = new Map<string, Promise<PublicFlightSearchShareResponse>>();
+const sharePromises = new Map<string, Promise<PublicSharedFlightResultResponse>>();
 
-function fetchShare(token: string): Promise<PublicFlightSearchShareResponse> {
+function fetchShare(token: string): Promise<PublicSharedFlightResultResponse> {
   const existing = sharePromises.get(token);
   if (existing) return existing;
-  const p = getPublicFlightSearchShare(token).catch(err => {
+  const p = getPublicSharedFlightResult(token).catch(err => {
     sharePromises.delete(token);
     throw err;
   });
@@ -108,23 +108,28 @@ function ErrorView({
   kind:    string;
   onRetry: () => void;
 }) {
-  const isGone      = kind === "NOT_FOUND" || kind === "REVOKED";
-  const isExpired   = kind === "EXPIRED";
-  const isRetryable = kind === "SERVER_ERROR" || kind === "NETWORK_ERROR";
+  const isGone             = kind === "NOT_FOUND" || kind === "REVOKED";
+  const isExpired          = kind === "EXPIRED";
+  const isUnsupportedVersion = kind === "UNSUPPORTED_VERSION";
+  const isRetryable        = kind === "SERVER_ERROR" || kind === "NETWORK_ERROR";
 
-  const icon   = isExpired ? CalendarCheckIn01Icon : Alert02Icon;
-  const iconColor = isGone || isExpired ? FAINT : "#EF4444";
+  const icon      = isExpired ? CalendarCheckIn01Icon : Alert02Icon;
+  const iconColor = isGone || isExpired || isUnsupportedVersion ? FAINT : "#EF4444";
 
   const headline = isGone
     ? "This share link is no longer available"
     : isExpired
     ? "This share link has expired"
+    : isUnsupportedVersion
+    ? "Unsupported share format"
     : "Something went wrong";
 
   const body = isGone
     ? "The flight results may have been removed or the link may be invalid."
     : isExpired
     ? "The flight results snapshot has passed its expiry date. The person who shared this may be able to generate a new link."
+    : isUnsupportedVersion
+    ? "This link uses a snapshot format that isn't supported by the current version of Wildfly. Try updating your browser or ask the sender to reshare."
     : "We weren't able to load these flight results. Please try again.";
 
   return (
@@ -270,7 +275,7 @@ export default function PublicFlightSharePage() {
   const { token } = useParams<{ token: string }>();
 
   const [loading,   setLoading]   = useState(true);
-  const [shareData, setShareData] = useState<PublicFlightSearchShareResponse | null>(null);
+  const [shareData, setShareData] = useState<PublicSharedFlightResultResponse | null>(null);
   const [errorKind, setErrorKind] = useState<string | null>(null);
   const [retryKey,  setRetryKey]  = useState(0);
 
@@ -286,8 +291,8 @@ export default function PublicFlightSharePage() {
   // Update document title when share data is loaded
   useEffect(() => {
     if (shareData) {
-      const { shareModel } = shareData;
-      document.title = `${shareModel.originLabel} to ${shareModel.destinationLabel} Flights | Wildfly`;
+      const { displayModel } = shareData;
+      document.title = `${displayModel.originLabel} to ${displayModel.destinationLabel} Flights | Wildfly`;
     } else {
       document.title = "Flight Results | Wildfly";
     }
@@ -309,14 +314,13 @@ export default function PublicFlightSharePage() {
         setLoading(false);
       })
       .catch(err => {
-        const kind = (typeof err === "object" && err !== null && "kind" in err && typeof (err as FlightShareError).kind === "string")
-          ? (err as FlightShareError).kind
+        const kind = (typeof err === "object" && err !== null && "kind" in err && typeof (err as { kind: unknown }).kind === "string")
+          ? String((err as { kind: unknown }).kind)
           : "SERVER_ERROR";
         setErrorKind(kind);
         setLoading(false);
       });
-  // retryKey intentionally triggers a fresh fetch on retry
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // retryKey intentionally triggers a fresh fetch on retry; fetchShare is module-level
   }, [token, retryKey]);
 
   const handleRetry = () => {
@@ -347,7 +351,7 @@ export default function PublicFlightSharePage() {
 
   return (
     <PublicFlightShareView
-      model={shareData.shareModel}
+      model={shareData.displayModel}
       createdAt={shareData.createdAt}
       expiresAt={shareData.expiresAt}
       publicUrl={publicUrl}

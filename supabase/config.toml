@@ -19,3 +19,9 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.create-shared-flight-result]
+verify_jwt = true
+
+[functions.get-public-shared-flight-result]
+verify_jwt = false
+

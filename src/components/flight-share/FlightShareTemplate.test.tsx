@@ -224,7 +224,8 @@ describe("FlightShareTemplate", () => {
     render(<FlightShareTemplate model={oneWayModel} />);
     expect(screen.getByText("8")).toBeDefined();
     expect(screen.getByText("3")).toBeDefined();
-    expect(screen.getByText("1")).toBeDefined();
+    // "1" appears in both the GoWild count chip and the MDW seat count — use getAllByText
+    expect(screen.getAllByText("1").length).toBeGreaterThan(0);
   });
 
   // 3. ORD and MDW group headers render
@@ -264,10 +265,17 @@ describe("FlightShareTemplate", () => {
   });
 
   // 8. Seat grammar renders correctly
+  // RTL's getByText only reads direct text-node children; seat counts span two sibling
+  // divs so we check element.textContent (all descendant text) with a function matcher.
   it("renders '20 seats' for 20 GoWild seats and '1 seat' for 1 seat", () => {
     render(<FlightShareTemplate model={oneWayModel} />);
-    expect(screen.getByText("20 seats")).toBeDefined();
-    expect(screen.getByText("1 seat")).toBeDefined();
+    const byFullText = (target: string) =>
+      (_: string, el: Element | null) =>
+        (el?.textContent ?? "").replace(/\s+/g, " ").trim() === target;
+    // "20 seats" comes from the ORD GoWild option (goWildSeats: 20)
+    expect(screen.getAllByText(byFullText("20 seats")).length).toBeGreaterThan(0);
+    // "1 seat" comes from the MDW option (goWildSeats: 1)
+    expect(screen.getAllByText(byFullText("1 seat")).length).toBeGreaterThan(0);
   });
 
   // 9. Footer text renders
@@ -291,10 +299,11 @@ describe("FlightShareTemplate", () => {
   });
 
   // Round-trip: DEPARTING and RETURN section labels
+  // "Departing" / "Return" each appear in both the section pill and the option trip badge
   it("renders DEPARTING and RETURN section headers for round-trip searches", () => {
     render(<FlightShareTemplate model={roundTripModel} />);
-    expect(screen.getByText("Departing")).toBeDefined();
-    expect(screen.getByText("Return")).toBeDefined();
+    expect(screen.getAllByText("Departing").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Return").length).toBeGreaterThan(0);
   });
 
   // Option count pills use correct grammar

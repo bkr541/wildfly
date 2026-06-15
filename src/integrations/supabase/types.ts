@@ -1182,6 +1182,90 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_flight_results: {
+        Row: {
+          all_destinations: boolean
+          arrival_airport: string | null
+          created_at: string
+          departure_airport: string | null
+          departure_date: string | null
+          display_model: Json
+          display_model_version: number
+          expires_at: string | null
+          flight_count: number
+          id: string
+          last_viewed_at: string | null
+          owner_user_id: string
+          payload_version: number
+          public_token_hash: string
+          raw_search_payload: Json
+          return_date: string | null
+          revoked_at: string | null
+          source_flight_search_id: string | null
+          trip_type: string | null
+          view_count: number
+        }
+        Insert: {
+          all_destinations?: boolean
+          arrival_airport?: string | null
+          created_at?: string
+          departure_airport?: string | null
+          departure_date?: string | null
+          display_model: Json
+          display_model_version?: number
+          expires_at?: string | null
+          flight_count?: number
+          id?: string
+          last_viewed_at?: string | null
+          owner_user_id: string
+          payload_version?: number
+          public_token_hash: string
+          raw_search_payload: Json
+          return_date?: string | null
+          revoked_at?: string | null
+          source_flight_search_id?: string | null
+          trip_type?: string | null
+          view_count?: number
+        }
+        Update: {
+          all_destinations?: boolean
+          arrival_airport?: string | null
+          created_at?: string
+          departure_airport?: string | null
+          departure_date?: string | null
+          display_model?: Json
+          display_model_version?: number
+          expires_at?: string | null
+          flight_count?: number
+          id?: string
+          last_viewed_at?: string | null
+          owner_user_id?: string
+          payload_version?: number
+          public_token_hash?: string
+          raw_search_payload?: Json
+          return_date?: string | null
+          revoked_at?: string | null
+          source_flight_search_id?: string | null
+          trip_type?: string | null
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_flight_results_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_flight_results_source_flight_search_id_fkey"
+            columns: ["source_flight_search_id"]
+            isOneToOne: false
+            referencedRelation: "flight_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_shares: {
         Row: {
           created_at: string
@@ -1744,6 +1828,10 @@ export type Database = {
           total_count: number
           type: string
         }[]
+      }
+      get_shared_flight_result: {
+        Args: { p_token_hash: string }
+        Returns: Json
       }
       get_route_gowild_inventory_calendar: {
         Args: {
