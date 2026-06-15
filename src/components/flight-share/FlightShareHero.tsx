@@ -156,24 +156,20 @@ export function FlightShareHero({
           {originLabel}
         </span>
 
-        {/* Center arrow circle */}
+        {/* Center arrow */}
         <div
           style={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 42,
-            height: 42,
-            borderRadius: "50%",
-            background: "rgba(10, 22, 40, 0.65)",
-            border: "1.5px solid rgba(255,255,255,0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.55))",
           }}
         >
-          <HugeiconsIcon icon={ArrowRight04Icon} size={20} color="#FFFFFF" strokeWidth={2.5} />
+          <HugeiconsIcon icon={ArrowRight04Icon} size={26} color="#FFFFFF" strokeWidth={2.5} />
         </div>
 
         {/* Destination city — bottom-right */}

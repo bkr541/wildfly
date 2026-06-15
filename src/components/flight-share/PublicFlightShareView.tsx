@@ -220,7 +220,7 @@ export function PublicFlightShareView({
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F1F5F5" }}>
+    <div style={{ minHeight: "100vh", background: "#E8ECEC" }}>
       {/* ── Content container ──────────────────────────────────────────────── */}
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 0 48px" }}>
 

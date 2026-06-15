@@ -12,7 +12,7 @@ const FAINT = "#9AADAD";
 const FRONTIER_FULL_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 
 const NOTCH_SIZE = 26;
-const NOTCH_BG = "#F7F9F8";
+const NOTCH_BG = "#E8ECEC";
 const STUB_WIDTH_IMAGE = 152;
 const STUB_WIDTH_PAGE  = 90;
 
@@ -98,7 +98,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "ima
 
   const originCode = routeAirports[0] ?? "";
   const destCode = routeAirports[routeAirports.length - 1] ?? "";
-  const stopLabel = isNonstop ? "NONSTOP" : stopCount === 1 ? "1 STOP" : `${stopCount} STOPS`;
+  const stopLabel = isNonstop ? "Nonstop" : stopCount === 1 ? "1 Stop" : `${stopCount} Stops`;
   const fareText = emphasizedFare != null ? `$${emphasizedFare.toFixed(2)}` : "—";
   const depDateLabel = formatDateFromRaw(departureRaw);
   const arrDateLabel = formatDateFromRaw(arrivalRaw);
@@ -296,34 +296,10 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "ima
               fontSize: 11,
               fontWeight: 600,
               whiteSpace: "nowrap",
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
             }}
           >
             {stopLabel}
           </span>
-
-          {/* Departs in Xd */}
-          {daysUntil !== null && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                height: 24,
-                padding: "0 10px",
-                borderRadius: 9999,
-                background: "#F0FDF4",
-                border: "1.5px solid #6EE7B7",
-                color: "#047857",
-                fontSize: 11,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Departs in {daysUntil}d
-            </span>
-          )}
 
           {/* Trip type badge */}
           {sectionLabel && (() => {
