@@ -1351,12 +1351,16 @@ function DataView() {
     setSqlResult(null);
     const t0 = performance.now();
     try {
-      const { data, error } = await (supabase.rpc as any)("exec_sql", { query: sqlText.trim() });
+      const { data, error } = await supabase.functions.invoke("admin-run-sql", {
+        body: { sql: sqlText.trim() },
+      });
       if (sqlAbortRef.current) return;
       if (error) throw error;
-      const resultRows: Record<string, unknown>[] = Array.isArray(data) ? data : data != null ? [data] : [];
+      if (data?.status !== "ok") throw new Error(data?.error?.message ?? "Query failed");
+      const resultRows: Record<string, unknown>[] = Array.isArray(data.rows) ? data.rows : [];
       const cols = resultRows.length > 0 ? Object.keys(resultRows[0]) : [];
-      setSqlResult({ rows: resultRows, cols, ms: Math.round(performance.now() - t0) });
+      const ms = data.durationMs ?? Math.round(performance.now() - t0);
+      setSqlResult({ rows: resultRows, cols, ms });
     } catch (err: any) {
       if (!sqlAbortRef.current) setSqlError(err?.message ?? "Query failed");
     } finally {

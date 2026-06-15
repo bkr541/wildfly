@@ -77,7 +77,7 @@ export async function loadSignupControls(): Promise<SignupControls> {
 
 // ── Upsert helper ─────────────────────────────────────────────────────────────
 
-async function saveConfigKey(key: string, value: object, userId: string): Promise<string | null> {
+async function saveConfigKey(key: string, value: object): Promise<string | null> {
   const { data: existing } = await supabase
     .from("app_config")
     .select("id")
@@ -93,9 +93,10 @@ async function saveConfigKey(key: string, value: object, userId: string): Promis
       .eq("id", existing.id);
     return error?.message ?? null;
   } else {
+    // user_id intentionally omitted — INSERT policy requires user_id IS NULL
     const { error } = await supabase
       .from("app_config")
-      .insert({ config_key: key, config_value: jsonValue, user_id: userId });
+      .insert({ config_key: key, config_value: jsonValue });
     return error?.message ?? null;
   }
 }
@@ -205,21 +206,18 @@ export function SignupControlsAdminView() {
     const e1 = await saveConfigKey(
       SIGNUP_CONFIG_KEYS.registration,
       { enabled: next.registrationEnabled },
-      userId,
     );
     if (e1) errs.push(e1);
 
     const e2 = await saveConfigKey(
       SIGNUP_CONFIG_KEYS.oauthLogin,
       { enabled: next.oauthLoginEnabled, google: next.oauthLoginGoogle, apple: next.oauthLoginApple },
-      userId,
     );
     if (e2) errs.push(e2);
 
     const e3 = await saveConfigKey(
       SIGNUP_CONFIG_KEYS.oauthSignup,
       { enabled: next.oauthSignupEnabled, google: next.oauthSignupGoogle, apple: next.oauthSignupApple },
-      userId,
     );
     if (e3) errs.push(e3);
 
