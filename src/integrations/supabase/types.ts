@@ -1251,13 +1251,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "shared_flight_results_owner_user_id_fkey"
-            columns: ["owner_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shared_flight_results_source_flight_search_id_fkey"
             columns: ["source_flight_search_id"]
             isOneToOne: false
@@ -1829,10 +1822,6 @@ export type Database = {
           type: string
         }[]
       }
-      get_shared_flight_result: {
-        Args: { p_token_hash: string }
-        Returns: Json
-      }
       get_route_gowild_inventory_calendar: {
         Args: {
           p_destination_iata: string
@@ -1892,6 +1881,10 @@ export type Database = {
           last_observed_at: string
           travel_date: string
         }[]
+      }
+      get_shared_flight_result: {
+        Args: { p_token_hash: string }
+        Returns: Json
       }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       mark_disappeared_gowild_observations: {
