@@ -160,30 +160,36 @@ export function FlightShareAirportGroup({
           />
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: iataFontSize,
-              fontWeight: 900,
-              color: "#1A2E2E",
-              letterSpacing: "-0.01em",
-              lineHeight: 1,
-            }}
-          >
-            {iata}
-          </span>
-          {displayName && (
+        <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, minWidth: 0 }}>
             <span
               style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: "#6B7B7B",
-                marginLeft: 8,
+                fontSize: iataFontSize,
+                fontWeight: 900,
+                color: "#1A2E2E",
+                letterSpacing: "-0.01em",
+                lineHeight: 1,
+                flexShrink: 0,
               }}
             >
-              {displayName}
+              {iata}
             </span>
-          )}
+            {displayName && (
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "#6B7B7B",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  minWidth: 0,
+                }}
+              >
+                {displayName}
+              </span>
+            )}
+          </div>
         </div>
 
         <span

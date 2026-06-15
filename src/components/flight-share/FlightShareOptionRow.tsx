@@ -14,7 +14,7 @@ const FRONTIER_FULL_LOGO = "/assets/logo/frontier/frontier_full_logo.png";
 const NOTCH_SIZE = 26;
 const NOTCH_BG = "#F7F9F8";
 const STUB_WIDTH_IMAGE = 152;
-const STUB_WIDTH_PAGE  = 120;
+const STUB_WIDTH_PAGE  = 90;
 
 export type FlightShareRenderMode = "image" | "page";
 
@@ -75,9 +75,11 @@ interface BoardingPassCardProps {
   sectionLabel?: string;
   stubWidth: number;
   cardPx: number;
+  mode?: FlightShareRenderMode;
 }
 
-function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingPassCardProps) {
+function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "image" }: BoardingPassCardProps) {
+  const isPage = mode === "page";
   const {
     departureTimeLabel,
     arrivalTimeLabel,
@@ -138,10 +140,10 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
         </div>
 
         {/* Route: IATA ----[✈ or via]---- IATA */}
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
           <span
             style={{
-              fontSize: 36,
+              fontSize: isPage ? 26 : 36,
               fontWeight: 900,
               color: DARK_TEAL,
               lineHeight: 1,
@@ -151,11 +153,11 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
           >
             {originCode}
           </span>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 10px", minWidth: 0 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: isPage ? "0 6px" : "0 10px", minWidth: 0 }}>
             {isNonstop ? (
               <>
                 <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
-                <div style={{ margin: "0 8px", flexShrink: 0 }}>
+                <div style={{ margin: isPage ? "0 4px" : "0 8px", flexShrink: 0 }}>
                   <PlaneSVG />
                 </div>
                 <div style={{ flex: 1, height: 0, borderTop: "1.5px dashed #B8CECE" }} />
@@ -167,8 +169,8 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
                   <React.Fragment key={via}>
                     <span
                       style={{
-                        margin: "0 7px",
-                        fontSize: 18,
+                        margin: isPage ? "0 4px" : "0 7px",
+                        fontSize: isPage ? 13 : 18,
                         fontWeight: 500,
                         color: MUTED,
                         letterSpacing: "-0.01em",
@@ -186,7 +188,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
           </div>
           <span
             style={{
-              fontSize: 36,
+              fontSize: isPage ? 26 : 36,
               fontWeight: 900,
               color: DARK_TEAL,
               lineHeight: 1,
@@ -202,15 +204,15 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
         <div
           style={{
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: 14,
+            marginBottom: isPage ? 10 : 14,
           }}
         >
           <div>
             <div
               style={{
-                fontSize: 15,
+                fontSize: isPage ? 13 : 15,
                 fontWeight: 600,
                 color: EMERALD,
                 lineHeight: 1.2,
@@ -219,7 +221,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
             >
               {departureTimeLabel}
             </div>
-            {depDateLabel && (
+            {!isPage && depDateLabel && (
               <div style={{ fontSize: 11, fontWeight: 500, color: MUTED, lineHeight: 1.3, marginTop: 2 }}>
                 {depDateLabel}
               </div>
@@ -228,12 +230,12 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
 
           <span
             style={{
-              fontSize: 11,
+              fontSize: isPage ? 10 : 11,
               fontWeight: 700,
               color: "#065F46",
               background: "#D1FAE5",
               borderRadius: 20,
-              padding: "3px 12px",
+              padding: isPage ? "2px 8px" : "3px 12px",
               lineHeight: 1.5,
               whiteSpace: "nowrap",
               alignSelf: "center",
@@ -247,7 +249,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
             <div>
               <span
                 style={{
-                  fontSize: 15,
+                  fontSize: isPage ? 13 : 15,
                   fontWeight: 600,
                   color: EMERALD,
                   lineHeight: 1.2,
@@ -271,7 +273,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
                 </span>
               )}
             </div>
-            {arrDateLabel && (
+            {!isPage && arrDateLabel && (
               <div style={{ fontSize: 11, fontWeight: 500, color: MUTED, lineHeight: 1.3, marginTop: 2 }}>
                 {arrDateLabel}
               </div>
@@ -350,8 +352,8 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
             );
           })()}
 
-          {/* Flight numbers (page mode shows here; image shows in stub) */}
-          {flightNumbers.length > 0 && (
+          {/* Flight numbers — image mode only (too noisy on small screens) */}
+          {!isPage && flightNumbers.length > 0 && (
             <span
               style={{
                 display: "inline-flex",
@@ -473,7 +475,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
           </div>
           <div
             style={{
-              fontSize: 22,
+              fontSize: isPage ? 16 : 22,
               fontWeight: 800,
               color: isGoWild ? "#047857" : DARK_TEAL,
               fontVariantNumeric: "tabular-nums",
@@ -513,7 +515,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx }: BoardingP
               <div style={{ textAlign: "center" }}>
                 <div
                   style={{
-                    fontSize: 34,
+                    fontSize: isPage ? 22 : 34,
                     fontWeight: 900,
                     color: EMERALD,
                     lineHeight: 1,
@@ -561,7 +563,8 @@ export function FlightShareOptionRow({
           option={option}
           sectionLabel={sectionLabel}
           stubWidth={STUB_WIDTH_PAGE}
-          cardPx={16}
+          cardPx={12}
+          mode="page"
         />
       </div>
     );

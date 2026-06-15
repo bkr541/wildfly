@@ -40,17 +40,6 @@ export interface PublicFlightShareViewProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatSnapshotDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    const date = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-    return `${date} at ${time}`;
-  } catch {
-    return iso;
-  }
-}
-
 function sortOptions(options: FlightShareOption[], key: SortKey): FlightShareOption[] {
   return [...options].sort((a, b) => {
     switch (key) {
@@ -251,33 +240,6 @@ export function PublicFlightShareView({
 
         {/* ── Content area ─────────────────────────────────────────────────── */}
         <div style={{ padding: "0 12px" }}>
-
-          {/* Snapshot disclosure */}
-          <div
-            style={{
-              margin: "12px 0 10px",
-              padding: "10px 14px",
-              background: "#FFF",
-              border: "1px solid #E8EBEB",
-              borderRadius: 12,
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 8,
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>
-              📸
-            </span>
-            <div>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: DARK_TEAL, lineHeight: 1.4 }}>
-                Results captured {formatSnapshotDate(createdAt)}.
-              </p>
-              <p style={{ margin: 0, fontSize: 11, color: MUTED, marginTop: 2, lineHeight: 1.4 }}>
-                Prices and availability may have changed. These results are a snapshot — not a live
-                search.
-              </p>
-            </div>
-          </div>
 
           {/* Sort + Filter trigger row */}
           {model.hasResults && (

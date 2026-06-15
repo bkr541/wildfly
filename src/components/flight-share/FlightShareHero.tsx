@@ -143,8 +143,8 @@ export function FlightShareHero({
         <span
           style={{
             position: "absolute",
-            top: 56,
-            left: 28,
+            top: showLogo ? 56 : 10,
+            left: showLogo ? 28 : 14,
             fontSize: 44,
             fontWeight: 900,
             color: "#FFFFFF",
@@ -180,8 +180,8 @@ export function FlightShareHero({
         <span
           style={{
             position: "absolute",
-            bottom: 20,
-            right: 28,
+            bottom: showLogo ? 20 : 10,
+            right: showLogo ? 28 : 14,
             fontSize: 44,
             fontWeight: 900,
             color: "#FFFFFF",
