@@ -1,0 +1,68 @@
+// Pure, deterministic template renderer.
+// No eval, no dynamic code execution.
+// Only processes {{variable_name}} placeholders from a known whitelist.
+
+export const VARIABLE_PATTERN = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+
+export const ALLOWED_VARIABLES = new Set([
+  "first_name",
+  "last_name",
+  "full_name",
+  "email",
+  "home_airport",
+  "plan_name",
+  "app_url",
+  "support_email",
+  "account_cta_label",
+  "account_cta_url",
+  "unsubscribe_url",
+  "feature_name",
+  "maintenance_date",
+]);
+
+export type TemplateVars = Record<string, string>;
+
+export function extractVariables(template: string): string[] {
+  const found = new Set<string>();
+  let match: RegExpExecArray | null;
+  const re = new RegExp(VARIABLE_PATTERN.source, "g");
+  while ((match = re.exec(template)) !== null) {
+    found.add(match[1]);
+  }
+  return Array.from(found);
+}
+
+export function findUnknownVariables(template: string, allowed: Set<string> = ALLOWED_VARIABLES): string[] {
+  return extractVariables(template).filter((v) => !allowed.has(v));
+}
+
+export function findMissingRequired(template: string, required: string[], vars: TemplateVars): string[] {
+  return required.filter((v) => {
+    return template.includes(`{{${v}}}`) && !vars[v];
+  });
+}
+
+export function renderTemplate(template: string, vars: TemplateVars): string {
+  return template.replace(/\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g, (_, key) => {
+    const val = vars[key];
+    if (val === undefined || val === null) return "";
+    return String(val);
+  });
+}
+
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}

@@ -43,6 +43,7 @@ import {
   Calendar01Icon,
   BubbleChatNotificationIcon,
   Notification01Icon,
+  SentIcon,
 } from "@hugeicons/core-free-icons";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -74,6 +75,7 @@ import { DeveloperAllowlistAdminView } from "@/components/admin/developer-tools/
 import { SignupControlsAdminView } from "@/components/admin/developer-tools/SignupControlsAdminView";
 import { ScheduledJobsAdminView } from "@/components/admin/developer-tools/ScheduledJobsAdminView";
 import { NotificationsAdminView } from "@/components/admin/communications/NotificationsAdminView";
+import { MessagingAdminView } from "@/components/admin/communications/messaging/MessagingAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -83,6 +85,7 @@ type View =
   | "developer-sql-cache" | "developer-token" | "developer-logging"
   | "auth-developer-allowlist" | "auth-signup-controls"
   | "system-scheduled-jobs"
+  | "communications-messaging"
   | "communications-notifications";
 
 interface UserRow {
@@ -155,6 +158,7 @@ const SYSTEM_PROCESS_ITEMS: { id: string; label: string; icon: any; disabled?: b
 ];
 
 const COMMUNICATIONS_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "communications-messaging",     label: "Messaging",     icon: SentIcon },
   { id: "communications-notifications", label: "Notifications", icon: Notification01Icon },
 ];
 
@@ -2230,6 +2234,7 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
   "system-scheduled-jobs":              { prefix: "Operations",     label: "SYSTEM JOBS" },
   "auth-signup-controls":               { prefix: "Auth & Access",  label: "SIGNUP CONTROLS" },
+  "communications-messaging":            { prefix: "Communications", label: "MESSAGING" },
   "communications-notifications":       { prefix: "Communications", label: "NOTIFICATIONS" },
 };
 
@@ -2950,6 +2955,7 @@ export default function AdminConsole() {
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
         {isDeveloper && view === "system-scheduled-jobs"              && <ScheduledJobsAdminView />}
         {isDeveloper && view === "auth-signup-controls"             && <SignupControlsAdminView />}
+        {isDeveloper && view === "communications-messaging"          && <MessagingAdminView />}
         {isDeveloper && view === "communications-notifications"     && <NotificationsAdminView />}
         </motion.div>
         </AnimatePresence>

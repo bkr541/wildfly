@@ -910,7 +910,8 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
   const [approveResult, setApproveResult] = useState<{
     name: string;
     email: string;
-    actionLink: string | null;
+    welcomeDeliveryStatus: string;
+    welcomeMessageId: string | null;
     alreadyExisted: boolean;
   } | null>(null);
 
@@ -1075,7 +1076,8 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
       setApproveResult({
         name: app.full_name,
         email: app.email,
-        actionLink: json.action_link ?? null,
+        welcomeDeliveryStatus: json.welcome_delivery_status ?? "unknown",
+        welcomeMessageId: json.welcome_message_id ?? null,
         alreadyExisted: json.already_existed ?? false,
       });
     } catch (e) {
@@ -1528,35 +1530,44 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
                 ))}
             </div>
 
-            {/* Password reset link */}
-            {approveResult.actionLink ? (
-              <div className="flex flex-col gap-1.5">
-                <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
-                  Password reset link — share with user
-                </p>
-                <div className="flex items-center gap-2 bg-[#F2F3F3] rounded-xl px-3 py-2">
-                  <p className="flex-1 text-xs text-[#2E4A4A] truncate font-mono">{approveResult.actionLink}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(approveResult.actionLink!);
-                      toast.success("Link copied!");
-                    }}
-                    className="flex-shrink-0 p-1.5 rounded-lg hover:bg-[#E5E7EB] transition-colors"
-                    aria-label="Copy link"
-                  >
-                    <HugeiconsIcon icon={Copy01Icon} size={14} color="#6B7B7B" strokeWidth={2} />
-                  </button>
-                </div>
-                <p className="text-[11px] text-[#9CA3AF]">
-                  User clicks the link → sets their password → goes through onboarding → full Gold access.
-                </p>
-              </div>
-            ) : (
-              <p className="text-xs text-[#9CA3AF]">
-                No reset link was generated. The user can use "Forgot Password" on the login screen to set their password.
+            {/* Welcome email status */}
+            <div className="flex flex-col gap-1.5">
+              <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+                Welcome Email
               </p>
-            )}
+              {approveResult.welcomeDeliveryStatus === "sent" ? (
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                  <p className="text-xs text-green-700 font-medium">
+                    Welcome email sent to {approveResult.email}
+                  </p>
+                </div>
+              ) : approveResult.welcomeDeliveryStatus === "failed" ? (
+                <div className="flex flex-col gap-1 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-red-700 font-medium">Welcome email failed to send.</p>
+                  {approveResult.welcomeMessageId && (
+                    <p className="text-[11px] text-red-500">
+                      Check Messaging → Delivery for message ID {approveResult.welcomeMessageId.slice(0, 8)}…
+                    </p>
+                  )}
+                  <p className="text-[11px] text-red-500">
+                    The user can still sign in and use "Forgot Password" to set their password.
+                  </p>
+                </div>
+              ) : approveResult.welcomeDeliveryStatus === "no_template" ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-amber-700">
+                    No active <code className="font-mono text-[10px]">beta-applicant-selected</code> template found.
+                    The user can sign in using "Forgot Password" to set their password.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-[#9CA3AF]">
+                  Email status: {approveResult.welcomeDeliveryStatus}.
+                  The user can use "Forgot Password" on the login screen to set their password.
+                </p>
+              )}
+            </div>
 
             <button
               type="button"
