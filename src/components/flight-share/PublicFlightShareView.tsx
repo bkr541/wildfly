@@ -1,12 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Copy01Icon,
-  Share03Icon,
-  ImageDownloadIcon,
   Rocket01Icon,
   SortByDown02Icon,
+  FilterIcon,
+  Clock01Icon,
+  DollarCircleIcon,
+  AirplaneTakeOff01Icon,
+  AirplaneTakeOff02Icon,
+  CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
+import { BottomSheet } from "@/components/BottomSheet";
 import type { FlightShareModel, FlightShareOption } from "@/utils/flightShareModel";
 import { parseDurationToMinutes } from "@/utils/flightShareModel";
 import { FlightShareHero } from "./FlightShareHero";
@@ -129,6 +134,10 @@ export function PublicFlightShareView({
   const [downloading, setDownloading] = useState(false);
   const templateRef = useRef<HTMLDivElement>(null);
 
+  // Bottom sheets
+  const [sortSheet,   setSortSheet]   = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+
   // Derived display model (filtered + sorted single section)
   const displayModel = useMemo(
     () => deriveDisplayModel(model, activeSection, filter, sort),
@@ -201,34 +210,22 @@ export function PublicFlightShareView({
     }
   }, [downloading, model]);
 
-  // ── Button styles ─────────────────────────────────────────────────────────
+  // ── Sheet trigger button style ─────────────────────────────────────────────
 
-  const actionBtnStyle: React.CSSProperties = {
+  const sheetTriggerStyle = (active: boolean): React.CSSProperties => ({
     display: "inline-flex",
     alignItems: "center",
-    gap: 6,
-    padding: "8px 14px",
-    borderRadius: 10,
-    border: "1px solid #E8EBEB",
-    background: "#FFFFFF",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 600,
-    color: DARK_TEAL,
-    boxShadow: "0 1px 3px rgba(53,92,90,0.06)",
-    whiteSpace: "nowrap",
-  };
-
-  const filterBtnStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 12px",
+    gap: 5,
+    padding: "7px 14px",
     borderRadius: 999,
     border: active ? `1.5px solid ${EMERALD}` : "1.5px solid #E8EBEB",
     background: active ? "#F0FAF6" : "#FFFFFF",
     color: active ? EMERALD : MUTED,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     whiteSpace: "nowrap",
+    boxShadow: "0 1px 3px rgba(53,92,90,0.06)",
   });
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -244,6 +241,7 @@ export function PublicFlightShareView({
           destinationLabel={model.destinationLabel}
           heroImageUrl={model.heroImageUrl}
           arrivalImageUrl={model.arrivalImageUrl}
+          showLogo={false}
           className="w-full"
           style={{ height: "clamp(160px, 25vw, 253px)" } as React.CSSProperties}
         />
@@ -281,122 +279,25 @@ export function PublicFlightShareView({
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-            <button style={actionBtnStyle} onClick={handleCopy} aria-label="Copy public link">
-              <HugeiconsIcon icon={Copy01Icon} size={13} color={DARK_TEAL} strokeWidth={2} />
-              {copied ? "Copied!" : "Copy link"}
-            </button>
-
-            {canNativeShare && (
-              <button
-                style={actionBtnStyle}
-                onClick={handleNativeShare}
-                aria-label="Share via device share sheet"
-              >
-                <HugeiconsIcon icon={Share03Icon} size={13} color={DARK_TEAL} strokeWidth={2} />
-                Share
-              </button>
-            )}
-
-            <button
-              style={{ ...actionBtnStyle, opacity: downloading ? 0.6 : 1 }}
-              onClick={handleDownload}
-              disabled={downloading}
-              aria-label="Download flight results as image"
-            >
-              <HugeiconsIcon icon={ImageDownloadIcon} size={13} color={DARK_TEAL} strokeWidth={2} />
-              {downloading ? "Exporting…" : "Download image"}
-            </button>
-          </div>
-
-          {/* Filter + Sort bar */}
+          {/* Sort + Filter trigger row */}
           {model.hasResults && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 10,
-              }}
-            >
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <button
-                  style={filterBtnStyle(filter === "all")}
-                  onClick={() => setFilter("all")}
-                  aria-label="Show all flights"
-                >
-                  All
-                </button>
-                {hasGoWild && (
-                  <button
-                    style={filterBtnStyle(filter === "gowild")}
-                    onClick={() => setFilter("gowild")}
-                    aria-label="Show GoWild flights only"
-                  >
-                    <HugeiconsIcon
-                      icon={Rocket01Icon}
-                      size={10}
-                      color={filter === "gowild" ? EMERALD : MUTED}
-                      strokeWidth={2.5}
-                      style={{ marginRight: 3 }}
-                    />
-                    GoWild
-                  </button>
-                )}
-                {hasNonstop && (
-                  <button
-                    style={filterBtnStyle(filter === "nonstop")}
-                    onClick={() => setFilter("nonstop")}
-                    aria-label="Show nonstop flights only"
-                  >
-                    Nonstop
-                  </button>
-                )}
-                {hasStops && (
-                  <button
-                    style={filterBtnStyle(filter === "1stop")}
-                    onClick={() => setFilter("1stop")}
-                    aria-label="Show connecting flights only"
-                  >
-                    1+ Stop
-                  </button>
-                )}
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <HugeiconsIcon icon={SortByDown02Icon} size={13} color={MUTED} strokeWidth={2} />
-                <label
-                  htmlFor="public-share-sort"
-                  style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}
-                >
-                  Sort:
-                </label>
-                <select
-                  id="public-share-sort"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: DARK_TEAL,
-                    border: "1px solid #E8EBEB",
-                    borderRadius: 8,
-                    padding: "4px 6px",
-                    background: "#FFFFFF",
-                    cursor: "pointer",
-                  }}
-                  aria-label="Sort flights by"
-                >
-                  <option value="dep">Departure</option>
-                  <option value="arr">Arrival</option>
-                  <option value="dur">Duration</option>
-                  <option value="stops">Stops</option>
-                  <option value="fare">Fare</option>
-                </select>
-              </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <button
+                style={sheetTriggerStyle(sort !== "dep")}
+                onClick={() => setSortSheet(true)}
+                aria-label="Sort flights"
+              >
+                <HugeiconsIcon icon={SortByDown02Icon} size={12} color={sort !== "dep" ? EMERALD : MUTED} strokeWidth={2} />
+                Sort By
+              </button>
+              <button
+                style={sheetTriggerStyle(filter !== "all")}
+                onClick={() => setFilterSheet(true)}
+                aria-label="Filter flights"
+              >
+                <HugeiconsIcon icon={FilterIcon} size={12} color={filter !== "all" ? EMERALD : MUTED} strokeWidth={2} />
+                Filter
+              </button>
             </div>
           )}
 
@@ -469,6 +370,116 @@ export function PublicFlightShareView({
           )}
         </div>
       </div>
+
+      {/* ── Sort Sheet ──────────────────────────────────────────────────────── */}
+      <BottomSheet open={sortSheet} onClose={() => setSortSheet(false)}>
+        <div className="flex items-center gap-2.5 px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+          <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+            <HugeiconsIcon icon={SortByDown02Icon} size={15} color="white" strokeWidth={2} />
+          </div>
+          <h2 className="text-base font-bold text-[#2E4A4A]">Sort By</h2>
+        </div>
+        <div className="flex flex-col py-2 pb-8">
+          {([
+            { key: "dep"   as SortKey, label: "Departure Time",  desc: "Earliest flights first",  icon: Clock01Icon },
+            { key: "fare"  as SortKey, label: "Lowest Fare",     desc: "Cheapest fares first",    icon: DollarCircleIcon },
+            { key: "dur"   as SortKey, label: "Shortest Flight", desc: "Quickest flights first",  icon: AirplaneTakeOff02Icon },
+            { key: "stops" as SortKey, label: "Fewest Stops",    desc: "Nonstop flights first",   icon: CheckmarkCircle02Icon },
+          ]).map(({ key, label, desc, icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => { setSort(key); setSortSheet(false); }}
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+            >
+              <div
+                className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: sort === key ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+              >
+                <HugeiconsIcon icon={icon} size={17} color={sort === key ? "white" : "#6B7B7B"} strokeWidth={2} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className={`text-sm font-semibold ${sort === key ? "text-[#059669]" : "text-[#2E4A4A]"}`}>{label}</p>
+                <p className="text-xs text-[#9CA3AF]">{desc}</p>
+              </div>
+              {sort === key && (
+                <div className="h-5 w-5 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+                  <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color="white" strokeWidth={2.5} />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* ── Filter Sheet ─────────────────────────────────────────────────────── */}
+      <BottomSheet open={filterSheet} onClose={() => setFilterSheet(false)}>
+        <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#F0F1F1]">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}>
+              <HugeiconsIcon icon={FilterIcon} size={15} color="white" strokeWidth={2} />
+            </div>
+            <h2 className="text-base font-bold text-[#2E4A4A]">Filter</h2>
+          </div>
+          {filter !== "all" && (
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className="text-xs font-semibold text-[#9CA3AF] hover:text-[#2E4A4A] transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col py-2">
+          {([
+            { key: "gowild"  as FilterKey, label: "GoWild Fares",  desc: "Show only flights with GoWild pricing", icon: Rocket01Icon,       show: hasGoWild },
+            { key: "nonstop" as FilterKey, label: "Nonstop Only",  desc: "Show only nonstop flights",             icon: AirplaneTakeOff01Icon, show: hasNonstop },
+            { key: "1stop"   as FilterKey, label: "1+ Stop",       desc: "Show connecting flights only",          icon: AirplaneTakeOff02Icon, show: hasStops },
+          ]).filter(({ show }) => show).map(({ key, label, desc, icon }) => {
+            const active = filter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(active ? "all" : key)}
+                className="flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+              >
+                <div
+                  className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "rgba(107,123,123,0.10)" }}
+                >
+                  <HugeiconsIcon icon={icon} size={17} color={active ? "white" : "#6B7B7B"} strokeWidth={2} />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className={`text-sm font-semibold ${active ? "text-[#059669]" : "text-[#2E4A4A]"}`}>{label}</p>
+                  <p className="text-xs text-[#9CA3AF]">{desc}</p>
+                </div>
+                <div
+                  className="w-11 h-6 rounded-full flex items-center transition-all flex-shrink-0 px-0.5"
+                  style={{ background: active ? "linear-gradient(135deg, #059669 0%, #10b981 100%)" : "#E5E7EB" }}
+                >
+                  <motion.div
+                    animate={{ x: active ? 20 : 2 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="h-5 w-5 rounded-full bg-white shadow-sm"
+                  />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="px-5 pb-8 pt-2">
+          <button
+            type="button"
+            onClick={() => setFilterSheet(false)}
+            className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+          >
+            Apply
+          </button>
+        </div>
+      </BottomSheet>
 
       {/* ── Off-screen FlightShareTemplate for image export ─────────────────── */}
       {/* Uses mode="image" via FlightShareContent internally — exact template dimensions */}

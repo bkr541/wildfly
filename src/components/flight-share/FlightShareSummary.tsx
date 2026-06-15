@@ -27,28 +27,30 @@ function StatItem({
 }) {
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}
     >
       <span
         style={{
-          fontSize: imageMode ? 10 : 10,
+          fontSize: imageMode ? 10 : 9,
           fontWeight: 600,
           color: MUTED,
           textTransform: "uppercase",
           letterSpacing: "0.08em",
           lineHeight: 1,
+          whiteSpace: "nowrap",
         }}
       >
         {label}
       </span>
       <span
         style={{
-          fontSize: imageMode ? 15 : 15,
+          fontSize: imageMode ? 15 : 12,
           fontWeight: 700,
           color: DARK_TEAL,
           lineHeight: 1.1,
           textAlign: "center",
           fontVariantNumeric: "tabular-nums",
+          whiteSpace: "nowrap",
         }}
       >
         {value}
@@ -62,7 +64,7 @@ function Divider({ imageMode }: { imageMode: boolean }) {
     <div
       style={{
         width: 1,
-        height: imageMode ? 28 : 24,
+        height: imageMode ? 28 : 20,
         background: "#E8EBEB",
         flexShrink: 0,
       }}
@@ -85,11 +87,11 @@ export function FlightShareSummary({ model, imageMode = false }: FlightShareSumm
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: imageMode ? "14px 52px" : "12px 20px",
+        padding: imageMode ? "14px 52px" : "8px 12px",
         background: "#FFFFFF",
         borderBottom: "1px solid #F0F1F1",
-        flexWrap: imageMode ? "nowrap" : "wrap",
-        gap: imageMode ? 0 : 8,
+        flexWrap: "nowrap",
+        gap: 0,
       }}
     >
       <StatItem label="DATE" value={dateLabel} imageMode={imageMode} />
@@ -105,25 +107,26 @@ export function FlightShareSummary({ model, imageMode = false }: FlightShareSumm
           alignItems: "center",
           gap: 2,
           background: EMERALD,
-          borderRadius: 12,
-          padding: imageMode ? "7px 20px" : "6px 16px",
+          borderRadius: imageMode ? 12 : 10,
+          padding: imageMode ? "7px 20px" : "4px 10px",
         }}
       >
         <span
           style={{
-            fontSize: 10,
+            fontSize: imageMode ? 10 : 9,
             fontWeight: 700,
             color: "rgba(255,255,255,0.85)",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
             lineHeight: 1,
+            whiteSpace: "nowrap",
           }}
         >
           OPTIONS
         </span>
         <span
           style={{
-            fontSize: imageMode ? 22 : 20,
+            fontSize: imageMode ? 22 : 15,
             fontWeight: 900,
             color: "#FFFFFF",
             lineHeight: 1.1,

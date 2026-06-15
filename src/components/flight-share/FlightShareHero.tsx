@@ -1,4 +1,6 @@
 import React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight04Icon } from "@hugeicons/core-free-icons";
 
 // Shared constants (kept in sync with FlightShareTemplate)
 const NAVY = "#0F2040";
@@ -19,6 +21,8 @@ interface FlightShareHeroProps {
   className?: string;
   /** Additional inline styles merged onto the root element. */
   style?: React.CSSProperties;
+  /** When false, hides the Wildfly logo overlay. Defaults to true. */
+  showLogo?: boolean;
 }
 
 /**
@@ -36,6 +40,7 @@ export function FlightShareHero({
   fixedHeight,
   className = "",
   style: styleProp,
+  showLogo = true,
 }: FlightShareHeroProps) {
   const textShadow = "0 1px 6px rgba(0,0,0,0.90), 0 2px 14px rgba(0,0,0,0.65)";
 
@@ -118,19 +123,21 @@ export function FlightShareHero({
 
       {/* Content layer */}
       <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
-        {/* Logo — top-left */}
-        <img
-          src="/assets/logo/logo_horizontal.png"
-          alt="Wildfly"
-          style={{
-            position: "absolute",
-            top: 20,
-            left: 28,
-            height: 26,
-            objectFit: "contain",
-            objectPosition: "left center",
-          }}
-        />
+        {/* Logo — top-left (hidden on public share page, shown in image export) */}
+        {showLogo && (
+          <img
+            src="/assets/logo/logo_horizontal.png"
+            alt="Wildfly"
+            style={{
+              position: "absolute",
+              top: 20,
+              left: 28,
+              height: 26,
+              objectFit: "contain",
+              objectPosition: "left center",
+            }}
+          />
+        )}
 
         {/* Origin city — top-left */}
         <span
@@ -166,15 +173,7 @@ export function FlightShareHero({
             justifyContent: "center",
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M5 12h14M13 6l6 6-6 6"
-              stroke="#FFFFFF"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <HugeiconsIcon icon={ArrowRight04Icon} size={20} color="#FFFFFF" strokeWidth={2.5} />
         </div>
 
         {/* Destination city — bottom-right */}
