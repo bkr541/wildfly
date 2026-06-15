@@ -123,7 +123,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "ima
       <div
         style={{
           flex: 1,
-          padding: `14px ${cardPx}px 20px ${cardPx}px`,
+          padding: `14px ${cardPx}px ${isPage ? 12 : 20}px ${cardPx}px`,
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -434,7 +434,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "ima
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "14px 10px 10px 10px",
+            padding: isPage ? "8px 8px 6px 8px" : "14px 10px 10px 10px",
           }}
         >
           <div
@@ -481,7 +481,7 @@ function BoardingPassCard({ option, sectionLabel, stubWidth, cardPx, mode = "ima
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                paddingBottom: 22,
+                paddingBottom: isPage ? 8 : 22,
               }}
             >
               {/*
