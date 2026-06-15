@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   Mail01Icon,
   SentIcon,
@@ -13,7 +13,7 @@ import { formatRecipientCount } from "./messagingHelpers";
 import type { MessagingMessage } from "./messagingTypes";
 
 interface StatCardProps {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: IconSvgElement;
   label: string;
   value: string | number;
   color?: string;

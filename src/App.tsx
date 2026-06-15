@@ -22,6 +22,7 @@ import DayTripResults from "./pages/DayTripResults";
 import AdminImport from "./pages/AdminImport";
 import AdminBulkSearch from "./pages/AdminBulkSearch";
 import AdminConsole from "./pages/AdminConsole";
+import AdminDbPush from "./pages/AdminDbPush";
 import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
@@ -519,6 +520,7 @@ const App = () => (
           <Route path="/admin/import" element={<AdminImport />} />
           <Route path="/admin/bulk-search" element={<AdminGate><ProfileProvider><AdminBulkSearch /></ProfileProvider></AdminGate>} />
           <Route path="/admin/console" element={<AdminGate><ProfileProvider><AdminConsole /></ProfileProvider></AdminGate>} />
+          <Route path="/admin/db-push" element={<AdminGate><AdminDbPush /></AdminGate>} />
           <Route path="/admin/beta-applications" element={<AdminGate><ProfileProvider><AdminBetaApplications /></ProfileProvider></AdminGate>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/preview" element={<PreviewPage />} />
