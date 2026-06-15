@@ -586,8 +586,8 @@ describe("PublicFlightSharePage", () => {
 
     it("hides Share button when navigator.share is absent", async () => {
       const token = nextToken();
-      const orig = (navigator as Record<string, unknown>).share;
-      delete (navigator as Record<string, unknown>).share;
+      const orig = (navigator as unknown as Record<string, unknown>).share;
+      delete (navigator as unknown as Record<string, unknown>).share;
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
       await waitFor(() => screen.getByText("Copy link"));

@@ -250,7 +250,7 @@ export function FlightShareContent({
           justifyContent: "space-between",
           flexWrap: "wrap" as const,
           gap: 8,
-          marginTop: mode === "image" ? 0 : 4,
+          marginTop: 4,
         };
 
   return (
