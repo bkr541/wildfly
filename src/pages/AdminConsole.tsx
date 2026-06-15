@@ -125,7 +125,6 @@ const CARD_STYLE: React.CSSProperties = {
 const NAV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: ChartRoseIcon },
   { id: "flights",   label: "Flights",   icon: AirplaneTakeOff01Icon },
-  { id: "data",      label: "Data",      icon: DatabaseIcon },
 ];
 
 const WILDFLY_TOOLS_ITEMS: { id: View; label: string; icon: any }[] = [
@@ -139,6 +138,7 @@ const ACCOUNTS_ITEMS: { id: View; label: string; icon: any }[] = [
 ];
 
 const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
+  { id: "data",                     label: "Data",             icon: DatabaseIcon },
   { id: "developer-design-system", label: "Design System",    icon: BookOpen01Icon },
   { id: "developer-announcements", label: "Announcements",    icon: UserGroupIcon },
   { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
@@ -2221,7 +2221,7 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   dashboard:          { prefix: "Admin",  label: "DASHBOARD" },
   users:              { prefix: "Admin",  label: "USERS" },
   flights:            { prefix: "Admin",  label: "FLIGHTS" },
-  data:               { prefix: "Admin",  label: "DATA" },
+  data:               { prefix: "Developer", label: "DATA" },
   gowild:             { prefix: "GoWild", label: "INSIGHTS" },
   radar:              { prefix: "GoWild", label: "RADAR" },
   "beta-applications":         { prefix: "Beta",      label: "APPLICATIONS" },
@@ -2470,7 +2470,7 @@ export default function AdminConsole() {
             )}
           </AnimatePresence>
 
-          {/* Flights, Data */}
+          {/* Flights */}
           {NAV_ITEMS.slice(1).map((item) => {
             const active = view === item.id;
             return (
@@ -2941,11 +2941,11 @@ export default function AdminConsole() {
         {view === "dashboard"          && <AdminDashboardView />}
         {view === "users"              && <UsersView />}
         {view === "flights"            && <FlightsView />}
-        {view === "data"               && <DataView />}
         {view === "gowild"             && <GoWildInsightsView />}
         {view === "radar"              && <GoWildRadarMap />}
         {view === "beta-applications"  && <AdminBetaApplications embedded />}
         {devToolsActive && isDeveloperChecked && !isDeveloper && <DeveloperUnauthorizedView />}
+        {devToolsActive && isDeveloper && view === "data"                    && <DataView />}
         {devToolsActive && isDeveloper && view === "developer-design-system" && <DesignSystemAdminView />}
         {devToolsActive && isDeveloper && view === "developer-announcements" && <AnnouncementsAdminView />}
         {devToolsActive && isDeveloper && view === "developer-debug"         && <DebugSettingsAdminView />}
