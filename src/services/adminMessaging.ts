@@ -98,11 +98,15 @@ export async function sendTest(id: string, addresses: string[]): Promise<{ accep
 // ── Templates ──────────────────────────────────────────────────────────────────
 
 export async function listTemplates(include_archived = false): Promise<MessagingTemplate[]> {
-  const res = await callFn<{ success: true; data: { templates: MessagingTemplate[] } }>(
-    "admin-messaging-list-templates",
-    { include_archived },
-  );
-  return res.data.templates;
+  let query = supabase
+    .from("messaging_templates")
+    .select("id, slug, name, description, category, is_active, is_transactional, supported_channels, available_variables, required_variables, version, created_at, updated_at, archived_at, email_subject, notification_type, notification_title, default_reply_to")
+    .order("category")
+    .order("name");
+  if (!include_archived) query = query.is("archived_at", null);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 export async function saveTemplate(template: Partial<MessagingTemplate> & { slug: string; name: string }): Promise<MessagingTemplate> {

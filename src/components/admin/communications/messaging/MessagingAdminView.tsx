@@ -4,22 +4,22 @@ import {
   DashboardSquare02Icon,
   Mail01Icon,
   DocumentCodeIcon,
-  SentIcon,
   Settings01Icon,
+  Megaphone02Icon,
 } from "@hugeicons/core-free-icons";
 import { MessagingOverview } from "./MessagingOverview";
 import { MessagesList } from "./MessagesList";
 import { MessagingTemplatesView } from "./MessagingTemplatesView";
-import { MessagingDeliveryView } from "./MessagingDeliveryView";
 import { MessagingSettingsView } from "./MessagingSettingsView";
+import { AnnouncementsAdminView } from "@/components/admin/developer-tools/AnnouncementsAdminView";
 
-type Tab = "overview" | "messages" | "templates" | "delivery" | "settings";
+type Tab = "overview" | "messages" | "templates" | "announcements" | "settings";
 
 const TABS: { id: Tab; label: string; icon: IconSvgElement }[] = [
   { id: "overview", label: "Overview", icon: DashboardSquare02Icon },
   { id: "messages", label: "Messages", icon: Mail01Icon },
   { id: "templates", label: "Templates", icon: DocumentCodeIcon },
-  { id: "delivery", label: "Delivery", icon: SentIcon },
+  { id: "announcements", label: "Announcements", icon: Megaphone02Icon },
   { id: "settings", label: "Settings", icon: Settings01Icon },
 ];
 
@@ -50,7 +50,7 @@ export function MessagingAdminView() {
       {tab === "overview" && <MessagingOverview />}
       {tab === "messages" && <MessagesList />}
       {tab === "templates" && <MessagingTemplatesView />}
-      {tab === "delivery" && <MessagingDeliveryView />}
+      {tab === "announcements" && <AnnouncementsAdminView />}
       {tab === "settings" && <MessagingSettingsView />}
     </div>
   );

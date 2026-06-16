@@ -69,7 +69,6 @@ import { DesignSystemAdminView } from "@/components/admin/developer-tools/Design
 import { DebugSettingsAdminView } from "@/components/admin/developer-tools/DebugSettingsAdminView";
 import { GoWilderTokenAdminView } from "@/components/admin/developer-tools/GoWilderTokenAdminView";
 import { LoggingSettingsAdminView } from "@/components/admin/developer-tools/LoggingSettingsAdminView";
-import { AnnouncementsAdminView } from "@/components/admin/developer-tools/AnnouncementsAdminView";
 import { SqlCacheAdminView } from "@/components/admin/developer-tools/SqlCacheAdminView";
 import { DeveloperAllowlistAdminView } from "@/components/admin/developer-tools/DeveloperAllowlistAdminView";
 import { SignupControlsAdminView } from "@/components/admin/developer-tools/SignupControlsAdminView";
@@ -81,7 +80,7 @@ import { MessagingAdminView } from "@/components/admin/communications/messaging/
 
 type View =
   | "dashboard" | "users" | "flights" | "data" | "gowild" | "radar" | "beta-applications"
-  | "developer-design-system" | "developer-announcements" | "developer-debug"
+  | "developer-design-system" | "developer-debug"
   | "developer-sql-cache" | "developer-token" | "developer-logging"
   | "auth-developer-allowlist" | "auth-signup-controls"
   | "system-scheduled-jobs"
@@ -140,7 +139,6 @@ const ACCOUNTS_ITEMS: { id: View; label: string; icon: any }[] = [
 const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "data",                     label: "Data",             icon: DatabaseIcon },
   { id: "developer-design-system", label: "Design System",    icon: BookOpen01Icon },
-  { id: "developer-announcements", label: "Announcements",    icon: UserGroupIcon },
   { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
   { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
   { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
@@ -1351,18 +1349,31 @@ function DataView() {
     setSqlResult(null);
     const t0 = performance.now();
     try {
-      const { data, error } = await supabase.functions.invoke("admin-run-sql", {
-        body: { sql: sqlText.trim() },
-      });
+      const { data, error } = await supabase.rpc("exec_sql", { query: sqlText.trim() });
       if (sqlAbortRef.current) return;
       if (error) throw error;
-      if (data?.status !== "ok") throw new Error(data?.error?.message ?? "Query failed");
-      const resultRows: Record<string, unknown>[] = Array.isArray(data.rows) ? data.rows : [];
+      const resultRows: Record<string, unknown>[] = Array.isArray(data) ? data : [];
       const cols = resultRows.length > 0 ? Object.keys(resultRows[0]) : [];
-      const ms = data.durationMs ?? Math.round(performance.now() - t0);
+      const ms = Math.round(performance.now() - t0);
       setSqlResult({ rows: resultRows, cols, ms });
     } catch (err: any) {
-      if (!sqlAbortRef.current) setSqlError(err?.message ?? "Query failed");
+      if (!sqlAbortRef.current) {
+        const msg: string = err?.message ?? "Query failed";
+        const isTimeout = /timeout|canceling/i.test(msg);
+        if (isTimeout) {
+          const tableMatch = sqlText.match(/\bfrom\s+(\w+)/i);
+          const tableName = tableMatch?.[1] ?? null;
+          const tableFields = tableName ? (COLUMN_MAP[tableName] ?? []) : [];
+          const heavyCols = tableFields.filter(f => f.type === "jsonb").map(f => f.name);
+          const lightCols = tableFields.filter(f => f.type !== "jsonb").map(f => f.name);
+          const suggestion = heavyCols.length > 0 && lightCols.length > 0
+            ? `\n\nSELECT * included ${heavyCols.map(c => `"${c}"`).join(", ")} (jsonb — highlighted amber in the field panel). Try:\nSELECT ${lightCols.join(", ")}\nFROM ${tableName}\nLIMIT 1000`
+            : "\n\nTry reducing the row count or selecting specific columns.";
+          setSqlError(msg + suggestion);
+        } else {
+          setSqlError(msg);
+        }
+      }
     } finally {
       if (!sqlAbortRef.current) setSqlRunning(false);
     }
@@ -1576,7 +1587,7 @@ function DataView() {
                                     )}
                                   >
                                     <span className="text-[#2E4A4A] truncate">{field.name}</span>
-                                    <span className="text-[#059669]">{field.type}</span>
+                                    <span className={field.type === "jsonb" ? "text-amber-500 font-bold" : "text-[#059669]"}>{field.type}</span>
                                     <span className="text-[#9CA3AF] text-right">{field.length ?? "—"}</span>
                                   </div>
                                 ))}
@@ -1732,11 +1743,7 @@ function DataView() {
                   )}
                   {sqlResult && !sqlRunning && (
                     <span className="text-[11px] font-medium text-[#059669]">
-                      {sqlResult.rows.length} row{sqlResult.rows.length !== 1 ? "s" : ""}
-                      {sqlResult.rows.length === 500 && (
-                        <span className="text-amber-500"> (capped at 500)</span>
-                      )}
-                      {" "}· {sqlResult.ms}ms
+                      {sqlResult.rows.length} row{sqlResult.rows.length !== 1 ? "s" : ""} · {sqlResult.ms}ms
                     </span>
                   )}
                   {sqlError && !sqlRunning && (
@@ -1754,7 +1761,7 @@ function DataView() {
                     runSql();
                   }
                 }}
-                placeholder={"SELECT *\nFROM users\nLIMIT 10;\n\n-- Results are capped at 500 rows"}
+                placeholder={"SELECT *\nFROM users\nLIMIT 10;\n\n-- Avoid SELECT * on tables with jsonb columns (shown amber in field panel)"}
                 rows={6}
                 className="w-full px-4 py-3 text-xs font-mono text-[#1A2E2E] bg-white resize-y outline-none placeholder:text-[#D1D5DB] leading-relaxed"
                 spellCheck={false}
@@ -1763,7 +1770,7 @@ function DataView() {
               {sqlError && (
                 <div className="px-4 py-2.5 bg-red-50 border-t border-red-100 flex items-start gap-2">
                   <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wide shrink-0 mt-0.5">Error</span>
-                  <p className="text-xs font-mono text-red-600 break-all">{sqlError}</p>
+                  <p className="text-xs font-mono text-red-600 whitespace-pre-wrap">{sqlError}</p>
                 </div>
               )}
             </div>
@@ -2234,7 +2241,6 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   radar:              { prefix: "GoWild", label: "RADAR" },
   "beta-applications":         { prefix: "Beta",      label: "APPLICATIONS" },
   "developer-design-system":   { prefix: "Developer", label: "DESIGN SYSTEM" },
-  "developer-announcements":   { prefix: "Developer", label: "ANNOUNCEMENTS" },
   "developer-debug":           { prefix: "Developer", label: "DEBUG SETTINGS" },
   "developer-sql-cache":       { prefix: "Developer", label: "SQL / CACHE TOOLS" },
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
@@ -2955,7 +2961,6 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloperChecked && !isDeveloper && <DeveloperUnauthorizedView />}
         {devToolsActive && isDeveloper && view === "data"                    && <DataView />}
         {devToolsActive && isDeveloper && view === "developer-design-system" && <DesignSystemAdminView />}
-        {devToolsActive && isDeveloper && view === "developer-announcements" && <AnnouncementsAdminView />}
         {devToolsActive && isDeveloper && view === "developer-debug"         && <DebugSettingsAdminView />}
         {devToolsActive && isDeveloper && view === "developer-sql-cache"     && <SqlCacheAdminView />}
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}

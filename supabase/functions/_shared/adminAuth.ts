@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 export interface AdminContext {
   userId: string;
+  userClient: SupabaseClient;
   serviceClient: SupabaseClient;
 }
 
@@ -15,11 +16,11 @@ export async function requireDeveloper(req: Request): Promise<AdminContext | Res
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  const anonClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const { data: { user }, error: userError } = await anonClient.auth.getUser();
+  const { data: { user }, error: userError } = await userClient.auth.getUser();
   if (userError || !user) {
     return jsonError("Unauthorized", 401);
   }
@@ -38,7 +39,7 @@ export async function requireDeveloper(req: Request): Promise<AdminContext | Res
     return jsonError("Forbidden", 403);
   }
 
-  return { userId: user.id, serviceClient };
+  return { userId: user.id, userClient, serviceClient };
 }
 
 export function jsonError(message: string, status: number, code?: string): Response {
