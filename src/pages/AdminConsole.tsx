@@ -2266,24 +2266,22 @@ export default function AdminConsole() {
   const [view, setView]               = useState<View>(_initialView);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [gowildLoading, setGowildLoading] = useState(false);
-  const [accountsExpanded, setAccountsExpanded] = useState(
-    _initialView === "users" || _initialView === "beta-applications"
-  );
-  const [wildflyToolsExpanded, setWildflyToolsExpanded] = useState(
-    _initialView === "gowild" || _initialView === "radar"
-  );
-  const [devToolsExpanded, setDevToolsExpanded] = useState(
-    _initialView === "data" || (_initialView as string).startsWith("developer-")
-  );
-  const [authAccessExpanded, setAuthAccessExpanded] = useState(
-    (_initialView as string).startsWith("auth-")
-  );
-  const [systemProcessExpanded, setSystemProcessExpanded] = useState(
-    (_initialView as string).startsWith("system-")
-  );
-  const [communicationsExpanded, setCommunicationsExpanded] = useState(
-    (_initialView as string).startsWith("communications-")
-  );
+  const _initialOpenGroup =
+    _initialView === "users" || _initialView === "beta-applications" ? "accounts" :
+    _initialView === "gowild" || _initialView === "radar" ? "wildfly-tools" :
+    _initialView === "data" || (_initialView as string).startsWith("developer-") ? "dev-tools" :
+    (_initialView as string).startsWith("auth-") ? "auth-access" :
+    (_initialView as string).startsWith("system-") ? "system-process" :
+    (_initialView as string).startsWith("communications-") ? "communications" :
+    null;
+  const [openGroup, setOpenGroup] = useState<string | null>(_initialOpenGroup);
+  const toggleGroup = (group: string) => setOpenGroup((prev) => (prev === group ? null : group));
+  const accountsExpanded      = openGroup === "accounts";
+  const wildflyToolsExpanded  = openGroup === "wildfly-tools";
+  const devToolsExpanded      = openGroup === "dev-tools";
+  const authAccessExpanded    = openGroup === "auth-access";
+  const systemProcessExpanded = openGroup === "system-process";
+  const communicationsExpanded = openGroup === "communications";
   const [isDeveloper, setIsDeveloper]           = useState(false);
   const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
 
@@ -2418,7 +2416,7 @@ export default function AdminConsole() {
           {/* Accounts — expandable group */}
           <button
             type="button"
-            onClick={() => setAccountsExpanded((v) => !v)}
+            onClick={() => toggleGroup("accounts")}
             className={cn(
               "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
               accountsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
@@ -2506,7 +2504,7 @@ export default function AdminConsole() {
           {/* Wildfly Tools — expandable group */}
           <button
             type="button"
-            onClick={() => setWildflyToolsExpanded((v) => !v)}
+            onClick={() => toggleGroup("wildfly-tools")}
             className={cn(
               "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
               wildflyToolsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
@@ -2580,7 +2578,7 @@ export default function AdminConsole() {
               </p>
               <button
                 type="button"
-                onClick={() => setDevToolsExpanded((v) => !v)}
+                onClick={() => toggleGroup("dev-tools")}
                 className={cn(
                   "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
                   devToolsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
@@ -2649,7 +2647,7 @@ export default function AdminConsole() {
               {/* Auth & Access — expandable group below Developer Tools */}
               <button
                 type="button"
-                onClick={() => setAuthAccessExpanded((v) => !v)}
+                onClick={() => toggleGroup("auth-access")}
                 className={cn(
                   "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
                   authAccessActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
@@ -2718,7 +2716,7 @@ export default function AdminConsole() {
               {/* Operations — expandable group below Auth & Access */}
               <button
                 type="button"
-                onClick={() => setSystemProcessExpanded((v) => !v)}
+                onClick={() => toggleGroup("system-process")}
                 className={cn(
                   "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
                   systemProcessActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
@@ -2792,7 +2790,7 @@ export default function AdminConsole() {
               {/* Communications — expandable group below Operations */}
               <button
                 type="button"
-                onClick={() => setCommunicationsExpanded((v) => !v)}
+                onClick={() => toggleGroup("communications")}
                 className={cn(
                   "flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-5 transition-colors w-full hover:bg-[#F2F3F3]",
                   communicationsActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
