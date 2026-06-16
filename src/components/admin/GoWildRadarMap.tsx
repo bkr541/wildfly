@@ -567,14 +567,24 @@ function SkeletonCard({ height = 80 }: { height?: number }) {
 
 // ── Mode toggle (sliding pill) ─────────────────────────────────────────────────
 
-function RadarModeToggle({ mode, onChange, allowedModes }: { mode: RadarMode; onChange: (m: RadarMode) => void; allowedModes?: RadarMode[] }) {
+function RadarModeToggle({
+  mode,
+  onChange,
+  allowedModes,
+  className,
+}: {
+  mode: RadarMode;
+  onChange: (m: RadarMode) => void;
+  allowedModes?: RadarMode[];
+  className?: string;
+}) {
   const modes = (Object.entries(MODE_LABELS) as [RadarMode, string][]).filter(
     ([key]) => !allowedModes || allowedModes.includes(key)
   );
   const activeIndex = modes.findIndex(([key]) => key === mode);
   const denominator = (modes.length - 1) + MODE_ACTIVE_FLEX;
   return (
-    <div className="rounded-full p-[2px] flex relative bg-[#F2F3F3]" style={{ minWidth: 0 }}>
+    <div className={cn("rounded-full p-[2px] flex relative bg-[#F2F3F3]", className)}>
       <div
         className="absolute top-0.5 bottom-0.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
         style={{
@@ -593,12 +603,12 @@ function RadarModeToggle({ mode, onChange, allowedModes }: { mode: RadarMode; on
             onClick={() => onChange(key as RadarMode)}
             style={{ flex: isActive ? MODE_ACTIVE_FLEX : 1 }}
             className={cn(
-              "py-2 px-2.5 text-[11px] font-bold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap",
+              "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
               isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
-            {icon && <HugeiconsIcon icon={icon} size={14} color="currentColor" strokeWidth={2} className="shrink-0" />}
-            {isActive && <span className="animate-fade-in">{label}</span>}
+            {icon && <HugeiconsIcon icon={icon} size={18} color="currentColor" strokeWidth={2} className="shrink-0" />}
+            {isActive && <span className="animate-fade-in whitespace-nowrap">{label}</span>}
           </button>
         );
       })}
@@ -1105,7 +1115,7 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
         {/* Header — always visible */}
         <div className="flex items-center gap-2 px-4 py-2.5 flex-wrap">
           {/* Mode toggle — sliding pill */}
-          <RadarModeToggle mode={mode} onChange={setMode} allowedModes={allowedModes} />
+          <RadarModeToggle mode={mode} onChange={setMode} allowedModes={allowedModes} className="flex-1" />
 
           <button
             onClick={() => setFiltersOpen(v => !v)}
