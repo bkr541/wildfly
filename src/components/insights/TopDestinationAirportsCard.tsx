@@ -44,7 +44,7 @@ const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) =>
               </span>
             )}
           </div>
-          <p className="text-xs text-[#6B7B7B]">Highest arrival GoWild rate (itinerary-level)</p>
+          <p className="text-xs text-[#6B7B7B]">Arrival airports ranked by confidence-adjusted GoWild availability.</p>
         </div>
         <div className={`flex-shrink-0 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
           <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9CA3AF" strokeWidth={1.5} />
@@ -71,8 +71,11 @@ const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) =>
                           )}
                         </div>
                       </div>
-                      <span className="text-3xl font-semibold text-green-600">
-                        {formatPercent(stat.goWildRate)}
+                      <span
+                        className="text-3xl font-semibold text-green-600 cursor-help"
+                        title="Opportunity Score adjusts the observed GoWild availability rate based on the number of itinerary observations. Larger samples receive greater confidence, while smaller samples receive a conservative adjustment."
+                      >
+                        {formatPercent(stat.rankingScore)}
                       </span>
                     </div>
                     <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
@@ -84,6 +87,9 @@ const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) =>
                     <p className="text-[11px] text-[#9CA3AF] mt-0.5">
                       {stat.goWildItineraries} GoWild / {stat.totalItineraries} total itineraries
                       {` · avg ${stat.avgGoWildSeatsPerItinerary.toFixed(2)} GoWild seats / itinerary`}
+                    </p>
+                    <p className="text-[11px] text-[#2E4A4A] mt-0.5">
+                      Raw GoWild rate: {formatPercent(stat.goWildRate)}
                     </p>
                   </div>
                 );

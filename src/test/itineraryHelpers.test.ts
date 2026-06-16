@@ -11,7 +11,10 @@ import {
   getDestinationItineraryStats,
   getTopItineraryRoutes,
   getWorstItineraryRoutes,
+  ITINERARY_AIRPORT_MIN,
+  MIN_QUALIFIED_RESULTS,
 } from "@/components/insights/itineraryHelpers";
+import { getWilsonLowerBoundScore } from "@/components/insights/wilsonScore";
 import type { FlightLegRow, Itinerary } from "@/components/insights/insightTypes";
 
 const baseLeg = (overrides: Partial<FlightLegRow>): FlightLegRow => ({
@@ -795,6 +798,221 @@ describe("global analytics observation keys", () => {
     const [itin2] = groupLegsIntoItineraries(rows2);
     expect(itin2.isGoWildAvailable).toBe(true);
     expect(itin2.availableSeats).toBe(3);
+  });
+});
+
+// ─── Wilson lower confidence bound score ─────────────────────────────────────
+
+describe("getWilsonLowerBoundScore", () => {
+  it("JAX (183/218) scores higher than PBI (31/34) despite PBI having a higher raw rate", () => {
+    const jax = getWilsonLowerBoundScore(183, 218);
+    const pbi = getWilsonLowerBoundScore(31, 34);
+    expect(jax).toBeGreaterThan(pbi);
+    // Approximate 95% Wilson lower bounds
+    expect(jax).toBeCloseTo(78.5, 0);
+    expect(pbi).toBeCloseTo(77.0, 0);
+  });
+
+  it("equal percentages: larger sample (90/100) scores higher than smaller (9/10)", () => {
+    const small = getWilsonLowerBoundScore(9, 10);
+    const large = getWilsonLowerBoundScore(90, 100);
+    expect(large).toBeGreaterThan(small);
+  });
+
+  it("zero observations returns 0", () => {
+    expect(getWilsonLowerBoundScore(0, 0)).toBe(0);
+  });
+
+  it("zero successes out of n returns 0", () => {
+    expect(getWilsonLowerBoundScore(0, 100)).toBe(0);
+  });
+
+  it("perfect rates: larger sample (100/100) scores higher than smaller (3/3)", () => {
+    const small = getWilsonLowerBoundScore(3, 3);
+    const large = getWilsonLowerBoundScore(100, 100);
+    expect(large).toBeGreaterThan(small);
+  });
+
+  it("returns 0 for negative total", () => {
+    expect(getWilsonLowerBoundScore(5, -1)).toBe(0);
+  });
+
+  it("returns 0 for non-finite successes", () => {
+    expect(getWilsonLowerBoundScore(Infinity, 100)).toBe(0);
+  });
+
+  it("returns 0 for non-finite total", () => {
+    expect(getWilsonLowerBoundScore(5, Infinity)).toBe(0);
+  });
+
+  it("clamps successes to total when successes > total", () => {
+    const clamped = getWilsonLowerBoundScore(110, 100);
+    const exact   = getWilsonLowerBoundScore(100, 100);
+    expect(clamped).toBeCloseTo(exact, 5);
+    expect(clamped).toBeGreaterThan(0);
+  });
+
+  it("returns a value in [0, 100]", () => {
+    expect(getWilsonLowerBoundScore(50, 100)).toBeGreaterThanOrEqual(0);
+    expect(getWilsonLowerBoundScore(50, 100)).toBeLessThanOrEqual(100);
+  });
+});
+
+// ─── Airport ranking with Wilson score ───────────────────────────────────────
+
+function airportItin(destination: string, goWild: boolean): Itinerary {
+  return {
+    itineraryId: Math.random().toString(),
+    legs: [],
+    origin: "HUB",
+    destination,
+    routeKey: `HUB-${destination}`,
+    routeLabel: `HUB → ${destination}`,
+    departureAt: null,
+    arrivalAt: null,
+    snapshotAt: "2026-01-01T00:00:00Z",
+    isGoWildAvailable: goWild,
+    availableSeats: goWild ? 1 : 0,
+    totalGoWildPrice: null,
+    totalStandardPrice: null,
+  };
+}
+
+function buildAirportItins(
+  code: string,
+  goWildCount: number,
+  totalCount: number,
+): Itinerary[] {
+  const items: Itinerary[] = [];
+  for (let i = 0; i < goWildCount; i++) items.push(airportItin(code, true));
+  for (let i = 0; i < totalCount - goWildCount; i++) items.push(airportItin(code, false));
+  return items;
+}
+
+describe("airport ranking by Wilson score", () => {
+  it("JAX (183/218, ~83.9%) ranks above PBI (31/34, ~91.2%) in destination stats", () => {
+    // Provide 3 additional filler airports (≥30 itineraries each) so
+    // MIN_QUALIFIED_RESULTS=5 is satisfied and we stay out of the fallback path.
+    const items: Itinerary[] = [
+      ...buildAirportItins("JAX", 183, 218),
+      ...buildAirportItins("PBI", 31,  34),
+      ...buildAirportItins("AAA", 25,  30),
+      ...buildAirportItins("BBB", 25,  30),
+      ...buildAirportItins("CCC", 25,  30),
+    ];
+    const { stats, limited } = getDestinationItineraryStats(items);
+    expect(limited).toBe(false);
+
+    const jax = stats.find((s) => s.code === "JAX")!;
+    const pbi = stats.find((s) => s.code === "PBI")!;
+    expect(jax).toBeDefined();
+    expect(pbi).toBeDefined();
+
+    // JAX has a lower raw rate but a higher ranking score
+    expect(jax.goWildRate).toBeLessThan(pbi.goWildRate);
+    expect(jax.rankingScore).toBeGreaterThan(pbi.rankingScore);
+
+    // JAX must appear earlier in the sorted result
+    const jaxIdx = stats.indexOf(jax);
+    const pbiIdx = stats.indexOf(pbi);
+    expect(jaxIdx).toBeLessThan(pbiIdx);
+  });
+
+  it("applies the same ranking logic to origin stats (Wilson primary, raw rate fallback)", () => {
+    // Reuse the same scenario from the origin direction
+    const items: Itinerary[] = [
+      ...buildAirportItins("JAX", 183, 218).map((i) => ({ ...i, origin: i.destination, destination: "HUB" })),
+      ...buildAirportItins("PBI", 31,  34) .map((i) => ({ ...i, origin: i.destination, destination: "HUB" })),
+      ...buildAirportItins("AAA", 25,  30) .map((i) => ({ ...i, origin: i.destination, destination: "HUB" })),
+      ...buildAirportItins("BBB", 25,  30) .map((i) => ({ ...i, origin: i.destination, destination: "HUB" })),
+      ...buildAirportItins("CCC", 25,  30) .map((i) => ({ ...i, origin: i.destination, destination: "HUB" })),
+    ];
+    const { stats } = getOriginItineraryStats(items);
+    const jax = stats.find((s) => s.code === "JAX")!;
+    const pbi = stats.find((s) => s.code === "PBI")!;
+    expect(jax).toBeDefined();
+    expect(pbi).toBeDefined();
+    expect(jax.rankingScore).toBeGreaterThan(pbi.rankingScore);
+    expect(stats.indexOf(jax)).toBeLessThan(stats.indexOf(pbi));
+  });
+
+  it("stat objects carry both goWildRate and rankingScore", () => {
+    const items = buildAirportItins("DFW", 9, 10);
+    const { stats } = getDestinationItineraryStats(items);
+    const dfw = stats.find((s) => s.code === "DFW")!;
+    expect(dfw).toBeDefined();
+    expect(typeof dfw.goWildRate).toBe("number");
+    expect(typeof dfw.rankingScore).toBe("number");
+    expect(dfw.goWildRate).toBeCloseTo(90, 5);
+    expect(dfw.rankingScore).toBeGreaterThan(0);
+    expect(dfw.rankingScore).toBeLessThan(dfw.goWildRate);
+  });
+});
+
+// ─── Threshold regression (Wilson enhancement must not alter thresholds) ─────
+
+describe("threshold regression — Wilson enhancement must not alter threshold behavior", () => {
+  it("ITINERARY_AIRPORT_MIN is still 30", () => {
+    expect(ITINERARY_AIRPORT_MIN).toBe(30);
+  });
+
+  it("MIN_QUALIFIED_RESULTS is still 5", () => {
+    expect(MIN_QUALIFIED_RESULTS).toBe(5);
+  });
+
+  it("airports with fewer than 30 itineraries do not qualify (limited=false path excluded)", () => {
+    // 3 airports with 29 itineraries each — none qualify, fallback triggers
+    const items: Itinerary[] = [
+      ...buildAirportItins("AAA", 20, 29),
+      ...buildAirportItins("BBB", 15, 29),
+      ...buildAirportItins("CCC", 10, 29),
+    ];
+    const { stats, limited } = getDestinationItineraryStats(items);
+    expect(limited).toBe(true);
+    // Fallback still returns results (up to TOP_N)
+    expect(stats.length).toBeGreaterThan(0);
+  });
+
+  it("limited=false when ≥5 airports each have ≥30 itineraries", () => {
+    const items: Itinerary[] = [
+      ...buildAirportItins("A1", 20, 30),
+      ...buildAirportItins("A2", 20, 30),
+      ...buildAirportItins("A3", 20, 30),
+      ...buildAirportItins("A4", 20, 30),
+      ...buildAirportItins("A5", 20, 30),
+    ];
+    const { limited } = getDestinationItineraryStats(items);
+    expect(limited).toBe(false);
+  });
+
+  it("limited=true when only 4 of 6 airports meet the 30-itinerary threshold", () => {
+    const items: Itinerary[] = [
+      ...buildAirportItins("Q1", 20, 30),
+      ...buildAirportItins("Q2", 20, 30),
+      ...buildAirportItins("Q3", 20, 30),
+      ...buildAirportItins("Q4", 20, 30),
+      ...buildAirportItins("Q5", 10, 29), // below threshold
+      ...buildAirportItins("Q6", 10, 29), // below threshold
+    ];
+    const { limited } = getDestinationItineraryStats(items);
+    // Only 4 airports qualify; MIN_QUALIFIED_RESULTS=5 so fallback triggers
+    expect(limited).toBe(true);
+  });
+
+  it("fallback path preserves result count (up to TOP_N) even with no qualifying airports", () => {
+    // 7 airports, each with 5 itineraries — none reach the 30-itinerary threshold
+    const items: Itinerary[] = [
+      ...buildAirportItins("Z1", 3, 5),
+      ...buildAirportItins("Z2", 2, 5),
+      ...buildAirportItins("Z3", 4, 5),
+      ...buildAirportItins("Z4", 1, 5),
+      ...buildAirportItins("Z5", 5, 5),
+      ...buildAirportItins("Z6", 0, 5),
+      ...buildAirportItins("Z7", 3, 5),
+    ];
+    const { stats, limited } = getDestinationItineraryStats(items);
+    expect(limited).toBe(true);
+    expect(stats.length).toBe(5); // TOP_N=5
   });
 });
 

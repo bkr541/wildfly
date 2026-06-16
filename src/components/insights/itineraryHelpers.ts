@@ -1,12 +1,14 @@
 import type { FlightLegRow, Itinerary } from "./insightTypes";
+import { getWilsonLowerBoundScore } from "./wilsonScore";
 
 export type ItineraryAirportStat = {
   code: string;
   totalItineraries: number;
   goWildItineraries: number;
-  goWildRate: number; // 0-100
+  goWildRate: number; // 0-100, raw observed rate
   totalGoWildAvailableSeats: number;
   avgGoWildSeatsPerItinerary: number;
+  rankingScore: number; // Wilson lower confidence bound, 0-100
 };
 
 export type ItinerarySnapshotMetrics = {
@@ -176,19 +178,25 @@ function buildAirportItineraryStats(
   }
 
   return Array.from(map.entries())
-    .map(([code, d]): ItineraryAirportStat => ({
-      code,
-      totalItineraries: d.total,
-      goWildItineraries: d.goWild,
-      goWildRate: d.total > 0 ? (d.goWild / d.total) * 100 : 0,
-      totalGoWildAvailableSeats: d.totalSeats,
-      avgGoWildSeatsPerItinerary: d.total > 0 ? d.totalSeats / d.total : 0,
-    }))
+    .map(([code, d]): ItineraryAirportStat => {
+      const goWildRate = d.total > 0 ? (d.goWild / d.total) * 100 : 0;
+      return {
+        code,
+        totalItineraries: d.total,
+        goWildItineraries: d.goWild,
+        goWildRate,
+        totalGoWildAvailableSeats: d.totalSeats,
+        avgGoWildSeatsPerItinerary: d.total > 0 ? d.totalSeats / d.total : 0,
+        rankingScore: getWilsonLowerBoundScore(d.goWild, d.total),
+      };
+    })
     .sort(
       (a, b) =>
+        b.rankingScore - a.rankingScore ||
         b.goWildRate - a.goWildRate ||
         b.goWildItineraries - a.goWildItineraries ||
-        b.totalItineraries - a.totalItineraries
+        b.totalItineraries - a.totalItineraries ||
+        a.code.localeCompare(b.code),
     );
 }
 

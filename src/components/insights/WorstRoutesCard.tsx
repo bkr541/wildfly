@@ -56,9 +56,11 @@ const WorstRoutesCard = ({ routes, limited = false }: Props) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <div className="flex flex-col leading-none">
-                        <span className="text-3xl font-bold text-[#2E4A4A] flex items-center gap-2">
+                        <span className="text-3xl font-bold text-[#2E4A4A] flex items-center gap-1.5">
                           {r.route.split(" → ")[0]}
-                          <img src="/assets/icons/airplane-route.svg" alt="→" className="w-6 h-6" />
+                          <img src="/assets/icons/route-dots.svg" alt="" className="w-5 h-5 inline-block shrink-0" />
+                          <img src="/assets/icons/airplane-route.svg" alt="→" className="w-6 h-6 shrink-0" />
+                          <img src="/assets/icons/route-dots.svg" alt="" className="w-5 h-5 inline-block shrink-0" />
                           {r.route.split(" → ")[1]}
                         </span>
                         <span className="text-[11px] text-[#9CA3AF] mt-0.5">
