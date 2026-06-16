@@ -34,7 +34,7 @@ const TopDestinationAirportsCard = ({ itineraries, airportDict = {} }: Props) =>
         className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
         onClick={() => setIsExpanded((v) => !v)}
       >
-        <HugeiconsIcon icon={Location01Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+        <img src="/assets/icons/top-destination.svg" alt="" className="w-7 h-7 shrink-0" />
         <div className="flex-1 ml-2">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top Destination Airports</p>

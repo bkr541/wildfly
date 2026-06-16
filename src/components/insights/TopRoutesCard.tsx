@@ -28,7 +28,7 @@ const TopRoutesCard = ({ routes, limited = false }: Props) => {
         className={`flex items-center justify-between cursor-pointer select-none ${isExpanded ? "mb-4" : ""}`}
         onClick={() => setIsExpanded((v) => !v)}
       >
-        <HugeiconsIcon icon={AnalyticsUpIcon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+        <img src="/assets/icons/top-routes.svg" alt="" className="w-7 h-7 shrink-0" />
         <div className="flex-1 ml-2">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Top 5 Routes</p>
@@ -54,25 +54,30 @@ const TopRoutesCard = ({ routes, limited = false }: Props) => {
               {routes.map((r, i) => (
                 <div key={r.routeKey}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs font-bold text-[#9CA3AF] w-4 flex-shrink-0">{i + 1}</span>
-                      <span className="text-sm font-semibold text-[#2E4A4A] truncate">{r.route}</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex flex-col leading-none">
+                        <span className="text-3xl font-bold text-[#2E4A4A] flex items-center gap-2">
+                          {r.route.split(" → ")[0]}
+                          <img src="/assets/icons/airplane-route.svg" alt="→" className="w-6 h-6 inline-block" style={{ filter: "none" }} />
+                          {r.route.split(" → ")[1]}
+                        </span>
+                        <span className="text-[11px] text-[#9CA3AF] mt-0.5">
+                          #{i + 1} · {r.goWildItineraries} GoWild / {r.totalItineraries} total
+                          {r.connectingCount > 0 && ` · ${r.directCount} direct, ${r.connectingCount} connecting`}
+                          {` · avg ${r.avgGoWildSeatsPerItinerary.toFixed(2)} seats`}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-sm font-bold text-green-600 ml-2 flex-shrink-0">
+                    <span className="text-3xl font-semibold text-green-600 ml-2 flex-shrink-0">
                       {formatPct(r.goWildRate)}
                     </span>
                   </div>
-                  <div className="mt-1 ml-6 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${barColor(r.goWildRate)}`}
                       style={{ width: `${Math.min(r.goWildRate, 100)}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-[#9CA3AF] mt-0.5 ml-6">
-                    {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
-                    {r.connectingCount > 0 && ` · ${r.directCount} direct, ${r.connectingCount} connecting`}
-                    {` · avg ${r.avgGoWildSeatsPerItinerary.toFixed(2)} GoWild seats / itinerary`}
-                  </p>
                 </div>
               ))}
               <p className="text-[11px] text-[#9CA3AF] mt-1 leading-snug">

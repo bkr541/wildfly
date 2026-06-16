@@ -64,8 +64,13 @@ const RankedInsightCard = ({
               {rows.map((row) => (
                 <div key={row.label}>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#2E4A4A] truncate">{row.label}</span>
-                    <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
+                    <div className="flex flex-col leading-none">
+                      <span className="text-3xl font-bold text-[#2E4A4A]">{row.label}</span>
+                      <span className="text-[11px] text-[#9CA3AF] mt-0.5">
+                        {row.goWildItineraries} / {row.totalItineraries} itineraries
+                      </span>
+                    </div>
+                    <span className="text-3xl font-semibold ml-2 flex-shrink-0 text-green-600">
                       {row.goWildRate.toFixed(1)}%
                     </span>
                   </div>
@@ -75,9 +80,6 @@ const RankedInsightCard = ({
                       style={{ width: `${row.goWildRate === 0 ? 2 : Math.min(row.goWildRate, 100)}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                    {row.goWildItineraries} / {row.totalItineraries} itineraries
-                  </p>
                 </div>
               ))}
             </div>

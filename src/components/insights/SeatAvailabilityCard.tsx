@@ -111,8 +111,8 @@ const SeatAvailabilityCard = (props: Props) => {
                               )}
                             </div>
                           </div>
-                          <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
-                            {r.avgSeats.toFixed(1)} avg / itin
+                          <span className="text-3xl font-semibold ml-2 flex-shrink-0 text-green-600">
+                            {r.avgSeats.toFixed(1)}
                           </span>
                         </div>
                         <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
@@ -122,7 +122,7 @@ const SeatAvailabilityCard = (props: Props) => {
                           />
                         </div>
                         <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                          {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries
+                          avg / itin · {r.goWildItineraries} GoWild / {r.totalItineraries} total
                           {r.routeCount > 1 ? ` · ${r.routeCount} routes` : ""}
                         </p>
                       </div>
@@ -133,23 +133,28 @@ const SeatAvailabilityCard = (props: Props) => {
                     return (
                       <div key={r.routeKey}>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs font-bold text-[#9CA3AF] w-4 flex-shrink-0">{i + 1}</span>
-                            <span className="text-sm font-semibold text-[#2E4A4A] truncate">{r.route}</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex flex-col leading-none">
+                              <span className="text-3xl font-bold text-[#2E4A4A] flex items-center gap-2">
+                                {r.route.split(" → ")[0]}
+                                <img src="/assets/icons/airplane-route.svg" alt="→" className="w-6 h-6" />
+                                {r.route.split(" → ")[1]}
+                              </span>
+                              <span className="text-[11px] text-[#9CA3AF] mt-0.5">
+                                #{i + 1} · avg / itin · {r.goWildItineraries} GoWild / {r.totalItineraries} total · max {r.maxSeats} seats
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-sm font-bold ml-2 flex-shrink-0 text-green-600">
-                            {r.avgSeats.toFixed(1)} avg / itin
+                          <span className="text-3xl font-semibold ml-2 flex-shrink-0 text-green-600">
+                            {r.avgSeats.toFixed(1)}
                           </span>
                         </div>
-                        <div className="mt-1 ml-6 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${rateBar(r.avgSeats, maxAvg, variant)}`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <p className="text-[11px] text-[#9CA3AF] mt-0.5 ml-6">
-                          {r.goWildItineraries} GoWild / {r.totalItineraries} total itineraries · max {r.maxSeats} GoWild seats · total {r.totalSeats} GoWild seats observed
-                        </p>
                       </div>
                     );
                   })}
