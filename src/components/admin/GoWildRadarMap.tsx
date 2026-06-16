@@ -128,6 +128,17 @@ const MODE_LABELS: Record<RadarMode, string> = {
   volatility:    "Volatility",
 };
 
+const MODE_ICONS: Record<RadarMode, any> = {
+  availability: Analytics01Icon,
+  seats:        AirplaneTakeOff01Icon,
+  savings:      Coins01Icon,
+  freshness:    Clock01Icon,
+  searchDemand: Globe02Icon,
+  volatility:   ChartRoseIcon,
+};
+
+const MODE_ACTIVE_FLEX = 1.7;
+
 function getFreshnessScore(status: Freshness): number {
   return status === "fresh" ? 1 : status === "recent" ? 0.75 : status === "aging" ? 0.35 : status === "stale" ? 0.1 : 0;
 }
@@ -554,31 +565,43 @@ function SkeletonCard({ height = 80 }: { height?: number }) {
   return <div className="rounded-2xl bg-gray-100 animate-pulse" style={{ height }} />;
 }
 
-// ── Mode tabs ──────────────────────────────────────────────────────────────────
+// ── Mode toggle (sliding pill) ─────────────────────────────────────────────────
 
-function RadarModeTabs({ mode, onChange, allowedModes }: { mode: RadarMode; onChange: (m: RadarMode) => void; allowedModes?: RadarMode[] }) {
+function RadarModeToggle({ mode, onChange, allowedModes }: { mode: RadarMode; onChange: (m: RadarMode) => void; allowedModes?: RadarMode[] }) {
   const modes = (Object.entries(MODE_LABELS) as [RadarMode, string][]).filter(
     ([key]) => !allowedModes || allowedModes.includes(key)
   );
+  const activeIndex = modes.findIndex(([key]) => key === mode);
+  const denominator = (modes.length - 1) + MODE_ACTIVE_FLEX;
   return (
-    <div
-      className="flex items-center gap-1 p-1 rounded-2xl overflow-x-auto no-scrollbar"
-      style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(52,92,90,0.06)" }}
-    >
-      {modes.map(([key, label]) => (
-        <button
-          key={key}
-          onClick={() => onChange(key)}
-          className={`flex-1 min-w-[92px] px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
-            mode === key
-              ? "text-white"
-              : "text-[#6B7B7B] hover:text-[#2E4A4A] hover:bg-gray-50"
-          }`}
-          style={mode === key ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="rounded-full p-[2px] flex relative bg-[#F2F3F3]" style={{ minWidth: 0 }}>
+      <div
+        className="absolute top-0.5 bottom-0.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+        style={{
+          background: "#10B981",
+          width: `calc((100% - 4px) * ${MODE_ACTIVE_FLEX} / ${denominator})`,
+          left: `calc(2px + (100% - 4px) * ${activeIndex} / ${denominator})`,
+        }}
+      />
+      {modes.map(([key, label]) => {
+        const isActive = mode === key;
+        const icon = MODE_ICONS[key as RadarMode];
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key as RadarMode)}
+            style={{ flex: isActive ? MODE_ACTIVE_FLEX : 1 }}
+            className={cn(
+              "py-2 px-2.5 text-[11px] font-bold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap",
+              isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+            )}
+          >
+            {icon && <HugeiconsIcon icon={icon} size={14} color="currentColor" strokeWidth={2} className="shrink-0" />}
+            {isActive && <span className="animate-fade-in">{label}</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -608,7 +631,7 @@ function FilterSelect({
         <FontAwesomeIcon icon={faChevronDown} className={`text-gray-400 text-[8px] transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 min-w-[140px]" style={{ background: "rgba(255,255,255,0.98)" }}>
+        <div className="absolute top-full left-0 mt-1 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-[2000] min-w-[140px]" style={{ background: "rgba(255,255,255,0.98)" }}>
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -1078,29 +1101,18 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
   return (
     <div className="flex flex-col gap-3">
       {/* ── Filter row — mobile only ────────────────────────────────────────── */}
-      <div className="rounded-2xl flex flex-col lg:hidden" style={CARD_STYLE}>
+      <div className="rounded-2xl flex flex-col lg:hidden relative z-[100]" style={CARD_STYLE}>
         {/* Header — always visible */}
         <div className="flex items-center gap-2 px-4 py-2.5 flex-wrap">
-          {/* Mode tabs — left justified, inline */}
-          <div className="flex items-center bg-[#F2F3F3] rounded-xl p-0.5 gap-0.5">
-            {(allowedModes ?? (Object.keys(MODE_LABELS) as RadarMode[])).map((key) => (
-              <button
-                key={key}
-                onClick={() => setMode(key)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
-                  mode === key ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
-                }`}
-                style={mode === key ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
-              >
-                {MODE_LABELS[key]}
-              </button>
-            ))}
-          </div>
+          {/* Mode toggle — sliding pill */}
+          <RadarModeToggle mode={mode} onChange={setMode} allowedModes={allowedModes} />
 
           <button
             onClick={() => setFiltersOpen(v => !v)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all"
-            style={{ background: "#E5E7EB" }}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
+              filtersOpen ? "bg-[#E5E7EB]" : "bg-transparent hover:bg-[#F2F3F3]"
+            )}
           >
             <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="#4B5563" strokeWidth={2.5} />
             {activeFilterCount > 0 && (
@@ -1140,18 +1152,16 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
             <button
               onClick={refetch}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-60 transition-all"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              className="flex items-center px-3 py-2.5 rounded-full border transition-all bg-white/70 border-[#E3E6E6] text-[#6B7B7B] hover:border-[#345C5A]/30 disabled:opacity-40"
             >
-              <HugeiconsIcon icon={RefreshIcon} size={12} color="white" strokeWidth={2.5} className={loading ? "animate-spin" : ""} />
-              Refresh
+              <HugeiconsIcon icon={RefreshIcon} size={16} color="currentColor" strokeWidth={2} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
 
         {/* Collapsible filter selects — matches admin flights "More" pattern */}
         {filtersOpen && (
-          <div className="flex items-center gap-2 flex-wrap px-4 pb-3 pt-2 border-t border-[#F0F1F1]">
+          <div className="flex items-center gap-2 flex-wrap px-4 pb-3 pt-2 border-t border-[#F0F1F1] relative z-[200]">
             <FilterSelect value={timeRange} onChange={(v) => setTimeRange(v as RadarTimeRange)} options={Object.entries(RADAR_TIME_LABELS).map(([k, l]) => ({ value: k, label: l }))} placeholder="Time range" />
             <FilterSelect value={originFilter} onChange={setOriginFilter} options={originOptions} placeholder="All Origins" />
             <FilterSelect value={destFilter}   onChange={setDestFilter}   options={destOptions}   placeholder="All Destinations" />
@@ -1162,7 +1172,7 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
 
       {/* ── Desktop filter bar — above map when filtersOpen on lg+ ─────────── */}
       {filtersOpen && (
-        <div className="hidden lg:flex items-center gap-2 flex-wrap px-4 py-2.5 rounded-2xl" style={CARD_STYLE}>
+        <div className="hidden lg:flex items-center gap-2 flex-wrap px-4 py-2.5 rounded-2xl relative z-[100]" style={CARD_STYLE}>
           <FilterSelect value={timeRange} onChange={(v) => setTimeRange(v as RadarTimeRange)} options={Object.entries(RADAR_TIME_LABELS).map(([k, l]) => ({ value: k, label: l }))} placeholder="Time range" />
           <FilterSelect value={originFilter} onChange={setOriginFilter} options={originOptions} placeholder="All Origins" />
           <FilterSelect value={destFilter}   onChange={setDestFilter}   options={destOptions}   placeholder="All Destinations" />
@@ -1303,24 +1313,13 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
 
           {/* Desktop top-right controls — mirrors snapshot count badge on left */}
           <div className="absolute top-4 right-4 z-[1000] hidden lg:flex items-center gap-2 rounded-xl px-2 py-1.5" style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.7)", boxShadow: "0 2px 8px rgba(0,0,0,0.07)" }}>
-            <div className="flex items-center bg-[#F2F3F3] rounded-xl p-0.5 gap-0.5">
-              {(allowedModes ?? (Object.keys(MODE_LABELS) as RadarMode[])).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setMode(key)}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
-                    mode === key ? "text-white" : "text-[#6B7B7B] hover:text-[#2E4A4A]"
-                  }`}
-                  style={mode === key ? { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" } : undefined}
-                >
-                  {MODE_LABELS[key]}
-                </button>
-              ))}
-            </div>
+            <RadarModeToggle mode={mode} onChange={setMode} allowedModes={allowedModes} />
             <button
               onClick={() => setFiltersOpen(v => !v)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all"
-              style={{ background: "#E5E7EB" }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
+                filtersOpen ? "bg-[#E5E7EB]" : "bg-transparent hover:bg-[#F2F3F3]"
+              )}
             >
               <HugeiconsIcon icon={FilterMailSquareIcon} size={14} color="#4B5563" strokeWidth={2.5} />
               {activeFilterCount > 0 && (
@@ -1332,11 +1331,9 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
             <button
               onClick={refetch}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-60 transition-all"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+              className="flex items-center px-3 py-2.5 rounded-full border transition-all bg-white/70 border-[#E3E6E6] text-[#6B7B7B] hover:border-[#345C5A]/30 disabled:opacity-40"
             >
-              <HugeiconsIcon icon={RefreshIcon} size={12} color="white" strokeWidth={2.5} className={loading ? "animate-spin" : ""} />
-              Refresh
+              <HugeiconsIcon icon={RefreshIcon} size={16} color="currentColor" strokeWidth={2} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
 

@@ -10,6 +10,7 @@ export interface AirportInfo {
   country?: string;
   latitude?: number;
   longitude?: number;
+  locationId?: number;
 }
 
 export type AirportDict = Record<string, AirportInfo>;
@@ -23,7 +24,7 @@ export function useAirportDictionary() {
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, locations(city, state_code, region, country)");
+        .select("iata_code, name, location_id, latitude, longitude, locations(city, state_code, region, country)");
       if (cancelled) return;
       const map: AirportDict = {};
       if (data) {
@@ -38,6 +39,7 @@ export function useAirportDictionary() {
             country: loc?.country ?? undefined,
             latitude: row.latitude ?? undefined,
             longitude: row.longitude ?? undefined,
+            locationId: row.location_id ?? undefined,
           };
         }
       }

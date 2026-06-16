@@ -190,91 +190,123 @@ const DestCard = ({
   onSearch: () => void;
   highlighted: boolean;
   onHover: (iata: string | null) => void;
-}) => (
-  <div
-    className={cn(
-      "bg-white rounded-xl border px-4 py-3 flex items-center gap-3 transition-all hover:shadow-md",
-      highlighted ? "border-[#345C5A] shadow-md ring-1 ring-[#345C5A]/20" : "border-[#E3E6E6]"
-    )}
-    onMouseEnter={() => onHover(destIata)}
-    onMouseLeave={() => onHover(null)}
-    data-dest={destIata}
-  >
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2">
-        <span className="font-bold text-[#345C5A] text-sm">{destIata}</span>
-        {info ? (
-          <span className="text-[#2E4A4A] text-sm truncate">{info.city || info.name}</span>
+}) => {
+  const [imgErr, setImgErr] = useState(false);
+  const bgImage = info?.locationId && !imgErr
+    ? `/assets/locations/${info.locationId}_background.png`
+    : null;
+
+  return (
+    <div
+      className={cn(
+        "bg-white rounded-xl border flex items-center gap-0 transition-all hover:shadow-md overflow-hidden",
+        highlighted ? "border-[#345C5A] shadow-md ring-1 ring-[#345C5A]/20" : "border-[#E3E6E6]"
+      )}
+      onMouseEnter={() => onHover(destIata)}
+      onMouseLeave={() => onHover(null)}
+      data-dest={destIata}
+    >
+      {/* Location image thumbnail */}
+      <div className="relative w-[72px] h-[72px] shrink-0 bg-[#C8D5D5] overflow-hidden">
+        {bgImage ? (
+          <img
+            src={bgImage}
+            alt={info?.city || destIata}
+            className="w-full h-full object-cover"
+            onError={() => setImgErr(true)}
+          />
         ) : (
-          <span className="text-[#9CA3AF] text-xs italic">Unknown airport details</span>
+          <div
+            className="w-full h-full"
+            style={{ background: "linear-gradient(135deg, #065F46 0%, #10B981 100%)", opacity: 0.7 }}
+          />
         )}
+        {/* IATA code overlay */}
+        <div className="absolute inset-0 flex items-end justify-start p-1.5 bg-gradient-to-t from-black/40 to-transparent">
+          <span className="text-[11px] font-black text-white leading-none tracking-wide drop-shadow">
+            {destIata}
+          </span>
+        </div>
       </div>
-      <div className="flex items-center gap-2 mt-1">
-        {info?.region && (
-          <span className="text-xs text-[#6B7B7B] bg-[#F2F3F3] rounded-full px-2 py-0.5">{info.region}</span>
-        )}
-        {!info?.region && info?.state && (
-          <span className="text-xs text-[#6B7B7B] bg-[#F2F3F3] rounded-full px-2 py-0.5">{info.state}</span>
-        )}
-        {isReciprocal ? (
-          <Badge variant="secondary" className="text-[10px] bg-[#E8F1F1] text-[#345C5A] border-[#345C5A]/20 px-2 py-0">
-            <HugeiconsIcon icon={RepeatIcon} size={10} color="#345C5A" strokeWidth={1.5} className="mr-1" />
-            Round-trip
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-[10px] text-[#9CA3AF] border-[#E3E6E6] px-2 py-0">
-            One-way
-          </Badge>
-        )}
+
+      {/* Text content */}
+      <div className="flex-1 min-w-0 px-3 py-3">
+        <div className="flex items-center gap-2">
+          {info ? (
+            <span className="text-[#2E4A4A] text-sm font-semibold truncate">{info.city || info.name}</span>
+          ) : (
+            <span className="text-[#9CA3AF] text-xs italic">Unknown airport</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {info?.region && (
+            <span className="text-xs text-[#6B7B7B] bg-[#F2F3F3] rounded-full px-2 py-0.5">{info.region}</span>
+          )}
+          {!info?.region && info?.state && (
+            <span className="text-xs text-[#6B7B7B] bg-[#F2F3F3] rounded-full px-2 py-0.5">{info.state}</span>
+          )}
+          {isReciprocal ? (
+            <Badge variant="secondary" className="text-[10px] bg-[#E8F1F1] text-[#345C5A] border-[#345C5A]/20 px-2 py-0">
+              <HugeiconsIcon icon={RepeatIcon} size={10} color="#345C5A" strokeWidth={1.5} className="mr-1" />
+              Round-trip
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] text-[#9CA3AF] border-[#E3E6E6] px-2 py-0">
+              One-way
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-1 shrink-0 pr-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-[#345C5A] hover:bg-[#345C5A]/10"
+                onClick={onSearch}
+              >
+                <HugeiconsIcon icon={Airplane01Icon} size={14} color="currentColor" strokeWidth={1.5} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Search flights</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("h-8 w-8", isFav ? "text-yellow-500" : "text-[#9CA3AF] hover:text-yellow-500")}
+                onClick={onToggleFav}
+              >
+                <HugeiconsIcon icon={isFav ? StarFilledIcon : FavouriteIcon} size={14} color="currentColor" strokeWidth={1.5} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{isFav ? "Remove favorite" : "Add to favorites"}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-[#9CA3AF] hover:text-[#345C5A]"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/routes?origin=${origin}&dest=${destIata}`);
+                }}
+              >
+                <HugeiconsIcon icon={Link01Icon} size={12} color="currentColor" strokeWidth={1.5} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Copy link</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
-    <div className="flex items-center gap-1.5 shrink-0">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-[#345C5A] hover:bg-[#345C5A]/10"
-              onClick={onSearch}
-            >
-              <HugeiconsIcon icon={Airplane01Icon} size={14} color="currentColor" strokeWidth={1.5} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Search flights</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("h-8 w-8", isFav ? "text-yellow-500" : "text-[#9CA3AF] hover:text-yellow-500")}
-              onClick={onToggleFav}
-            >
-              <HugeiconsIcon icon={isFav ? StarFilledIcon : FavouriteIcon} size={14} color="currentColor" strokeWidth={1.5} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{isFav ? "Remove favorite" : "Add to favorites"}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-[#9CA3AF] hover:text-[#345C5A]"
-              onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/routes?origin=${origin}&dest=${destIata}`);
-              }}
-            >
-              <HugeiconsIcon icon={Link01Icon} size={12} color="currentColor" strokeWidth={1.5} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Copy link</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  </div>
-);
+  );
+};
 
 /* ── Route Map ───────────────────────────────────────── */
 const RouteMap = ({
