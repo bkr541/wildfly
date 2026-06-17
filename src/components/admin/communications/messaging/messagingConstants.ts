@@ -78,6 +78,25 @@ export const MESSAGE_STATUS_COLORS: Record<string, string> = {
   failed: "text-red-400 bg-red-400/10",
 };
 
+export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
+  recipient_name: "Jane Doe",
+  recipient_email: "jane@example.com",
+  first_name: "Jane",
+  last_name: "Doe",
+  user_id: "user_abc123",
+  beta_application_id: "app_xyz",
+  app_name: "Wildfly",
+  app_url: "https://wildfly.app",
+  support_email: "support@wildfly.app",
+  unsubscribe_url: "https://wildfly.app/unsubscribe?token=…",
+  current_year: String(new Date().getFullYear()),
+  home_airport: "SEA",
+  action_link: "https://wildfly.app/activate?token=…",
+  account_cta_url: "https://wildfly.app/activate?token=…",
+  account_cta_label: "Activate your account",
+  physical_address: "123 Main St, Seattle, WA 98101",
+};
+
 export const RECIPIENT_STATUS_COLORS: Record<string, string> = {
   pending: "text-stone-400 bg-stone-400/10",
   queued: "text-yellow-400 bg-yellow-400/10",

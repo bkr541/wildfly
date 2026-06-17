@@ -5,7 +5,8 @@ import { FloppyDiskIcon, Cancel01Icon, ArchiveIcon } from "@hugeicons/core-free-
 import { AdminCard, AdminSectionLabel } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
 import { saveTemplate } from "@/services/adminMessaging";
 import { ALLOWED_TEMPLATE_VARIABLES, REPLY_TO_DEFAULT } from "./messagingConstants";
-import { extractVariables } from "./messagingHelpers";
+import { extractVariables, renderPreview } from "./messagingHelpers";
+import { PREVIEW_SAMPLE_VARS } from "./messagingConstants";
 import type { MessagingTemplate } from "./messagingTypes";
 
 interface Props {
@@ -196,7 +197,7 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
             </div>
             {htmlPreview ? (
               <iframe
-                srcDoc={emailHtml || "<p style='font-family:sans-serif;color:#9CA3AF;padding:24px'>No HTML content yet.</p>"}
+                srcDoc={emailHtml ? renderPreview(emailHtml, PREVIEW_SAMPLE_VARS) : "<p style='font-family:sans-serif;color:#9CA3AF;padding:24px'>No HTML content yet.</p>"}
                 sandbox="allow-same-origin"
                 title="Email preview"
                 className="w-full rounded-xl border border-[#E5E7EB] bg-white"

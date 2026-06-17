@@ -3,26 +3,12 @@ import { Mail01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 import { AdminCard, AdminSectionLabel } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
 import { renderPreview, formatScheduledAt } from "./messagingHelpers";
 import { MessageStatusBadge } from "./MessagingStatusBadge";
+import { PREVIEW_SAMPLE_VARS } from "./messagingConstants";
 import type { MessagingMessage } from "./messagingTypes";
 
 interface Props {
   message: MessagingMessage;
 }
-
-const SAMPLE_VARS: Record<string, string> = {
-  recipient_name: "Jane Doe",
-  recipient_email: "jane@example.com",
-  first_name: "Jane",
-  last_name: "Doe",
-  user_id: "user_abc123",
-  beta_application_id: "app_xyz",
-  app_name: "Wildfly",
-  app_url: "https://wildfly.app",
-  support_email: "support@wildfly.app",
-  unsubscribe_url: "https://wildfly.app/unsubscribe?token=…",
-  current_year: String(new Date().getFullYear()),
-  home_airport: "SEA",
-};
 
 export function MessagePreview({ message }: Props) {
   const hasEmail = message.channels.includes("email");
@@ -56,21 +42,21 @@ export function MessagePreview({ message }: Props) {
           <div className="mb-2">
             <span className="text-[11px] text-[#9CA3AF] font-semibold">Subject: </span>
             <span className="text-sm font-medium text-[#1C2B2B]">
-              {renderPreview(message.email_subject ?? "", SAMPLE_VARS)}
+              {renderPreview(message.email_subject ?? "", PREVIEW_SAMPLE_VARS)}
             </span>
           </div>
           {message.email_preheader && (
             <div className="mb-3">
               <span className="text-[11px] text-[#9CA3AF] font-semibold">Preheader: </span>
               <span className="text-xs text-[#6B7280]">
-                {renderPreview(message.email_preheader, SAMPLE_VARS)}
+                {renderPreview(message.email_preheader, PREVIEW_SAMPLE_VARS)}
               </span>
             </div>
           )}
           {message.email_html && (
             <div
               className="border border-[#EEF0F0] rounded-xl p-4 bg-white text-sm overflow-auto max-h-96"
-              dangerouslySetInnerHTML={{ __html: renderPreview(message.email_html, SAMPLE_VARS) }}
+              dangerouslySetInnerHTML={{ __html: renderPreview(message.email_html, PREVIEW_SAMPLE_VARS) }}
             />
           )}
         </AdminCard>
@@ -84,10 +70,10 @@ export function MessagePreview({ message }: Props) {
           </AdminSectionLabel>
           <div className="bg-[#F8FAFA] rounded-xl p-4 border border-[#EEF0F0]">
             <div className="font-semibold text-sm text-[#1C2B2B] mb-1">
-              {renderPreview(message.notification_title ?? "", SAMPLE_VARS)}
+              {renderPreview(message.notification_title ?? "", PREVIEW_SAMPLE_VARS)}
             </div>
             <div className="text-xs text-[#6B7280]">
-              {renderPreview(message.notification_body ?? "", SAMPLE_VARS)}
+              {renderPreview(message.notification_body ?? "", PREVIEW_SAMPLE_VARS)}
             </div>
           </div>
         </AdminCard>
