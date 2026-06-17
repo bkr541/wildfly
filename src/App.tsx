@@ -1,6 +1,28 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { CreditCardIcon, Timer02Icon, Alert01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 import BetaFeedbackButton from "./components/BetaFeedbackButton";
+
+const PAGE_LABELS: Record<string, string> = {
+  "home":                 "Home",
+  "account":              "Account",
+  "flights":              "Explore Flights",
+  "destinations":         "Destinations",
+  "flight-results":       "Flight Results",
+  "flight-multi-results": "Flight Results",
+  "day-trip-results":     "Day Trip Results",
+  "flight-details":       "Flight Details",
+  "itinerary":            "Itinerary",
+  "routes":               "Routes",
+  "design-system":        "Design System",
+  "friends":              "Friends",
+  "hubs":                 "Hubs",
+  "explorer":             "Flight Explorer",
+  "gowild-insights":      "GoWild Insights",
+  "all-upcoming-flights": "Upcoming Flights",
+  "all-watched-flights":  "Watched Flights",
+  "radar":                "GoWild Radar",
+  "notifications":        "Notifications",
+};
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -395,9 +417,11 @@ const MainApp = () => {
     !accountPending &&
     !isDeveloper;
 
+  const feedbackPageLabel = subScreenTitle ?? PAGE_LABELS[currentPage] ?? currentPage;
+
   return (
     <div className="flex justify-center">
-      {showFeedbackButton && <BetaFeedbackButton />}
+      {showFeedbackButton && <BetaFeedbackButton pageLabel={feedbackPageLabel} />}
       <div className="w-full max-w-[1320px] min-h-screen flex flex-col">
         {/* Splash video removed */}
 
