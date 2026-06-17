@@ -62,6 +62,9 @@ export const ALLOWED_TEMPLATE_VARIABLES = [
   "unsubscribe_url",
   "current_year",
   "home_airport",
+  "account_cta_url",
+  "account_cta_label",
+  "physical_address",
 ] as const;
 
 export const MESSAGE_STATUS_COLORS: Record<string, string> = {

@@ -109,6 +109,16 @@ export async function listTemplates(include_archived = false): Promise<Messaging
   return data ?? [];
 }
 
+export async function getTemplate(id: string): Promise<MessagingTemplate> {
+  const { data, error } = await supabase
+    .from("messaging_templates")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) throw new Error(error.message);
+  return data as MessagingTemplate;
+}
+
 export async function saveTemplate(template: Partial<MessagingTemplate> & { slug: string; name: string }): Promise<MessagingTemplate> {
   const res = await callFn<{ success: true; data: { template: MessagingTemplate } }>(
     "admin-messaging-save-template",

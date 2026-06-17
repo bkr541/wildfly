@@ -7,7 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { AdminCard } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
-import { listTemplates } from "@/services/adminMessaging";
+import { listTemplates, getTemplate } from "@/services/adminMessaging";
 import { MessagingTemplateEditor } from "./MessagingTemplateEditor";
 import type { MessagingTemplate } from "./messagingTypes";
 
@@ -104,7 +104,14 @@ export function MessagingTemplatesView() {
             <button
               key={t.id}
               type="button"
-              onClick={() => setEditing(t)}
+              onClick={async () => {
+                try {
+                  const full = await getTemplate(t.id);
+                  setEditing(full);
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
               className="w-full text-left"
             >
               <AdminCard className="hover:border-[#345C5A]/30 transition-colors cursor-pointer">
