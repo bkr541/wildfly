@@ -73,6 +73,19 @@ interface BetaApplication {
   provisioned_at: string | null;
 }
 
+interface BetaFeedbackRow {
+  id: string;
+  feedback_type: string;
+  summary: string;
+  severity: string;
+  app_page: string;
+  app_version: string;
+  device: string;
+  os_version: string;
+  browser_version: string | null;
+  created_at: string;
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const CARD_STYLE: React.CSSProperties = {
@@ -116,7 +129,7 @@ const DEVICE_LABEL: Record<string, string> = {
   multiple:       "Multiple",
 };
 
-const GRID = "grid-cols-[1.6fr_1.4fr_0.6fr_1.1fr_1.1fr_0.7fr_0.9fr_0.8fr]";
+const GRID = "grid-cols-[1.6fr_1.4fr_0.6fr_1.1fr_1.1fr_0.7fr_0.6fr_0.9fr_0.8fr]";
 
 const DROPDOWN_ARROW: React.CSSProperties = {
   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
@@ -126,7 +139,7 @@ const DROPDOWN_ARROW: React.CSSProperties = {
 
 const INPUT_CLS = "w-full h-8 bg-[#F2F3F3] rounded-lg px-2.5 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400";
 const SELECT_CLS = "w-full h-8 bg-[#F2F3F3] rounded-lg pl-2.5 pr-7 text-xs text-[#2E4A4A] border-0 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer appearance-none";
-const GRID_TEMPLATE = "1.6fr 1.4fr 0.6fr 1.1fr 1.1fr 0.7fr 0.9fr 0.8fr";
+const GRID_TEMPLATE = "1.6fr 1.4fr 0.6fr 1.1fr 1.1fr 0.7fr 0.6fr 0.9fr 0.8fr";
 
 type BetaSortKey = keyof BetaApplication;
 type BetaSortDir = "asc" | "desc";
@@ -138,6 +151,7 @@ const BETA_COLS: Array<{ label: string; sortKey: BetaSortKey | null }> = [
   { label: "GoWild",      sortKey: "gowild_status" },
   { label: "Experience",  sortKey: "beta_testing_experience" },
   { label: "Device",      sortKey: "primary_device" },
+  { label: "Feedback",    sortKey: null },
   { label: "Status",      sortKey: "status" },
   { label: "Applied",     sortKey: "created_at" },
 ];
@@ -494,7 +508,24 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
 
 // ── Detail drawer ─────────────────────────────────────────────────────────────
 
-type BetaDrawerTab = "overview" | "gowild" | "experience" | "admin";
+type BetaDrawerTab = "overview" | "gowild" | "experience" | "admin" | "feedback";
+
+const SEVERITY_CLS: Record<string, string> = {
+  Blocker:     "bg-red-100 text-red-700 border-red-200",
+  Major:       "bg-orange-100 text-orange-700 border-orange-200",
+  Minor:       "bg-amber-100 text-amber-700 border-amber-200",
+  Trivial:     "bg-gray-100 text-gray-500 border-gray-200",
+  Enhancement: "bg-sky-100 text-sky-700 border-sky-200",
+};
+
+const FEEDBACK_TYPE_CLS: Record<string, string> = {
+  "Bug":             "bg-red-100 text-red-700 border-red-200",
+  "Feature Request": "bg-purple-100 text-purple-700 border-purple-200",
+  "Performance":     "bg-amber-100 text-amber-700 border-amber-200",
+  "UI/UX":           "bg-sky-100 text-sky-700 border-sky-200",
+  "Crash":           "bg-rose-100 text-rose-700 border-rose-200",
+  "Other":           "bg-gray-100 text-gray-500 border-gray-200",
+};
 
 function BetaApplicationDetailDrawer({
   open,
@@ -506,6 +537,7 @@ function BetaApplicationDetailDrawer({
   updatingStatus,
   savingNotes,
   approvingId,
+  feedbackCount,
 }: {
   open: boolean;
   onClose: () => void;
@@ -516,9 +548,13 @@ function BetaApplicationDetailDrawer({
   updatingStatus: boolean;
   savingNotes: boolean;
   approvingId: string | null;
+  feedbackCount: number;
 }) {
   const [tab, setTab] = useState<BetaDrawerTab>("overview");
   const [localNotes, setLocalNotes] = useState(app?.internal_notes ?? "");
+  const [feedbackItems, setFeedbackItems] = useState<BetaFeedbackRow[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const notesDirty = localNotes !== (app?.internal_notes ?? "");
 
@@ -543,6 +579,21 @@ function BetaApplicationDetailDrawer({
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (tab !== "feedback" || !app?.auth_user_id) return;
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+    (supabase.from("beta_feedback") as any)
+      .select("id,feedback_type,summary,severity,app_page,app_version,device,os_version,browser_version,created_at")
+      .eq("user_id", app.auth_user_id)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }: { data: BetaFeedbackRow[] | null; error: any }) => {
+        setFeedbackLoading(false);
+        if (error) { setFeedbackError(error.message); return; }
+        setFeedbackItems(data ?? []);
+      });
+  }, [tab, app?.auth_user_id]);
+
   const handleBackdrop = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   }, [onClose]);
@@ -555,10 +606,11 @@ function BetaApplicationDetailDrawer({
     .map((v) => labelFor(v, INTERESTED_FEATURES_OPTIONS))
     .join(", ");
 
-  const TABS: { id: BetaDrawerTab; label: string }[] = [
+  const TABS: { id: BetaDrawerTab; label: string; badge?: number }[] = [
     { id: "overview",   label: "Overview" },
     { id: "gowild",     label: "GoWild Pass" },
     { id: "experience", label: "Experience" },
+    { id: "feedback",   label: "Feedback", badge: feedbackCount },
     { id: "admin",      label: "Admin" },
   ];
 
@@ -643,13 +695,23 @@ function BetaApplicationDetailDrawer({
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   className={cn(
-                    "px-4 py-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap",
+                    "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap",
                     tab === t.id
                       ? "border-emerald-500 text-emerald-700"
                       : "border-transparent text-[#9CA3AF] hover:text-[#1A2E2E]"
                   )}
                 >
                   {t.label}
+                  {t.badge != null && t.badge > 0 && (
+                    <span className={cn(
+                      "inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-[9px] font-bold",
+                      tab === t.id
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-[#F0F1F1] text-[#6B7B7B]",
+                    )}>
+                      {t.badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -744,6 +806,56 @@ function BetaApplicationDetailDrawer({
                       </div>
                     )}
                   </DrawerCard>
+                </>
+              )}
+
+              {/* ── FEEDBACK TAB ── */}
+              {tab === "feedback" && (
+                <>
+                  {!app.auth_user_id ? (
+                    <DrawerCard title="Feedback">
+                      <p className="text-xs text-[#9CA3AF]">No account provisioned yet — feedback is linked to an auth account.</p>
+                    </DrawerCard>
+                  ) : feedbackLoading ? (
+                    <div className="py-10 text-center text-sm text-[#9CA3AF]">Loading feedback…</div>
+                  ) : feedbackError ? (
+                    <DrawerCard title="Feedback">
+                      <p className="text-xs text-red-500">{feedbackError}</p>
+                    </DrawerCard>
+                  ) : feedbackItems.length === 0 ? (
+                    <DrawerCard title="Feedback">
+                      <p className="text-xs text-[#9CA3AF]">No feedback submitted yet.</p>
+                    </DrawerCard>
+                  ) : (
+                    <div className="space-y-3">
+                      {feedbackItems.map((fb) => (
+                        <section key={fb.id} className="rounded-2xl bg-white border border-[#EAECEC] shadow-sm overflow-hidden">
+                          <header className="px-4 py-2.5 flex items-center gap-2 border-b border-[#F0F1F1] bg-[#FAFBFB] flex-wrap">
+                            <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border", FEEDBACK_TYPE_CLS[fb.feedback_type] ?? "bg-gray-100 text-gray-500 border-gray-200")}>
+                              {fb.feedback_type}
+                            </span>
+                            <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border", SEVERITY_CLS[fb.severity] ?? "bg-gray-100 text-gray-500 border-gray-200")}>
+                              {fb.severity}
+                            </span>
+                            <span className="ml-auto text-[10px] text-[#9CA3AF]">{fmt(fb.created_at)}</span>
+                          </header>
+                          <div className="p-4 space-y-3">
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9CA3AF] mb-1">Summary</p>
+                              <p className="text-sm text-[#1A2E2E] leading-relaxed">{fb.summary}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                              <DrawerKV label="Page" value={fb.app_page} />
+                              <DrawerKV label="App Version" value={fb.app_version} />
+                              <DrawerKV label="Device" value={fb.device} />
+                              <DrawerKV label="OS" value={fb.os_version} />
+                              {fb.browser_version && <DrawerKV label="Browser" value={fb.browser_version} />}
+                            </div>
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -858,6 +970,7 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
   const [applications, setApplications] = useState<BetaApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackCounts, setFeedbackCounts] = useState<Record<string, number>>({});
 
   // Filters
   const [search, setSearch] = useState("");
@@ -940,7 +1053,19 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
       if (!res.ok || json?.error) {
         setError(json?.error ?? "Failed to load applications.");
       } else {
-        setApplications(json.applications ?? []);
+        const apps: BetaApplication[] = json.applications ?? [];
+        setApplications(apps);
+
+        // Fetch feedback counts (admin policy allows all rows to be read)
+        const { data: fbRows } = await (supabase.from("beta_feedback") as any)
+          .select("user_id");
+        if (fbRows) {
+          const counts: Record<string, number> = {};
+          for (const row of fbRows as { user_id: string }[]) {
+            counts[row.user_id] = (counts[row.user_id] ?? 0) + 1;
+          }
+          setFeedbackCounts(counts);
+        }
       }
     } catch (e) {
       setError((e as Error).message);
@@ -1416,11 +1541,12 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
           ) : (
             <div className="divide-y divide-[#F0F1F1] overflow-y-auto" style={{ maxHeight: "calc(100vh - 310px)" }}>
               {pageRows.map((app) => {
-                const cfg       = statusConfig(app.status);
-                const gowildB   = GOWILD_BADGE[app.gowild_status] ?? { cls: "bg-gray-100 text-gray-500 border-gray-200", label: app.gowild_status ?? "—" };
-                const expB      = EXP_BADGE[app.beta_testing_experience] ?? { cls: "bg-slate-100 text-slate-600 border-slate-200", label: app.beta_testing_experience ?? "—" };
-                const deviceLbl = DEVICE_LABEL[app.primary_device] ?? (app.primary_device ?? "—");
-                const isSelected = selectedId === app.id;
+                const cfg         = statusConfig(app.status);
+                const gowildB     = GOWILD_BADGE[app.gowild_status] ?? { cls: "bg-gray-100 text-gray-500 border-gray-200", label: app.gowild_status ?? "—" };
+                const expB        = EXP_BADGE[app.beta_testing_experience] ?? { cls: "bg-slate-100 text-slate-600 border-slate-200", label: app.beta_testing_experience ?? "—" };
+                const deviceLbl   = DEVICE_LABEL[app.primary_device] ?? (app.primary_device ?? "—");
+                const fbCount     = app.auth_user_id ? (feedbackCounts[app.auth_user_id] ?? 0) : 0;
+                const isSelected  = selectedId === app.id;
                 return (
                   <button
                     key={app.id}
@@ -1461,6 +1587,15 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border w-fit bg-slate-100 text-slate-600 border-slate-200">
                         {deviceLbl}
                       </span>
+
+                      {/* Feedback count */}
+                      {fbCount > 0 ? (
+                        <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 w-fit">
+                          {fbCount}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[#D1D5DB]">—</span>
+                      )}
 
                       {/* Status badge */}
                       <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border w-fit whitespace-nowrap", cfg.cls)}>
@@ -1592,6 +1727,7 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
         updatingStatus={!!updatingStatusId}
         savingNotes={!!savingNotesId}
         approvingId={approvingId}
+        feedbackCount={selectedApp?.auth_user_id ? (feedbackCounts[selectedApp.auth_user_id] ?? 0) : 0}
       />
     </div>
   );

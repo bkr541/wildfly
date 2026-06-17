@@ -78,7 +78,6 @@ const MainApp = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [accountPending, setAccountPending] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [isDeveloper, setIsDeveloper] = useState(false);
   const [currentPage, setCurrentPage] = useState<"home" | "account" | "flights" | "destinations" | "flight-results" | "flight-multi-results" | "day-trip-results" | "flight-details" | "itinerary" | "routes" | "design-system" | "friends" | "hubs" | "explorer" | "gowild-insights" | "all-upcoming-flights" | "all-watched-flights" | "radar" | "notifications">("home");
   const [flightResultsData, setFlightResultsData] = useState<string>("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
@@ -120,14 +119,6 @@ const MainApp = () => {
       }
 
       const user = session.user;
-
-      // Check developer status once per sign-in
-      supabase
-        .from("developer_allowlist")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle()
-        .then(({ data }) => { if (isMounted) setIsDeveloper(!!data); });
 
       try {
         const { data: profile, error: profileError } = await supabase
@@ -246,7 +237,6 @@ const MainApp = () => {
           setNeedsOnboarding(false);
           setShowProfileSetup(false);
           setAccountPending(false);
-          setIsDeveloper(false);
           return;
         }
 
@@ -414,8 +404,7 @@ const MainApp = () => {
     isSignedIn &&
     !needsOnboarding &&
     !showProfileSetup &&
-    !accountPending &&
-    !isDeveloper;
+    !accountPending;
 
   const feedbackPageLabel = subScreenTitle ?? PAGE_LABELS[currentPage] ?? currentPage;
 
