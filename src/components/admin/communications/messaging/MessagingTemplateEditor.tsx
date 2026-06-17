@@ -36,6 +36,7 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
   const [notifCtaLabel, setNotifCtaLabel] = useState(initial?.notification_cta_label ?? "");
   const [notifCtaUrl, setNotifCtaUrl] = useState(initial?.notification_cta_url ?? "");
   const [tab, setTab] = useState<EditorTab>("email_html");
+  const [htmlPreview, setHtmlPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
@@ -181,13 +182,36 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
         </div>
 
         {tab === "email_html" && (
-          <textarea
-            rows={16}
-            value={emailHtml}
-            onChange={e => setEmailHtml(e.target.value)}
-            placeholder="Email HTML content…"
-            className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2.5 text-xs font-mono text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40 resize-none"
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setHtmlPreview(v => !v)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  htmlPreview ? "bg-[#345C5A] text-white" : "text-[#6B7280] hover:text-[#1C2B2B] border border-[#E5E7EB]"
+                }`}
+              >
+                {htmlPreview ? "Edit" : "Preview"}
+              </button>
+            </div>
+            {htmlPreview ? (
+              <iframe
+                srcDoc={emailHtml || "<p style='font-family:sans-serif;color:#9CA3AF;padding:24px'>No HTML content yet.</p>"}
+                sandbox="allow-same-origin"
+                title="Email preview"
+                className="w-full rounded-xl border border-[#E5E7EB] bg-white"
+                style={{ height: 520 }}
+              />
+            ) : (
+              <textarea
+                rows={16}
+                value={emailHtml}
+                onChange={e => setEmailHtml(e.target.value)}
+                placeholder="Email HTML content…"
+                className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2.5 text-xs font-mono text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40 resize-none"
+              />
+            )}
+          </div>
         )}
 
         {tab === "email_text" && (

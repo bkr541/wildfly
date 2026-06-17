@@ -57,6 +57,7 @@ export const ALLOWED_TEMPLATE_VARIABLES = [
   "beta_application_id",
   "app_name",
   "app_url",
+  "action_link",
   "support_email",
   "unsubscribe_url",
   "current_year",
