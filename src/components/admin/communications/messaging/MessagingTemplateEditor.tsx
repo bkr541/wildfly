@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon, Cancel01Icon, ArchiveIcon } from "@hugeicons/core-free-icons";
-import { AdminCard, AdminSectionLabel } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
+import { AdminCard } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
 import { saveTemplate } from "@/services/adminMessaging";
 import { ALLOWED_TEMPLATE_VARIABLES, REPLY_TO_DEFAULT } from "./messagingConstants";
 import { extractVariables, renderPreview } from "./messagingHelpers";
@@ -37,9 +37,16 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
   const [notifCtaLabel, setNotifCtaLabel] = useState(initial?.notification_cta_label ?? "");
   const [notifCtaUrl, setNotifCtaUrl] = useState(initial?.notification_cta_url ?? "");
   const [tab, setTab] = useState<EditorTab>("email_html");
-  const [htmlPreview, setHtmlPreview] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState(true);
+  const [identityOpen, setIdentityOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
+
+  useEffect(() => {
+    if (!initial) {
+      setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
+    }
+  }, [name, initial]);
 
   const usedVars = extractVariables(emailHtml + emailText + notifBody);
   const unknownVars = usedVars.filter(
@@ -101,58 +108,83 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Identity — collapsible */}
       <AdminCard>
-        <AdminSectionLabel>Identity</AdminSectionLabel>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-[#374151] mb-1">Slug <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={slug}
-              onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
-              placeholder="beta-applicant-selected"
-              disabled={!!initial}
-              className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm font-mono text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40 disabled:opacity-60"
-            />
+        <button
+          type="button"
+          onClick={() => setIdentityOpen(o => !o)}
+          className="flex items-center gap-2.5 w-full"
+        >
+          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9CA3AF] whitespace-nowrap">
+            Identity
+          </span>
+          <div className="flex-1 h-px bg-[#EEF0F0]" />
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            className={`text-[#9CA3AF] transition-transform duration-200 flex-shrink-0 ml-1 ${identityOpen ? "rotate-180" : ""}`}
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+
+        {identityOpen && (
+          <div className="space-y-3 mt-3">
+            {/* Row 1: Name + Category + Transactional */}
+            <div className="flex gap-3 items-start">
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs font-semibold text-[#374151] mb-1">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+                />
+                {slug && (
+                  <p className="mt-1 text-[11px] font-mono text-[#9CA3AF] truncate">{slug}</p>
+                )}
+              </div>
+              <div className="w-36 shrink-0">
+                <label className="block text-xs font-semibold text-[#374151] mb-1">Category</label>
+                <input
+                  type="text"
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
+                  className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-6 shrink-0">
+                <input
+                  type="checkbox"
+                  id="is_transactional"
+                  checked={isTransactional}
+                  onChange={e => setIsTransactional(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="is_transactional" className="text-sm text-[#374151] font-medium whitespace-nowrap">
+                  Transactional
+                </label>
+              </div>
+            </div>
+
+            {/* Row 2: Description */}
+            <div>
+              <label className="block text-xs font-semibold text-[#374151] mb-1">Description</label>
+              <input
+                type="text"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-[#374151] mb-1">Name <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-semibold text-[#374151] mb-1">Description</label>
-            <input
-              type="text"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-[#374151] mb-1">Category</label>
-            <input
-              type="text"
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-            />
-          </div>
-          <div className="flex items-center gap-2 pt-5">
-            <input
-              type="checkbox"
-              id="is_transactional"
-              checked={isTransactional}
-              onChange={e => setIsTransactional(e.target.checked)}
-              className="rounded"
-            />
-            <label htmlFor="is_transactional" className="text-sm text-[#374151] font-medium">Transactional</label>
-          </div>
-        </div>
+        )}
       </AdminCard>
 
       {unknownVars.length > 0 && (
@@ -162,7 +194,8 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
       )}
 
       <AdminCard>
-        <div className="flex gap-1 mb-4">
+        {/* Tab row + Edit/Preview toggle */}
+        <div className="flex items-center gap-1 mb-4">
           {([
             ["email_html", "Email HTML"],
             ["email_text", "Plain Text"],
@@ -180,21 +213,21 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
               {label}
             </button>
           ))}
+          {tab === "email_html" && (
+            <button
+              type="button"
+              onClick={() => setHtmlPreview(v => !v)}
+              className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                htmlPreview ? "bg-[#345C5A] text-white" : "text-[#6B7280] hover:text-[#1C2B2B] border border-[#E5E7EB]"
+              }`}
+            >
+              {htmlPreview ? "Edit" : "Preview"}
+            </button>
+          )}
         </div>
 
         {tab === "email_html" && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setHtmlPreview(v => !v)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                  htmlPreview ? "bg-[#345C5A] text-white" : "text-[#6B7280] hover:text-[#1C2B2B] border border-[#E5E7EB]"
-                }`}
-              >
-                {htmlPreview ? "Edit" : "Preview"}
-              </button>
-            </div>
+          <>
             {htmlPreview ? (
               <iframe
                 srcDoc={emailHtml ? renderPreview(emailHtml, PREVIEW_SAMPLE_VARS) : "<p style='font-family:sans-serif;color:#9CA3AF;padding:24px'>No HTML content yet.</p>"}
@@ -212,7 +245,7 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
                 className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2.5 text-xs font-mono text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40 resize-none"
               />
             )}
-          </div>
+          </>
         )}
 
         {tab === "email_text" && (
