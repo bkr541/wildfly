@@ -71,6 +71,26 @@ const pageMap: Record<string, string> = {
 
 const DRAWER_WIDTH = 80; // percent of screen
 
+// Bundle all migration SQL files at build time so the "Push Migrations" button
+// can diff local migrations against what has been applied to the database.
+const MIGRATION_FILES = import.meta.glob("/supabase/migrations/*.sql", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+interface LocalMigration { version: string; name: string; sql: string }
+
+const LOCAL_MIGRATIONS: LocalMigration[] = Object.entries(MIGRATION_FILES)
+  .map(([path, sql]) => {
+    const file = path.split("/").pop() ?? "";
+    const base = file.replace(/\.sql$/i, "");
+    const m = base.match(/^(\d{14})_?(.*)$/);
+    return { version: m?.[1] ?? base, name: m?.[2] ?? base, sql: String(sql) };
+  })
+  .filter((m) => /^\d{14}$/.test(m.version))
+  .sort((a, b) => a.version.localeCompare(b.version));
+
 interface MainLayoutProps {
   children: ReactNode;
   onSignOut: () => void;
