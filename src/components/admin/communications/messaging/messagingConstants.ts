@@ -51,6 +51,8 @@ export const EMPTY_COMPOSE: ComposeFormState = {
 export const ALLOWED_TEMPLATE_VARIABLES = [
   "recipient_name",
   "recipient_email",
+  "full_name",
+  "email",
   "first_name",
   "last_name",
   "user_id",
@@ -81,6 +83,8 @@ export const MESSAGE_STATUS_COLORS: Record<string, string> = {
 export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
   recipient_name: "Jane Doe",
   recipient_email: "jane@example.com",
+  full_name: "Jane Doe",
+  email: "jane@example.com",
   first_name: "Jane",
   last_name: "Doe",
   user_id: "user_abc123",

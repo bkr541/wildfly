@@ -120,11 +120,20 @@ export async function getTemplate(id: string): Promise<MessagingTemplate> {
 }
 
 export async function saveTemplate(template: Partial<MessagingTemplate> & { slug: string; name: string }): Promise<MessagingTemplate> {
+  const { id, ...rest } = template as Partial<MessagingTemplate> & { slug: string; name: string; id?: string };
   const res = await callFn<{ success: true; data: { template: MessagingTemplate } }>(
     "admin-messaging-save-template",
-    template,
+    // Send template_id (canonical) instead of id so the backend routes correctly.
+    { ...(id ? { template_id: id } : {}), ...rest },
   );
   return res.data.template;
+}
+
+export async function archiveTemplate(id: string): Promise<void> {
+  await callFn<{ success: true; data: { archived: boolean } }>(
+    "admin-messaging-save-template",
+    { template_id: id, archive: true },
+  );
 }
 
 // ── Audiences ──────────────────────────────────────────────────────────────────

@@ -1,10 +1,10 @@
 // admin-approve-beta-application
 // Provisions a beta applicant's account and sends the welcome email via Resend.
-// The password-reset action link is used ONLY in-memory during email rendering
-// and is NEVER returned to the browser, stored in the DB, or written to any log.
+// Recovery links are held only in memory and are NEVER returned to the browser,
+// stored in the database, or written to any log.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { renderTemplate } from "../_shared/messagingRenderer.ts";
+import { renderTemplate, escapeHtml } from "../_shared/messagingRenderer.ts";
 import { MESSAGING_TEMPLATE_SLUGS } from "../_shared/messaging-template-slugs.ts";
 
 const corsHeaders = {
@@ -12,8 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Variables required by the beta-application-accepted template.
-// If any of these are missing or empty, the email is not sent.
+// Variables the beta-application-accepted template requires to be non-empty.
 const REQUIRED_BETA_ACCEPTANCE_VARIABLES = [
   "first_name",
   "account_cta_label",
@@ -21,11 +20,25 @@ const REQUIRED_BETA_ACCEPTANCE_VARIABLES = [
   "support_email",
 ] as const;
 
+// Default user_settings values — must stay in sync with src/hooks/useUserSettings.ts DEFAULTS.
+const USER_SETTINGS_DEFAULTS = {
+  notifications_enabled:      false,
+  notify_gowild_availability: false,
+  notify_new_features:        true,
+  notify_new_routes:          false,
+  notify_pass_sales:          false,
+  theme_preference:           "system",
+} as const;
+
 function generateSecurePassword(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
+function assertOk(operation: string, error: { message: string } | null): void {
+  if (error) throw new Error(`${operation} failed: ${error.message}`);
 }
 
 async function sendWelcomeEmail(opts: {
@@ -43,7 +56,7 @@ async function sendWelcomeEmail(opts: {
     return { success: false, error: "Email provider not configured" };
   }
 
-  // account_cta_url / action_link are consumed here in local scope only
+  // All rendering and URL-consumption stays in local scope only.
   const renderedHtml = renderTemplate(opts.templateHtml, opts.vars);
   const renderedSubject = renderTemplate(opts.templateSubject, opts.vars);
   const renderedText = opts.templateText ? renderTemplate(opts.templateText, opts.vars) : undefined;
@@ -74,9 +87,8 @@ async function sendWelcomeEmail(opts: {
     return { success: true, providerMessageId: data.id };
   } catch (e) {
     return { success: false, error: (e as Error).message };
-  } finally {
-    // renderedHtml (containing account_cta_url) is only in local scope — GC after return
   }
+  // renderedHtml (containing account_cta_url) is only in local scope and GC-able after return.
 }
 
 Deno.serve(async (req) => {
@@ -107,7 +119,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify calling user
     const anonClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -136,7 +147,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch the beta application
+    // ── Fetch the beta application ────────────────────────────────────────────
     const { data: app, error: appError } = await serviceClient
       .from("beta_applications")
       .select("*")
@@ -152,51 +163,81 @@ Deno.serve(async (req) => {
 
     if (app.provisioned_at) {
       return new Response(
-        JSON.stringify({ error: "Account already provisioned for this application", already_provisioned: true }),
+        JSON.stringify({
+          error: "Account already provisioned for this application",
+          already_provisioned: true,
+          account_provisioned: true,
+          email_sent: false,
+          application_status: app.status,
+          welcome_delivery_status: app.welcome_delivery_status,
+        }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const email = (app.email as string).trim().toLowerCase();
+    const normalizedEmail = (app.email as string).trim().toLowerCase();
+
+    // ── Parse name ───────────────────────────────────────────────────────────
+    const nameParts = (app.full_name as string).trim().split(/\s+/);
+    const firstName = nameParts[0] ?? "";
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+    const fullName = (app.full_name as string).trim();
+
+    // ── Find or create Auth user ─────────────────────────────────────────────
     let authUserId: string;
     let alreadyExisted = false;
 
+    // 1. Look up by user_info (fastest path)
     const { data: existingInfo } = await serviceClient
       .from("user_info")
       .select("auth_user_id")
-      .eq("email", email)
+      .eq("email", normalizedEmail)
       .maybeSingle();
 
     if (existingInfo?.auth_user_id) {
       authUserId = existingInfo.auth_user_id;
       alreadyExisted = true;
     } else {
-      const tempPassword = generateSecurePassword();
-      const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
-        email,
-        password: tempPassword,
-        email_confirm: true,
-      });
+      // 2. Check Auth Admin for an existing user with this email to avoid duplicate creation
+      const { data: authUsers } = await serviceClient.auth.admin.listUsers();
+      const existingAuthUser = (authUsers?.users ?? []).find(
+        (u) => u.email?.toLowerCase() === normalizedEmail
+      );
 
-      if (createError || !newUser?.user) {
-        return new Response(JSON.stringify({ error: createError?.message ?? "Failed to create auth user" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (existingAuthUser) {
+        authUserId = existingAuthUser.id;
+        alreadyExisted = true;
+        // user_info may be missing — provisioning below will create/repair it
+      } else {
+        const tempPassword = generateSecurePassword();
+        const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
+          email: normalizedEmail,
+          password: tempPassword,
+          email_confirm: true,
         });
+
+        if (createError || !newUser?.user) {
+          return new Response(
+            JSON.stringify({
+              error: createError?.message ?? "Failed to create auth user",
+              account_provisioned: false,
+              email_sent: false,
+              application_status: app.status,
+            }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        authUserId = newUser.user.id;
       }
-      authUserId = newUser.user.id;
     }
 
-    // Parse name before user_info insert
-    const nameParts = (app.full_name as string).trim().split(/\s+/);
-    const firstName = nameParts[0] ?? "";
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
-    const fullName = (app.full_name as string).trim();
-
+    // ── Provision user records ────────────────────────────────────────────────
+    // user_info: create if missing; for existing users, only set status to current
+    // without overwriting existing name/airport data.
     if (!alreadyExisted) {
-      await serviceClient.from("user_info").insert({
+      const { error: uiErr } = await serviceClient.from("user_info").insert({
         auth_user_id: authUserId,
-        email,
+        email: normalizedEmail,
         first_name: firstName,
         last_name: lastName,
         home_airport: app.home_airport,
@@ -205,19 +246,57 @@ Deno.serve(async (req) => {
         signup_type: "Email",
         status: "current",
       });
+      assertOk("user_info insert", uiErr);
 
-      await serviceClient.from("user_homepage").insert([
+      const { error: hpErr } = await serviceClient.from("user_homepage").insert([
         { user_id: authUserId, component_name: "upcoming_flights", order: 1, status: "active" },
         { user_id: authUserId, component_name: "recent_searches",  order: 2, status: "active" },
       ]);
+      assertOk("user_homepage insert", hpErr);
     } else {
-      await serviceClient
+      // Repair missing user_info for an existing Auth user
+      const { data: infoCheck } = await serviceClient
         .from("user_info")
-        .update({ status: "current" })
-        .eq("auth_user_id", authUserId);
+        .select("auth_user_id")
+        .eq("auth_user_id", authUserId)
+        .maybeSingle();
+
+      if (!infoCheck) {
+        const { error: uiErr } = await serviceClient.from("user_info").insert({
+          auth_user_id: authUserId,
+          email: normalizedEmail,
+          first_name: firstName,
+          last_name: lastName,
+          home_airport: app.home_airport,
+          onboarding_complete: "No",
+          image_file: "",
+          signup_type: "Email",
+          status: "current",
+        });
+        assertOk("user_info repair insert", uiErr);
+
+        const { error: hpErr } = await serviceClient.from("user_homepage").insert([
+          { user_id: authUserId, component_name: "upcoming_flights", order: 1, status: "active" },
+          { user_id: authUserId, component_name: "recent_searches",  order: 2, status: "active" },
+        ]);
+        assertOk("user_homepage repair insert", hpErr);
+      } else {
+        // Only update status — do not overwrite existing profile data
+        await serviceClient
+          .from("user_info")
+          .update({ status: "current" })
+          .eq("auth_user_id", authUserId);
+      }
     }
 
-    await serviceClient.from("user_subscriptions").upsert(
+    // user_settings: upsert with defaults; DO NOTHING on conflict preserves existing preferences
+    const { error: settErr } = await serviceClient.from("user_settings").upsert(
+      { user_id: authUserId, ...USER_SETTINGS_DEFAULTS },
+      { onConflict: "user_id", ignoreDuplicates: true }
+    );
+    assertOk("user_settings upsert", settErr);
+
+    const { error: subErr } = await serviceClient.from("user_subscriptions").upsert(
       {
         user_id: authUserId,
         plan_id: "gold_monthly",
@@ -227,6 +306,7 @@ Deno.serve(async (req) => {
       },
       { onConflict: "user_id" }
     );
+    assertOk("user_subscriptions upsert", subErr);
 
     await serviceClient.from("user_credit_wallet").upsert(
       {
@@ -239,7 +319,7 @@ Deno.serve(async (req) => {
       { onConflict: "user_id", ignoreDuplicates: true }
     );
 
-    // Fetch messaging settings for email footer fields
+    // ── Fetch messaging settings ──────────────────────────────────────────────
     const { data: settingsRows } = await serviceClient
       .from("messaging_settings")
       .select("key, value")
@@ -247,19 +327,20 @@ Deno.serve(async (req) => {
 
     const settingsMap: Record<string, string> = {};
     for (const row of settingsRows ?? []) {
-      try {
-        settingsMap[row.key as string] = JSON.parse(row.value as string);
-      } catch {
-        settingsMap[row.key as string] = String(row.value);
-      }
+      try { settingsMap[row.key as string] = JSON.parse(row.value as string); }
+      catch { settingsMap[row.key as string] = String(row.value); }
     }
 
-    // Generate recovery link — hard requirement; account creation already succeeded
+    const supportEmail = settingsMap["support_email"] ?? "wildflyapp@gmail.com";
+    const physicalAddress = settingsMap["physical_address"] ?? "";
+    const appUrl = Deno.env.get("PUBLIC_APP_URL") || "https://wildfly.app";
+
+    // ── Generate recovery link — hard requirement ─────────────────────────────
     let actionLink = "";
     try {
       const { data: linkData } = await serviceClient.auth.admin.generateLink({
         type: "recovery",
-        email,
+        email: normalizedEmail,
         options: redirect_to ? { redirectTo: redirect_to } : undefined,
       });
       actionLink = (linkData as Record<string, unknown> | null)?.properties
@@ -270,7 +351,6 @@ Deno.serve(async (req) => {
     }
 
     if (!actionLink) {
-      // Account exists but we cannot send the activation email without a link.
       await serviceClient
         .from("beta_applications")
         .update({
@@ -285,52 +365,58 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          error: "The beta tester account was created, but an activation link could not be generated. No acceptance email was sent.",
-          user_id: authUserId,
-          email,
-          already_existed: alreadyExisted,
+          success: false,
+          account_provisioned: true,
+          email_sent: false,
+          application_status: "accepted",
           welcome_delivery_status: "link_failed",
+          error_code: "ACTIVATION_LINK_GENERATION_FAILED",
+          message: "The account was provisioned, but the activation email could not be sent.",
+          user_id: authUserId,
+          email: normalizedEmail,
+          already_existed: alreadyExisted,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const appUrl = Deno.env.get("PUBLIC_APP_URL") || "https://wildfly.app";
-    const supportEmail = settingsMap["support_email"] ?? "wildflyapp@gmail.com";
-    const physicalAddress = settingsMap["physical_address"] ?? "Wildfly, United States";
-
-    // Complete variable map for the beta-application-accepted template
+    // ── Build template variable map ───────────────────────────────────────────
+    // User-controlled plain-text values are HTML-escaped when inserted into the
+    // HTML template to prevent attribute injection. URL values are kept raw since
+    // they are placed only inside href attributes we control.
     const templateVariables: Record<string, string> = {
-      recipient_name: fullName,
-      recipient_email: email,
-      first_name: firstName,
-      last_name: lastName ?? "",
-      full_name: fullName,
-      email,
-      home_airport: (app.home_airport as string) ?? "",
-      app_name: "Wildfly",
-      app_url: appUrl,
-      // account_cta_url and action_link are the activation URL — used in-memory only
+      recipient_name:   escapeHtml(fullName),
+      recipient_email:  normalizedEmail,
+      first_name:       escapeHtml(firstName),
+      last_name:        escapeHtml(lastName ?? ""),
+      full_name:        escapeHtml(fullName),
+      email:            normalizedEmail,
+      home_airport:     escapeHtml((app.home_airport as string) ?? ""),
+      app_name:         "Wildfly",
+      app_url:          appUrl,
+      // CTA fields — activation URL is consumed in local scope only
       account_cta_label: "Create your password and enter Wildfly",
-      account_cta_url: actionLink,
-      action_link: actionLink,
-      support_email: supportEmail,
-      physical_address: physicalAddress,
-      current_year: String(new Date().getFullYear()),
+      account_cta_url:  actionLink,
+      action_link:      actionLink,
+      support_email:    supportEmail,
+      physical_address: escapeHtml(physicalAddress),
+      current_year:     String(new Date().getFullYear()),
     };
 
     // Validate required variables before attempting delivery
-    const missingVars = REQUIRED_BETA_ACCEPTANCE_VARIABLES.filter(
-      (v) => !templateVariables[v]
-    );
+    const missingVars = REQUIRED_BETA_ACCEPTANCE_VARIABLES.filter((v) => !templateVariables[v]);
     if (missingVars.length > 0) {
       return new Response(
         JSON.stringify({
-          error: `Missing required template variables: ${missingVars.map((v) => `{{${v}}}`).join(", ")}`,
+          success: false,
+          account_provisioned: true,
+          email_sent: false,
+          application_status: "accepted",
+          error_code: "MISSING_REQUIRED_VARIABLES",
+          message: `Missing required template variables: ${missingVars.map((v) => `{{${v}}}`).join(", ")}`,
           user_id: authUserId,
-          email,
+          email: normalizedEmail,
           already_existed: alreadyExisted,
-          welcome_delivery_status: "config_error",
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -338,7 +424,7 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // Mark as accepted; delivery status moves to "sending" only if a template is found
+    // Mark as accepted; delivery starts below
     await serviceClient
       .from("beta_applications")
       .update({
@@ -350,7 +436,7 @@ Deno.serve(async (req) => {
       })
       .eq("id", application_id);
 
-    // Fetch the canonical welcome template
+    // ── Fetch canonical template ──────────────────────────────────────────────
     const { data: template } = await serviceClient
       .from("messaging_templates")
       .select("id, email_subject, email_html, email_text, version")
@@ -369,42 +455,46 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          error: `Active messaging template "${MESSAGING_TEMPLATE_SLUGS.BETA_APPLICATION_ACCEPTED}" was not found.`,
-          user_id: authUserId,
-          email,
-          already_existed: alreadyExisted,
+          success: false,
+          account_provisioned: true,
+          email_sent: false,
+          application_status: "accepted",
           welcome_delivery_status: "no_template",
+          error_code: "TEMPLATE_NOT_FOUND",
+          message: `Active messaging template "${MESSAGING_TEMPLATE_SLUGS.BETA_APPLICATION_ACCEPTED}" was not found.`,
+          user_id: authUserId,
+          email: normalizedEmail,
+          already_existed: alreadyExisted,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create a messaging_message record (without rendered HTML — activation URL is never stored)
+    // ── Create audit records ──────────────────────────────────────────────────
     const { data: msgRow } = await serviceClient
       .from("messaging_messages")
       .insert({
-        internal_name: `Beta welcome — ${fullName} (${email})`,
+        internal_name: `Beta welcome — ${fullName} (${normalizedEmail})`,
         category: "transactional",
         classification: "transactional",
         template_id: template.id,
         template_version: template.version,
         status: "processing",
         channels: ["email"],
-        audience_definition: { sources: [{ type: "manual_emails", emails: [email] }], logic: "union" },
+        audience_definition: { sources: [{ type: "manual_emails", emails: [normalizedEmail] }], logic: "union" },
         recipient_count: 1,
         eligible_count: 1,
         reply_to: "wildflyapp@gmail.com",
         created_by: user.id,
         queued_at: now,
         started_at: now,
-        // email_html intentionally null — transactional render happens inline
+        // email_html intentionally null — transactional render happens inline only
       })
       .select("id")
       .maybeSingle();
 
     const welcomeMessageId: string | null = msgRow?.id ?? null;
 
-    // Create recipient record
     let recipientId: string | null = null;
     if (welcomeMessageId) {
       const { data: recipRow } = await serviceClient
@@ -414,8 +504,8 @@ Deno.serve(async (req) => {
           channel: "email",
           user_id: authUserId,
           beta_application_id: application_id,
-          email,
-          normalized_email: email,
+          email: normalizedEmail,
+          normalized_email: normalizedEmail,
           recipient_name: fullName,
           status: "processing",
           queued_at: now,
@@ -425,9 +515,9 @@ Deno.serve(async (req) => {
       recipientId = recipRow?.id ?? null;
     }
 
-    // Send the email — account_cta_url / action_link are consumed here and do not leave this scope
+    // ── Send email — activation URL consumed here, never leaves scope ─────────
     const sendResult = await sendWelcomeEmail({
-      to: email,
+      to: normalizedEmail,
       templateHtml: template.email_html as string,
       templateSubject: template.email_subject as string,
       templateText: (template.email_text as string | null) ?? null,
@@ -456,7 +546,6 @@ Deno.serve(async (req) => {
         }).eq("id", welcomeMessageId);
       }
 
-      // Set invited_at only after provider accepted the email
       await serviceClient
         .from("beta_applications")
         .update({
@@ -500,18 +589,30 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        user_id: authUserId,
-        email,
-        already_existed: alreadyExisted,
+        account_provisioned: true,
+        email_sent: sendResult.success,
+        application_status: "accepted",
         welcome_delivery_status: welcomeDeliveryStatus,
         welcome_message_id: welcomeMessageId,
+        user_id: authUserId,
+        email: normalizedEmail,
+        already_existed: alreadyExisted,
+        message: sendResult.success
+          ? "Account provisioned and welcome email sent."
+          : "Account provisioned; welcome email delivery failed.",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        account_provisioned: false,
+        email_sent: false,
+        error_code: "INTERNAL_ERROR",
+        message: (e as Error).message,
+      }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });

@@ -103,7 +103,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
       if (!authUser) return;
       const { data } = await supabase
         .from("user_info")
-        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file, avatar_url")
+        .select("id, first_name, last_name, username, dob, mobile_number, home_location_id, image_file, avatar_url, home_airport")
         .eq("auth_user_id", authUser.id)
         .maybeSingle();
       if (data) {
@@ -115,6 +115,16 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         // Prefer avatar_url (canonical); fall back to legacy image_file
         const rawAvatar = (data as any).avatar_url || (data.image_file?.startsWith("http") ? data.image_file : null);
         if (rawAvatar) setAvatarUrl(rawAvatar);
+        // Prefill home airport from existing user_info so beta users don't re-enter it
+        const existingIata = (data as any).home_airport as string | null;
+        if (existingIata) {
+          const { data: airportRow } = await supabase
+            .from("airports")
+            .select("id, iata_code, name, locations(city, state_code, region)")
+            .eq("iata_code", existingIata)
+            .maybeSingle();
+          if (airportRow) setHomeAirport(airportRow as AirportOption);
+        }
       }
       setLoading(false);
     };

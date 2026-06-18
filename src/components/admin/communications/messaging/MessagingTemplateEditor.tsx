@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon, Cancel01Icon, ArchiveIcon } from "@hugeicons/core-free-icons";
 import { AdminCard } from "@/components/admin/developer-tools/DeveloperToolsAdminShell";
-import { saveTemplate } from "@/services/adminMessaging";
+import { saveTemplate, archiveTemplate } from "@/services/adminMessaging";
 import { ALLOWED_TEMPLATE_VARIABLES, REPLY_TO_DEFAULT } from "./messagingConstants";
 import { extractVariables, renderPreview } from "./messagingHelpers";
 import { PREVIEW_SAMPLE_VARS } from "./messagingConstants";
@@ -96,9 +96,10 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
     if (!confirm("Archive this template? It will no longer be selectable for new messages.")) return;
     setArchiving(true);
     try {
-      const saved = await saveTemplate({ ...initial, archived_at: new Date().toISOString() });
+      await archiveTemplate(initial.id);
       toast.success("Template archived");
-      onSaved(saved);
+      // Reflect the archived state in the parent without a full reload
+      onSaved({ ...initial, archived_at: new Date().toISOString(), is_active: false });
     } catch (e) {
       toast.error((e as Error).message);
     } finally {

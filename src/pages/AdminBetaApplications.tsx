@@ -71,6 +71,10 @@ interface BetaApplication {
   updated_at: string;
   auth_user_id: string | null;
   provisioned_at: string | null;
+  welcome_delivery_status: string | null;
+  welcome_sent_at: string | null;
+  welcome_message_id: string | null;
+  welcome_last_error: string | null;
 }
 
 interface BetaFeedbackRow {
@@ -534,9 +538,11 @@ function BetaApplicationDetailDrawer({
   onStatusChange,
   onNotesSave,
   onApprove,
+  onResend,
   updatingStatus,
   savingNotes,
   approvingId,
+  resendingId,
   feedbackCount,
 }: {
   open: boolean;
@@ -545,9 +551,11 @@ function BetaApplicationDetailDrawer({
   onStatusChange: (id: string, status: AppStatus) => void;
   onNotesSave: (id: string, notes: string) => void;
   onApprove: (id: string) => void;
+  onResend: (id: string) => void;
   updatingStatus: boolean;
   savingNotes: boolean;
   approvingId: string | null;
+  resendingId: string | null;
   feedbackCount: number;
 }) {
   const [tab, setTab] = useState<BetaDrawerTab>("overview");
@@ -936,6 +944,21 @@ function BetaApplicationDetailDrawer({
                         {app.auth_user_id && (
                           <p className="text-[10px] text-[#C4C9CA] font-mono">{app.auth_user_id}</p>
                         )}
+                        {app.welcome_delivery_status === "sent" ? (
+                          <p className="text-[11px] text-[#059669]">Welcome email sent</p>
+                        ) : app.welcome_delivery_status && ["failed", "link_failed", "no_template"].includes(app.welcome_delivery_status) ? (
+                          <div className="flex flex-col gap-1 mt-1">
+                            <p className="text-[11px] text-red-600">Welcome email failed ({app.welcome_delivery_status})</p>
+                            <button
+                              type="button"
+                              onClick={() => onResend(app.id)}
+                              disabled={resendingId === app.id}
+                              className="text-[11px] font-semibold text-red-700 underline underline-offset-2 disabled:opacity-50 text-left"
+                            >
+                              {resendingId === app.id ? "Resending…" : "Resend activation email"}
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     ) : (
                       <button
@@ -1021,12 +1044,14 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
 
   // Approve result modal
   const [approveResult, setApproveResult] = useState<{
+    applicationId: string;
     name: string;
     email: string;
     welcomeDeliveryStatus: string;
     welcomeMessageId: string | null;
     alreadyExisted: boolean;
   } | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
@@ -1174,41 +1199,106 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
       );
       const json = await res.json();
 
-      if (!res.ok || json?.error) {
-        if (json?.already_provisioned) {
-          toast.info("This application has already been provisioned.");
-        } else {
-          toast.error(json?.error ?? "Failed to create account.");
-        }
+      if (json?.already_provisioned) {
+        toast.info("This application has already been provisioned.");
         return;
       }
 
-      // Update local application state
-      setApplications((prev) =>
-        prev.map((a) =>
-          a.id === id
-            ? {
-                ...a,
-                status: "accepted",
-                auth_user_id: json.user_id,
-                provisioned_at: new Date().toISOString(),
-                selected_at: a.selected_at ?? new Date().toISOString(),
-              }
-            : a
-        )
-      );
+      // Reflect account provisioning in local state even on partial success
+      // (account created but email failed). This removes the Approve button.
+      if (json?.account_provisioned) {
+        setApplications((prev) =>
+          prev.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  status: "accepted",
+                  auth_user_id: json.user_id,
+                  provisioned_at: new Date().toISOString(),
+                  selected_at: a.selected_at ?? new Date().toISOString(),
+                  welcome_delivery_status: json.welcome_delivery_status ?? null,
+                  welcome_sent_at: json.email_sent ? new Date().toISOString() : a.welcome_sent_at,
+                  welcome_message_id: json.welcome_message_id ?? null,
+                  welcome_last_error: null,
+                }
+              : a
+          )
+        );
 
-      setApproveResult({
-        name: app.full_name,
-        email: app.email,
-        welcomeDeliveryStatus: json.welcome_delivery_status ?? "unknown",
-        welcomeMessageId: json.welcome_message_id ?? null,
-        alreadyExisted: json.already_existed ?? false,
-      });
+        setApproveResult({
+          applicationId: id,
+          name: app.full_name,
+          email: app.email,
+          welcomeDeliveryStatus: json.welcome_delivery_status ?? "unknown",
+          welcomeMessageId: json.welcome_message_id ?? null,
+          alreadyExisted: json.already_existed ?? false,
+        });
+
+        if (!res.ok || json?.error_code) {
+          toast.warning(json?.message ?? "Account provisioned, but email delivery had an issue.");
+        }
+      } else if (!res.ok) {
+        toast.error(json?.message ?? json?.error ?? "Failed to create account.");
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setApprovingId(null);
+    }
+  }
+
+  // ── Resend activation email ────────────────────────────────────────────────
+
+  async function handleResend(id: string) {
+    setResendingId(id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Not signed in."); return; }
+
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/admin-resend-beta-activation`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            application_id: id,
+            redirect_to: `${window.location.origin}/reset-password`,
+          }),
+        }
+      );
+      const json = await res.json();
+
+      if (json?.email_sent) {
+        toast.success("Activation email re-sent.");
+        setApplications((prev) =>
+          prev.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  welcome_delivery_status: "sent",
+                  welcome_sent_at: new Date().toISOString(),
+                  welcome_message_id: json.welcome_message_id ?? a.welcome_message_id,
+                  welcome_last_error: null,
+                }
+              : a
+          )
+        );
+        if (approveResult?.applicationId === id) {
+          setApproveResult((prev) =>
+            prev ? { ...prev, welcomeDeliveryStatus: "sent", welcomeMessageId: json.welcome_message_id ?? prev.welcomeMessageId } : prev
+          );
+        }
+      } else {
+        toast.error(json?.message ?? "Failed to resend activation email.");
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setResendingId(null);
     }
   }
 
@@ -1677,24 +1767,37 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
                     Welcome email sent to {approveResult.email}
                   </p>
                 </div>
-              ) : approveResult.welcomeDeliveryStatus === "failed" ? (
-                <div className="flex flex-col gap-1 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+              ) : approveResult.welcomeDeliveryStatus === "failed" ||
+                  approveResult.welcomeDeliveryStatus === "link_failed" ? (
+                <div className="flex flex-col gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
                   <p className="text-xs text-red-700 font-medium">Welcome email failed to send.</p>
                   {approveResult.welcomeMessageId && (
                     <p className="text-[11px] text-red-500">
                       Check Messaging → Delivery for message ID {approveResult.welcomeMessageId.slice(0, 8)}…
                     </p>
                   )}
-                  <p className="text-[11px] text-red-500">
-                    The user can still sign in and use "Forgot Password" to set their password.
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleResend(approveResult.applicationId)}
+                    disabled={resendingId === approveResult.applicationId}
+                    className="text-[11px] font-semibold text-red-700 underline underline-offset-2 disabled:opacity-50 text-left"
+                  >
+                    {resendingId === approveResult.applicationId ? "Resending…" : "Resend activation email"}
+                  </button>
                 </div>
               ) : approveResult.welcomeDeliveryStatus === "no_template" ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                <div className="flex flex-col gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                   <p className="text-xs text-amber-700">
                     No active <code className="font-mono text-[10px]">beta-application-accepted</code> template found.
-                    The user can sign in using "Forgot Password" to set their password.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => handleResend(approveResult.applicationId)}
+                    disabled={resendingId === approveResult.applicationId}
+                    className="text-[11px] font-semibold text-amber-700 underline underline-offset-2 disabled:opacity-50 text-left"
+                  >
+                    {resendingId === approveResult.applicationId ? "Resending…" : "Retry sending activation email"}
+                  </button>
                 </div>
               ) : (
                 <p className="text-xs text-[#9CA3AF]">
@@ -1724,9 +1827,11 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
         onStatusChange={handleStatusChange}
         onNotesSave={handleNotesSave}
         onApprove={handleApprove}
+        onResend={handleResend}
         updatingStatus={!!updatingStatusId}
         savingNotes={!!savingNotesId}
         approvingId={approvingId}
+        resendingId={resendingId}
         feedbackCount={selectedApp?.auth_user_id ? (feedbackCounts[selectedApp.auth_user_id] ?? 0) : 0}
       />
     </div>
