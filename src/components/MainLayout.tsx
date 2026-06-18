@@ -125,6 +125,60 @@ const MainLayout = ({
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [tokenExpiryPopupOpen, setTokenExpiryPopupOpen] = useState(false);
   const [tokenExpiry, setTokenExpiry] = useState<Date | null>(null);
+  const [pushingMigrations, setPushingMigrations] = useState(false);
+
+  const handlePushMigrations = useCallback(async () => {
+    if (pushingMigrations) return;
+    setPushingMigrations(true);
+    try {
+      const { data: appliedRaw, error: listErr } = await supabase.rpc("list_applied_migrations");
+      if (listErr) throw listErr;
+      const applied = new Set<string>((appliedRaw as string[] | null) ?? []);
+      const pending = LOCAL_MIGRATIONS.filter((m) => !applied.has(m.version));
+
+      if (pending.length === 0) {
+        toast({ title: "No pending migrations", description: "Database is up to date." });
+        return;
+      }
+
+      let applied_count = 0;
+      const failures: { version: string; error: string }[] = [];
+      for (const mig of pending) {
+        const { error } = await supabase.rpc("apply_pending_migration", {
+          p_version: mig.version,
+          p_name: mig.name,
+          p_sql: mig.sql,
+        });
+        if (error) {
+          failures.push({ version: mig.version, error: error.message });
+          break; // stop on first failure to preserve ordering
+        }
+        applied_count++;
+      }
+
+      if (failures.length === 0) {
+        toast({
+          title: `Applied ${applied_count} migration${applied_count === 1 ? "" : "s"}`,
+          description: pending.map((m) => m.version).join(", "),
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: `Applied ${applied_count}, failed at ${failures[0].version}`,
+          description: failures[0].error,
+        });
+      }
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Migration push failed",
+        description: (e as Error).message,
+      });
+    } finally {
+      setPushingMigrations(false);
+    }
+  }, [pushingMigrations]);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
