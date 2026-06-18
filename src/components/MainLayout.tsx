@@ -323,6 +323,22 @@ const MainLayout = ({
         </nav>
 
         <div className="mt-auto">
+          {isDeveloper && (
+            <>
+              <div className="h-px bg-[#E5E7EB] mx-6" />
+              <button
+                onClick={handlePushMigrations}
+                disabled={pushingMigrations}
+                type="button"
+                className="flex items-center gap-4 px-8 py-3 text-[#2E4A4A] hover:text-[#059669] transition-colors w-full disabled:opacity-60"
+              >
+                <HugeiconsIcon icon={DatabaseAddIcon} size={20} color="currentColor" strokeWidth={1.5} />
+                <span className="text-base font-semibold">
+                  {pushingMigrations ? "Pushing migrations…" : "Push Migrations"}
+                </span>
+              </button>
+            </>
+          )}
           <div className="h-px bg-[#E5E7EB] mx-6" />
           <button
             onClick={() => {
