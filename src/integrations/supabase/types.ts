@@ -2368,6 +2368,10 @@ export type Database = {
     Functions: {
       accept_friend_request: { Args: { request_id: string }; Returns: Json }
       admin_exec_ddl: { Args: { p_sql: string }; Returns: Json }
+      apply_pending_migration: {
+        Args: { p_name: string; p_sql: string; p_version: string }
+        Returns: Json
+      }
       are_friends: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
@@ -2518,6 +2522,7 @@ export type Database = {
         Returns: Json
       }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
+      list_applied_migrations: { Args: never; Returns: string[] }
       mark_disappeared_gowild_observations: {
         Args: {
           p_destination_iata: string
