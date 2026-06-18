@@ -1352,7 +1352,7 @@ function DataView() {
       const { data, error } = await supabase.rpc("exec_sql", { query: sqlText.trim() });
       if (sqlAbortRef.current) return;
       if (error) throw error;
-      const resultRows: Record<string, unknown>[] = Array.isArray(data) ? data : [];
+      const resultRows: Record<string, unknown>[] = Array.isArray(data) ? (data as unknown as Record<string, unknown>[]) : [];
       const cols = resultRows.length > 0 ? Object.keys(resultRows[0]) : [];
       const ms = Math.round(performance.now() - t0);
       setSqlResult({ rows: resultRows, cols, ms });

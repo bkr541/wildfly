@@ -308,6 +308,51 @@ export type Database = {
           },
         ]
       }
+      beta_feedback: {
+        Row: {
+          app_page: string
+          app_version: string
+          attachment_url: string | null
+          browser_version: string | null
+          created_at: string
+          device: string
+          feedback_type: string
+          id: string
+          os_version: string
+          severity: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          app_page: string
+          app_version: string
+          attachment_url?: string | null
+          browser_version?: string | null
+          created_at?: string
+          device: string
+          feedback_type: string
+          id?: string
+          os_version: string
+          severity: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          app_page?: string
+          app_version?: string
+          attachment_url?: string | null
+          browser_version?: string | null
+          created_at?: string
+          device?: string
+          feedback_type?: string
+          id?: string
+          os_version?: string
+          severity?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bulk_search_job_logs: {
         Row: {
           airports_failed: number
@@ -2356,6 +2401,7 @@ export type Database = {
             Returns: Json
           }
       exec_sql: { Args: { query: string }; Returns: Json }
+      exec_sql_admin: { Args: { query: string }; Returns: Json }
       fulfill_stripe_credit_pack: {
         Args: {
           p_credits: number
