@@ -106,7 +106,7 @@ export async function listTemplates(include_archived = false): Promise<Messaging
   if (!include_archived) query = query.is("archived_at", null);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []) as unknown as MessagingTemplate[];
 }
 
 export async function getTemplate(id: string): Promise<MessagingTemplate> {
