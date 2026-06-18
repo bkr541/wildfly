@@ -5,11 +5,21 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { renderTemplate } from "../_shared/messagingRenderer.ts";
+import { MESSAGING_TEMPLATE_SLUGS } from "../_shared/messaging-template-slugs.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Variables required by the beta-application-accepted template.
+// If any of these are missing or empty, the email is not sent.
+const REQUIRED_BETA_ACCEPTANCE_VARIABLES = [
+  "first_name",
+  "account_cta_label",
+  "account_cta_url",
+  "support_email",
+] as const;
 
 function generateSecurePassword(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
@@ -20,12 +30,10 @@ function generateSecurePassword(): string {
 
 async function sendWelcomeEmail(opts: {
   to: string;
-  recipientName: string;
-  homeAirport: string;
-  actionLink: string;
   templateHtml: string;
   templateSubject: string;
   templateText: string | null;
+  vars: Record<string, string>;
 }): Promise<{ success: boolean; providerMessageId?: string; error?: string }> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   const fromEmail = Deno.env.get("MESSAGING_FROM_EMAIL");
@@ -35,23 +43,10 @@ async function sendWelcomeEmail(opts: {
     return { success: false, error: "Email provider not configured" };
   }
 
-  // Build variables — action_link is injected only here, in-memory
-  const vars: Record<string, string> = {
-    recipient_name: opts.recipientName,
-    recipient_email: opts.to,
-    first_name: opts.recipientName.split(" ")[0] ?? opts.recipientName,
-    home_airport: opts.homeAirport,
-    app_name: "Wildfly",
-    app_url: Deno.env.get("PUBLIC_APP_URL") || "https://wildfly.app",
-    support_email: "support@wildfly.app",
-    current_year: String(new Date().getFullYear()),
-    // action_link is injected here and nowhere else
-    action_link: opts.actionLink,
-  };
-
-  const renderedHtml = renderTemplate(opts.templateHtml, vars);
-  const renderedSubject = renderTemplate(opts.templateSubject, vars);
-  const renderedText = opts.templateText ? renderTemplate(opts.templateText, vars) : undefined;
+  // account_cta_url / action_link are consumed here in local scope only
+  const renderedHtml = renderTemplate(opts.templateHtml, opts.vars);
+  const renderedSubject = renderTemplate(opts.templateSubject, opts.vars);
+  const renderedText = opts.templateText ? renderTemplate(opts.templateText, opts.vars) : undefined;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -80,8 +75,7 @@ async function sendWelcomeEmail(opts: {
   } catch (e) {
     return { success: false, error: (e as Error).message };
   } finally {
-    // The rendered HTML (containing action_link) is only in local scope and
-    // is now eligible for GC. It was never written to DB or returned to client.
+    // renderedHtml (containing account_cta_url) is only in local scope — GC after return
   }
 }
 
@@ -193,24 +187,11 @@ Deno.serve(async (req) => {
       authUserId = newUser.user.id;
     }
 
-    // Generate recovery link — stays in memory only, never returned to browser
-    let actionLink = "";
-    try {
-      const { data: linkData } = await serviceClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: redirect_to ? { redirectTo: redirect_to } : undefined,
-      });
-      actionLink = (linkData as Record<string, unknown> | null)?.properties
-        ? ((linkData as Record<string, Record<string, string>>).properties?.action_link ?? "")
-        : "";
-    } catch {
-      // Non-fatal — user can still use Forgot Password
-    }
-
+    // Parse name before user_info insert
     const nameParts = (app.full_name as string).trim().split(/\s+/);
     const firstName = nameParts[0] ?? "";
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+    const fullName = (app.full_name as string).trim();
 
     if (!alreadyExisted) {
       await serviceClient.from("user_info").insert({
@@ -258,9 +239,106 @@ Deno.serve(async (req) => {
       { onConflict: "user_id", ignoreDuplicates: true }
     );
 
+    // Fetch messaging settings for email footer fields
+    const { data: settingsRows } = await serviceClient
+      .from("messaging_settings")
+      .select("key, value")
+      .in("key", ["support_email", "physical_address"]);
+
+    const settingsMap: Record<string, string> = {};
+    for (const row of settingsRows ?? []) {
+      try {
+        settingsMap[row.key as string] = JSON.parse(row.value as string);
+      } catch {
+        settingsMap[row.key as string] = String(row.value);
+      }
+    }
+
+    // Generate recovery link — hard requirement; account creation already succeeded
+    let actionLink = "";
+    try {
+      const { data: linkData } = await serviceClient.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: redirect_to ? { redirectTo: redirect_to } : undefined,
+      });
+      actionLink = (linkData as Record<string, unknown> | null)?.properties
+        ? ((linkData as Record<string, Record<string, string>>).properties?.action_link ?? "")
+        : "";
+    } catch {
+      // Fall through to the empty-check below
+    }
+
+    if (!actionLink) {
+      // Account exists but we cannot send the activation email without a link.
+      await serviceClient
+        .from("beta_applications")
+        .update({
+          status: "accepted",
+          auth_user_id: authUserId,
+          provisioned_at: new Date().toISOString(),
+          selected_at: app.selected_at ?? new Date().toISOString(),
+          welcome_delivery_status: "link_failed",
+          welcome_last_error: "Activation link could not be generated",
+        })
+        .eq("id", application_id);
+
+      return new Response(
+        JSON.stringify({
+          error: "The beta tester account was created, but an activation link could not be generated. No acceptance email was sent.",
+          user_id: authUserId,
+          email,
+          already_existed: alreadyExisted,
+          welcome_delivery_status: "link_failed",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const appUrl = Deno.env.get("PUBLIC_APP_URL") || "https://wildfly.app";
+    const supportEmail = settingsMap["support_email"] ?? "wildflyapp@gmail.com";
+    const physicalAddress = settingsMap["physical_address"] ?? "Wildfly, United States";
+
+    // Complete variable map for the beta-application-accepted template
+    const templateVariables: Record<string, string> = {
+      recipient_name: fullName,
+      recipient_email: email,
+      first_name: firstName,
+      last_name: lastName ?? "",
+      full_name: fullName,
+      email,
+      home_airport: (app.home_airport as string) ?? "",
+      app_name: "Wildfly",
+      app_url: appUrl,
+      // account_cta_url and action_link are the activation URL — used in-memory only
+      account_cta_label: "Create your password and enter Wildfly",
+      account_cta_url: actionLink,
+      action_link: actionLink,
+      support_email: supportEmail,
+      physical_address: physicalAddress,
+      current_year: String(new Date().getFullYear()),
+    };
+
+    // Validate required variables before attempting delivery
+    const missingVars = REQUIRED_BETA_ACCEPTANCE_VARIABLES.filter(
+      (v) => !templateVariables[v]
+    );
+    if (missingVars.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: `Missing required template variables: ${missingVars.map((v) => `{{${v}}}`).join(", ")}`,
+          user_id: authUserId,
+          email,
+          already_existed: alreadyExisted,
+          welcome_delivery_status: "config_error",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const now = new Date().toISOString();
 
-    // Mark as accepted (not yet invited — invited_at is set after email is accepted)
+    // Mark as accepted; delivery status moves to "sending" only if a template is found
     await serviceClient
       .from("beta_applications")
       .update({
@@ -272,144 +350,153 @@ Deno.serve(async (req) => {
       })
       .eq("id", application_id);
 
-    // Fetch the welcome template
+    // Fetch the canonical welcome template
     const { data: template } = await serviceClient
       .from("messaging_templates")
       .select("id, email_subject, email_html, email_text, version")
-      .eq("slug", "beta-applicant-selected")
+      .eq("slug", MESSAGING_TEMPLATE_SLUGS.BETA_APPLICATION_ACCEPTED)
       .eq("is_active", true)
       .maybeSingle();
 
-    let welcomeDeliveryStatus = "not_started";
-    let welcomeMessageId: string | null = null;
+    if (!template?.email_html || !template.email_subject) {
+      await serviceClient
+        .from("beta_applications")
+        .update({
+          welcome_delivery_status: "no_template",
+          welcome_last_error: `Active messaging template "${MESSAGING_TEMPLATE_SLUGS.BETA_APPLICATION_ACCEPTED}" was not found.`,
+        })
+        .eq("id", application_id);
 
-    if (template?.email_html && template.email_subject) {
-      // Create a messaging_message record (without rendered HTML — action_link is never stored)
-      const { data: msgRow } = await serviceClient
-        .from("messaging_messages")
+      return new Response(
+        JSON.stringify({
+          error: `Active messaging template "${MESSAGING_TEMPLATE_SLUGS.BETA_APPLICATION_ACCEPTED}" was not found.`,
+          user_id: authUserId,
+          email,
+          already_existed: alreadyExisted,
+          welcome_delivery_status: "no_template",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create a messaging_message record (without rendered HTML — activation URL is never stored)
+    const { data: msgRow } = await serviceClient
+      .from("messaging_messages")
+      .insert({
+        internal_name: `Beta welcome — ${fullName} (${email})`,
+        category: "transactional",
+        classification: "transactional",
+        template_id: template.id,
+        template_version: template.version,
+        status: "processing",
+        channels: ["email"],
+        audience_definition: { sources: [{ type: "manual_emails", emails: [email] }], logic: "union" },
+        recipient_count: 1,
+        eligible_count: 1,
+        reply_to: "wildflyapp@gmail.com",
+        created_by: user.id,
+        queued_at: now,
+        started_at: now,
+        // email_html intentionally null — transactional render happens inline
+      })
+      .select("id")
+      .maybeSingle();
+
+    const welcomeMessageId: string | null = msgRow?.id ?? null;
+
+    // Create recipient record
+    let recipientId: string | null = null;
+    if (welcomeMessageId) {
+      const { data: recipRow } = await serviceClient
+        .from("messaging_recipients")
         .insert({
-          internal_name: `Beta welcome — ${app.full_name} (${email})`,
-          category: "transactional",
-          classification: "transactional",
-          template_id: template.id,
-          template_version: template.version,
+          message_id: welcomeMessageId,
+          channel: "email",
+          user_id: authUserId,
+          beta_application_id: application_id,
+          email,
+          normalized_email: email,
+          recipient_name: fullName,
           status: "processing",
-          channels: ["email"],
-          audience_definition: { sources: [{ type: "manual_emails", emails: [email] }], logic: "union" },
-          recipient_count: 1,
-          eligible_count: 1,
-          reply_to: "wildflyapp@gmail.com",
-          created_by: user.id,
           queued_at: now,
-          started_at: now,
-          // email_html is intentionally null — transactional render happens inline
         })
         .select("id")
         .maybeSingle();
+      recipientId = recipRow?.id ?? null;
+    }
 
-      welcomeMessageId = msgRow?.id ?? null;
+    // Send the email — account_cta_url / action_link are consumed here and do not leave this scope
+    const sendResult = await sendWelcomeEmail({
+      to: email,
+      templateHtml: template.email_html as string,
+      templateSubject: template.email_subject as string,
+      templateText: (template.email_text as string | null) ?? null,
+      vars: templateVariables,
+    });
 
-      // Create recipient record
-      let recipientId: string | null = null;
+    let welcomeDeliveryStatus: string;
+
+    if (sendResult.success) {
+      welcomeDeliveryStatus = "sent";
+
+      if (recipientId) {
+        await serviceClient.from("messaging_recipients").update({
+          status: "sent",
+          provider: "resend",
+          provider_message_id: sendResult.providerMessageId ?? null,
+          attempt_count: 1,
+          sent_at: new Date().toISOString(),
+        }).eq("id", recipientId);
+      }
+
       if (welcomeMessageId) {
-        const { data: recipRow } = await serviceClient
-          .from("messaging_recipients")
-          .insert({
-            message_id: welcomeMessageId,
-            channel: "email",
-            user_id: authUserId,
-            beta_application_id: application_id,
-            email,
-            normalized_email: email,
-            recipient_name: app.full_name,
-            status: "processing",
-            queued_at: now,
-          })
-          .select("id")
-          .maybeSingle();
-        recipientId = recipRow?.id ?? null;
+        await serviceClient.from("messaging_messages").update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        }).eq("id", welcomeMessageId);
       }
 
-      // Send the email — action_link is consumed here and does not leave this scope
-      const sendResult = await sendWelcomeEmail({
-        to: email,
-        recipientName: app.full_name as string,
-        homeAirport: (app.home_airport as string) ?? "",
-        actionLink,
-        templateHtml: template.email_html as string,
-        templateSubject: template.email_subject as string,
-        templateText: (template.email_text as string | null) ?? null,
-      });
-
-      if (sendResult.success) {
-        welcomeDeliveryStatus = "sent";
-
-        if (recipientId) {
-          await serviceClient.from("messaging_recipients").update({
-            status: "sent",
-            provider: "resend",
-            provider_message_id: sendResult.providerMessageId ?? null,
-            attempt_count: 1,
-            sent_at: new Date().toISOString(),
-          }).eq("id", recipientId);
-        }
-
-        if (welcomeMessageId) {
-          await serviceClient.from("messaging_messages").update({
-            status: "completed",
-            completed_at: new Date().toISOString(),
-          }).eq("id", welcomeMessageId);
-        }
-
-        // Set invited_at only after provider accepted the email
-        await serviceClient
-          .from("beta_applications")
-          .update({
-            invited_at: new Date().toISOString(),
-            welcome_sent_at: new Date().toISOString(),
-            welcome_delivery_status: "sent",
-            welcome_message_id: welcomeMessageId,
-            welcome_last_error: null,
-          })
-          .eq("id", application_id);
-      } else {
-        welcomeDeliveryStatus = "failed";
-
-        if (recipientId) {
-          await serviceClient.from("messaging_recipients").update({
-            status: "failed",
-            attempt_count: 1,
-            failed_at: new Date().toISOString(),
-            last_error: sendResult.error ?? "Unknown error",
-          }).eq("id", recipientId);
-        }
-
-        if (welcomeMessageId) {
-          await serviceClient.from("messaging_messages").update({
-            status: "failed",
-            completed_at: new Date().toISOString(),
-          }).eq("id", welcomeMessageId);
-        }
-
-        await serviceClient
-          .from("beta_applications")
-          .update({
-            welcome_delivery_status: "failed",
-            welcome_message_id: welcomeMessageId,
-            welcome_last_error: sendResult.error ?? "Unknown error",
-          })
-          .eq("id", application_id);
-      }
-    } else {
-      // No template configured — still mark application
-      welcomeDeliveryStatus = "no_template";
+      // Set invited_at only after provider accepted the email
       await serviceClient
         .from("beta_applications")
-        .update({ welcome_delivery_status: "no_template" })
+        .update({
+          invited_at: new Date().toISOString(),
+          welcome_sent_at: new Date().toISOString(),
+          welcome_delivery_status: "sent",
+          welcome_message_id: welcomeMessageId,
+          welcome_last_error: null,
+        })
+        .eq("id", application_id);
+    } else {
+      welcomeDeliveryStatus = "failed";
+
+      if (recipientId) {
+        await serviceClient.from("messaging_recipients").update({
+          status: "failed",
+          attempt_count: 1,
+          failed_at: new Date().toISOString(),
+          last_error: sendResult.error ?? "Unknown error",
+        }).eq("id", recipientId);
+      }
+
+      if (welcomeMessageId) {
+        await serviceClient.from("messaging_messages").update({
+          status: "failed",
+          completed_at: new Date().toISOString(),
+        }).eq("id", welcomeMessageId);
+      }
+
+      await serviceClient
+        .from("beta_applications")
+        .update({
+          welcome_delivery_status: "failed",
+          welcome_message_id: welcomeMessageId,
+          welcome_last_error: sendResult.error ?? "Unknown error",
+        })
         .eq("id", application_id);
     }
 
-    // action_link is NOT returned to the browser
+    // account_cta_url / action_link are NOT returned to the browser
     return new Response(
       JSON.stringify({
         success: true,

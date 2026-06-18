@@ -5,17 +5,23 @@
 export const VARIABLE_PATTERN = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
 
 export const ALLOWED_VARIABLES = new Set([
+  "recipient_name",
+  "recipient_email",
   "first_name",
   "last_name",
   "full_name",
   "email",
   "home_airport",
   "plan_name",
+  "app_name",
   "app_url",
+  "action_link",
   "support_email",
   "account_cta_label",
   "account_cta_url",
+  "physical_address",
   "unsubscribe_url",
+  "current_year",
   "feature_name",
   "maintenance_date",
 ]);
