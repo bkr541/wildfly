@@ -24,7 +24,9 @@ import {
   GlobalSearchIcon,
   ConsoleIcon,
   Radar01Icon,
+  DatabaseAddIcon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
