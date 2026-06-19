@@ -6,59 +6,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { renderTemplate, escapeHtml } from "../_shared/messagingRenderer.ts";
 import { MESSAGING_TEMPLATE_SLUGS } from "../_shared/messaging-template-slugs.ts";
+import { sendEmail } from "../_shared/email-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-async function sendWelcomeEmail(opts: {
-  to: string;
-  templateHtml: string;
-  templateSubject: string;
-  templateText: string | null;
-  vars: Record<string, string>;
-}): Promise<{ success: boolean; providerMessageId?: string; error?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  const fromEmail = Deno.env.get("MESSAGING_FROM_EMAIL");
-  const fromName = Deno.env.get("MESSAGING_FROM_NAME") || "Wildfly";
-
-  if (!apiKey || !fromEmail) {
-    return { success: false, error: "Email provider not configured" };
-  }
-
-  const renderedHtml = renderTemplate(opts.templateHtml, opts.vars);
-  const renderedSubject = renderTemplate(opts.templateSubject, opts.vars);
-  const renderedText = opts.templateText ? renderTemplate(opts.templateText, opts.vars) : undefined;
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${fromName} <${fromEmail}>`,
-        to: [opts.to],
-        subject: renderedSubject,
-        html: renderedHtml,
-        ...(renderedText ? { text: renderedText } : {}),
-        reply_to: "wildflyapp@gmail.com",
-      }),
-    });
-
-    if (!res.ok) {
-      const body = await res.text();
-      return { success: false, error: `Resend ${res.status}: ${body.slice(0, 200)}` };
-    }
-
-    const data = await res.json() as { id?: string };
-    return { success: true, providerMessageId: data.id };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -161,7 +114,7 @@ Deno.serve(async (req) => {
         .from("beta_applications")
         .update({
           welcome_delivery_status: "link_failed",
-          welcome_last_error: "Resend: activation link could not be generated",
+          welcome_last_error: "Activation link could not be generated",
         })
         .eq("id", application_id);
 
@@ -256,14 +209,23 @@ Deno.serve(async (req) => {
       recipientId = recipRow?.id ?? null;
     }
 
-    // ── Send — activation URL consumed here, never leaves scope ───────────────
-    const sendResult = await sendWelcomeEmail({
-      to: normalizedEmail,
-      templateHtml: template.email_html as string,
-      templateSubject: template.email_subject as string,
-      templateText: (template.email_text as string | null) ?? null,
-      vars: templateVariables,
+    // ── Render template — activation URL stays in local scope only ────────────
+    const renderedHtml    = renderTemplate(template.email_html    as string, templateVariables);
+    const renderedSubject = renderTemplate(template.email_subject as string, templateVariables);
+    const renderedText    = template.email_text
+      ? renderTemplate(template.email_text as string, templateVariables)
+      : undefined;
+
+    // ── Send via shared Gmail provider ────────────────────────────────────────
+    const sendResult = await sendEmail({
+      to:      normalizedEmail,
+      subject: renderedSubject,
+      html:    renderedHtml,
+      text:    renderedText,
+      replyTo: "wildflyapp@gmail.com",
     });
+
+    // actionLink / account_cta_url / renderedHtml are out of scope after this point
 
     const deliveryStatus = sendResult.success ? "sent" : "failed";
 
@@ -271,7 +233,7 @@ Deno.serve(async (req) => {
       if (recipientId) {
         await serviceClient.from("messaging_recipients").update({
           status: "sent",
-          provider: "resend",
+          provider: sendResult.provider,
           provider_message_id: sendResult.providerMessageId ?? null,
           attempt_count: 1,
           sent_at: new Date().toISOString(),

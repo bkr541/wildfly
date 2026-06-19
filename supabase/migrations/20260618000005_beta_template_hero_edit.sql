@@ -33,12 +33,12 @@ SET
                 </tr>
                 <tr>
                   <td style="padding:14px 32px 0;">
-                    <span style="display:inline-block;padding:6px 14px 6px 10px;background-color:#10B981;border:2px solid #059669;border-radius:9999px;font-family:'Quicksand',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#17352b;line-height:1;">&#9733; Beta Tester</span>
+                    <span style="display:inline-block;padding:4px 10px 4px 8px;background-color:#10B981;border:1.5px solid #059669;border-radius:9999px;font-family:'Quicksand',Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#17352b;line-height:1;">&#9733; Beta Tester</span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 32px 36px;">
-                    <h1 style="margin:0;font-family:'Quicksand',Arial,sans-serif;font-size:28px;line-height:1;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#17352b;text-shadow:0 1px 5px rgba(0,0,0,0.28);">
+                  <td style="padding:8px 32px 28px;">
+                    <h1 style="margin:0;font-family:'Quicksand',Arial,sans-serif;font-size:30px;line-height:1;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#17352b;text-shadow:0 1px 5px rgba(0,0,0,0.28);">
                       Your application<br>was accepted
                     </h1>
                   </td>

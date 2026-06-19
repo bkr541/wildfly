@@ -71,6 +71,13 @@ verify_jwt = true
 [functions.admin-list-notifications]
 verify_jwt = true
 
+# Beta approval functions (JWT required — developer_allowlist gate inside)
+[functions.admin-approve-beta-application]
+verify_jwt = true
+
+[functions.admin-resend-beta-activation]
+verify_jwt = true
+
 # Messaging — system functions (no user JWT)
 [functions.messaging-dispatcher]
 verify_jwt = false
