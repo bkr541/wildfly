@@ -63,7 +63,7 @@ const ResetPasswordPage = () => {
         <div className="bg-white/95 backdrop-blur-md rounded-2xl px-7 pt-8 pb-8 shadow-2xl flex flex-col gap-6">
           {/* Logo */}
           <div className="flex justify-center">
-            <img src="/assets/logo/wflogo2.png" alt="Logo" className="h-16 w-auto object-contain" />
+            <img src="/assets/logo/appicon.png" alt="Logo" className="h-16 w-auto object-contain" />
           </div>
 
           <div>
