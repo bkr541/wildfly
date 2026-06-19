@@ -44,7 +44,9 @@ import {
   BubbleChatNotificationIcon,
   Notification01Icon,
   SentIcon,
+  DatabaseAddIcon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "@/hooks/use-toast";
 import { Avatar as UIAvatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -159,6 +161,26 @@ const COMMUNICATIONS_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "communications-messaging",     label: "Messaging",     icon: SentIcon },
   { id: "communications-notifications", label: "Notifications", icon: Notification01Icon },
 ];
+
+// ── Migration push ────────────────────────────────────────────────────────────
+
+const MIGRATION_FILES = import.meta.glob("/supabase/migrations/*.sql", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+interface LocalMigration { version: string; name: string; sql: string }
+
+const LOCAL_MIGRATIONS: LocalMigration[] = Object.entries(MIGRATION_FILES)
+  .map(([path, sql]) => {
+    const file = path.split("/").pop() ?? "";
+    const base = file.replace(/\.sql$/i, "");
+    const m = base.match(/^(\d{14})_?(.*)$/);
+    return { version: m?.[1] ?? base, name: m?.[2] ?? base, sql: String(sql) };
+  })
+  .filter((m) => /^\d{14}$/.test(m.version))
+  .sort((a, b) => a.version.localeCompare(b.version));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -2284,6 +2306,59 @@ export default function AdminConsole() {
   const communicationsExpanded = openGroup === "communications";
   const [isDeveloper, setIsDeveloper]           = useState(false);
   const [isDeveloperChecked, setIsDeveloperChecked] = useState(false);
+  const [pushingMigrations, setPushingMigrations] = useState(false);
+
+  const handlePushMigrations = useCallback(async () => {
+    if (pushingMigrations) return;
+    setPushingMigrations(true);
+    try {
+      const { data: appliedRaw, error: listErr } = await supabase.rpc("list_applied_migrations");
+      if (listErr) throw listErr;
+      const applied = new Set<string>((appliedRaw as string[] | null) ?? []);
+      const pending = LOCAL_MIGRATIONS.filter((m) => !applied.has(m.version));
+
+      if (pending.length === 0) {
+        toast({ title: "No pending migrations", description: "Database is up to date." });
+        return;
+      }
+
+      let applied_count = 0;
+      const failures: { version: string; error: string }[] = [];
+      for (const mig of pending) {
+        const { error } = await supabase.rpc("apply_pending_migration", {
+          p_version: mig.version,
+          p_name: mig.name,
+          p_sql: mig.sql,
+        });
+        if (error) {
+          failures.push({ version: mig.version, error: error.message });
+          break;
+        }
+        applied_count++;
+      }
+
+      if (failures.length === 0) {
+        toast({
+          title: `Applied ${applied_count} migration${applied_count === 1 ? "" : "s"}`,
+          description: pending.map((m) => m.version).join(", "),
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: `Applied ${applied_count}, failed at ${failures[0].version}`,
+          description: failures[0].error,
+        });
+      }
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Migration push failed",
+        description: (e as Error).message,
+      });
+    } finally {
+      setPushingMigrations(false);
+    }
+  }, [pushingMigrations]);
 
   const accountsActive       = view === "users" || view === "beta-applications";
   const wildflyToolsActive   = view === "gowild" || view === "radar";
@@ -2640,6 +2715,17 @@ export default function AdminConsole() {
                         </button>
                       );
                     })}
+                    <button
+                      type="button"
+                      onClick={handlePushMigrations}
+                      disabled={pushingMigrations}
+                      className="flex items-center gap-2.5 py-1.5 rounded-xl px-2 pl-11 transition-colors w-full hover:bg-[#F2F3F3] text-[#2E4A4A] hover:text-[#345C5A] disabled:opacity-60"
+                    >
+                      <HugeiconsIcon icon={DatabaseAddIcon} size={18} color="currentColor" strokeWidth={1.5} />
+                      <span className="text-sm font-semibold">
+                        {pushingMigrations ? "Pushing…" : "Push Migrations"}
+                      </span>
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>

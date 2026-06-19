@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useRef, useEffect, useCallback } from "react";
+import { useState, type ReactNode, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -24,9 +24,7 @@ import {
   GlobalSearchIcon,
   ConsoleIcon,
   Radar01Icon,
-  DatabaseAddIcon,
 } from "@hugeicons/core-free-icons";
-import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { cn } from "@/lib/utils";
@@ -71,25 +69,6 @@ const pageMap: Record<string, string> = {
 
 const DRAWER_WIDTH = 80; // percent of screen
 
-// Bundle all migration SQL files at build time so the "Push Migrations" button
-// can diff local migrations against what has been applied to the database.
-const MIGRATION_FILES = import.meta.glob("/supabase/migrations/*.sql", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
-
-interface LocalMigration { version: string; name: string; sql: string }
-
-const LOCAL_MIGRATIONS: LocalMigration[] = Object.entries(MIGRATION_FILES)
-  .map(([path, sql]) => {
-    const file = path.split("/").pop() ?? "";
-    const base = file.replace(/\.sql$/i, "");
-    const m = base.match(/^(\d{14})_?(.*)$/);
-    return { version: m?.[1] ?? base, name: m?.[2] ?? base, sql: String(sql) };
-  })
-  .filter((m) => /^\d{14}$/.test(m.version))
-  .sort((a, b) => a.version.localeCompare(b.version));
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -125,59 +104,6 @@ const MainLayout = ({
   const [isDeveloper, setIsDeveloper] = useState(false);
   const [tokenExpiryPopupOpen, setTokenExpiryPopupOpen] = useState(false);
   const [tokenExpiry, setTokenExpiry] = useState<Date | null>(null);
-  const [pushingMigrations, setPushingMigrations] = useState(false);
-
-  const handlePushMigrations = useCallback(async () => {
-    if (pushingMigrations) return;
-    setPushingMigrations(true);
-    try {
-      const { data: appliedRaw, error: listErr } = await supabase.rpc("list_applied_migrations");
-      if (listErr) throw listErr;
-      const applied = new Set<string>((appliedRaw as string[] | null) ?? []);
-      const pending = LOCAL_MIGRATIONS.filter((m) => !applied.has(m.version));
-
-      if (pending.length === 0) {
-        toast({ title: "No pending migrations", description: "Database is up to date." });
-        return;
-      }
-
-      let applied_count = 0;
-      const failures: { version: string; error: string }[] = [];
-      for (const mig of pending) {
-        const { error } = await supabase.rpc("apply_pending_migration", {
-          p_version: mig.version,
-          p_name: mig.name,
-          p_sql: mig.sql,
-        });
-        if (error) {
-          failures.push({ version: mig.version, error: error.message });
-          break; // stop on first failure to preserve ordering
-        }
-        applied_count++;
-      }
-
-      if (failures.length === 0) {
-        toast({
-          title: `Applied ${applied_count} migration${applied_count === 1 ? "" : "s"}`,
-          description: pending.map((m) => m.version).join(", "),
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: `Applied ${applied_count}, failed at ${failures[0].version}`,
-          description: failures[0].error,
-        });
-      }
-    } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Migration push failed",
-        description: (e as Error).message,
-      });
-    } finally {
-      setPushingMigrations(false);
-    }
-  }, [pushingMigrations]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
@@ -323,22 +249,6 @@ const MainLayout = ({
         </nav>
 
         <div className="mt-auto">
-          {isDeveloper && (
-            <>
-              <div className="h-px bg-[#E5E7EB] mx-6" />
-              <button
-                onClick={handlePushMigrations}
-                disabled={pushingMigrations}
-                type="button"
-                className="flex items-center gap-4 px-8 py-3 text-[#2E4A4A] hover:text-[#059669] transition-colors w-full disabled:opacity-60"
-              >
-                <HugeiconsIcon icon={DatabaseAddIcon} size={20} color="currentColor" strokeWidth={1.5} />
-                <span className="text-base font-semibold">
-                  {pushingMigrations ? "Pushing migrations…" : "Push Migrations"}
-                </span>
-              </button>
-            </>
-          )}
           <div className="h-px bg-[#E5E7EB] mx-6" />
           <button
             onClick={() => {
