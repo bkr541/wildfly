@@ -1,0 +1,2 @@
+-- Superseded by 20260618000004_beta_template_hero_refine2.sql.
+-- This migration is intentionally a no-op.
