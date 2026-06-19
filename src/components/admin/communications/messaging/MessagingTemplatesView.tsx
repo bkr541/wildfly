@@ -34,7 +34,7 @@ export function MessagingTemplatesView() {
   if (editing) {
     return (
       <div>
-        <div className="sticky top-0 z-10 flex items-center gap-2 mb-4 py-3 -mx-6 px-6" style={{ background: "rgba(248,249,249,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+        <div className="flex items-center gap-2 mb-4 py-3">
           <button
             type="button"
             onClick={() => setEditing(null)}

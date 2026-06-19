@@ -45,12 +45,12 @@ const menuItems = [
   { icon: Idea01Icon, label: "Insights" },
   { type: "heading", label: "Book" },
   { icon: Airplane01Icon, label: "Flights", indent: true },
-  { icon: Location01Icon, label: "Destinations", indent: true },
+  { icon: Location01Icon, label: "Destinations", indent: true, disabled: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: Radar01Icon, label: "Radar", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
-  { icon: Home01Icon, label: "Hubs", indent: true },
+  { icon: Home01Icon, label: "Hubs", indent: true, disabled: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
 ];
 
@@ -225,15 +225,21 @@ const MainLayout = ({
             }
             const pageKey = pageMap[item.label];
             const isActive = pageKey === currentPage || (item.label === "Home" && currentPage === "home");
+            const isDisabled = (item as any).disabled;
             return (
               <button
                 key={item.label}
                 type="button"
-                onClick={() => handleMenuClick(item.label)}
+                onClick={() => !isDisabled && handleMenuClick(item.label)}
+                disabled={isDisabled}
                 className={cn(
-                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full hover:bg-[#F2F3F3]",
+                  "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full",
                   (item as any).indent && "pl-5",
-                  isActive ? "text-[#059669]" : "text-[#2E4A4A] hover:text-[#345C5A]",
+                  isDisabled
+                    ? "text-[#C4C9C9] cursor-not-allowed opacity-50"
+                    : isActive
+                    ? "text-[#059669] hover:bg-[#F2F3F3]"
+                    : "text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3]",
                 )}
               >
                 <HugeiconsIcon
