@@ -3,6 +3,7 @@ import { useAirportDictionary, type AirportInfo } from "@/hooks/useAirportDictio
 import { useRouteStats } from "@/hooks/useRouteStats";
 import { useRouteFavorites } from "@/hooks/useRouteFavorites";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useRadarRouteMetrics } from "@/hooks/useRadarRouteMetrics";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,10 @@ import {
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import React from "react";
+import React, { Suspense, lazy } from "react";
+import type { RadarStyledRoute, RadarStyledAirport } from "@/components/maps/radar/radarMapTypes";
+
+const RadarStyledRouteMap = lazy(() => import("@/components/maps/radar/RadarStyledRouteMap"));
 
 const LS_ORIGIN_KEY = "routes_lastOrigin";
 
@@ -317,6 +321,8 @@ const RouteMap = ({
   showAllLines,
   hoveredDest,
   onHover,
+  routeMetricsMap,
+  airportMetricsMap,
 }: {
   origin: string;
   destinations: string[];
@@ -325,13 +331,11 @@ const RouteMap = ({
   showAllLines: boolean;
   hoveredDest: string | null;
   onHover: (d: string | null) => void;
+  routeMetricsMap: Map<string, RadarStyledRoute>;
+  airportMetricsMap: Map<string, RadarStyledAirport>;
 }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const mapInstance = useRef<any>(null);
-  const layersRef = useRef<any[]>([]);
+  const destsToShow = showAllLines ? destinations : filteredDests;
 
-  const originInfo = airportDict[origin];
   const hasMissingCoords = useMemo(() => {
     return destinations.some(d => {
       const info = airportDict[d];
@@ -339,120 +343,93 @@ const RouteMap = ({
     });
   }, [destinations, airportDict]);
 
-  const linesToDraw = showAllLines ? destinations : filteredDests;
+  const originInfo = airportDict[origin];
 
+  // Build RadarStyledRoute[] for the visible destinations
+  const routes = useMemo<RadarStyledRoute[]>(() => {
+    if (!originInfo?.latitude || !originInfo?.longitude) return [];
+    return destsToShow.flatMap(dest => {
+      const destInfo = airportDict[dest];
+      if (!destInfo?.latitude || !destInfo?.longitude) return [];
+
+      const routeKey = `${origin}-${dest}`;
+      const existing = routeMetricsMap.get(routeKey);
+      if (existing) {
+        return [{
+          ...existing,
+          currentSearch: { city: destInfo.city ?? undefined },
+        }];
+      }
+      // No historical data — build a gray stub
+      return [{
+        routeKey,
+        origin,
+        destination: dest,
+        originLat: originInfo.latitude!,
+        originLng: originInfo.longitude!,
+        destinationLat: destInfo.latitude!,
+        destinationLng: destInfo.longitude!,
+        snapshotCount: 0,
+        goWildCount: 0,
+        availabilityRate: null,
+        avgGoWildSeats: null,
+        avgGoWildFare: null,
+        avgSavings: null,
+        searchCount: 0,
+        volatilityScore: null,
+        freshnessStatus: "unknown",
+        isStale: false,
+      } as RadarStyledRoute];
+    });
+  }, [destsToShow, origin, originInfo, airportDict, routeMetricsMap]);
+
+  // Build RadarStyledAirport[] for origin + visible destinations
+  const airportNodes = useMemo<RadarStyledAirport[]>(() => {
+    const nodes: RadarStyledAirport[] = [];
+    // Add all destinations (and origin)
+    const allCodes = [origin, ...destsToShow];
+    for (const code of allCodes) {
+      const existing = airportMetricsMap.get(code);
+      if (existing) { nodes.push(existing); continue; }
+      const info = airportDict[code];
+      if (!info?.latitude || !info?.longitude) continue;
+      nodes.push({
+        iata: code,
+        lat: info.latitude,
+        lng: info.longitude,
+        name: info.name ?? code,
+        city: info.city ?? code,
+        routeCount: 0,
+        searchVolume: 0,
+        avgAvailabilityRate: null,
+        avgSeats: null,
+        avgSavings: null,
+        freshnessStatus: "unknown",
+      });
+    }
+    return nodes;
+  }, [destsToShow, origin, airportDict, airportMetricsMap]);
+
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
+  const [selectedAirport, setSelectedAirport] = useState<string | null>(null);
+
+  // Sync hoveredDest → selectedRoute
   useEffect(() => {
-    let L: any;
-    let mounted = true;
+    if (hoveredDest) {
+      setSelectedRoute(`${origin}-${hoveredDest}`);
+    } else {
+      setSelectedRoute(null);
+    }
+  }, [hoveredDest, origin]);
 
-    (async () => {
-      L = await import("leaflet");
-      await import("leaflet/dist/leaflet.css");
+  const handleSelectRoute = useCallback((routeKey: string) => {
+    const dest = routeKey.split("-")[1];
+    onHover(dest ?? null);
+  }, [onHover]);
 
-      if (!mounted || !mapRef.current) return;
-
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-      }
-
-      const center: [number, number] = originInfo?.latitude && originInfo?.longitude
-        ? [originInfo.latitude, originInfo.longitude]
-        : [39.8, -98.6];
-
-      const map = L.map(mapRef.current, { zoomControl: true, attributionControl: true }).setView(center, 4);
-      mapInstance.current = map;
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; OpenStreetMap',
-        maxZoom: 18,
-      }).addTo(map);
-
-      setMapLoaded(true);
-    })();
-
-    return () => {
-      mounted = false;
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-      }
-    };
-  }, [origin]);
-
-  useEffect(() => {
-    if (!mapInstance.current || !mapLoaded) return;
-
-    let L: any;
-    (async () => {
-      L = await import("leaflet");
-
-      for (const l of layersRef.current) {
-        mapInstance.current.removeLayer(l);
-      }
-      layersRef.current = [];
-
-      const map = mapInstance.current;
-
-      if (originInfo?.latitude && originInfo?.longitude) {
-        const originIcon = L.divIcon({
-          className: "",
-          html: `<div style="display:flex;flex-direction:column;align-items:center;">
-            <div style="font-size:9px;font-weight:800;color:white;background:#059669;border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${origin}</div>
-            <div style="width:14px;height:14px;background:#345C5A;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
-          </div>`,
-          iconSize: [40, 34],
-          iconAnchor: [20, 34],
-        });
-        const m = L.marker([originInfo.latitude, originInfo.longitude], { icon: originIcon })
-          .addTo(map)
-          .bindPopup(`<strong>${origin}</strong><br/>${originInfo.city || originInfo.name || ""}`);
-        layersRef.current.push(m);
-      }
-
-      for (const dest of linesToDraw) {
-        const info = airportDict[dest];
-        if (!info?.latitude || !info?.longitude) continue;
-        if (!originInfo?.latitude || !originInfo?.longitude) continue;
-
-        const isHovered = hoveredDest === dest;
-
-        // Solid primary green line
-        const line = L.polyline(
-          [[originInfo.latitude, originInfo.longitude], [info.latitude, info.longitude]],
-          {
-            color: "#10B981",
-            weight: isHovered ? 3 : 2,
-            opacity: isHovered ? 1 : 0.55,
-          }
-        ).addTo(map);
-        layersRef.current.push(line);
-
-        // Destination dot with IATA code label above
-        const dotSize = isHovered ? 10 : 8;
-        const labelBg = isHovered ? "#059669" : "#345C5A";
-        const destIcon = L.divIcon({
-          className: "",
-          html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-            <div style="font-size:9px;font-weight:800;color:white;background:${labelBg};border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${dest}</div>
-            <div style="width:${dotSize}px;height:${dotSize}px;background:${isHovered ? "#10B981" : "#345C5A"};border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
-          </div>`,
-          iconSize: [32, 22 + dotSize],
-          iconAnchor: [16, 22 + dotSize],
-        });
-        const marker = L.marker([info.latitude, info.longitude], { icon: destIcon })
-          .addTo(map)
-          .bindPopup(`
-            <div style="font-family:sans-serif;font-size:13px;">
-              <strong>${origin} → ${dest}</strong><br/>
-              ${info.city || info.name || dest}
-            </div>
-          `);
-        marker.on("mouseover", () => onHover(dest));
-        marker.on("mouseout", () => onHover(null));
-        layersRef.current.push(marker);
-      }
-    })();
-  }, [mapLoaded, linesToDraw, hoveredDest, origin, originInfo, airportDict, onHover]);
+  const handleSelectAirport = useCallback((iata: string) => {
+    setSelectedAirport(prev => prev === iata ? null : iata);
+  }, []);
 
   return (
     <div className="flex flex-col gap-2">
@@ -462,7 +439,24 @@ const RouteMap = ({
           Some routes hidden due to missing coordinates.
         </div>
       )}
-      <div ref={mapRef} className="w-full h-[400px] rounded-xl overflow-hidden border border-[#E3E6E6] bg-[#F2F3F3]" />
+      <div className="w-full h-[400px] rounded-xl overflow-hidden border border-[#E3E6E6] bg-[#F2F3F3]">
+        <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-[#F2F3F3]"><span className="text-sm text-[#6B7B7B]">Loading map…</span></div>}>
+          <RadarStyledRouteMap
+            routes={routes}
+            airports={airportNodes}
+            mode="availability"
+            selectedRoute={selectedRoute}
+            selectedAirport={selectedAirport}
+            onSelectRoute={handleSelectRoute}
+            onSelectAirport={handleSelectAirport}
+            fitBounds
+            fitKey={`${origin}-${destsToShow.length}`}
+            showLegend
+            legendPosition="bottom-right"
+            height="100%"
+          />
+        </Suspense>
+      </div>
     </div>
   );
 };
@@ -480,6 +474,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
   const { dict: airportDict, loading: airportsLoading } = useAirportDictionary();
   const { isFavorite, toggleFavorite, clearAll, getFavoritesList } = useRouteFavorites();
   const { settings: userSettings } = useUserSettings();
+  const { routeMetrics: routeMetricsMap, airportMetrics: airportMetricsMap } = useRadarRouteMetrics();
 
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const urlOrigin = params.get("origin") || "";
@@ -774,6 +769,8 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
                         showAllLines={showAllLines || stats.destinations.length <= 60}
                         hoveredDest={hoveredDest}
                         onHover={setHoveredDest}
+                        routeMetricsMap={routeMetricsMap}
+                        airportMetricsMap={airportMetricsMap}
                       />
                     </motion.div>
                   )}

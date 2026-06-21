@@ -944,21 +944,20 @@ function BetaApplicationDetailDrawer({
                         {app.auth_user_id && (
                           <p className="text-[10px] text-[#C4C9CA] font-mono">{app.auth_user_id}</p>
                         )}
-                        {app.welcome_delivery_status === "sent" ? (
+                        {app.welcome_delivery_status === "sent" && (
                           <p className="text-[11px] text-[#059669]">Welcome email sent</p>
-                        ) : app.welcome_delivery_status && ["failed", "link_failed", "no_template"].includes(app.welcome_delivery_status) ? (
-                          <div className="flex flex-col gap-1 mt-1">
-                            <p className="text-[11px] text-red-600">Welcome email failed ({app.welcome_delivery_status})</p>
-                            <button
-                              type="button"
-                              onClick={() => onResend(app.id)}
-                              disabled={resendingId === app.id}
-                              className="text-[11px] font-semibold text-red-700 underline underline-offset-2 disabled:opacity-50 text-left"
-                            >
-                              {resendingId === app.id ? "Resending…" : "Resend activation email"}
-                            </button>
-                          </div>
-                        ) : null}
+                        )}
+                        {app.welcome_delivery_status && ["failed", "link_failed", "no_template"].includes(app.welcome_delivery_status) && (
+                          <p className="text-[11px] text-red-600">Welcome email failed ({app.welcome_delivery_status})</p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onResend(app.id)}
+                          disabled={resendingId === app.id}
+                          className="text-[11px] font-semibold text-[#059669] underline underline-offset-2 disabled:opacity-50 text-left mt-1"
+                        >
+                          {resendingId === app.id ? "Sending…" : "Send new password setup email"}
+                        </button>
                       </div>
                     ) : (
                       <button

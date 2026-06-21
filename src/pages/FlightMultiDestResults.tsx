@@ -25,6 +25,7 @@ import { DestCardItem, DestCard, buildDestCards } from "@/components/DestCardIte
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import type { MultiDestMapDestination } from "@/components/MultiDestMap";
 
 const MultiDestMap = lazy(() => import("@/components/MultiDestMap"));
 
@@ -274,17 +275,28 @@ const FlightMultiDestResults = ({
     return null;
   }, [airportMap, departureAirport]);
 
-  const mapDestinations = useMemo(() => {
-    return cards
+  // Fix: map uses sortedCards (same filtered set as the list), not the raw cards
+  const mapDestinations = useMemo<MultiDestMapDestination[]>(() => {
+    return sortedCards
       .map((c) => {
         const a = airportMap[c.destination];
         if (a?.latitude != null && a?.longitude != null) {
-          return { iata: c.destination, latLng: [a.latitude, a.longitude] as [number, number] };
+          return {
+            iata: c.destination,
+            latLng: [a.latitude, a.longitude] as [number, number],
+            city: c.city,
+            stateCode: a.stateCode || undefined,
+            country: c.country || undefined,
+            hasGoWild: c.hasGoWild,
+            hasNonstop: c.hasNonstop,
+            flightCount: c.flightCount,
+            minFare: c.minFare,
+          } satisfies MultiDestMapDestination;
         }
         return null;
       })
-      .filter((d): d is { iata: string; latLng: [number, number] } => d !== null);
-  }, [cards, airportMap]);
+      .filter((d): d is MultiDestMapDestination => d !== null);
+  }, [sortedCards, airportMap]);
 
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5]">
@@ -736,7 +748,12 @@ const FlightMultiDestResults = ({
                         </div>
                       }
                     >
-                      <MultiDestMap depIata={departureAirport} depLatLng={depLatLng} destinations={mapDestinations} />
+                      <MultiDestMap
+                        depIata={departureAirport}
+                        depLatLng={depLatLng}
+                        destinations={mapDestinations}
+                        invalidateKey={mapSheet ? 1 : 0}
+                      />
                     </Suspense>
                   </div>
                 ) : (

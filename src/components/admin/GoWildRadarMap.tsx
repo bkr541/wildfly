@@ -17,7 +17,6 @@ import {
   ArrowRight01Icon,
   Globe02Icon,
   FilterMailSquareIcon,
-  Radar01Icon,
   ChartRoseIcon,
   Coins01Icon,
 } from "@hugeicons/core-free-icons";
@@ -28,6 +27,8 @@ import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import type { FlightSnapshot } from "@/components/insights/airportHelpers";
 import { isGoWild } from "@/components/insights/airportHelpers";
 import { getFreshnessStatus, type Freshness } from "@/components/admin/FlightSearchDetailDrawer";
+import { TILE_URL as SHARED_TILE_URL, TILE_ATTR as SHARED_TILE_ATTR } from "@/components/maps/radar/radarMapStyles";
+import { arcPoints as sharedArcPoints } from "@/components/maps/radar/radarMapGeometry";
 
 // ── Style constants ────────────────────────────────────────────────────────────
 
@@ -39,8 +40,9 @@ const CARD_STYLE: React.CSSProperties = {
   boxShadow: "0 2px 12px 0 rgba(52,92,90,0.08)",
 };
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
+// Re-export shared constants under local names to avoid changing all usages below.
+const TILE_URL = SHARED_TILE_URL;
+const TILE_ATTR = SHARED_TILE_ATTR;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -283,21 +285,9 @@ function getAirportColor(airport: AirportMetric, mode: RadarMode): string {
   }
 }
 
-// ── Arc geometry ───────────────────────────────────────────────────────────────
+// ── Arc geometry — delegate to shared implementation ──────────────────────────
 
-function arcPoints(lat1: number, lng1: number, lat2: number, lng2: number, steps = 24): [number, number][] {
-  const dlat = lat2 - lat1, dlng = lng2 - lng1;
-  const dist = Math.sqrt(dlat * dlat + dlng * dlng);
-  if (dist < 0.001) return [[lat1, lng1], [lat2, lng2]];
-  const lift = dist * 0.18;
-  const midLat = (lat1 + lat2) / 2, midLng = (lng1 + lng2) / 2;
-  const cpLat = midLat - (dlng / dist) * lift;
-  const cpLng = midLng + (dlat / dist) * lift;
-  return Array.from({ length: steps + 1 }, (_, i) => {
-    const t = i / steps, mt = 1 - t;
-    return [mt * mt * lat1 + 2 * mt * t * cpLat + t * t * lat2, mt * mt * lng1 + 2 * mt * t * cpLng + t * t * lng2] as [number, number];
-  });
-}
+const arcPoints = sharedArcPoints;
 
 // ── Data computation ───────────────────────────────────────────────────────────
 
