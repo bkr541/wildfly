@@ -17,6 +17,8 @@ import {
   SunriseIcon,
   MapsLocation02Icon,
   ArrowRight01Icon,
+  AddCircleIcon,
+  Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { DestCardItem, DestCard, buildDestCards } from "@/components/DestCardItem";
@@ -701,45 +703,44 @@ const FlightMultiDestResults = ({
       </BottomSheet>
 
       {/* ── Map Sheet ─────────────────────────────────────── */}
-      <BottomSheet open={mapSheet} onClose={() => setMapSheet(false)} className="overflow-hidden" style={{ height: "72vh" }}>
+      <BottomSheet open={mapSheet} onClose={() => setMapSheet(false)} style={{ top: "5%" }}>
               {/* Header */}
-              <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1] flex-shrink-0">
+              <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#F0F1F1]">
                 <div className="flex items-center gap-2.5">
                   <div
                     className="h-8 w-8 rounded-full flex items-center justify-center"
                     style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
                   >
-                    <HugeiconsIcon icon={MapsLocation02Icon} size={15} color="white" strokeWidth={2} />
+                    <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
                   </div>
-                  <div>
-                    <h2 className="text-base font-bold text-[#2E4A4A] leading-tight">Route Map</h2>
-                    <p className="text-[11px] text-[#9CA3AF]">
-                      {departureAirport} → {mapDestinations.length} destination{mapDestinations.length !== 1 ? "s" : ""}
-                    </p>
-                  </div>
+                  <h2 className="text-[22px] font-medium text-[#6B7280] leading-tight">
+                    Route Map
+                  </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setMapSheet(false)}
-                  className="h-8 w-8 flex items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280]"
+                  className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
                 >
-                  <span className="text-lg leading-none">×</span>
+                  <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
                 </button>
               </div>
               {/* Map */}
-              <div className="flex-1 relative min-h-0">
+              <div className="flex-1 min-h-0 flex flex-col px-4 pb-4 pt-3">
                 {depLatLng && mapDestinations.length > 0 ? (
-                  <Suspense
-                    fallback={
-                      <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
-                        <span className="text-sm text-[#6B7B7B]">Loading map…</span>
-                      </div>
-                    }
-                  >
-                    <MultiDestMap depIata={departureAirport} depLatLng={depLatLng} destinations={mapDestinations} />
-                  </Suspense>
+                  <div className="flex-1 min-h-0 rounded-xl overflow-hidden border border-[#E3E6E6]">
+                    <Suspense
+                      fallback={
+                        <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                          <span className="text-sm text-[#6B7B7B]">Loading map…</span>
+                        </div>
+                      }
+                    >
+                      <MultiDestMap depIata={departureAirport} depLatLng={depLatLng} destinations={mapDestinations} />
+                    </Suspense>
+                  </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#F1F5F5]">
+                  <div className="flex-1 min-h-0 flex items-center justify-center bg-[#F1F5F5] rounded-xl border border-[#E3E6E6]">
                     <p className="text-sm text-[#6B7B7B] text-center px-8">
                       {depLatLng == null
                         ? "Departure airport coordinates not available."

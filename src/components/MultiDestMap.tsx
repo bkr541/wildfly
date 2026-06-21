@@ -22,28 +22,26 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
 function createOriginIcon(iata: string) {
   return L.divIcon({
     html: `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.35);border:2.5px solid white;">
-          <span style="font-size:16px;line-height:1">🏠</span>
-        </div>
-        <div style="background:rgba(6,78,59,0.92);color:white;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${iata}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="font-size:9px;font-weight:800;color:white;background:#059669;border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${iata}</div>
+        <div style="width:14px;height:14px;background:#345C5A;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
       </div>`,
     className: "",
-    iconAnchor: [16, 34],
+    iconSize: [40, 34],
+    iconAnchor: [20, 34],
   });
 }
 
 function createDestIcon(iata: string) {
   return L.divIcon({
     html: `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="background:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.30);border:2px solid #10B981;">
-          <span style="font-size:13px;line-height:1">✈️</span>
-        </div>
-        <div style="background:rgba(16,185,129,0.92);color:white;font-size:9px;font-weight:700;padding:1.5px 4px;border-radius:4px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.25)">${iata}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
+        <div style="font-size:9px;font-weight:800;color:white;background:#345C5A;border-radius:3px;padding:1px 4px;margin-bottom:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);letter-spacing:0.05em;">${iata}</div>
+        <div style="width:8px;height:8px;background:#345C5A;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
       </div>`,
     className: "",
-    iconAnchor: [13, 28],
+    iconSize: [32, 30],
+    iconAnchor: [16, 30],
   });
 }
 
@@ -57,9 +55,12 @@ export default function MultiDestMap({ depIata, depLatLng, destinations }: Multi
       zoom={4}
       zoomControl={false}
       scrollWheelZoom={true}
-      attributionControl={false}
+      attributionControl={true}
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap"
+      />
       <FitBounds positions={allPositions} />
 
       {/* Route lines from departure to each destination */}
@@ -67,7 +68,7 @@ export default function MultiDestMap({ depIata, depLatLng, destinations }: Multi
         <Polyline
           key={dest.iata}
           positions={[depLatLng, dest.latLng]}
-          pathOptions={{ color: "#10B981", weight: 2, dashArray: "5 5", opacity: 0.75 }}
+          pathOptions={{ color: "#10B981", weight: 2, opacity: 0.55 }}
         />
       ))}
 
