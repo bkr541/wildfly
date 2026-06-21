@@ -753,6 +753,10 @@ const FlightMultiDestResults = ({
                         depLatLng={depLatLng}
                         destinations={mapDestinations}
                         invalidateKey={mapSheet ? 1 : 0}
+                        onViewDest={(iata) => {
+                          const card = sortedCards.find((c) => c.destination === iata);
+                          if (card) handleViewDest(card);
+                        }}
                       />
                     </Suspense>
                   </div>

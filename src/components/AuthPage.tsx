@@ -690,8 +690,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
       <AlertDialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
           <AlertDialogHeader className="space-y-1">
-            <AlertDialogTitle className="text-lg">{forgotSuccess ? "Success" : "Reset Password"}</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogTitle className="text-lg text-[#1A2E2E]">{forgotSuccess ? "Success" : "Reset Password"}</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-[#6B7B7B]">
               {forgotSuccess ? "Check your email for instructions." : "Enter your email to receive a reset link."}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -702,7 +702,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full p-2 text-sm border rounded bg-gray-50 focus:outline-[#10B981]"
+                className="w-full p-2 text-sm text-[#1A2E2E] placeholder:text-[#9CA3AF] border rounded bg-gray-50 focus:outline-[#10B981]"
               />
               {forgotError && <p className="text-red-500 text-[10px] mt-1 font-bold">{forgotError}</p>}
             </div>
