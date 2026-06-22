@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { getLogger } from "@/lib/logger";
 import { Calendar } from "@/components/ui/calendar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -647,6 +648,7 @@ const FlightsPage = ({
     });
   }, [departures, searchAll]);
   const [loading, setLoading] = useState(false);
+  useWakeLock(loading);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creditError, setCreditError] = useState<{
     cost: number;
