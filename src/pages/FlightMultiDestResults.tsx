@@ -295,7 +295,7 @@ const FlightMultiDestResults = ({
         }
         return null;
       })
-      .filter((d): d is MultiDestMapDestination => d !== null);
+      .filter((d): d is NonNullable<typeof d> => d !== null);
   }, [sortedCards, airportMap]);
 
   return (

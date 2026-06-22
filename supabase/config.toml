@@ -88,3 +88,6 @@ verify_jwt = false
 [functions.messaging-unsubscribe]
 verify_jwt = false
 
+
+[functions.process-email-queue]
+verify_jwt = true
