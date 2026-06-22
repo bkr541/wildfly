@@ -85,6 +85,7 @@ type View =
   | "developer-design-system" | "developer-debug"
   | "developer-sql-cache" | "developer-token" | "developer-logging"
   | "auth-developer-allowlist" | "auth-signup-controls"
+  | "system-reporting"
   | "system-scheduled-jobs"
   | "communications-messaging"
   | "communications-notifications";
@@ -153,6 +154,7 @@ const AUTH_ACCESS_ITEMS: { id: View; label: string; icon: any }[] = [
 ];
 
 const SYSTEM_PROCESS_ITEMS: { id: string; label: string; icon: any; disabled?: boolean }[] = [
+  { id: "system-reporting",      label: "Reporting",   icon: Analytics01Icon },
   { id: "system-scheduled-jobs", label: "System Jobs", icon: Clock01Icon },
   { id: "system-scheduler",      label: "Scheduler",      icon: Calendar01Icon, disabled: true },
 ];
@@ -2268,6 +2270,7 @@ const VIEW_HEADERS: Record<View, { prefix: string; label: string }> = {
   "developer-token":           { prefix: "Developer", label: "GOWILD TOKEN" },
   "developer-logging":            { prefix: "Developer",      label: "LOGGING SETTINGS" },
   "auth-developer-allowlist":    { prefix: "Auth & Access", label: "DEVELOPER ALLOWLIST" },
+  "system-reporting":                    { prefix: "Operations",     label: "REPORTING" },
   "system-scheduled-jobs":              { prefix: "Operations",     label: "SYSTEM JOBS" },
   "auth-signup-controls":               { prefix: "Auth & Access",  label: "SIGNUP CONTROLS" },
   "communications-messaging":            { prefix: "Communications", label: "MESSAGING" },
@@ -3050,6 +3053,9 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
         {devToolsActive && isDeveloper && view === "developer-logging"    && <LoggingSettingsAdminView />}
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
+        {isDeveloper && view === "system-reporting"                   && (
+          <div className="flex items-center justify-center h-64 text-[#9CA3AF] text-sm font-semibold">Reporting — coming soon</div>
+        )}
         {isDeveloper && view === "system-scheduled-jobs"              && <ScheduledJobsAdminView />}
         {isDeveloper && view === "auth-signup-controls"             && <SignupControlsAdminView />}
         {isDeveloper && view === "communications-messaging"          && <MessagingAdminView />}
