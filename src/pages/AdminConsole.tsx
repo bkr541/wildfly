@@ -2336,7 +2336,7 @@ export default function AdminConsole() {
         });
         if (error) {
           failures.push({ version: mig.version, error: error.message });
-          break;
+          continue;
         }
         applied_count++;
       }
@@ -2349,9 +2349,10 @@ export default function AdminConsole() {
       } else {
         toast({
           variant: "destructive",
-          title: `Applied ${applied_count}, failed at ${failures[0].version}`,
-          description: failures[0].error,
+          title: `Applied ${applied_count}, ${failures.length} failed`,
+          description: `${failures[0].version}: ${failures[0].error}`,
         });
+        console.error("Migration failures", failures);
       }
     } catch (e) {
       toast({
