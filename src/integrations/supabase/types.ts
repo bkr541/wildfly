@@ -14,6 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_report_definitions: {
+        Row: {
+          category: string
+          contains_pii: boolean
+          created_at: string
+          created_by: string | null
+          default_parameters: Json
+          description: string
+          handler_key: string
+          id: string
+          is_active: boolean
+          name: string
+          output_config: Json
+          parameter_schema: Json
+          slug: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          category: string
+          contains_pii?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_parameters?: Json
+          description?: string
+          handler_key: string
+          id?: string
+          is_active?: boolean
+          name: string
+          output_config?: Json
+          parameter_schema?: Json
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          category?: string
+          contains_pii?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_parameters?: Json
+          description?: string
+          handler_key?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          output_config?: Json
+          parameter_schema?: Json
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_report_definitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_report_definitions_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_report_exports: {
+        Row: {
+          created_at: string
+          format: string
+          id: string
+          report_run_id: string
+          requested_by: string
+          row_count: number
+        }
+        Insert: {
+          created_at?: string
+          format: string
+          id?: string
+          report_run_id: string
+          requested_by: string
+          row_count: number
+        }
+        Update: {
+          created_at?: string
+          format?: string
+          id?: string
+          report_run_id?: string
+          requested_by?: string
+          row_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_report_exports_report_run_id_fkey"
+            columns: ["report_run_id"]
+            isOneToOne: false
+            referencedRelation: "admin_report_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_report_exports_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_report_runs: {
+        Row: {
+          completed_at: string | null
+          duration_ms: number | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          parameters: Json
+          report_definition_id: string
+          report_slug: string
+          report_version: number
+          requested_by: string
+          row_count: number | null
+          started_at: string
+          status: string
+          truncated: boolean
+        }
+        Insert: {
+          completed_at?: string | null
+          duration_ms?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          parameters?: Json
+          report_definition_id: string
+          report_slug: string
+          report_version: number
+          requested_by: string
+          row_count?: number | null
+          started_at?: string
+          status: string
+          truncated?: boolean
+        }
+        Update: {
+          completed_at?: string | null
+          duration_ms?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          parameters?: Json
+          report_definition_id?: string
+          report_slug?: string
+          report_version?: number
+          requested_by?: string
+          row_count?: number | null
+          started_at?: string
+          status?: string
+          truncated?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_report_runs_report_definition_id_fkey"
+            columns: ["report_definition_id"]
+            isOneToOne: false
+            referencedRelation: "admin_report_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_report_runs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       airports: {
         Row: {
           frontier_image_url: string | null

@@ -77,6 +77,7 @@ import { SignupControlsAdminView } from "@/components/admin/developer-tools/Sign
 import { ScheduledJobsAdminView } from "@/components/admin/developer-tools/ScheduledJobsAdminView";
 import { NotificationsAdminView } from "@/components/admin/communications/NotificationsAdminView";
 import { MessagingAdminView } from "@/components/admin/communications/messaging/MessagingAdminView";
+import { ReportingAdminView } from "@/components/admin/reporting/ReportingAdminView";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -3053,8 +3054,8 @@ export default function AdminConsole() {
         {devToolsActive && isDeveloper && view === "developer-token"         && <GoWilderTokenAdminView />}
         {devToolsActive && isDeveloper && view === "developer-logging"    && <LoggingSettingsAdminView />}
         {isDeveloper && view === "auth-developer-allowlist" && <DeveloperAllowlistAdminView />}
-        {isDeveloper && view === "system-reporting"                   && (
-          <div className="flex items-center justify-center h-64 text-[#9CA3AF] text-sm font-semibold">Reporting — coming soon</div>
+        {isDeveloper && view === "system-reporting" && (
+          <ReportingAdminView />
         )}
         {isDeveloper && view === "system-scheduled-jobs"              && <ScheduledJobsAdminView />}
         {isDeveloper && view === "auth-signup-controls"             && <SignupControlsAdminView />}

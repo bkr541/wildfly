@@ -42,6 +42,21 @@ export async function requireDeveloper(req: Request): Promise<AdminContext | Res
   return { userId: user.id, userClient, serviceClient };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Reporting-specific access guard.
+//
+// Phase 1: delegates to requireDeveloper (developer_allowlist table).
+// Phase 2 (future): replace this body with a `reports.run` capability check
+// against a user_permissions table without rewriting any handler.
+// All four reporting Edge Functions import this function, not requireDeveloper
+// directly, so the future upgrade is a one-line change here.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function requireReportingAccess(req: Request): Promise<AdminContext | Response> {
+  // Future: check `reports.run` permission instead of developer_allowlist.
+  return requireDeveloper(req);
+}
+
 export function jsonError(message: string, status: number, code?: string): Response {
   return new Response(
     JSON.stringify({ success: false, error: { code: code ?? `HTTP_${status}`, message } }),
