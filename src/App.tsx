@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { CreditCardIcon, Timer02Icon, Alert01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 import BetaFeedbackButton from "./components/BetaFeedbackButton";
+import { AnnouncementPopup } from "./components/AnnouncementPopup";
+import { useAnnouncements } from "@/hooks/useAnnouncements";
 
 const PAGE_LABELS: Record<string, string> = {
   "home":                 "Home",
@@ -408,9 +410,14 @@ const MainApp = () => {
 
   const feedbackPageLabel = subScreenTitle ?? PAGE_LABELS[currentPage] ?? currentPage;
 
+  const { current: announcement, dismiss: dismissAnnouncement } = useAnnouncements(showFeedbackButton);
+
   return (
     <div className="flex justify-center">
       {showFeedbackButton && <BetaFeedbackButton pageLabel={feedbackPageLabel} />}
+      {announcement && (
+        <AnnouncementPopup announcement={announcement} onDismiss={dismissAnnouncement} />
+      )}
       <div className="w-full max-w-[1320px] min-h-screen flex flex-col">
         {/* Splash video removed */}
 
