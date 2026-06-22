@@ -809,42 +809,66 @@ const FlightsPage = ({
       {loading && <SearchingOverlay />}
 
       {/* Error popup dialog */}
-      <AlertDialog
-        open={!!(searchError || creditError)}
-        onOpenChange={(open) => { if (!open) { setSearchError(null); setCreditError(null); } }}
-      >
-        <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
-            <svg className="h-5 w-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-          </div>
-          <AlertDialogHeader className="space-y-1 text-center">
-            <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
-              {creditError
-                ? "Not Enough Credits"
-                : searchError === "Edge Function returned a non-2xx status code"
-                  ? "No Flights Offered"
-                  : "Search Failed"}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
-              {creditError
-                ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
-                : searchError === "Edge Function returned a non-2xx status code"
-                  ? "Oops! Looks like the airports and flight date(s) you provided didn't return any flights."
-                  : searchError}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-3">
-            <AlertDialogAction
-              onClick={() => { setSearchError(null); setCreditError(null); }}
-              className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1"
-            >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {(() => {
+        // Classify the error so the dialog shows the right message.
+        // "no results"  — the flight provider returned a valid response but found no flights.
+        // "unavailable" — the flight provider itself returned an error (API down / bad token).
+        // "other"       — everything else (network, credits, unexpected).
+        const isNoResults   = searchError === "Edge Function returned a non-2xx status code";
+        const isUnavailable = !!searchError && (
+          searchError.includes("Flight provider returned an error") ||
+          searchError.includes("Flight provider unavailable") ||
+          searchError.includes("Flight provider request failed") ||
+          searchError.includes("Flight proxy request failed")
+        );
+
+        const dialogTitle = creditError
+          ? "Not Enough Credits"
+          : isUnavailable
+            ? "Search Unavailable"
+            : isNoResults
+              ? "No Flights Offered"
+              : "Search Failed";
+
+        const dialogBody = creditError
+          ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
+          : isUnavailable
+            ? "Our flight search is temporarily unavailable. Please try again in a few minutes."
+            : isNoResults
+              ? "Oops! Looks like the airports and flight date(s) you provided didn't return any flights."
+              : searchError;
+
+        return (
+          <AlertDialog
+            open={!!(searchError || creditError)}
+            onOpenChange={(open) => { if (!open) { setSearchError(null); setCreditError(null); } }}
+          >
+            <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4 pt-10 overflow-visible border border-[#EF4444]">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-[#FEE2E2] border-2 border-[#EF4444] flex items-center justify-center shadow-sm">
+                <svg className="h-5 w-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <AlertDialogHeader className="space-y-1 text-center">
+                <AlertDialogTitle className="text-lg font-bold text-[#EF4444] text-center">
+                  {dialogTitle}
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
+                  {dialogBody}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-3">
+                <AlertDialogAction
+                  onClick={() => { setSearchError(null); setCreditError(null); }}
+                  className="w-full bg-[#EF4444] hover:bg-[#DC2626] text-xs py-1"
+                >
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+      })()}
 
 
       <div className="px-6 pt-6 pb-8 relative z-10 flex flex-col gap-6 animate-fade-in">
