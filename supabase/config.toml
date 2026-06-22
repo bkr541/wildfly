@@ -1,93 +1,63 @@
 project_id = "ejgxmkglklyumyycpvgi"
 
-
-[functions.create-checkout-session]
-verify_jwt = false
-
-[functions.create-customer-portal-session]
-verify_jwt = false
-
-[functions.scheduled-bulk-search]
-verify_jwt = false
-
-[functions.scheduled-bulk-search-dispatcher]
-verify_jwt = false
-
-[functions.scheduled-market-offering-search]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.create-shared-flight-result]
-verify_jwt = true
-
-[functions.get-public-shared-flight-result]
-verify_jwt = false
-
-# Messaging — admin functions (JWT required via requireDeveloper helper)
-[functions.admin-messaging-list-messages]
-verify_jwt = true
-
-[functions.admin-messaging-get-message]
-verify_jwt = true
-
-[functions.admin-messaging-save-message]
-verify_jwt = true
-
-[functions.admin-messaging-delete-draft]
-verify_jwt = true
-
-[functions.admin-messaging-list-templates]
-verify_jwt = true
-
-[functions.admin-messaging-save-template]
-verify_jwt = true
-
-[functions.admin-messaging-list-audiences]
-verify_jwt = true
-
-[functions.admin-messaging-preview-audience]
-verify_jwt = true
-
-[functions.admin-messaging-queue-message]
-verify_jwt = true
-
-[functions.admin-messaging-cancel-message]
-verify_jwt = true
-
-[functions.admin-messaging-send-test]
-verify_jwt = true
-
-[functions.admin-messaging-list-deliveries]
-verify_jwt = true
-
-[functions.admin-messaging-retry-deliveries]
-verify_jwt = true
-
-[functions.admin-messaging-settings]
-verify_jwt = true
-
-[functions.admin-list-notifications]
-verify_jwt = true
-
-# Beta approval functions (JWT required — developer_allowlist gate inside)
-[functions.admin-approve-beta-application]
-verify_jwt = true
-
-[functions.admin-resend-beta-activation]
-verify_jwt = true
-
-# Messaging — system functions (no user JWT)
-[functions.messaging-dispatcher]
-verify_jwt = false
-
-[functions.messaging-provider-webhook]
-verify_jwt = false
-
-[functions.messaging-unsubscribe]
-verify_jwt = false
-
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.admin-approve-beta-application]
+    verify_jwt = true
+  [functions.admin-list-notifications]
+    verify_jwt = true
+  [functions.admin-messaging-cancel-message]
+    verify_jwt = true
+  [functions.admin-messaging-delete-draft]
+    verify_jwt = true
+  [functions.admin-messaging-get-message]
+    verify_jwt = true
+  [functions.admin-messaging-list-audiences]
+    verify_jwt = true
+  [functions.admin-messaging-list-deliveries]
+    verify_jwt = true
+  [functions.admin-messaging-list-messages]
+    verify_jwt = true
+  [functions.admin-messaging-list-templates]
+    verify_jwt = true
+  [functions.admin-messaging-preview-audience]
+    verify_jwt = true
+  [functions.admin-messaging-queue-message]
+    verify_jwt = true
+  [functions.admin-messaging-retry-deliveries]
+    verify_jwt = true
+  [functions.admin-messaging-save-message]
+    verify_jwt = true
+  [functions.admin-messaging-save-template]
+    verify_jwt = true
+  [functions.admin-messaging-send-test]
+    verify_jwt = true
+  [functions.admin-messaging-settings]
+    verify_jwt = true
+  [functions.admin-resend-beta-activation]
+    verify_jwt = true
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.create-checkout-session]
+    verify_jwt = false
+  [functions.create-customer-portal-session]
+    verify_jwt = false
+  [functions.create-shared-flight-result]
+    verify_jwt = true
+  [functions.get-public-shared-flight-result]
+    verify_jwt = false
+  [functions.messaging-dispatcher]
+    verify_jwt = false
+  [functions.messaging-provider-webhook]
+    verify_jwt = false
+  [functions.messaging-unsubscribe]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.scheduled-bulk-search]
+    verify_jwt = false
+  [functions.scheduled-bulk-search-dispatcher]
+    verify_jwt = false
+  [functions.scheduled-market-offering-search]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
