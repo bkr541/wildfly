@@ -203,6 +203,7 @@ export function ReportRunHistory({
             value={filterDateFrom}
             onChange={(e) => { setFilterDateFrom(e.target.value); setPage(0); }}
             className="text-xs border border-[#E8EEEE] rounded-lg px-2.5 py-1.5 bg-white text-[#374151] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            style={{ colorScheme: "light" }}
             aria-label="Filter from date"
           />
         </div>
@@ -217,6 +218,7 @@ export function ReportRunHistory({
             value={filterDateTo}
             onChange={(e) => { setFilterDateTo(e.target.value); setPage(0); }}
             className="text-xs border border-[#E8EEEE] rounded-lg px-2.5 py-1.5 bg-white text-[#374151] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            style={{ colorScheme: "light" }}
             aria-label="Filter to date"
           />
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Analytics01Icon,
@@ -104,11 +104,22 @@ export function ReportCatalog({
   const filtered = filterReports(reports, searchQuery);
   const grouped  = groupReportsByCategory(filtered);
 
-  // Initialise all known categories as open.
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // All categories start collapsed; track which ones the user has opened.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  // When a report is already selected (e.g. deep-link), auto-expand its category.
+  useEffect(() => {
+    if (!selectedSlug) return;
+    const report = reports.find((r) => r.slug === selectedSlug);
+    if (!report) return;
+    setExpanded((prev) => {
+      if (prev.has(report.category)) return prev;
+      return new Set([...prev, report.category]);
+    });
+  }, [selectedSlug, reports]);
 
   function toggleCategory(cat: string) {
-    setCollapsed((prev) => {
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat);
       else next.add(cat);
@@ -169,7 +180,7 @@ export function ReportCatalog({
 
         {!isLoading &&
           [...grouped.entries()].map(([category, items]) => {
-            const isOpen     = !collapsed.has(category);
+            const isOpen     = expanded.has(category);
             const CategoryIcon = CATEGORY_ICONS[category] ?? Analytics01Icon;
 
             return (

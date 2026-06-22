@@ -77,7 +77,7 @@ interface FieldProps {
 
 function FieldInput({ field, value, error, disabled, onChange }: FieldProps) {
   const baseInput =
-    "w-full px-3 py-2 text-sm rounded-xl border focus:outline-none focus:ring-1 transition-colors " +
+    "w-full px-3 py-2 text-sm text-[#1A2E2E] rounded-xl border focus:outline-none focus:ring-1 transition-colors " +
     (error
       ? "border-red-300 focus:border-red-400 focus:ring-red-200/30 bg-red-50/30"
       : "border-[#E8EEEE] focus:border-[#059669] focus:ring-[#059669]/20 bg-white") +
@@ -140,6 +140,7 @@ function FieldInput({ field, value, error, disabled, onChange }: FieldProps) {
         onChange={(e) => onChange(field.key, e.target.value)}
         aria-invalid={!!error}
         className={baseInput}
+        style={{ colorScheme: "light" }}
       />
     );
   }

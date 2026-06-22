@@ -173,13 +173,13 @@ const sourceCacheMixSchema = z.object({
 
 // ── GoWild report schemas ─────────────────────────────────────────────────────
 
-const goWildDateRefine = (v: { date_from: string; date_to: string }) =>
-  new Date(v.date_to) >= new Date(v.date_from);
-const goWildDateMsg = { message: "date_to must not be before date_from", path: ["date_to"] };
+const goWildDateRefine = (v: { start_date: string; end_date: string }) =>
+  new Date(v.end_date) >= new Date(v.start_date);
+const goWildDateMsg = { message: "end_date must not be before start_date", path: ["end_date"] };
 
 const routeReliabilitySchema = z.object({
-  date_from:              dateSchema,
-  date_to:                dateSchema,
+  start_date:             dateSchema,
+  end_date:               dateSchema,
   origin_iata:            optionalIataSchema,
   destination_iata:       optionalIataSchema,
   minimum_observations:   z.number().int().min(1).optional().default(10),
@@ -190,8 +190,8 @@ const routeReliabilitySchema = z.object({
 }).refine(goWildDateRefine, goWildDateMsg);
 
 const disappearedItinerariesSchema = z.object({
-  date_from:          dateSchema,
-  date_to:            dateSchema,
+  start_date:         dateSchema,
+  end_date:           dateSchema,
   origin_iata:        optionalIataSchema,
   destination_iata:   optionalIataSchema,
   limit:              z.number().int().min(1).max(500).optional().default(100),
@@ -199,8 +199,8 @@ const disappearedItinerariesSchema = z.object({
 }).refine(goWildDateRefine, goWildDateMsg);
 
 const fareSavingsByRouteSchema = z.object({
-  date_from:          dateSchema,
-  date_to:            dateSchema,
+  start_date:         dateSchema,
+  end_date:           dateSchema,
   origin_iata:        optionalIataSchema,
   destination_iata:   optionalIataSchema,
   minimum_samples:    z.number().int().min(1).optional().default(5),
@@ -536,8 +536,8 @@ const entries: ReportRegistryEntry[] = [
     containsPii: false,
     parameterSchema: {
       fields: [
-        { key: "date_from",            label: "From Date",               type: "date",   required: true },
-        { key: "date_to",              label: "To Date",                 type: "date",   required: true },
+        { key: "start_date",           label: "Start Date",              type: "date",   required: true },
+        { key: "end_date",             label: "End Date",                type: "date",   required: true },
         { key: "origin_iata",          label: "Origin Airport",          type: "airport" },
         { key: "destination_iata",     label: "Destination Airport",     type: "airport" },
         {
@@ -567,15 +567,12 @@ const entries: ReportRegistryEntry[] = [
     containsPii: false,
     parameterSchema: {
       fields: [
-        { key: "date_from",          label: "From Date",           type: "date",   required: true },
-        { key: "date_to",            label: "To Date",             type: "date",   required: true },
+        { key: "start_date",         label: "Start Date",          type: "date",   required: true },
+        { key: "end_date",           label: "End Date",            type: "date",   required: true },
         { key: "origin_iata",        label: "Origin Airport",      type: "airport" },
         { key: "destination_iata",   label: "Destination Airport", type: "airport" },
         { key: "limit",              label: "Max Results",         type: "number", minimum: 1, maximum: 500 },
-        {
-          key: "latest_event_only",  label: "Latest Event Only",   type: "boolean",
-          // helperText not in the field spec but included for clarity:
-        },
+        { key: "latest_event_only",  label: "Latest Event Only",   type: "boolean" },
       ],
     },
     validateParameters: makeValidator(disappearedItinerariesSchema),
@@ -595,8 +592,8 @@ const entries: ReportRegistryEntry[] = [
     containsPii: false,
     parameterSchema: {
       fields: [
-        { key: "date_from",         label: "From Date",           type: "date",   required: true },
-        { key: "date_to",           label: "To Date",             type: "date",   required: true },
+        { key: "start_date",        label: "Start Date",          type: "date",   required: true },
+        { key: "end_date",          label: "End Date",            type: "date",   required: true },
         { key: "origin_iata",       label: "Origin Airport",      type: "airport" },
         { key: "destination_iata",  label: "Destination Airport", type: "airport" },
         {

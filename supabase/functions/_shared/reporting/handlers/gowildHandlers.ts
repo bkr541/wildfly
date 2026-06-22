@@ -55,8 +55,8 @@ export const routeReliabilityHandler: ReportHandler = async (ctx) => {
   const { data, error } = await ctx.serviceClient.rpc(
     "report_gowild_route_reliability",
     {
-      p_date_from:              p.date_from as string,
-      p_date_to:                p.date_to as string,
+      p_date_from:              p.start_date as string,
+      p_date_to:                p.end_date as string,
       p_origin_iata:            typeof p.origin_iata === "string" && p.origin_iata
         ? p.origin_iata : null,
       p_destination_iata:       typeof p.destination_iata === "string" && p.destination_iata
@@ -138,8 +138,8 @@ export const disappearedItinerariesHandler: ReportHandler = async (ctx) => {
   const { data, error } = await ctx.serviceClient.rpc(
     "report_gowild_disappeared_itineraries",
     {
-      p_date_from:         p.date_from as string,
-      p_date_to:           p.date_to as string,
+      p_date_from:         p.start_date as string,
+      p_date_to:           p.end_date as string,
       p_origin_iata:       typeof p.origin_iata === "string" && p.origin_iata
         ? p.origin_iata : null,
       p_destination_iata:  typeof p.destination_iata === "string" && p.destination_iata
@@ -213,8 +213,8 @@ export const fareSavingsHandler: ReportHandler = async (ctx) => {
   const { data, error } = await ctx.serviceClient.rpc(
     "report_gowild_fare_savings_by_route",
     {
-      p_date_from:        p.date_from as string,
-      p_date_to:          p.date_to as string,
+      p_date_from:        p.start_date as string,
+      p_date_to:          p.end_date as string,
       p_origin_iata:      typeof p.origin_iata === "string" && p.origin_iata
         ? p.origin_iata : null,
       p_destination_iata: typeof p.destination_iata === "string" && p.destination_iata
