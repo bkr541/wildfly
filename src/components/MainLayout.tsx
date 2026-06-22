@@ -45,12 +45,10 @@ const menuItems = [
   { icon: Idea01Icon, label: "Insights" },
   { type: "heading", label: "Book" },
   { icon: Airplane01Icon, label: "Flights", indent: true },
-  { icon: Location01Icon, label: "Destinations", indent: true, disabled: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
   { icon: Radar01Icon, label: "Radar", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
-  { icon: Home01Icon, label: "Hubs", indent: true, disabled: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
 ];
 
