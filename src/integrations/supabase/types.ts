@@ -72,22 +72,7 @@ export type Database = {
           updated_by?: string | null
           version?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_report_definitions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_report_definitions_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       admin_report_exports: {
         Row: {
@@ -120,13 +105,6 @@ export type Database = {
             columns: ["report_run_id"]
             isOneToOne: false
             referencedRelation: "admin_report_runs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_report_exports_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -186,13 +164,6 @@ export type Database = {
             columns: ["report_definition_id"]
             isOneToOne: false
             referencedRelation: "admin_report_definitions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_report_runs_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2532,6 +2503,65 @@ export type Database = {
       }
     }
     Views: {
+      admin_reporting_gowild_observations: {
+        Row: {
+          airline: string | null
+          arrival_at: string | null
+          availability_status: string | null
+          departure_at: string | null
+          destination_iata: string | null
+          flight_number: string | null
+          flight_search_id: string | null
+          go_wild_available_seats: number | null
+          go_wild_total: number | null
+          has_go_wild: boolean | null
+          observed_at: string | null
+          origin_iata: string | null
+          result_source: string | null
+          route: string | null
+          search_destination: string | null
+          search_origin: string | null
+          snapshot_at: string | null
+          snapshot_id: string | null
+          stable_itinerary_key: string | null
+          standard_total: number | null
+          travel_date: string | null
+          triggered_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_snapshots_flight_search_id_fkey"
+            columns: ["flight_search_id"]
+            isOneToOne: false
+            referencedRelation: "flight_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_reporting_route_observations: {
+        Row: {
+          destination_iata: string | null
+          flight_search_id: string | null
+          gowild_returned_count: number | null
+          had_gowild_success: boolean | null
+          itinerary_count: number | null
+          observed_at: string | null
+          origin_iata: string | null
+          result_source: string | null
+          route: string | null
+          travel_date: string | null
+          triggered_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_snapshots_flight_search_id_fkey"
+            columns: ["flight_search_id"]
+            isOneToOne: false
+            referencedRelation: "flight_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friends_with_profiles: {
         Row: {
           avatar_url: string | null
@@ -2866,6 +2896,247 @@ export type Database = {
       refund_paid_search: {
         Args: { p_reason?: string; p_source_id: string; p_user_id: string }
         Returns: Json
+      }
+      report_gowild_disappeared_itineraries: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_destination_iata?: string
+          p_latest_event_only?: boolean
+          p_limit?: number
+          p_origin_iata?: string
+        }
+        Returns: {
+          airline: string
+          arrival_at: string
+          departure_at: string
+          disappearance_event_count: number
+          disappeared_at: string
+          flight_number: string
+          last_available_at: string
+          prior_available_seats: number
+          prior_gowild_fare: number
+          prior_savings: number
+          prior_standard_fare: number
+          result_source: string
+          route: string
+          stable_itinerary_key: string
+        }[]
+      }
+      report_gowild_fare_savings_by_route: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_destination_iata?: string
+          p_limit?: number
+          p_minimum_samples?: number
+          p_origin_iata?: string
+        }
+        Returns: {
+          average_gowild_fare: number
+          average_savings: number
+          average_savings_percent: number
+          average_standard_fare: number
+          destination_iata: string
+          latest_observed_at: string
+          maximum_savings: number
+          median_savings: number
+          origin_iata: string
+          route: string
+          sample_count: number
+        }[]
+      }
+      report_gowild_route_reliability: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_destination_iata?: string
+          p_include_admin_bulk?: boolean
+          p_include_scheduled_bulk?: boolean
+          p_include_user_searches?: boolean
+          p_limit?: number
+          p_minimum_observations?: number
+          p_origin_iata?: string
+        }
+        Returns: {
+          confidence_adjusted_score: number
+          destination_iata: string
+          latest_observed_at: string
+          origin_iata: string
+          raw_hit_rate: number
+          route: string
+          search_observations: number
+          successful_observations: number
+          unique_travel_dates: number
+          unsuccessful_observations: number
+        }[]
+      }
+      report_searches_source_cache_mix: {
+        Args: {
+          p_destination_iata?: string
+          p_end_date: string
+          p_include_system_activity?: boolean
+          p_origin_iata?: string
+          p_result_source?: string
+          p_start_date: string
+          p_timezone?: string
+          p_triggered_by?: string
+        }
+        Returns: {
+          average_result_count: number
+          gowild_hit_count: number
+          gowild_hit_rate: number
+          latest_search_at: string
+          percentage_of_searches: number
+          result_source: string
+          search_count: number
+          triggered_by: string
+        }[]
+      }
+      report_searches_top_routes: {
+        Args: {
+          p_destination_iata?: string
+          p_end_date: string
+          p_include_all_destinations?: boolean
+          p_include_system_activity?: boolean
+          p_limit?: number
+          p_origin_iata?: string
+          p_result_source?: string
+          p_start_date: string
+          p_timezone?: string
+          p_triggered_by?: string
+        }
+        Returns: {
+          average_result_count: number
+          destination_iata: string
+          gowild_hit_count: number
+          gowild_hit_rate: number
+          last_searched_at: string
+          origin_iata: string
+          route: string
+          search_count: number
+          unique_users: number
+          zero_result_count: number
+        }[]
+      }
+      report_searches_volume_over_time: {
+        Args: {
+          p_destination_iata?: string
+          p_end_date: string
+          p_granularity?: string
+          p_include_system_activity?: boolean
+          p_origin_iata?: string
+          p_result_source?: string
+          p_start_date: string
+          p_timezone?: string
+          p_triggered_by?: string
+        }
+        Returns: {
+          average_flight_results: number
+          cache_hit_count: number
+          gowild_hit_count: number
+          gowild_hit_rate: number
+          live_search_count: number
+          period_start: string
+          search_count: number
+          total_flight_results: number
+          unique_users: number
+        }[]
+      }
+      report_searches_zero_results: {
+        Args: {
+          p_destination_iata?: string
+          p_end_date: string
+          p_include_all_destinations?: boolean
+          p_include_system_activity?: boolean
+          p_limit?: number
+          p_minimum_searches?: number
+          p_origin_iata?: string
+          p_result_source?: string
+          p_start_date: string
+          p_timezone?: string
+          p_triggered_by?: string
+        }
+        Returns: {
+          destination_iata: string
+          last_successful_result_at: string
+          last_zero_result_at: string
+          origin_iata: string
+          route: string
+          total_searches: number
+          unique_users_affected: number
+          zero_result_rate: number
+          zero_result_searches: number
+        }[]
+      }
+      report_users_dormant: {
+        Args: {
+          p_inactive_days?: number
+          p_include_pii?: boolean
+          p_limit?: number
+          p_user_status?: string
+        }
+        Returns: {
+          display_name: string
+          email: string
+          home_airport: string
+          inactive_days: number
+          last_activity_at: string
+          last_feedback_at: string
+          last_login: string
+          last_saved_flight_at: string
+          last_search_at: string
+          never_active: boolean
+          signup_type: string
+          status: string
+          user_id: string
+        }[]
+      }
+      report_users_engagement_summary: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_include_system_activity?: boolean
+          p_user_status?: string
+        }
+        Returns: {
+          eligible_users: number
+          feedback_engagement_rate: number
+          save_engagement_rate: number
+          search_engagement_rate: number
+          users_with_credit_activity: number
+          users_with_feedback: number
+          users_with_gowild_hits: number
+          users_with_no_recorded_activity: number
+          users_with_route_favorites: number
+          users_with_saved_flights: number
+          users_with_searches: number
+        }[]
+      }
+      report_users_top_search_active: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_include_pii?: boolean
+          p_include_system_activity?: boolean
+          p_limit?: number
+          p_user_status?: string
+        }
+        Returns: {
+          display_name: string
+          email: string
+          feedback_count: number
+          gowild_search_count: number
+          home_airport: string
+          last_login: string
+          last_search_at: string
+          route_favorite_count: number
+          saved_flight_count: number
+          search_count: number
+          signup_type: string
+          status: string
+          user_id: string
+        }[]
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
