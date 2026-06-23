@@ -173,7 +173,22 @@ const MIGRATION_FILES = import.meta.glob("/supabase/migrations/*.sql", {
   eager: true,
 }) as Record<string, string>;
 
+const EDGE_FUNCTION_SOURCE_FILES = import.meta.glob("/supabase/functions/**/*.{ts,tsx,json}", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const SUPABASE_CONFIG_FILES = import.meta.glob("/supabase/config.toml", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
 interface LocalMigration { version: string; name: string; sql: string }
+
+interface LocalEdgeFunctionFile { path: string; content: string }
+interface LocalEdgeFunctionBundle { name: string; verifyJwt: boolean; files: LocalEdgeFunctionFile[] }
 
 const LOCAL_MIGRATIONS: LocalMigration[] = Object.entries(MIGRATION_FILES)
   .map(([path, sql]) => {
@@ -184,6 +199,46 @@ const LOCAL_MIGRATIONS: LocalMigration[] = Object.entries(MIGRATION_FILES)
   })
   .filter((m) => /^\d{14}$/.test(m.version))
   .sort((a, b) => a.version.localeCompare(b.version));
+
+const SUPABASE_CONFIG_TOML = Object.values(SUPABASE_CONFIG_FILES)[0] ?? "";
+
+function parseFunctionVerifyJwt(configToml: string): Record<string, boolean> {
+  const result: Record<string, boolean> = {};
+  const blockPattern = /\[functions\.([^\]]+)\]([\s\S]*?)(?=\n\s*\[|$)/g;
+  let match: RegExpExecArray | null;
+  while ((match = blockPattern.exec(configToml)) !== null) {
+    const name = match[1]?.trim();
+    const body = match[2] ?? "";
+    const verify = body.match(/verify_jwt\s*=\s*(true|false)/i)?.[1];
+    if (name && verify) result[name] = verify.toLowerCase() === "true";
+  }
+  return result;
+}
+
+const EDGE_FUNCTION_VERIFY_JWT = parseFunctionVerifyJwt(SUPABASE_CONFIG_TOML);
+
+const EDGE_FUNCTION_FILES: LocalEdgeFunctionFile[] = Object.entries(EDGE_FUNCTION_SOURCE_FILES)
+  .map(([path, content]) => ({
+    path: path.replace(/^\/supabase\/functions\//, ""),
+    content: String(content),
+  }))
+  .filter((file) => file.path && !file.path.includes("/.git/"))
+  .sort((a, b) => a.path.localeCompare(b.path));
+
+const LOCAL_EDGE_FUNCTIONS: LocalEdgeFunctionBundle[] = Array.from(
+  new Set(
+    EDGE_FUNCTION_FILES
+      .map((file) => file.path.split("/")[0])
+      .filter((name) => name && name !== "_shared"),
+  ),
+)
+  .sort((a, b) => a.localeCompare(b))
+  .map((name) => ({
+    name,
+    verifyJwt: EDGE_FUNCTION_VERIFY_JWT[name] ?? false,
+    files: EDGE_FUNCTION_FILES.filter((file) => file.path.startsWith(`${name}/`) || file.path.startsWith("_shared/")),
+  }))
+  .filter((fn) => fn.files.some((file) => file.path === `${fn.name}/index.ts`));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
