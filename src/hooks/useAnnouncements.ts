@@ -30,11 +30,8 @@ export function useAnnouncements(active: boolean) {
       .catch(() => {});
   }, [active]);
 
-  const dismiss = useCallback(async (id: string) => {
+  const dismiss = useCallback((id: string) => {
     setQueue((prev) => prev.filter((a) => a.id !== id));
-    await supabase.functions
-      .invoke("dismiss-announcement", { body: { announcement_id: id } })
-      .catch(() => {});
   }, []);
 
   return { current: queue[0] ?? null, dismiss };
