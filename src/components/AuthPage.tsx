@@ -689,9 +689,10 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
       <AlertDialog open={showForgotPassword} onOpenChange={(open) => {
         setShowForgotPassword(open);
-        if (!open && forgotSuccess) {
-          setEmail("");
-          setPassword("");
+        if (!open) {
+          setForgotEmail("");
+          setForgotError(null);
+          setForgotSuccess(false);
         }
       }}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
@@ -703,44 +704,46 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           </AlertDialogHeader>
           {!forgotSuccess && (
             <div className="py-2">
-              <input
+              <AppInput
+                icon={Mail01Icon}
+                label="Email Address"
+                placeholder="Email Address"
                 type="email"
                 value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full p-2 text-sm text-[#1A2E2E] placeholder:text-[#9CA3AF] border rounded bg-gray-50 focus:outline-[#10B981]"
+                onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
+                clearable
+                onClear={() => { setForgotEmail(""); setForgotError(null); }}
+                error={forgotError ?? undefined}
+                autoFocus
               />
-              {forgotError && <p className="text-red-500 text-[10px] mt-1 font-bold">{forgotError}</p>}
             </div>
           )}
           <AlertDialogFooter className="mt-2 flex-row gap-2">
             {!forgotSuccess && (
               <button
                 type="button"
-                onClick={() => {
-                  setShowForgotPassword(false);
-                  setForgotEmail("");
-                  setForgotError(null);
-                }}
+                onClick={() => setShowForgotPassword(false)}
                 className="flex-1 h-9 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#374151] hover:bg-gray-50 active:scale-[0.98] transition-all"
               >
                 Back
               </button>
             )}
-            <AlertDialogAction
+            <button
+              type="button"
               onClick={
                 forgotSuccess
                   ? () => {
+                      setEmail("");
+                      setPassword("");
                       setShowForgotPassword(false);
-                      setForgotSuccess(false);
-                      setForgotEmail("");
                     }
                   : handleForgotPassword
               }
-              className="flex-1 bg-[#10B981] hover:bg-[#059669] text-xs py-1"
+              disabled={forgotLoading}
+              className="flex-1 h-9 rounded-full bg-[#10B981] hover:bg-[#059669] text-xs font-bold text-white disabled:opacity-60 transition-colors"
             >
               {forgotSuccess ? "Done" : forgotLoading ? "Sending..." : "Send Link"}
-            </AlertDialogAction>
+            </button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

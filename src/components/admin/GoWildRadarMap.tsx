@@ -40,6 +40,9 @@ const CARD_STYLE: React.CSSProperties = {
   boxShadow: "0 2px 12px 0 rgba(52,92,90,0.08)",
 };
 
+const INSIGHTS_CARD_SHADOW =
+  "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
+
 // Re-export shared constants under local names to avoid changing all usages below.
 const TILE_URL = SHARED_TILE_URL;
 const TILE_ATTR = SHARED_TILE_ATTR;
@@ -545,8 +548,8 @@ function BookabilityBadge({ status }: { status: BookabilityStatus }) {
 function RateBar({ rate }: { rate: number }) {
   const color = rate >= 0.5 ? "bg-emerald-500" : rate >= 0.25 ? "bg-amber-400" : "bg-rose-400";
   return (
-    <div className="h-1 rounded-full bg-gray-100 overflow-hidden mt-1">
-      <div className={`h-1 rounded-full ${color}`} style={{ width: `${Math.round(rate * 100)}%` }} />
+    <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-1">
+      <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${Math.round(rate * 100)}%` }} />
     </div>
   );
 }
@@ -572,15 +575,22 @@ function RadarModeToggle({
     ([key]) => !allowedModes || allowedModes.includes(key)
   );
   const activeIndex = modes.findIndex(([key]) => key === mode);
-  const denominator = (modes.length - 1) + MODE_ACTIVE_FLEX;
+  // Inactive buttons are fixed-width (icon only); the active button fills the rest via flex:1.
+  // The pill width is therefore constant — only left position animates — giving a clean iOS-style slide.
+  const INACTIVE_W = 36;
+  // On mobile the toggle has className="flex-1" and fills its row naturally — no minWidth needed.
+  // On desktop it sits in an absolute overlay with no flex parent, so we force a minWidth so the
+  // active button is always ≥ 160px wide (enough for the longest label + icon + padding).
+  const isFlexManaged = className?.split(/\s+/).includes("flex-1");
+  const minWidth = isFlexManaged ? undefined : 164 + (modes.length - 1) * INACTIVE_W;
   return (
-    <div className={cn("rounded-full p-[2px] flex relative bg-[#F2F3F3]", className)}>
+    <div className={cn("rounded-full p-[2px] flex relative bg-[#F2F3F3]", className)} style={minWidth !== undefined ? { minWidth } : {}}>
       <div
         className="absolute top-0.5 bottom-0.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
         style={{
           background: "#10B981",
-          width: `calc((100% - 4px) * ${MODE_ACTIVE_FLEX} / ${denominator})`,
-          left: `calc(2px + (100% - 4px) * ${activeIndex} / ${denominator})`,
+          width: `calc(100% - ${(modes.length - 1) * INACTIVE_W}px - 4px)`,
+          left: `calc(2px + ${activeIndex * INACTIVE_W}px)`,
         }}
       />
       {modes.map(([key, label]) => {
@@ -591,10 +601,10 @@ function RadarModeToggle({
             key={key}
             type="button"
             onClick={() => onChange(key as RadarMode)}
-            style={{ flex: isActive ? MODE_ACTIVE_FLEX : 1 }}
+            style={{ flex: isActive ? 1 : `0 0 ${INACTIVE_W}px` }}
             className={cn(
-              "py-2.5 px-3 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
-              isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+              "py-2.5 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center gap-2 overflow-hidden",
+              isActive ? "text-white px-3" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
             )}
           >
             {icon && <HugeiconsIcon icon={icon} size={18} color="currentColor" strokeWidth={2} className="shrink-0" />}
@@ -708,47 +718,51 @@ function BestMovesPanel({
   );
 
   return (
-    <div className="rounded-2xl flex flex-col overflow-hidden" style={CARD_STYLE}>
-      <div className="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-shrink-0">
-        <HugeiconsIcon icon={ArrowUpRight01Icon} size={15} color="#059669" strokeWidth={2} />
-        <span className="text-xs font-black text-[#2E4A4A] uppercase tracking-wide">Best Moves Right Now</span>
+    <div className="rounded-2xl bg-white p-5 flex flex-col flex-1 min-h-0" style={{ boxShadow: INSIGHTS_CARD_SHADOW }}>
+      <div className="flex items-center gap-2.5 mb-4 flex-shrink-0">
+        <HugeiconsIcon icon={ArrowUpRight01Icon} size={22} color="#059669" strokeWidth={1.5} />
+        <div>
+          <p className="text-base font-semibold text-[#059669] uppercase tracking-wider leading-tight">Best Moves Right Now</p>
+          <p className="text-xs text-[#6B7B7B]">Top routes by bookability score</p>
+        </div>
       </div>
-      <div className="flex flex-col overflow-y-auto">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         {loading ? (
-          <div className="p-3 flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {[0,1,2,3,4].map((i) => <SkeletonCard key={i} height={56} />)}
           </div>
         ) : top5.length === 0 ? (
-          <div className="px-4 py-6 text-center text-[11px] text-[#9CA3AF]">No routes match current filters</div>
+          <p className="text-sm text-[#9CA3AF] text-center py-6">No routes match current filters</p>
         ) : (
-          <div className="p-2 flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             {top5.map((route, i) => {
               const isSelected = selectedRoute === route.routeKey;
               return (
                 <button
                   key={route.routeKey}
                   onClick={() => onSelect(route.routeKey)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors ${
-                    isSelected ? "bg-emerald-50 border border-emerald-200" : "hover:bg-gray-50 border border-transparent"
+                  className={`w-full text-left rounded-xl transition-colors px-2 py-1.5 -mx-2 ${
+                    isSelected ? "bg-emerald-50" : "hover:bg-gray-50"
                   }`}
                 >
-                  <div className="w-5 h-5 rounded-lg bg-gray-100 flex items-center justify-center text-[9px] font-black text-[#6B7B7B] flex-shrink-0">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <span className="text-xs font-bold text-[#2E4A4A]">{route.origin}</span>
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="#9CA3AF" strokeWidth={2} />
-                      <span className="text-xs font-bold text-[#2E4A4A]">{route.destination}</span>
-                      <BookabilityBadge status={route.bookabilityStatus} />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-2xl font-bold text-[#2E4A4A] flex items-center gap-1 flex-wrap leading-none">
+                        {route.origin}
+                        <img src="/assets/icons/route-dots.svg" alt="" className="w-4 h-4 shrink-0" />
+                        <img src="/assets/icons/airplane-route.svg" alt="→" className="w-5 h-5 shrink-0" />
+                        <img src="/assets/icons/route-dots.svg" alt="" className="w-4 h-4 shrink-0" />
+                        {route.destination}
+                      </span>
+                      <p className="text-[11px] text-[#9CA3AF] mt-0.5">
+                        #{i + 1} · Score {Math.round(route.bookabilityScore)}
+                        {route.avgGoWildSeats != null && ` · ${route.avgGoWildSeats.toFixed(1)} seats`}
+                        {route.avgSavings != null && ` · $${Math.round(route.avgSavings)} savings`}
+                      </p>
                     </div>
-                    <div className="text-[9px] text-[#9CA3AF] mt-0.5">
-                      Score {Math.round(route.bookabilityScore)}
-                      {route.avgGoWildSeats != null && ` · ${route.avgGoWildSeats.toFixed(1)} seats`}
-                      {route.avgSavings != null && ` · $${Math.round(route.avgSavings)} savings`}
-                    </div>
-                    <RateBar rate={route.availabilityRate} />
+                    <BookabilityBadge status={route.bookabilityStatus} />
                   </div>
+                  <RateBar rate={route.availabilityRate} />
                 </button>
               );
             })}
@@ -766,7 +780,7 @@ const RISK_REASON: Record<string, string> = {
   no_gowild:    "No recent GoWild",
   high_demand:  "High demand, low GoWild",
   fading:       "Availability fading",
-  low_score:    "Low bookability",
+  low_score:    "Low",
 };
 
 function getRiskReason(route: RouteMetric): string {
@@ -804,20 +818,23 @@ function RiskyRoutesPanel({
     reason === "stale" || reason === "no_gowild" ? "rose" : reason === "fading" ? "amber" : "gray";
 
   return (
-    <div className="rounded-2xl flex flex-col overflow-hidden" style={CARD_STYLE}>
-      <div className="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-shrink-0">
-        <HugeiconsIcon icon={ArrowDownLeft01Icon} size={15} color="#F43F5E" strokeWidth={2} />
-        <span className="text-xs font-black text-[#2E4A4A] uppercase tracking-wide">Risky / Fading</span>
+    <div className="rounded-2xl bg-white p-5 flex flex-col flex-1 min-h-0" style={{ boxShadow: INSIGHTS_CARD_SHADOW }}>
+      <div className="flex items-center gap-2.5 mb-4 flex-shrink-0">
+        <HugeiconsIcon icon={ArrowDownLeft01Icon} size={22} color="#F43F5E" strokeWidth={1.5} />
+        <div>
+          <p className="text-base font-semibold text-[#F43F5E] uppercase tracking-wider leading-tight">Risky / Fading</p>
+          <p className="text-xs text-[#6B7B7B]">Fading or weak availability</p>
+        </div>
       </div>
-      <div className="flex flex-col overflow-y-auto">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         {loading ? (
-          <div className="p-3 flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {[0,1,2,3,4].map((i) => <SkeletonCard key={i} height={52} />)}
           </div>
         ) : risky5.length === 0 ? (
-          <div className="px-4 py-6 text-center text-[11px] text-[#9CA3AF]">No risky routes in current filters</div>
+          <p className="text-sm text-[#9CA3AF] text-center py-6">No risky routes in current filters</p>
         ) : (
-          <div className="p-2 flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             {risky5.map((route) => {
               const reason = getRiskReason(route);
               const isSelected = selectedRoute === route.routeKey;
@@ -825,21 +842,25 @@ function RiskyRoutesPanel({
                 <button
                   key={route.routeKey}
                   onClick={() => onSelect(route.routeKey)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors ${
-                    isSelected ? "bg-rose-50 border border-rose-200" : "hover:bg-gray-50 border border-transparent"
+                  className={`w-full text-left rounded-xl transition-colors px-2 py-1.5 -mx-2 ${
+                    isSelected ? "bg-rose-50" : "hover:bg-gray-50"
                   }`}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <span className="text-xs font-bold text-[#2E4A4A]">{route.origin}</span>
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="#9CA3AF" strokeWidth={2} />
-                      <span className="text-xs font-bold text-[#2E4A4A]">{route.destination}</span>
-                      <Badge color={riskBadgeColor(reason)}>{RISK_REASON[reason]}</Badge>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-2xl font-bold text-[#2E4A4A] flex items-center gap-1 flex-wrap leading-none">
+                        {route.origin}
+                        <img src="/assets/icons/route-dots.svg" alt="" className="w-4 h-4 shrink-0" />
+                        <img src="/assets/icons/airplane-route.svg" alt="→" className="w-5 h-5 shrink-0" />
+                        <img src="/assets/icons/route-dots.svg" alt="" className="w-4 h-4 shrink-0" />
+                        {route.destination}
+                      </span>
+                      <p className="text-[11px] text-[#9CA3AF] mt-0.5">
+                        Score {Math.round(route.bookabilityScore)}
+                        {route.searchCount > 0 && ` · ${route.searchCount} searches`}
+                      </p>
                     </div>
-                    <div className="text-[9px] text-[#9CA3AF] mt-0.5">
-                      Score {Math.round(route.bookabilityScore)}
-                      {route.searchCount > 0 && ` · ${route.searchCount} searches`}
-                    </div>
+                    <Badge color={riskBadgeColor(reason)}>{RISK_REASON[reason]}</Badge>
                   </div>
                 </button>
               );
@@ -1352,7 +1373,7 @@ export default function GoWildRadarMap({ simplified }: { simplified?: boolean } 
         </div>
 
         {/* ── Right panels ──────────────────────────────────────────────────── */}
-        <div className="w-full lg:w-72 flex flex-col gap-3 lg:overflow-y-auto flex-shrink-0">
+        <div className="w-full lg:w-72 flex flex-col gap-3 flex-shrink-0">
           <BestMovesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
           <RiskyRoutesPanel routes={filteredRoutes} selectedRoute={selectedRoute} onSelect={handleRouteSelect} loading={loading} />
         </div>

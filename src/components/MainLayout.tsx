@@ -42,12 +42,13 @@ import {
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
-  { icon: Idea01Icon, label: "Insights" },
   { type: "heading", label: "Book" },
   { icon: Airplane01Icon, label: "Flights", indent: true },
+  { type: "heading", label: "GoWild" },
+  { icon: Idea01Icon, label: "Insights", indent: true },
+  { icon: Radar01Icon, label: "Radar", indent: true },
   { type: "heading", label: "Trip Hub" },
   { icon: Calendar03Icon, label: "Itinerary", indent: true },
-  { icon: Radar01Icon, label: "Radar", indent: true },
   { icon: RouteIcon, label: "Routes", indent: true },
   { icon: UserGroupIcon, label: "Friends", indent: true },
 ];

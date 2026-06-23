@@ -57,7 +57,7 @@ const ResetPasswordPage = () => {
   return (
     <div
       className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat items-center justify-center"
-      style={{ backgroundImage: "url('/assets/authuser/newbg3.png')" }}
+      style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       <div className="w-full max-w-md mx-auto px-4">
         <div className="bg-white/95 backdrop-blur-md rounded-2xl px-7 pt-8 pb-8 shadow-2xl flex flex-col gap-6">
