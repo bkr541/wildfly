@@ -687,7 +687,13 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+      <AlertDialog open={showForgotPassword} onOpenChange={(open) => {
+        setShowForgotPassword(open);
+        if (!open && forgotSuccess) {
+          setEmail("");
+          setPassword("");
+        }
+      }}>
         <AlertDialogContent className="max-w-xs rounded-xl bg-white p-4">
           <AlertDialogHeader className="space-y-1">
             <AlertDialogTitle className="text-lg text-[#1A2E2E]">{forgotSuccess ? "Success" : "Reset Password"}</AlertDialogTitle>
