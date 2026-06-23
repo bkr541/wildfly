@@ -84,5 +84,26 @@ export function useAnnouncementsAdmin() {
     }
   };
 
-  return { announcements, loading, saving, error, reload: load, upsert };
+  const deleteAnnouncement = async (id: string): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke(
+        "admin-delete-announcement",
+        { body: { announcement_id: id } },
+      );
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Announcement deleted.");
+      await load();
+      return true;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Delete failed";
+      toast.error(msg);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return { announcements, loading, saving, error, reload: load, upsert, deleteAnnouncement };
 }

@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
   Cancel01Icon,
+  Tick01Icon,
   Tick02Icon,
   Megaphone02Icon,
   EyeIcon,
@@ -11,6 +12,7 @@ import {
   ArrowDown01Icon,
   RefreshIcon,
   PencilEdit01Icon,
+  Delete01Icon,
 } from "@hugeicons/core-free-icons";
 import { format, parseISO } from "date-fns";
 import { useAnnouncementsAdmin, type Announcement } from "@/hooks/useAnnouncementsAdmin";
@@ -243,13 +245,57 @@ function AnnouncementFormFields({
   );
 }
 
+// ── Popup preview (mirrors AnnouncementPopup exactly, non-interactive) ────────
+
+function AnnouncementPreviewCard({ ann }: { ann: Announcement }) {
+  return (
+    <div className="w-[280px] rounded-2xl bg-black/20 p-4 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full">
+        {ann.image_url && (
+          <div className="w-full h-28 overflow-hidden">
+            <img src={ann.image_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {!ann.image_url && (
+                <div className="h-8 w-8 rounded-full bg-[#EEF5F5] flex items-center justify-center shrink-0">
+                  <HugeiconsIcon icon={Megaphone02Icon} size={16} color="#345C5A" strokeWidth={1.5} />
+                </div>
+              )}
+              <h3 className="text-[14px] font-bold text-[#1C2B2B] leading-snug">{ann.title}</h3>
+            </div>
+            <div className="text-[#9CA3AF] ml-2 mt-0.5 shrink-0">
+              <HugeiconsIcon icon={Cancel01Icon} size={16} />
+            </div>
+          </div>
+          <p className="text-[12px] text-[#6B7280] leading-relaxed mb-4">{ann.body}</p>
+          <div className="flex gap-2">
+            <div className="flex-1 px-2.5 py-2 rounded-xl border border-[#E5E7EB] text-[11px] font-semibold text-[#6B7280] text-center">
+              Got it
+            </div>
+            {ann.cta_label && ann.cta_url && (
+              <div className="flex-1 flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl bg-[#345C5A] text-white text-[11px] font-semibold">
+                <HugeiconsIcon icon={Tick01Icon} size={12} color="white" />
+                {ann.cta_label}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── View ──────────────────────────────────────────────────────────────────────
 
 export function AnnouncementsAdminView() {
-  const { announcements, loading, saving, error, reload, upsert } = useAnnouncementsAdmin();
+  const { announcements, loading, saving, error, reload, upsert, deleteAnnouncement } = useAnnouncementsAdmin();
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
   const fmtDate = (d: string | null) => {
@@ -474,6 +520,38 @@ export function AnnouncementsAdminView() {
                         >
                           {ann.is_published ? "Unpublish" : "Publish"}
                         </button>
+                        {confirmDeleteId === ann.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await deleteAnnouncement(ann.id);
+                                setConfirmDeleteId(null);
+                              }}
+                              disabled={saving}
+                              className="h-7 px-2.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(null)}
+                              disabled={saving}
+                              className="h-7 px-2.5 rounded-lg text-xs font-semibold border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] transition-colors disabled:opacity-40"
+                            >
+                              No
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(ann.id)}
+                            disabled={saving}
+                            className="h-7 w-7 rounded-lg border border-[#E5E7EB] text-[#6B7280] hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 flex items-center justify-center"
+                          >
+                            <HugeiconsIcon icon={Delete01Icon} size={13} color="currentColor" strokeWidth={2} />
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -495,80 +573,89 @@ export function AnnouncementsAdminView() {
                         />
                       </>
                     ) : (
-                      <div className="flex flex-col gap-3">
-                        <p className="text-sm text-[#1A2E2E] leading-relaxed">{ann.body}</p>
-
-                        {ann.cta_label && (
-                          <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-                            <span className="font-semibold text-[#1A2E2E]">CTA:</span>
-                            {ann.cta_label}
-                            {ann.cta_url && (
-                              <a
-                                href={ann.cta_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[#059669] underline truncate"
-                              >
-                                {ann.cta_url}
-                              </a>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-2">
-                          {[
-                            { label: "Publish", value: ann.publish_at },
-                            { label: "Expires", value: ann.expires_at },
-                          ].map(({ label, value }) => (
-                            <div key={label} className="flex items-start gap-1.5">
-                              <HugeiconsIcon
-                                icon={Clock01Icon}
-                                size={11}
-                                color="#9CA3AF"
-                                strokeWidth={1.5}
-                                className="mt-0.5 shrink-0"
-                              />
-                              <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wide text-[#9CA3AF]">
-                                  {label}
-                                </p>
-                                <p className="text-xs text-[#1A2E2E]">{fmtDate(value)}</p>
-                              </div>
-                            </div>
-                          ))}
+                      <div className="flex gap-6 flex-wrap">
+                        {/* Popup preview */}
+                        <div className="shrink-0">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9CA3AF] mb-2">
+                            Preview
+                          </p>
+                          <AnnouncementPreviewCard ann={ann} />
                         </div>
 
-                        <p className="text-[10px] text-[#9CA3AF]">
-                          Created {fmtDate(ann.created_at)}
-                          {ann.created_by && ` · ${ann.created_by.slice(0, 8)}…`}
-                        </p>
-
-                        {(ann._view_count ?? 0) > 0 ? (
-                          <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#9CA3AF] mb-1.5 flex items-center gap-1">
-                              <HugeiconsIcon icon={UserIcon} size={10} color="#9CA3AF" strokeWidth={1.5} />
-                              Seen by {ann._view_count} user
-                              {(ann._view_count ?? 0) !== 1 ? "s" : ""}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {(ann._seen_by ?? []).slice(0, 20).map((uid) => (
-                                <span
-                                  key={uid}
-                                  className="px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[10px] font-mono text-[#6B7280]"
+                        {/* Metadata */}
+                        <div className="flex flex-col gap-3 flex-1 min-w-[180px]">
+                          {ann.cta_label && (
+                            <div className="flex flex-col gap-0.5 text-xs text-[#6B7280]">
+                              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9CA3AF]">CTA</span>
+                              <span className="font-semibold text-[#1A2E2E]">{ann.cta_label}</span>
+                              {ann.cta_url && (
+                                <a
+                                  href={ann.cta_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#059669] underline truncate"
                                 >
-                                  {uid.slice(0, 8)}…
-                                </span>
-                              ))}
-                              {(ann._seen_by?.length ?? 0) > 20 && (
-                                <span className="px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[10px] text-[#6B7280]">
-                                  +{(ann._seen_by?.length ?? 0) - 20} more
-                                </span>
+                                  {ann.cta_url}
+                                </a>
                               )}
                             </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { label: "Publish", value: ann.publish_at },
+                              { label: "Expires", value: ann.expires_at },
+                            ].map(({ label, value }) => (
+                              <div key={label} className="flex items-start gap-1.5">
+                                <HugeiconsIcon
+                                  icon={Clock01Icon}
+                                  size={11}
+                                  color="#9CA3AF"
+                                  strokeWidth={1.5}
+                                  className="mt-0.5 shrink-0"
+                                />
+                                <div>
+                                  <p className="text-[10px] font-bold uppercase tracking-wide text-[#9CA3AF]">
+                                    {label}
+                                  </p>
+                                  <p className="text-xs text-[#1A2E2E]">{fmtDate(value)}</p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ) : (
-                          <p className="text-xs text-[#9CA3AF] italic">No views yet.</p>
-                        )}
+
+                          <p className="text-[10px] text-[#9CA3AF]">
+                            Created {fmtDate(ann.created_at)}
+                            {ann.created_by && ` · ${ann.created_by.slice(0, 8)}…`}
+                          </p>
+
+                          {(ann._view_count ?? 0) > 0 ? (
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#9CA3AF] mb-1.5 flex items-center gap-1">
+                                <HugeiconsIcon icon={UserIcon} size={10} color="#9CA3AF" strokeWidth={1.5} />
+                                Seen by {ann._view_count} user
+                                {(ann._view_count ?? 0) !== 1 ? "s" : ""}
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(ann._seen_by ?? []).slice(0, 20).map((uid) => (
+                                  <span
+                                    key={uid}
+                                    className="px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[10px] font-mono text-[#6B7280]"
+                                  >
+                                    {uid.slice(0, 8)}…
+                                  </span>
+                                ))}
+                                {(ann._seen_by?.length ?? 0) > 20 && (
+                                  <span className="px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[10px] text-[#6B7280]">
+                                    +{(ann._seen_by?.length ?? 0) - 20} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-[#9CA3AF] italic">No views yet.</p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
