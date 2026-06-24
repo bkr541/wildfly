@@ -52,7 +52,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
-import GoWildInsightsPage, { InsightsPeriodPicker, type PeriodKey } from "./pages/GoWildInsights";
+import GoWildInsightsPage, { type PeriodKey } from "./pages/GoWildInsights";
 import FlightExplorerPage from "./pages/FlightExplorer";
 import GoWildRadarMap from "./components/admin/GoWildRadarMap";
 import DesignSystemPage from "./pages/DesignSystemV2";
