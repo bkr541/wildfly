@@ -156,11 +156,22 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
     (async () => {
       const { data } = await supabase
         .from("user_info")
-        .select("home_airport")
+        .select("home_airport, home_location_id")
         .eq("auth_user_id", userId)
         .maybeSingle();
       if (cancelled) return;
-      const code = (data?.home_airport ?? "").toString().trim().toUpperCase();
+      let code = (data?.home_airport ?? "").toString().trim().toUpperCase();
+      if (!code && data?.home_location_id != null) {
+        const { data: ap } = await supabase
+          .from("airports")
+          .select("iata_code")
+          .eq("location_id", data.home_location_id)
+          .eq("is_active", true)
+          .order("is_hub", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        code = (ap?.iata_code ?? "").toString().trim().toUpperCase();
+      }
       setHomeIata(code || null);
     })();
     return () => { cancelled = true; };
