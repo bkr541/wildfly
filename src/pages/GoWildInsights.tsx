@@ -303,8 +303,6 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
     return <SplitFlapOverlay topWord="LOADING" bottomWord="INSIGHTS" />;
   }
 
-  const homeMode = scope === "home" && !!homeIata;
-
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
       {/* Controls row below the header */}
@@ -329,7 +327,6 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
           <AirportGoWildInsightsSection
             snapshots={currentSnapshots}
             airportDict={airportDict}
-            hideTopAirports={homeMode}
           />
           <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
           <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
