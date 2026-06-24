@@ -329,7 +329,6 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
           <AirportGoWildInsightsSection
             snapshots={currentSnapshots}
             airportDict={airportDict}
-            hideTopAirports={homeMode}
           />
           <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
           <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
