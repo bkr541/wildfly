@@ -52,7 +52,7 @@ import ItineraryPage from "./pages/Itinerary";
 import RoutesPage from "./pages/Routes";
 import FriendsPage from "./pages/Friends";
 import HubsPage from "./pages/Hubs";
-import GoWildInsightsPage, { InsightsPeriodPicker, type PeriodKey } from "./pages/GoWildInsights";
+import GoWildInsightsPage, { type PeriodKey } from "./pages/GoWildInsights";
 import FlightExplorerPage from "./pages/FlightExplorer";
 import GoWildRadarMap from "./components/admin/GoWildRadarMap";
 import DesignSystemPage from "./pages/DesignSystemV2";
@@ -482,10 +482,8 @@ const MainApp = () => {
               currentPage={currentPage}
               onHomeLayoutSaved={() => setHomeRefreshTrigger(t => t + 1)}
               onAccountDevPress={() => accountDevRef.current?.()}
-              headerActions={currentPage === "gowild-insights" ? (
-                <InsightsPeriodPicker period={insightsPeriod} onChange={setInsightsPeriod} />
-              ) : undefined}
             >
+
               {currentPage === "home" && <HomePage onNavigate={handleNavigate} refreshTrigger={homeRefreshTrigger} onFlightClick={(flight) => { setSelectedFlight(flight); setCurrentPage("flight-details"); }} />}
               {currentPage === "account" && <AccountHub onSubScreenChange={(title, icon) => { setSubScreenTitle(title); if (icon !== undefined) setSubScreenIcon(icon); }} backRef={accountBackRef} devRef={accountDevRef} onNavigate={handleNavigate} onHomepageConfigChanged={() => setHomeRefreshTrigger(t => t + 1)} />}
               {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} quickSearchData={quickSearchData} />}

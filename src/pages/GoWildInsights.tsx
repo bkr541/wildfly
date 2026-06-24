@@ -12,6 +12,8 @@ import { type FlightSnapshot } from "@/components/insights/airportHelpers";
 import { groupLegsIntoItineraries } from "@/components/insights/itineraryHelpers";
 import { useAirportDictionary } from "@/hooks/useAirportDictionary";
 import { SplitFlapOverlay } from "@/components/SplitFlapOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
@@ -88,12 +90,86 @@ const ErrorCard = ({ message }: { message: string }) => (
     </p>
   </div>
 );
+export type InsightsScope = "all" | "home";
+
+function InsightsScopeToggle({
+  scope,
+  onChange,
+  homeIata,
+}: {
+  scope: InsightsScope;
+  onChange: (s: InsightsScope) => void;
+  homeIata: string | null;
+}) {
+  const options: { key: InsightsScope; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "home", label: homeIata ?? "Home" },
+  ];
+  const activeIndex = options.findIndex((o) => o.key === scope);
+  return (
+    <div className="rounded-full p-[2px] flex relative bg-[#F2F3F3]" style={{ width: 180 }}>
+      <div
+        className="absolute top-0.5 bottom-0.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out"
+        style={{
+          background: "#10B981",
+          width: "calc(50% - 2px)",
+          left: `calc(2px + ${activeIndex * 50}%)`,
+        }}
+      />
+      {options.map((opt) => {
+        const isActive = scope === opt.key;
+        const disabled = opt.key === "home" && !homeIata;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(opt.key)}
+            style={{ flex: 1 }}
+            className={cn(
+              "py-2 text-sm font-semibold rounded-full transition-all duration-300 relative z-10 flex items-center justify-center",
+              isActive ? "text-white" : "text-[#9CA3AF] hover:text-[#6B7B7B]",
+              disabled && "opacity-40 cursor-not-allowed",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPeriod: (p: PeriodKey) => void }) => {
   const [snapshots, setSnapshots] = useState<FlightSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scope, setScope] = useState<InsightsScope>("all");
+  const [homeIata, setHomeIata] = useState<string | null>(null);
   const { dict: airportDict } = useAirportDictionary();
+  const { userId } = useAuth();
+
+  // Load user's home airport
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("user_info")
+        .select("home_airport")
+        .eq("auth_user_id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      const code = (data?.home_airport ?? "").toString().trim().toUpperCase();
+      setHomeIata(code || null);
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  // Auto-revert to "all" if user has no home airport
+  useEffect(() => {
+    if (!homeIata && scope === "home") setScope("all");
+  }, [homeIata, scope]);
 
   // Current-period cutoff (used to scope analytics for the other cards).
   const currentSinceIso = useMemo(() => {
@@ -121,9 +197,6 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
       const seenIds = new Set<string>();
       try {
         let page = 0;
-        // Unbounded pagination: continue until a page returns < PAGE_SIZE rows.
-        // No artificial ceiling — if anything goes catastrophically wrong, the
-        // hard safety valve throws and the UI shows a visible error.
         while (true) {
           if (cancelled) return;
           if (page >= HARD_SAFETY_PAGE_LIMIT) {
@@ -133,10 +206,6 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
           }
           const offset = page * PAGE_SIZE;
 
-          // Read sanitized platform-wide analytics rows. The RPC enforces auth,
-          // returns sanitized fields only, never exposes user_id or raw
-          // flight_search_id, and remaps source_itinerary_id to a derived
-          // globally unique analytics observation key.
           const { data, error: pageError } = await (supabase.rpc as any)(
             "get_global_gowild_insight_snapshots",
             {
@@ -152,9 +221,7 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
             );
           }
 
-
           const rows = (data ?? []) as FlightSnapshot[];
-          // Defensive dedupe by id (guards against any overlap between pages).
           for (const r of rows) {
             if (!seenIds.has(r.id)) {
               seenIds.add(r.id);
@@ -190,24 +257,50 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
     };
   }, [sinceIso, period]);
 
-  // Snapshots scoped to the currently selected period (excluding the
-  // prior-comparison window). Used for every card except GoWildSnapshotCard,
-  // which needs the extended set to compute its prior-period trend.
+  // Snapshots scoped to the currently selected period.
   const currentSnapshots = useMemo<FlightSnapshot[]>(() => {
-    if (!currentSinceIso) return snapshots;
-    const cutoff = new Date(currentSinceIso).getTime();
-    return snapshots.filter((s) => {
-      const t = new Date(s.snapshot_at).getTime();
-      return !isNaN(t) && t >= cutoff;
-    });
-  }, [snapshots, currentSinceIso]);
+    const base = !currentSinceIso
+      ? snapshots
+      : snapshots.filter((s) => {
+          const cutoff = new Date(currentSinceIso).getTime();
+          const t = new Date(s.snapshot_at).getTime();
+          return !isNaN(t) && t >= cutoff;
+        });
+    if (scope === "home" && homeIata) {
+      return base.filter(
+        (s) =>
+          (s.leg_origin_iata ?? "").toUpperCase() === homeIata ||
+          (s.leg_destination_iata ?? "").toUpperCase() === homeIata,
+      );
+    }
+    return base;
+  }, [snapshots, currentSinceIso, scope, homeIata]);
+
+  // Snapshot card needs current + prior window. Apply home filter there too.
+  const snapshotCardSnapshots = useMemo<FlightSnapshot[]>(() => {
+    if (scope === "home" && homeIata) {
+      return snapshots.filter(
+        (s) =>
+          (s.leg_origin_iata ?? "").toUpperCase() === homeIata ||
+          (s.leg_destination_iata ?? "").toUpperCase() === homeIata,
+      );
+    }
+    return snapshots;
+  }, [snapshots, scope, homeIata]);
 
   if (loading) {
     return <SplitFlapOverlay topWord="LOADING" bottomWord="INSIGHTS" />;
   }
 
+  const homeMode = scope === "home" && !!homeIata;
+
   return (
     <div className="px-5 pt-4 pb-8 flex flex-col gap-4">
+      {/* Controls row below the header */}
+      <div className="flex items-center justify-between gap-3">
+        <InsightsScopeToggle scope={scope} onChange={setScope} homeIata={homeIata} />
+        <InsightsPeriodPicker period={period} onChange={setPeriod} />
+      </div>
 
       {loading ? (
         <SkeletonCard />
@@ -215,19 +308,18 @@ const GoWildInsightsPage = ({ period, setPeriod }: { period: PeriodKey; setPerio
         <ErrorCard message={error} />
       ) : (
         <GoWildSnapshotCard
-          // Pass the FULL fetched dataset (current + prior equal-length window).
-          // computeGoWildSnapshotMetrics filters by snapshotAt internally so
-          // headline metrics & chart stay scoped to the current period while
-          // the trend delta has prior-period itineraries to compare against.
-          itineraries={groupLegsIntoItineraries(snapshots as any)}
+          itineraries={groupLegsIntoItineraries(snapshotCardSnapshots as any)}
           period={period}
         />
-
       )}
 
       {!loading && !error && (
         <>
-          <AirportGoWildInsightsSection snapshots={currentSnapshots} airportDict={airportDict} />
+          <AirportGoWildInsightsSection
+            snapshots={currentSnapshots}
+            airportDict={airportDict}
+            hideTopAirports={homeMode}
+          />
           <GoWildRouteAnalyticsSection snapshots={currentSnapshots} airportDict={airportDict} />
           <RouteAvailabilityCalendarCard snapshots={currentSnapshots} />
           <GoWildTimingAnalyticsSection snapshots={currentSnapshots} />
