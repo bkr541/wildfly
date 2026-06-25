@@ -495,8 +495,7 @@ describe("validateRegistryEntries — duplicate slug detection", () => {
 
   it("detects missing validateParameters", () => {
     const errors = validateRegistryEntries([
-      // @ts-expect-error intentional — testing missing validator
-      { slug: "users.bad", handlerKey: "users.bad", version: 1, columns: [{ key: "id" }], validateParameters: undefined },
+      { slug: "users.bad", handlerKey: "users.bad", version: 1, columns: [{ key: "id" }], validateParameters: undefined as unknown as (p: unknown) => { success: true; data: unknown } | { success: false; error: string } },
     ]);
     expect(errors.some((e) => e.includes("missing validateParameters"))).toBe(true);
   });
