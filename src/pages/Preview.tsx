@@ -537,21 +537,33 @@ const PreviewPage = () => {
     setRouteError(null);
     setRouteLoading(true);
     setRouteData(null);
-    const { data } = await supabase
-      .from("flight_searches")
-      .select("arrival_airport, gowild_found")
-      .eq("departure_airport", routeOrigin.iata_code)
-      .not("arrival_airport", "is", null)
-      .limit(5000);
     const agg = new Map<string, { count: number; hasGoWild: boolean }>();
-    for (const row of (data ?? []) as { arrival_airport: string; gowild_found: boolean | null }[]) {
-      const a = row.arrival_airport;
-      if (!a || a.startsWith("CITY:")) continue;
-      const cur = agg.get(a) ?? { count: 0, hasGoWild: false };
-      cur.count += 1;
-      if (row.gowild_found === true) cur.hasGoWild = true;
-      agg.set(a, cur);
+    const pageSize = 1000;
+    let offset = 0;
+    // Pull every leg Wildfly has ever snapshotted from this origin so the map
+    // reflects all destinations Frontier offers, not just user-searched ones.
+    while (true) {
+      const { data, error } = await (supabase as any)
+        .from("flight_snapshots")
+        .select("leg_destination_iata, gowild_fare_available")
+        .eq("leg_origin_iata", routeOrigin.iata_code)
+        .not("leg_destination_iata", "is", null)
+        .range(offset, offset + pageSize - 1);
+      if (error) break;
+      const rows = (data ?? []) as { leg_destination_iata: string; gowild_fare_available: boolean | null }[];
+      for (const row of rows) {
+        const a = row.leg_destination_iata;
+        if (!a || a.startsWith("CITY:") || a === routeOrigin.iata_code) continue;
+        const cur = agg.get(a) ?? { count: 0, hasGoWild: false };
+        cur.count += 1;
+        if (row.gowild_fare_available === true) cur.hasGoWild = true;
+        agg.set(a, cur);
+      }
+      if (rows.length < pageSize) break;
+      offset += pageSize;
+      if (offset > 50000) break;
     }
+
     const destinations: MultiDestMapDestination[] = [];
     for (const [iata, v] of agg.entries()) {
       const ap = airportMap[iata];
