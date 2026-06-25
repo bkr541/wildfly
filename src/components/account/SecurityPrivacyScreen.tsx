@@ -26,10 +26,20 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
-  const handleChangePassword = async () => {
-    if (newPassword.length < 6) { toast.error("Password must be at least 6 characters"); return; }
-    if (newPassword !== confirmPassword) { toast.error("Passwords do not match"); return; }
+  const handleResetAppData = async () => {
+    if (resetting) return;
+    setResetting(true);
+    try {
+      await resetClientAppData();
+    } catch {
+      setResetting(false);
+      toast.error("Reset failed. Please try again.");
+    }
+  };
+
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSaving(false);
