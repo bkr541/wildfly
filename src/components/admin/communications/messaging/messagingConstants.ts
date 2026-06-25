@@ -126,8 +126,66 @@ export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
   gowild_trend_summary: "Availability up 3.1% vs. prior period",
   // Chart HTML fragments — sample markup mirroring the GoWild Insights cards.
   // Real values are produced server-side by the data-loading workflow.
-  gowild_availability_bar_html:
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:14px;"><tr><td style="background-color:#10b981;width:43%;height:14px;font-size:0;line-height:0;">&nbsp;</td><td style="width:57%;height:14px;font-size:0;line-height:0;">&nbsp;</td></tr></table>',
+  gowild_availability_bar_html: (() => {
+    // Snapshot card that mirrors the GoWild Insights "GOWILD SNAPSHOT" card:
+    // two semicircular gauges (availability %, avg seats), a delta pill, and a sparkline.
+    const pct = 36.9;
+    const avgSeats = 4.9;
+    const seatsMax = 9;
+    const delta = -10.1;
+    const deltaColor = delta >= 0 ? '#0f6b4f' : '#c0392b';
+    const deltaBg = delta >= 0 ? '#e6f4ee' : '#fdecec';
+    const deltaSign = delta >= 0 ? '+' : '';
+    // Semicircle gauge: radius 60, circumference of half = pi*60 ≈ 188.5
+    const gauge = (value: number, max: number, label: string, display: string) => {
+      const r = 60;
+      const C = Math.PI * r;
+      const frac = Math.max(0, Math.min(1, value / max));
+      const dash = (frac * C).toFixed(1);
+      const gap = (C - frac * C).toFixed(1);
+      return `<td align="center" valign="top" width="50%" style="padding:4px 6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="170" height="110" viewBox="0 0 170 110" style="display:block;margin:0 auto;">
+          <path d="M 25 95 A 60 60 0 0 1 145 95" fill="none" stroke="#e8efeb" stroke-width="14" stroke-linecap="round"/>
+          <path d="M 25 95 A 60 60 0 0 1 145 95" fill="none" stroke="#10b981" stroke-width="14" stroke-linecap="round" stroke-dasharray="${dash} ${gap}"/>
+          <text x="85" y="78" text-anchor="middle" font-family="Quicksand,Arial,sans-serif" font-size="26" font-weight="700" fill="#17352b">${display}</text>
+        </svg>
+        <div style="margin-top:4px;font-size:12px;color:#4e6d62;line-height:1.3;">${label}</div>
+      </td>`;
+    };
+    // Sparkline: 7-day availability trend, matching the line chart on the Insights page
+    const points = [42, 44, 47, 45, 48, 46, 37];
+    const w = 560, h = 110, padL = 30, padR = 10, padT = 14, padB = 22;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+    const xs = points.map((_, i) => padL + (i * innerW) / (points.length - 1));
+    const ys = points.map((v) => padT + innerH - (v / 100) * innerH);
+    const path = xs.map((x, i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${ys[i].toFixed(1)}`).join(' ');
+    const labels = ['Jun 18', 'Jun 19', 'Jun 20', 'Jun 21', 'Jun 22', 'Jun 23', 'Jun 24'];
+    const xLabels = labels
+      .map((l, i) => `<text x="${xs[i].toFixed(1)}" y="${h - 4}" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#6b8178">${l}</text>`)
+      .join('');
+    const yGrid = [0, 50, 100]
+      .map((v) => {
+        const y = padT + innerH - (v / 100) * innerH;
+        return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="#eef3f0" stroke-width="1"/><text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-family="Arial,sans-serif" font-size="10" fill="#9aa9a1">${v}%</text>`;
+      })
+      .join('');
+    return `<div style="margin:0 0 14px;padding:18px;border:1px solid #d9e9e1;border-radius:14px;background-color:#ffffff;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+        ${gauge(pct, 100, 'GoWild Availability', `${pct}%`)}
+        ${gauge(avgSeats, seatsMax, 'Avg GoWild Seats per Itinerary', `${avgSeats}`)}
+      </tr></table>
+      <div style="text-align:center;margin:6px 0 10px;">
+        <span style="display:inline-block;padding:5px 12px;border-radius:9999px;background-color:${deltaBg};color:${deltaColor};font-size:12px;font-weight:700;font-family:Arial,sans-serif;">${deltaSign}${delta} pts vs prior 7 days</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="display:block;">
+        ${yGrid}
+        <path d="${path}" fill="none" stroke="#1f3a6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${xLabels}
+      </svg>
+    </div>`;
+  })(),
+
   gowild_top_origins_chart_html: [
     '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
     ['TPA', 92, 92], ['ATL', 71, 77], ['MCO', 55, 60], ['BNA', 41, 45], ['BWI', 28, 30],
