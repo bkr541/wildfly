@@ -32,6 +32,15 @@ export const ALLOWED_VARIABLES = new Set([
   "gowild_snapshot_period",
   "gowild_snapshot_updated_at",
   "gowild_trend_summary",
+  // home-airport-gowild-forecast: chart HTML fragments
+  "gowild_availability_bar_html",
+  "gowild_top_origins_chart_html",
+  "gowild_top_destinations_chart_html",
+  "gowild_heatmap_html",
+  "gowild_top_routes_chart_html",
+  "gowild_worst_routes_chart_html",
+  "gowild_timing_chart_html",
+  "gowild_seat_availability_chart_html",
 ]);
 
 

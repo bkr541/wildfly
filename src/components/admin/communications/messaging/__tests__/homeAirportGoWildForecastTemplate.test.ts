@@ -11,7 +11,7 @@ const TEMPLATE_SLUG = "home-airport-gowild-forecast";
 
 const loadTemplateMigration = (): string => {
   const dir = join(process.cwd(), "supabase", "migrations");
-  const files = readdirSync(dir).filter((f) => f.endsWith(".sql"));
+  const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort().reverse();
   for (const f of files) {
     const body = readFileSync(join(dir, f), "utf8");
     if (body.includes(`'${TEMPLATE_SLUG}'`) && /INSERT INTO public\.messaging_templates/i.test(body)) {
@@ -79,29 +79,26 @@ describe(`messaging template: ${TEMPLATE_SLUG}`, () => {
     expect(rendered).not.toMatch(/\{\{[^}]+\}\}/);
   });
 
-  it("renders the GoWild Forecast section with no generated forecast content", () => {
+  it("renders chart sections (bars, heatmap) mirroring the GoWild Insights page", () => {
     const rendered = renderPreview(html, PREVIEW_SAMPLE_VARS);
-    const match = rendered.match(/<h2[^>]*>\s*TPA GoWild Forecast\s*<\/h2>/);
-    expect(match, "GoWild Forecast section heading not found in rendered HTML").not.toBeNull();
-    const headingIdx = match ? rendered.indexOf(match[0]) : -1;
-    expect(headingIdx).toBeGreaterThan(-1);
-
-
-    const section = rendered.slice(headingIdx);
-    const forbidden = [
-      /coming soon/i,
-      /forecast(ed)? (score|value|reading|level|index)/i,
-      /predict/i,
-      /chance of/i,
-      /probability/i,
-      /\bscore\b/i,
-      /\b\d+%\s*(chance|likelihood|forecast)/i,
-    ];
-    for (const re of forbidden) {
-      expect(section, `forecast section contains forbidden content matching ${re}`).not.toMatch(re);
+    // Section headings present
+    for (const heading of [
+      "Top Origin Airports",
+      "Top Destination Airports",
+      "Daily Availability Heatmap",
+      "Top Routes",
+      "Worst Routes",
+      "Booking Timing",
+      "Seat Availability",
+    ]) {
+      expect(rendered).toContain(heading);
     }
-    // The forecast container must be present but empty (no text nodes inside).
-    expect(section).toMatch(/<div[^>]+min-height:120px[^>]*>\s*(<!--[^>]*-->)?\s*<\/div>/);
+    // Visualizations rendered (not raw placeholders)
+    expect(rendered).not.toMatch(/\{\{gowild_[a-z_]+_html\}\}/);
+    // The availability bar is a colored table cell
+    expect(rendered).toMatch(/background-color:#10b981;width:\d/);
+    // Heatmap day labels present
+    expect(rendered).toMatch(/Mon[\s\S]{0,40}Tue[\s\S]{0,40}Wed/);
   });
 
   it("uses email-only, non-transactional, and the wildflyapp@gmail.com default reply-to", () => {

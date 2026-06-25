@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import {
   Analytics01Icon,
   Search01Icon,
@@ -26,7 +27,7 @@ export const CATEGORY_ORDER = [
 
 type CatalogCategory = (typeof CATEGORY_ORDER)[number];
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, IconSvgElement> = {
   Users:               UserGroupIcon,
   "Flight Searches":   AirplaneTakeOff01Icon,
   "GoWild Availability": Layers01Icon,
