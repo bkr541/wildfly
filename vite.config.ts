@@ -22,32 +22,36 @@ export default defineConfig(({ mode }) => {
       mode === "development" && componentTagger(),
       {
         name: "wildfly-reset-app-data-endpoint",
-        configureServer(server) {
-          server.middlewares.use("/api/reset-app-data", (req, res, next) => {
-            if (req.method !== "POST") {
-              if (req.method === "OPTIONS") {
-                res.statusCode = 204;
+        configureServer(server: import("vite").ViteDevServer) {
+          server.middlewares.use(
+            "/api/reset-app-data",
+            (
+              req: import("http").IncomingMessage,
+              res: import("http").ServerResponse,
+            ) => {
+              if (req.method !== "POST") {
+                if (req.method === "OPTIONS") {
+                  res.statusCode = 204;
+                  res.setHeader("Allow", "POST");
+                  res.end();
+                  return;
+                }
+                res.statusCode = 405;
                 res.setHeader("Allow", "POST");
-                res.end();
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify({ ok: false, error: "Method Not Allowed" }));
                 return;
               }
-              res.statusCode = 405;
-              res.setHeader("Allow", "POST");
+              res.statusCode = 200;
               res.setHeader("Content-Type", "application/json");
-              res.end(JSON.stringify({ ok: false, error: "Method Not Allowed" }));
-              return;
-            }
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.setHeader("Cache-Control", "no-store");
-            res.setHeader("Clear-Site-Data", '"cache", "cookies", "storage"');
-            res.end(JSON.stringify({ ok: true, message: "Wildfly local app data cleared." }));
-            return;
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            next;
-          });
+              res.setHeader("Cache-Control", "no-store");
+              res.setHeader("Clear-Site-Data", '"cache", "cookies", "storage"');
+              res.end(JSON.stringify({ ok: true, message: "Wildfly local app data cleared." }));
+            },
+          );
         },
       },
+
     ].filter(Boolean),
 
     resolve: {
