@@ -73,23 +73,8 @@ function FitAndInvalidate({
   return null;
 }
 
-// GoWild + Nonstop gets a lighter green to distinguish from GoWild-only
-const COLOR_GOWILD_NONSTOP = "#34D399";
-
-type AvailType = "gowild_nonstop" | "gowild" | "nonstop" | "connecting";
-
-function destAvailType(dest: MultiDestMapDestination): AvailType {
-  if (dest.hasGoWild && dest.hasNonstop) return "gowild_nonstop";
-  if (dest.hasGoWild) return "gowild";
-  if (dest.hasNonstop) return "nonstop";
-  return "connecting";
-}
-
-function destColor(dest: MultiDestMapDestination): string {
-  if (dest.hasGoWild && dest.hasNonstop) return COLOR_GOWILD_NONSTOP;
-  if (dest.hasGoWild) return COLOR_GREEN;
-  if (dest.hasNonstop) return COLOR_AMBER;
-  return COLOR_GRAY;
+function destColor(_dest: MultiDestMapDestination): string {
+  return COLOR_GREEN;
 }
 
 const AVAIL_ITEMS: { type: AvailType; color: string; label: string }[] = [
