@@ -72,7 +72,6 @@ function makeDef(overrides: Partial<ReportDefinition> = {}): ReportDefinition {
     output_config:       { show_summary_cards: false, show_chart: false, columns: [] },
     contains_pii:        false,
     version:             1,
-    sort_order:          10,
     ...overrides,
   };
 }
@@ -84,6 +83,7 @@ function makeRun(overrides: Partial<ReportRun> = {}): ReportRun {
     report_version:   1,
     report_name:      "Search Volume",
     report_category:  "searches",
+    requested_by:     "user-1",
     started_at:       "2024-06-01T10:00:00.000Z",
     completed_at:     "2024-06-01T10:00:03.200Z",
     duration_ms:      3200,
@@ -478,7 +478,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryAllByText("PII").length).toBeGreaterThanOrEqual(1);
   });
@@ -490,7 +490,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryByTitle("PII was included in this run")).toBeNull();
   });
@@ -504,7 +504,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryByText("alice@example.com")).toBeNull();
   });

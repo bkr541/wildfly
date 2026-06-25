@@ -75,6 +75,15 @@ export const ALLOWED_TEMPLATE_VARIABLES = [
   "gowild_snapshot_period",
   "gowild_snapshot_updated_at",
   "gowild_trend_summary",
+  // home-airport-gowild-forecast: chart HTML fragments populated by the data-loading workflow
+  "gowild_availability_bar_html",
+  "gowild_top_origins_chart_html",
+  "gowild_top_destinations_chart_html",
+  "gowild_heatmap_html",
+  "gowild_top_routes_chart_html",
+  "gowild_worst_routes_chart_html",
+  "gowild_timing_chart_html",
+  "gowild_seat_availability_chart_html",
 ] as const;
 
 export const MESSAGE_STATUS_COLORS: Record<string, string> = {
@@ -115,6 +124,70 @@ export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
   gowild_snapshot_period: "All time",
   gowild_snapshot_updated_at: "Jun 24, 2026 8:00 PM ET",
   gowild_trend_summary: "Availability up 3.1% vs. prior period",
+  // Chart HTML fragments — sample markup mirroring the GoWild Insights cards.
+  // Real values are produced server-side by the data-loading workflow.
+  gowild_availability_bar_html:
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:14px;"><tr><td style="background-color:#10b981;width:43%;height:14px;font-size:0;line-height:0;">&nbsp;</td><td style="width:57%;height:14px;font-size:0;line-height:0;">&nbsp;</td></tr></table>',
+  gowild_top_origins_chart_html: [
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
+    ['TPA', 92, 92], ['ATL', 71, 77], ['MCO', 55, 60], ['BNA', 41, 45], ['BWI', 28, 30],
+  ].map((row) => {
+    if (typeof row === 'string') return row;
+    const [code, pct, count] = row as [string, number, number];
+    return `<tr><td style="padding:4px 0;width:42px;font-size:12px;font-weight:700;color:#17352b;">${code}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#10b981;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:48px;font-size:12px;color:#4e6d62;">${count}</td></tr>`;
+  }).join('') + '</table>',
+  gowild_top_destinations_chart_html: [
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
+    ['LAS', 88, 88], ['JFK', 74, 81], ['LAX', 62, 70], ['DEN', 48, 52], ['SFO', 33, 36],
+  ].map((row) => {
+    if (typeof row === 'string') return row;
+    const [code, pct, count] = row as [string, number, number];
+    return `<tr><td style="padding:4px 0;width:42px;font-size:12px;font-weight:700;color:#17352b;">${code}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#10b981;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:48px;font-size:12px;color:#4e6d62;">${count}</td></tr>`;
+  }).join('') + '</table>',
+  gowild_heatmap_html: (() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const values = [0.2, 0.4, 0.55, 0.3, 0.65, 0.85, 0.5];
+    const cells = days.map((d, i) => {
+      const v = values[i];
+      const alpha = Math.max(0.08, v).toFixed(2);
+      return `<td align="center" style="padding:6px 4px;font-size:11px;font-weight:700;color:${v > 0.5 ? '#ffffff' : '#17352b'};background-color:rgba(16,185,129,${alpha});border:2px solid #ffffff;border-radius:6px;">${d}<br><span style="font-weight:400;font-size:10px;opacity:0.9;">${Math.round(v * 100)}%</span></td>`;
+    }).join('');
+    return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;"><tr>${cells}</tr></table>`;
+  })(),
+  gowild_top_routes_chart_html: [
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
+    ['TPA → LAS', 95, '95%'], ['TPA → JFK', 82, '82%'], ['TPA → LAX', 71, '71%'], ['TPA → DEN', 64, '64%'], ['TPA → SFO', 58, '58%'],
+  ].map((row) => {
+    if (typeof row === 'string') return row;
+    const [route, pct, label] = row as [string, number, string];
+    return `<tr><td style="padding:4px 8px 4px 0;font-size:12px;color:#17352b;white-space:nowrap;">${route}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#10b981;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:44px;font-size:12px;color:#4e6d62;">${label}</td></tr>`;
+  }).join('') + '</table>',
+  gowild_worst_routes_chart_html: [
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
+    ['TPA → ORD', 14, '14%'], ['TPA → BOS', 18, '18%'], ['TPA → SEA', 22, '22%'], ['TPA → DCA', 26, '26%'], ['TPA → PHX', 31, '31%'],
+  ].map((row) => {
+    if (typeof row === 'string') return row;
+    const [route, pct, label] = row as [string, number, string];
+    return `<tr><td style="padding:4px 8px 4px 0;font-size:12px;color:#17352b;white-space:nowrap;">${route}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#fdecec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#e94560;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:44px;font-size:12px;color:#4e6d62;">${label}</td></tr>`;
+  }).join('') + '</table>',
+  gowild_timing_chart_html: (() => {
+    const buckets = [['0–7d', 12], ['8–14d', 28], ['15–30d', 46], ['31–60d', 64], ['61–90d', 38], ['90d+', 20]];
+    const max = Math.max(...buckets.map((b) => b[1] as number));
+    const cols = buckets.map(([label, val]) => {
+      const h = Math.round(((val as number) / max) * 100);
+      return `<td align="center" valign="bottom" style="padding:0 4px;width:16%;"><div style="height:90px;display:inline-block;width:100%;background-color:#f1f7f4;border-radius:6px;position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;height:${h}%;background-color:#10b981;border-radius:6px;"></div></div><div style="margin-top:6px;font-size:11px;color:#4e6d62;">${label}</div><div style="font-size:11px;font-weight:700;color:#17352b;">${val}%</div></td>`;
+    }).join('');
+    return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>${cols}</tr></table>`;
+  })(),
+  gowild_seat_availability_chart_html: (() => {
+    const buckets = [['1 seat', 22], ['2 seats', 35], ['3 seats', 21], ['4 seats', 12], ['5+ seats', 10]];
+    const max = Math.max(...buckets.map((b) => b[1] as number));
+    const rows = buckets.map(([label, val]) => {
+      const pct = Math.round(((val as number) / max) * 100);
+      return `<tr><td style="padding:4px 8px 4px 0;width:80px;font-size:12px;color:#17352b;">${label}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#0f6b4f;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:44px;font-size:12px;color:#4e6d62;">${val}%</td></tr>`;
+    }).join('');
+    return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">${rows}</table>`;
+  })(),
 };
 
 

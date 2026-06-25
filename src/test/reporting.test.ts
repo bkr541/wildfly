@@ -229,8 +229,7 @@ describe("maskEmail", () => {
   });
 
   it("handles non-string input defensively", () => {
-    // @ts-expect-error intentional
-    expect(maskEmail(null)).toBe("***");
+    expect(maskEmail(null as unknown as string)).toBe("***");
   });
 
   it("is non-reversible — the domain is preserved but local is obscured", () => {
@@ -380,7 +379,7 @@ describe("validateDateRange", () => {
   it("rejects end_date before start_date", () => {
     const r = validateDateRange({ start_date: "2026-06-22", end_date: "2026-01-01" });
     expect(r.success).toBe(false);
-    if (!r.success) expect(r.error).toContain("end_date");
+    if (!r.success) expect((r as { success: false; error: string }).error).toContain("end_date");
   });
 
   it("rejects invalid date formats", () => {
@@ -496,8 +495,7 @@ describe("validateRegistryEntries — duplicate slug detection", () => {
 
   it("detects missing validateParameters", () => {
     const errors = validateRegistryEntries([
-      // @ts-expect-error intentional — testing missing validator
-      { slug: "users.bad", handlerKey: "users.bad", version: 1, columns: [{ key: "id" }], validateParameters: undefined },
+      { slug: "users.bad", handlerKey: "users.bad", version: 1, columns: [{ key: "id" }], validateParameters: undefined as unknown as (p: unknown) => { success: true; data: unknown } | { success: false; error: string } },
     ]);
     expect(errors.some((e) => e.includes("missing validateParameters"))).toBe(true);
   });
