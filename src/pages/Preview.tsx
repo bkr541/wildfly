@@ -515,6 +515,63 @@ const PreviewPage = () => {
   const [seatRoute, setSeatRoute] = useState<{ origin: string; destination: string } | null>(null);
   const [seatError, setSeatError] = useState<string | null>(null);
 
+  // Routes section state
+  const [routeOrigin, setRouteOrigin] = useState<Airport | null>(null);
+  const [routeSheet, setRouteSheet] = useState(false);
+  const [routeError, setRouteError] = useState<string | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [routeData, setRouteData] = useState<{
+    origin: Airport;
+    destinations: MultiDestMapDestination[];
+  } | null>(null);
+
+  const handleSearchRoutes = async () => {
+    if (!routeOrigin) {
+      setRouteError("Please select an airport to search routes.");
+      return;
+    }
+    if (routeOrigin.latitude == null || routeOrigin.longitude == null) {
+      setRouteError("Selected airport is missing coordinates.");
+      return;
+    }
+    setRouteError(null);
+    setRouteLoading(true);
+    setRouteData(null);
+    const { data } = await supabase
+      .from("flight_searches")
+      .select("arrival_airport, gowild_found")
+      .eq("departure_airport", routeOrigin.iata_code)
+      .not("arrival_airport", "is", null)
+      .limit(5000);
+    const agg = new Map<string, { count: number; hasGoWild: boolean }>();
+    for (const row of (data ?? []) as { arrival_airport: string; gowild_found: boolean | null }[]) {
+      const a = row.arrival_airport;
+      if (!a || a.startsWith("CITY:")) continue;
+      const cur = agg.get(a) ?? { count: 0, hasGoWild: false };
+      cur.count += 1;
+      if (row.gowild_found === true) cur.hasGoWild = true;
+      agg.set(a, cur);
+    }
+    const destinations: MultiDestMapDestination[] = [];
+    for (const [iata, v] of agg.entries()) {
+      const ap = airportMap[iata];
+      if (!ap?.latitude || !ap?.longitude) continue;
+      destinations.push({
+        iata,
+        latLng: [ap.latitude, ap.longitude],
+        city: ap.locations?.city ?? "",
+        stateCode: ap.locations?.state_code || undefined,
+        country: undefined,
+        hasGoWild: v.hasGoWild,
+        hasNonstop: false,
+        flightCount: v.count,
+        minFare: null,
+      });
+    }
+    setRouteData({ origin: routeOrigin, destinations });
+    setRouteLoading(false);
+  };
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase
