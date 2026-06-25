@@ -1034,6 +1034,104 @@ const PreviewPage = () => {
         </div>
 
 
+        {/* Routes group */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07)",
+          }}
+        >
+          <div className="flex items-center gap-2 px-5 py-4">
+            <HugeiconsIcon icon={Route02Icon} size={28} color="#059669" strokeWidth={1.5} className="shrink-0" />
+            <div className="flex-1">
+              <p className="text-base font-semibold text-[#059669] uppercase tracking-wider">Routes</p>
+              <p className="text-xs text-[#6B7B7B]">
+                Map every destination Wildfly has seen from an airport
+              </p>
+            </div>
+          </div>
+
+          <div className="px-5 pt-4 pb-5">
+            <AirportSearchSheet
+              open={routeSheet}
+              onClose={() => setRouteSheet(false)}
+              airports={airports}
+              onSelect={(a) => { setRouteOrigin(a); setRouteError(null); setRouteData(null); }}
+            />
+
+            <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Departure Airport</label>
+            <div
+              className={cn("app-input-container cursor-pointer", routeError && "app-input-error")}
+              style={{ minHeight: 48 }}
+              onClick={() => setRouteSheet(true)}
+            >
+              <button type="button" tabIndex={-1} className="app-input-icon-btn">
+                <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={20} color="currentColor" strokeWidth={2} />
+              </button>
+              <span
+                className="app-input truncate flex-1 flex items-center"
+                style={{ color: routeOrigin ? "#1F2937" : "#6B7280" }}
+              >
+                {routeOrigin ? `${routeOrigin.iata_code} | ${routeOrigin.locations?.city ?? routeOrigin.name}` : "Search airport or city..."}
+              </span>
+              {routeOrigin && (
+                <button
+                  type="button"
+                  aria-label="Clear airport"
+                  onClick={(e) => { e.stopPropagation(); setRouteOrigin(null); setRouteData(null); }}
+                  className="app-input-reset app-input-reset--visible"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            {routeError && (
+              <p className="text-xs font-medium text-[#ef4444] mt-2 ml-1">{routeError}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSearchRoutes}
+              disabled={routeLoading}
+              className="mt-5 w-full h-12 rounded-full font-bold text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-90 active:opacity-75 disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              {routeLoading ? "Loading…" : "Search Routes"}
+            </button>
+
+            {routeData && routeData.destinations.length === 0 && !routeLoading && (
+              <p className="text-sm text-[#6B7B7B] mt-5 text-center">
+                No destinations found for {routeData.origin.iata_code}.
+              </p>
+            )}
+
+            {routeData && routeData.destinations.length > 0 && routeData.origin.latitude != null && routeData.origin.longitude != null && (
+              <div className="mt-5 -mx-5 -mb-5">
+                <div
+                  className="relative overflow-hidden"
+                  style={{ height: 460, borderTop: "1px solid #E8EBEB" }}
+                >
+                  <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-[#6B7B7B]">Loading map…</div>}>
+                    <MultiDestMap
+                      key={routeData.origin.iata_code}
+                      depIata={routeData.origin.iata_code}
+                      depLatLng={[routeData.origin.latitude, routeData.origin.longitude]}
+                      destinations={routeData.destinations}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+
         {/* GoWild Seat Availability group */}
         <div
           className="rounded-2xl overflow-hidden"
