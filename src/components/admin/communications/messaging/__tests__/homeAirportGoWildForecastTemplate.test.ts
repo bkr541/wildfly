@@ -49,7 +49,7 @@ describe(`messaging template: ${TEMPLATE_SLUG}`, () => {
   it("targets the correct slug and category in the migration", () => {
     expect(sql).toContain(`'${TEMPLATE_SLUG}'`);
     expect(sql).toContain("'Your Home Airport GoWild Forecast'");
-    expect(sql).toMatch(/category[\s\S]{0,80}'product'/);
+    expect(sql).toMatch(/'product',\s*\n\s*true,/);
     expect(sql).toContain("ON CONFLICT (slug) DO UPDATE");
     expect(sql).toContain("GREATEST(public.messaging_templates.version, EXCLUDED.version)");
   });
@@ -81,8 +81,11 @@ describe(`messaging template: ${TEMPLATE_SLUG}`, () => {
 
   it("renders the GoWild Forecast section with no generated forecast content", () => {
     const rendered = renderPreview(html, PREVIEW_SAMPLE_VARS);
-    const headingIdx = rendered.indexOf("GoWild Forecast</h2>");
+    const match = rendered.match(/<h2[^>]*>\s*TPA GoWild Forecast\s*<\/h2>/);
+    expect(match, "GoWild Forecast section heading not found in rendered HTML").not.toBeNull();
+    const headingIdx = match ? rendered.indexOf(match[0]) : -1;
     expect(headingIdx).toBeGreaterThan(-1);
+
 
     const section = rendered.slice(headingIdx);
     const forbidden = [
