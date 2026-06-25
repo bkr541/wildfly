@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, Popup, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -37,7 +37,6 @@ function FitAndInvalidate({
   const map = useMap();
   const fittedRef = useRef(false);
 
-  // Invalidate size when the container may have resized (e.g. sheet opened).
   useEffect(() => {
     if (invalidateKey === undefined) return;
     const t = setTimeout(() => {
@@ -73,152 +72,11 @@ function FitAndInvalidate({
   return null;
 }
 
-function destColor(_dest: MultiDestMapDestination): string {
-  return COLOR_GREEN;
-}
-
-const AVAIL_ITEMS: { type: AvailType; color: string; label: string }[] = [
-  { type: "gowild_nonstop", color: COLOR_GOWILD_NONSTOP, label: "GoWild + Nonstop" },
-  { type: "gowild",         color: COLOR_GREEN,          label: "GoWild" },
-  { type: "nonstop",        color: COLOR_AMBER,          label: "Nonstop" },
-  { type: "connecting",     color: COLOR_GRAY,           label: "Connecting" },
-];
-
-function AvailabilityLegend({
-  activeTypes,
-  onToggle,
-}: {
-  activeTypes: Set<AvailType>;
-  onToggle: (t: AvailType) => void;
-}) {
-  return (
-    <div
-      className="absolute bottom-3 left-3 z-[1000] rounded-lg px-3 py-2"
-      style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        border: "1px solid rgba(255,255,255,0.7)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-        fontSize: 10,
-      }}
-    >
-      <div className="font-bold uppercase tracking-wider text-[#9CA3AF] mb-1.5" style={{ fontSize: 9 }}>
-        Availability
-      </div>
-      <div className="flex flex-col gap-1">
-        {AVAIL_ITEMS.map(({ type, color, label }) => {
-          const active = activeTypes.has(type);
-          return (
-            <button
-              key={type}
-              type="button"
-              onClick={() => onToggle(type)}
-              className="flex items-center gap-2 transition-opacity"
-              style={{ opacity: active ? 1 : 0.38, cursor: "pointer" }}
-            >
-              <span
-                className="rounded-full shrink-0 transition-colors"
-                style={{ width: 8, height: 8, background: active ? color : "#9CA3AF" }}
-              />
-              {/* Mini iOS-style toggle */}
-              <span
-                className="relative inline-flex items-center shrink-0"
-                style={{ width: 22, height: 13 }}
-              >
-                <span
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: 99,
-                    background: active ? color : "#D1D5DB",
-                    transition: "background 0.18s",
-                  }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 1.5,
-                    left: active ? 10 : 1.5,
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: "white",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-                    transition: "left 0.18s",
-                  }}
-                />
-              </span>
-              <span
-                className="font-semibold"
-                style={{ color: active ? "#4B5563" : "#9CA3AF", fontSize: 10, whiteSpace: "nowrap" }}
-              >
-                {label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function StatsRow({ destinations }: { destinations: MultiDestMapDestination[] }) {
-  const totalFlights = destinations.reduce((sum, d) => sum + d.flightCount, 0);
-  const nonstopCount = destinations.filter((d) => d.hasNonstop).length;
-  const goWildCount  = destinations.filter((d) => d.hasGoWild).length;
-
-  const stats = [
-    { label: "Destinations", value: destinations.length },
-    { label: "Total Flights", value: totalFlights },
-    { label: "Nonstop",       value: nonstopCount },
-    { label: "GoWild",        value: goWildCount },
-  ];
-
-  return (
-    <div
-      className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-3 rounded-xl px-4 py-2"
-      style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        border: "1px solid rgba(255,255,255,0.7)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-        fontFamily: TOOLTIP_FONT,
-      }}
-    >
-      {stats.map(({ label, value }, i) => (
-        <div key={label} className="flex items-center gap-3">
-          {i > 0 && <span style={{ width: 1, height: 20, background: "#E5E7EB", flexShrink: 0 }} />}
-          <div className="flex flex-col items-center" style={{ minWidth: 36 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: "#1A2E2E", lineHeight: 1 }}>{value}</span>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 2, whiteSpace: "nowrap" }}>{label}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function MultiDestMap({ depIata, depLatLng, destinations, invalidateKey, onViewDest }: MultiDestMapProps) {
-  const [activeTypes, setActiveTypes] = useState<Set<AvailType>>(
-    () => new Set<AvailType>(["gowild_nonstop", "gowild", "nonstop", "connecting"]),
-  );
-
-  const toggleType = (t: AvailType) => {
-    setActiveTypes((prev) => {
-      const next = new Set(prev);
-      if (next.has(t)) next.delete(t); else next.add(t);
-      return next;
-    });
-  };
-
-  const visibleDests = destinations.filter((d) => activeTypes.has(destAvailType(d)));
-  const allPositions: [number, number][] = [depLatLng, ...visibleDests.map((d) => d.latLng)];
+  const allPositions: [number, number][] = [depLatLng, ...destinations.map((d) => d.latLng)];
 
   return (
     <div className="relative" style={{ height: "100%", width: "100%" }}>
-      <StatsRow destinations={destinations} />
       <MapContainer
         style={{ height: "100%", width: "100%" }}
         center={depLatLng}
@@ -231,32 +89,28 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
         <FitAndInvalidate positions={allPositions} invalidateKey={invalidateKey} />
 
         {/* Route arcs from departure to each destination */}
-        {visibleDests.map((dest) => {
+        {destinations.map((dest) => {
           const pts = arcPoints(depLatLng[0], depLatLng[1], dest.latLng[0], dest.latLng[1]);
-          const color = destColor(dest);
           return (
             <Polyline
               key={dest.iata}
               positions={pts}
-              pathOptions={{ color, weight: 1.8, opacity: 0.55 }}
+              pathOptions={{ color: COLOR_GREEN, weight: 1.8, opacity: 0.55 }}
             />
           );
         })}
 
         {/* Destination markers — dot + badge label + hover tooltip */}
-        {visibleDests.map((dest) => {
-          const color = destColor(dest);
+        {destinations.map((dest) => {
           const label = dest.minFare != null
             ? `${dest.iata} · $${Math.round(dest.minFare)}`
             : dest.iata;
-          // Light backgrounds (light-green, amber) need dark text for contrast
-          const badgeText = (color === COLOR_GOWILD_NONSTOP || color === COLOR_AMBER) ? "#1A2E2E" : "white";
           const badgeIcon = L.divIcon({
             html: `<span style="
               display:inline-block;
               transform:translateX(-50%);
-              background:${color};
-              color:${badgeText};
+              background:${COLOR_GREEN};
+              color:white;
               font-family:Quicksand,sans-serif;
               font-size:9px;
               font-weight:800;
@@ -279,7 +133,7 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
               radius={6}
               pathOptions={{
                 color: "rgba(255,255,255,0.7)",
-                fillColor: color,
+                fillColor: COLOR_GREEN,
                 fillOpacity: 0.9,
                 weight: 1,
               }}
@@ -365,7 +219,6 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
           </Tooltip>
         </CircleMarker>
       </MapContainer>
-      <AvailabilityLegend activeTypes={activeTypes} onToggle={toggleType} />
     </div>
   );
 }
