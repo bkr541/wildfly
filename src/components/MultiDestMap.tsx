@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, Popup, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TILE_URL, TILE_ATTR, TOOLTIP_FONT, COLOR_GREEN, COLOR_AMBER, COLOR_GRAY } from "@/components/maps/radar/radarMapStyles";
+import { TILE_URL, TILE_ATTR, TOOLTIP_FONT, COLOR_GREEN } from "@/components/maps/radar/radarMapStyles";
 import { arcPoints } from "@/components/maps/radar/radarMapGeometry";
 
 export interface MultiDestMapDestination {
