@@ -38,7 +38,6 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
   const [notifCtaUrl, setNotifCtaUrl] = useState(initial?.notification_cta_url ?? "");
   const [tab, setTab] = useState<EditorTab>("email_html");
   const [htmlPreview, setHtmlPreview] = useState(true);
-  const [identityOpen, setIdentityOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
@@ -109,85 +108,6 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Identity — collapsible */}
-      <AdminCard>
-        <button
-          type="button"
-          onClick={() => setIdentityOpen(o => !o)}
-          className="flex items-center gap-2.5 w-full"
-        >
-          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9CA3AF] whitespace-nowrap">
-            Identity
-          </span>
-          <div className="flex-1 h-px bg-[#EEF0F0]" />
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            className={`text-[#9CA3AF] transition-transform duration-200 flex-shrink-0 ml-1 ${identityOpen ? "rotate-180" : ""}`}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
-
-        {identityOpen && (
-          <div className="space-y-3 mt-3">
-            {/* Row 1: Name + Category + Transactional */}
-            <div className="flex gap-3 items-start">
-              <div className="flex-1 min-w-0">
-                <label className="block text-xs font-semibold text-[#374151] mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-                />
-                {slug && (
-                  <p className="mt-1 text-[11px] font-mono text-[#9CA3AF] truncate">{slug}</p>
-                )}
-              </div>
-              <div className="w-36 shrink-0">
-                <label className="block text-xs font-semibold text-[#374151] mb-1">Category</label>
-                <input
-                  type="text"
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                  className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-                />
-              </div>
-              <div className="flex items-center gap-2 pt-6 shrink-0">
-                <input
-                  type="checkbox"
-                  id="is_transactional"
-                  checked={isTransactional}
-                  onChange={e => setIsTransactional(e.target.checked)}
-                  className="rounded"
-                />
-                <label htmlFor="is_transactional" className="text-sm text-[#374151] font-medium whitespace-nowrap">
-                  Transactional
-                </label>
-              </div>
-            </div>
-
-            {/* Row 2: Description */}
-            <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">Description</label>
-              <input
-                type="text"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
-              />
-            </div>
-          </div>
-        )}
-      </AdminCard>
-
       {unknownVars.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
           Unknown variables detected: {unknownVars.map(v => `{{${v}}}`).join(", ")}
@@ -195,6 +115,61 @@ export function MessagingTemplateEditor({ initial, onSaved, onCancel }: Props) {
       )}
 
       <AdminCard>
+        {/* Identity fields */}
+        <div className="space-y-3 mb-5">
+          {/* Row 1: Name + Category + Transactional */}
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-semibold text-[#374151] mb-1">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+              />
+              {slug && (
+                <p className="mt-1 text-[11px] font-mono text-[#9CA3AF] truncate">{slug}</p>
+              )}
+            </div>
+            <div className="w-36 shrink-0">
+              <label className="block text-xs font-semibold text-[#374151] mb-1">Category</label>
+              <input
+                type="text"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6 shrink-0">
+              <input
+                type="checkbox"
+                id="is_transactional"
+                checked={isTransactional}
+                onChange={e => setIsTransactional(e.target.checked)}
+                className="rounded"
+              />
+              <label htmlFor="is_transactional" className="text-sm text-[#374151] font-medium whitespace-nowrap">
+                Transactional
+              </label>
+            </div>
+          </div>
+
+          {/* Row 2: Description */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] mb-1">Description</label>
+            <input
+              type="text"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              className="w-full border border-[#E5E7EB] rounded-xl px-3 py-2 text-sm text-[#374151] bg-white focus:outline-none focus:ring-2 focus:ring-[#345C5A]/40"
+            />
+          </div>
+        </div>
+
+        <div className="h-px bg-[#EEF0F0] mb-4" />
+
         {/* Tab row + Edit/Preview toggle */}
         <div className="flex items-center gap-1 mb-4">
           {([

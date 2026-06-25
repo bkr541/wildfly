@@ -180,18 +180,20 @@ const MainApp = () => {
       const fromAdmin = sessionStorage.getItem("adminReturn") === "1";
       if (fromAdmin) sessionStorage.removeItem("adminReturn");
 
+      // Capture BEFORE any await — the Supabase SDK clears window.location.hash
+      // during its initialization (inside getSession/initializePromise), so reading
+      // the hash after the first await always returns an empty string.
+      const isOnResetPage = window.location.pathname.startsWith("/reset-password");
+      const earlyRecoveryHash = window.location.hash.includes("type=recovery");
+
       let shouldKeepSession = false;
-      let isRecoverySession = false;
       try {
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         if (existingSession?.user) {
           if (fromAdmin) {
             shouldKeepSession = true;
           } else {
-            // Detect recovery sessions from the URL hash (present on first load)
-            // or from the session's AMR claim set by Supabase on recovery links.
-            const hash = window.location.hash;
-            isRecoverySession = hash.includes("type=recovery");
+            const isRecoverySession = isOnResetPage || earlyRecoveryHash;
 
             if (!isRecoverySession) {
               const { data: profile } = await supabase
