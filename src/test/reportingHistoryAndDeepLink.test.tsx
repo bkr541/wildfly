@@ -478,7 +478,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryAllByText("PII").length).toBeGreaterThanOrEqual(1);
   });
@@ -490,7 +490,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryByTitle("PII was included in this run")).toBeNull();
   });
@@ -504,7 +504,7 @@ describe("ReportRunHistory — PII param masking in rows", () => {
       isLoading: false,
       error:     null,
       refetch:   vi.fn(),
-    } as ReturnType<typeof useReportRuns>);
+    } as unknown as ReturnType<typeof useReportRuns>);
     renderHistory();
     expect(screen.queryByText("alice@example.com")).toBeNull();
   });
