@@ -67,6 +67,14 @@ export const ALLOWED_TEMPLATE_VARIABLES = [
   "account_cta_url",
   "account_cta_label",
   "physical_address",
+  // home-airport-gowild-forecast template
+  "gowild_availability_rate",
+  "gowild_avg_seats_per_itinerary",
+  "gowild_available_itineraries",
+  "gowild_total_itineraries",
+  "gowild_snapshot_period",
+  "gowild_snapshot_updated_at",
+  "gowild_trend_summary",
 ] as const;
 
 export const MESSAGE_STATUS_COLORS: Record<string, string> = {
@@ -94,12 +102,21 @@ export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
   support_email: "support@wildfly.app",
   unsubscribe_url: "https://wildfly.app/unsubscribe?token=…",
   current_year: String(new Date().getFullYear()),
-  home_airport: "SEA",
+  home_airport: "TPA",
   action_link: "https://wildfly.app/activate?token=…",
   account_cta_url: "https://wildfly.app/activate?token=…",
   account_cta_label: "Activate your account",
   physical_address: "123 Main St, Seattle, WA 98101",
+  // home-airport-gowild-forecast template
+  gowild_availability_rate: "42.7%",
+  gowild_avg_seats_per_itinerary: "3.4",
+  gowild_available_itineraries: "187",
+  gowild_total_itineraries: "438",
+  gowild_snapshot_period: "All time",
+  gowild_snapshot_updated_at: "Jun 24, 2026 8:00 PM ET",
+  gowild_trend_summary: "Availability up 3.1% vs. prior period",
 };
+
 
 export const RECIPIENT_STATUS_COLORS: Record<string, string> = {
   pending: "text-stone-400 bg-stone-400/10",

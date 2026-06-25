@@ -24,7 +24,16 @@ export const ALLOWED_VARIABLES = new Set([
   "current_year",
   "feature_name",
   "maintenance_date",
+  // home-airport-gowild-forecast template
+  "gowild_availability_rate",
+  "gowild_avg_seats_per_itinerary",
+  "gowild_available_itineraries",
+  "gowild_total_itineraries",
+  "gowild_snapshot_period",
+  "gowild_snapshot_updated_at",
+  "gowild_trend_summary",
 ]);
+
 
 export type TemplateVars = Record<string, string>;
 
