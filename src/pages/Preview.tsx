@@ -519,7 +519,7 @@ const PreviewPage = () => {
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("id, name, iata_code, location_id, locations(city, state_code, region)")
+        .select("id, name, iata_code, location_id, latitude, longitude, locations(city, state_code, region)")
         .eq("is_active", true)
         .order("name");
       if (data) setAirports(data as unknown as Airport[]);
