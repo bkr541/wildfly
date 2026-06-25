@@ -537,35 +537,16 @@ const PreviewPage = () => {
     setRouteError(null);
     setRouteLoading(true);
     setRouteData(null);
-    const agg = new Map<string, { count: number; hasGoWild: boolean }>();
-    const pageSize = 1000;
-    let offset = 0;
-    // Pull every leg Wildfly has ever snapshotted from this origin so the map
-    // reflects all destinations Frontier offers, not just user-searched ones.
-    while (true) {
-      const { data, error } = await (supabase as any)
-        .from("flight_snapshots")
-        .select("leg_destination_iata, gowild_fare_available")
-        .eq("leg_origin_iata", routeOrigin.iata_code)
-        .not("leg_destination_iata", "is", null)
-        .range(offset, offset + pageSize - 1);
-      if (error) break;
-      const rows = (data ?? []) as { leg_destination_iata: string; gowild_fare_available: boolean | null }[];
-      for (const row of rows) {
-        const a = row.leg_destination_iata;
-        if (!a || a.startsWith("CITY:") || a === routeOrigin.iata_code) continue;
-        const cur = agg.get(a) ?? { count: 0, hasGoWild: false };
-        cur.count += 1;
-        if (row.gowild_fare_available === true) cur.hasGoWild = true;
-        agg.set(a, cur);
-      }
-      if (rows.length < pageSize) break;
-      offset += pageSize;
-      if (offset > 50000) break;
-    }
+
+    // Use the bundled routes.json (Frontier's known route network) so the map
+    // shows every destination offered from this origin.
+    const routesModule = await import("@/data/routes.json");
+    const routesMap = (routesModule.default ?? routesModule) as Record<string, string[]>;
+    const dests = routesMap[routeOrigin.iata_code] ?? [];
 
     const destinations: MultiDestMapDestination[] = [];
-    for (const [iata, v] of agg.entries()) {
+    for (const iata of dests) {
+      if (!iata || iata === routeOrigin.iata_code) continue;
       const ap = airportMap[iata];
       if (!ap?.latitude || !ap?.longitude) continue;
       destinations.push({
@@ -574,15 +555,16 @@ const PreviewPage = () => {
         city: ap.locations?.city ?? "",
         stateCode: ap.locations?.state_code || undefined,
         country: undefined,
-        hasGoWild: v.hasGoWild,
-        hasNonstop: false,
-        flightCount: v.count,
+        hasGoWild: false,
+        hasNonstop: true,
+        flightCount: 1,
         minFare: null,
       });
     }
     setRouteData({ origin: routeOrigin, destinations });
     setRouteLoading(false);
   };
+
 
   useEffect(() => {
     (async () => {
