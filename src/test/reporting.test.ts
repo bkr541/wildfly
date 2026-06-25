@@ -229,8 +229,7 @@ describe("maskEmail", () => {
   });
 
   it("handles non-string input defensively", () => {
-    // @ts-expect-error intentional
-    expect(maskEmail(null)).toBe("***");
+    expect(maskEmail(null as unknown as string)).toBe("***");
   });
 
   it("is non-reversible — the domain is preserved but local is obscured", () => {
