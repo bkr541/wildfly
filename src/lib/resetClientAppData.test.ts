@@ -77,7 +77,7 @@ describe("resetClientAppData", () => {
       get: () => "session=abc; theme=dark",
       set: cookieSetter,
     });
-    (document as AnyRecord)._cookieSetter = cookieSetter;
+    (document as unknown as AnyRecord)._cookieSetter = cookieSetter;
 
     replace = setLocation();
   });
@@ -127,7 +127,7 @@ describe("resetClientAppData", () => {
 
   it("expires JavaScript-accessible cookies", async () => {
     await resetClientAppData();
-    const setter = (document as AnyRecord)._cookieSetter as ReturnType<typeof vi.fn>;
+    const setter = (document as unknown as AnyRecord)._cookieSetter as ReturnType<typeof vi.fn>;
     const written = setter.mock.calls.map((c) => String(c[0]));
     expect(written.some((s) => s.startsWith("session=;"))).toBe(true);
     expect(written.some((s) => s.startsWith("theme=;"))).toBe(true);
