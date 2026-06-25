@@ -1,0 +1,4 @@
+/api/reset-app-data
+  Content-Type: application/json
+  Cache-Control: no-store
+  Clear-Site-Data: "cache", "cookies", "storage"
