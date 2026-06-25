@@ -379,7 +379,7 @@ describe("validateDateRange", () => {
   it("rejects end_date before start_date", () => {
     const r = validateDateRange({ start_date: "2026-06-22", end_date: "2026-01-01" });
     expect(r.success).toBe(false);
-    if (!r.success) expect(r.error).toContain("end_date");
+    if (!r.success) expect((r as { success: false; error: string }).error).toContain("end_date");
   });
 
   it("rejects invalid date formats", () => {
