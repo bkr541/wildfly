@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SearchingIcon,
@@ -15,6 +15,7 @@ import {
   Rocket01Icon,
   AirplaneSeatIcon,
   AirplaneLanding01Icon,
+  Route02Icon,
 } from "@hugeicons/core-free-icons";
 import { isBlackoutDate } from "@/utils/blackoutDates";
 
@@ -22,12 +23,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomSheet } from "@/components/BottomSheet";
 import { cn } from "@/lib/utils";
 import FlightLegTimeline from "@/components/FlightLegTimeline";
+import type { MultiDestMapDestination } from "@/components/MultiDestMap";
+
+const MultiDestMap = lazy(() => import("@/components/MultiDestMap"));
 
 interface Airport {
   id: number;
   name: string;
   iata_code: string;
   location_id?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
   locations?: {
     city: string;
     state_code: string;
