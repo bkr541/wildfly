@@ -194,14 +194,57 @@ export const PREVIEW_SAMPLE_VARS: Record<string, string> = {
     const [code, pct, count] = row as [string, number, number];
     return `<tr><td style="padding:4px 0;width:42px;font-size:12px;font-weight:700;color:#17352b;">${code}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#10b981;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:48px;font-size:12px;color:#4e6d62;">${count}</td></tr>`;
   }).join('') + '</table>',
-  gowild_top_destinations_chart_html: [
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">',
-    ['LAS', 88, 88], ['JFK', 74, 81], ['LAX', 62, 70], ['DEN', 48, 52], ['SFO', 33, 36],
-  ].map((row) => {
-    if (typeof row === 'string') return row;
-    const [code, pct, count] = row as [string, number, number];
-    return `<tr><td style="padding:4px 0;width:42px;font-size:12px;font-weight:700;color:#17352b;">${code}</td><td style="padding:4px 8px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8f1ec;border-radius:9999px;overflow:hidden;height:10px;"><tr><td style="background-color:#10b981;width:${pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td><td style="width:${100 - pct}%;height:10px;font-size:0;line-height:0;">&nbsp;</td></tr></table></td><td align="right" style="padding:4px 0;width:48px;font-size:12px;color:#4e6d62;">${count}</td></tr>`;
-  }).join('') + '</table>',
+  gowild_top_destinations_chart_html: (() => {
+    // Route map mirroring the MultiDestMap on FlightMultiDestResults: origin pin (home airport)
+    // with great-circle lines + dots for each top destination, labelled with the IATA code.
+    const origin = { code: 'TPA', lat: 27.98, lon: -82.53 };
+    const destinations = [
+      { code: 'LAS', lat: 36.08, lon: -115.15, count: 88 },
+      { code: 'JFK', lat: 40.64, lon: -73.78, count: 81 },
+      { code: 'LAX', lat: 33.94, lon: -118.41, count: 70 },
+      { code: 'DEN', lat: 39.86, lon: -104.67, count: 52 },
+      { code: 'SFO', lat: 37.62, lon: -122.38, count: 36 },
+    ];
+    const W = 600, H = 320, padX = 18, padY = 18;
+    const lonMin = -125, lonMax = -66, latMin = 24, latMax = 50;
+    const proj = (lat: number, lon: number) => ({
+      x: padX + ((lon - lonMin) / (lonMax - lonMin)) * (W - padX * 2),
+      y: padY + ((latMax - lat) / (latMax - latMin)) * (H - padY * 2),
+    });
+    const o = proj(origin.lat, origin.lon);
+    // Simplified continental US outline path (low-res, for visual context only).
+    const usPath =
+      'M 60 210 L 95 175 L 130 150 L 175 132 L 220 120 L 275 110 L 330 105 L 385 108 L 440 112 L 485 118 L 525 130 L 555 150 L 565 175 L 560 200 L 545 220 L 520 235 L 480 245 L 440 252 L 395 256 L 350 258 L 305 258 L 260 256 L 215 250 L 175 240 L 140 228 L 100 220 Z';
+    const lines = destinations
+      .map((d) => {
+        const p = proj(d.lat, d.lon);
+        const mx = (o.x + p.x) / 2;
+        const my = Math.min(o.y, p.y) - 30;
+        return `<path d="M ${o.x.toFixed(1)} ${o.y.toFixed(1)} Q ${mx.toFixed(1)} ${my.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}" fill="none" stroke="#10b981" stroke-width="1.8" stroke-opacity="0.85" stroke-linecap="round"/>`;
+      })
+      .join('');
+    const destDots = destinations
+      .map((d) => {
+        const p = proj(d.lat, d.lon);
+        return `<g><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="#ffffff" stroke="#10b981" stroke-width="2.5"/><text x="${p.x.toFixed(1)}" y="${(p.y - 12).toFixed(1)}" text-anchor="middle" font-family="Quicksand,Arial,sans-serif" font-size="11" font-weight="700" fill="#17352b">${d.code}</text></g>`;
+      })
+      .join('');
+    const originPin = `<g><circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="8" fill="#FFD700" stroke="#17352b" stroke-width="2"/><text x="${o.x.toFixed(1)}" y="${(o.y + 22).toFixed(1)}" text-anchor="middle" font-family="Quicksand,Arial,sans-serif" font-size="12" font-weight="700" fill="#17352b">${origin.code}</text></g>`;
+    const list = destinations
+      .map(
+        (d) =>
+          `<tr><td style="padding:4px 0;width:46px;font-size:12px;font-weight:700;color:#17352b;">${d.code}</td><td style="padding:4px 8px;font-size:12px;color:#4e6d62;">Routes from ${origin.code}</td><td align="right" style="padding:4px 0;width:48px;font-size:12px;color:#4e6d62;">${d.count}</td></tr>`,
+      )
+      .join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="display:block;border-radius:10px;background-color:#eef5f1;">
+      <path d="${usPath}" fill="#dbe9e0" stroke="#b7cfc1" stroke-width="1"/>
+      ${lines}
+      ${destDots}
+      ${originPin}
+    </svg>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:14px;border-collapse:separate;">${list}</table>`;
+  })(),
+
   gowild_heatmap_html: (() => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const values = [0.2, 0.4, 0.55, 0.3, 0.65, 0.85, 0.5];
