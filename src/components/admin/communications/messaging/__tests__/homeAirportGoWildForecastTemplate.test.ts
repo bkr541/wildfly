@@ -11,10 +11,16 @@ const TEMPLATE_SLUG = "home-airport-gowild-forecast";
 
 const loadTemplateMigration = (): string => {
   const dir = join(process.cwd(), "supabase", "migrations");
-  const file = readdirSync(dir).find((f) => f.endsWith("_home_airport_gowild_forecast_template.sql"));
-  if (!file) throw new Error("Migration for home-airport-gowild-forecast template not found");
-  return readFileSync(join(dir, file), "utf8");
+  const files = readdirSync(dir).filter((f) => f.endsWith(".sql"));
+  for (const f of files) {
+    const body = readFileSync(join(dir, f), "utf8");
+    if (body.includes(`'${TEMPLATE_SLUG}'`) && /INSERT INTO public\.messaging_templates/i.test(body)) {
+      return body;
+    }
+  }
+  throw new Error(`Migration inserting messaging template '${TEMPLATE_SLUG}' not found`);
 };
+
 
 const extractDollarBlock = (sql: string, tag: string): string => {
   const open = `$${tag}$`;
