@@ -40,12 +40,16 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (newPassword !== confirmPassword) { toast.error("Passwords do not match"); return; }
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSaving(false);
     if (error) toast.error(error.message);
     else { toast.success("Password updated"); setNewPassword(""); setConfirmPassword(""); }
   };
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -105,6 +109,25 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
             <span className="text-sm font-semibold text-[#2E4A4A]">Sign Out</span>
           </button>
 
+          {/* Reset App Data */}
+          <button
+            type="button"
+            onClick={() => setResetOpen(true)}
+            disabled={resetting}
+            data-testid="reset-app-data-trigger"
+            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[#F2F3F3] transition-colors border-b border-[#F0F1F1] text-left disabled:opacity-60"
+          >
+            <span className="h-8 w-8 rounded-full bg-[#345C5A] flex items-center justify-center shrink-0 mt-0.5">
+              <HugeiconsIcon icon={Refresh01Icon} size={14} color="#D1FAE5" strokeWidth={1.5} />
+            </span>
+            <span className="flex-1">
+              <span className="block text-sm font-semibold text-[#2E4A4A]">Reset App Data</span>
+              <span className="block text-xs text-[#6B7B7B] mt-0.5 leading-snug">
+                Sign out and remove Wildfly's locally stored data, cookies, offline files, and cached app resources from this device. Your account and saved server data will not be deleted.
+              </span>
+            </span>
+          </button>
+
           {/* Delete Account */}
           <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors">
             <span className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center shrink-0">
@@ -114,8 +137,35 @@ const SecurityPrivacyScreen = ({ onBack }: SecurityPrivacyScreenProps) => {
           </button>
         </div>
       </div>
+
+      <AlertDialog open={resetOpen} onOpenChange={(open) => { if (!resetting) setResetOpen(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Wildfly on this device?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-left">
+                <p>You will be signed out of Wildfly on this device.</p>
+                <p>Your locally stored settings, cookies, caches, and offline data for Wildfly will be removed from this device.</p>
+                <p>Your account, subscription, profile, saved searches, and other server-side data will remain untouched and will be available again the next time you sign in.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="reset-app-data-confirm"
+              disabled={resetting}
+              onClick={(e) => { e.preventDefault(); void handleResetAppData(); }}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
+            >
+              {resetting ? "Resetting..." : "Reset App Data"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
+
 
 export default SecurityPrivacyScreen;
