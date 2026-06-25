@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SecurityIcon, Delete02Icon, Logout01Icon, LockPasswordIcon, ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { SecurityIcon, Delete02Icon, Logout01Icon, LockPasswordIcon, ArrowDown01Icon, Refresh02Icon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { resetClientAppData } from "@/lib/resetClientAppData";
+
 
 interface SecurityPrivacyScreenProps {
   onBack: () => void;
