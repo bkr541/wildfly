@@ -78,3 +78,56 @@ export function isBlackoutDate(dateStr: string): boolean {
   const day = dateStr.slice(0, 10);
   return BLACKOUT_PERIODS.some((p) => day >= p.start && day <= p.end);
 }
+
+/** Years for which blackout periods exist, ascending. */
+export function getBlackoutYears(): number[] {
+  const years = new Set<number>();
+  for (const p of BLACKOUT_PERIODS) {
+    const startYear = parseInt(p.start.slice(0, 4), 10);
+    const endYear = parseInt(p.end.slice(0, 4), 10);
+    for (let y = startYear; y <= endYear; y++) years.add(y);
+  }
+  return Array.from(years).sort((a, b) => a - b);
+}
+
+/** All periods that intersect a given calendar year. */
+export function getBlackoutPeriodsForYear(year: number): BlackoutPeriod[] {
+  const ys = String(year);
+  return BLACKOUT_PERIODS.filter(
+    (p) => p.start.slice(0, 4) <= ys && p.end.slice(0, 4) >= ys,
+  );
+}
+
+/** Expand all blackout dates that fall inside the given (year, month 0–11). */
+export function getBlackoutDatesForMonth(year: number, month: number): string[] {
+  const out: string[] = [];
+  const firstUtc = Date.UTC(year, month, 1);
+  const nextMonthUtc = Date.UTC(year, month + 1, 1);
+  for (const p of BLACKOUT_PERIODS) {
+    const [sy, sm, sd] = p.start.split("-").map((n) => parseInt(n, 10));
+    const [ey, em, ed] = p.end.split("-").map((n) => parseInt(n, 10));
+    const startUtc = Date.UTC(sy, sm - 1, sd);
+    const endUtc = Date.UTC(ey, em - 1, ed);
+    if (endUtc < firstUtc || startUtc >= nextMonthUtc) continue;
+    const from = Math.max(startUtc, firstUtc);
+    const to = Math.min(endUtc, nextMonthUtc - 24 * 60 * 60 * 1000);
+    for (let t = from; t <= to; t += 24 * 60 * 60 * 1000) {
+      const d = new Date(t);
+      const yy = d.getUTCFullYear();
+      const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(d.getUTCDate()).padStart(2, "0");
+      out.push(`${yy}-${mm}-${dd}`);
+    }
+  }
+  return out;
+}
+
+/** The next blackout period starting on/after the given YYYY-MM-DD, or null. */
+export function getNextBlackoutPeriod(fromDate: string): BlackoutPeriod | null {
+  const day = fromDate.slice(0, 10);
+  const upcoming = BLACKOUT_PERIODS
+    .filter((p) => p.end >= day)
+    .sort((a, b) => a.start.localeCompare(b.start));
+  return upcoming[0] ?? null;
+}
+

@@ -70,6 +70,7 @@ import BetaSignup from "./pages/BetaSignup";
 import AdminBetaApplications from "./pages/AdminBetaApplications";
 import PublicFlightSharePage from "./pages/PublicFlightSharePage";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import GoWildGuidePage from "./pages/GoWildGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -574,7 +575,9 @@ const App = () => (
           <Route path="/betasignup" element={<BetaSignup />} />
           <Route path="/share/flights/:token" element={<PublicFlightSharePage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          <Route path="/gowild-guide" element={<GoWildGuidePage />} />
           <Route path="*" element={<MainApp />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>
