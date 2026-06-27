@@ -206,14 +206,16 @@ export default function GoWildGuidePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white">
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          "linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 28%, #BBF7D0 62%, #A7F3D0 100%)",
+      }}
+    >
       {/* HERO */}
       <section
         className="relative w-full overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 40%, #BBF7D0 75%, #A7F3D0 100%)",
-        }}
       >
         <div className="relative">
           <div className="max-w-2xl mx-auto px-5 pt-10 pb-14 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
@@ -287,14 +289,11 @@ export default function GoWildGuidePage() {
       </section>
 
       {/* MAIN CONTENT */}
-      <div
-        style={{ background: "linear-gradient(160deg, #F2F3F3 0%, #E8EEEE 100%)" }}
-        className="pb-16"
-      >
+      <div className="pb-16">
         {/* Sticky section navigator */}
         <nav
           aria-label="GoWild Guide sections"
-          className="sticky top-0 z-30 bg-[#F2F3F3]/85 backdrop-blur-md border-b border-[#E8EBEB]"
+          className="sticky top-0 z-30 bg-[#F0FDF4]/80 backdrop-blur-md border-b border-[#BBF7D0]/70"
         >
           <div className="max-w-2xl mx-auto px-2">
             <div className="flex gap-1 overflow-x-auto py-2 no-scrollbar">
