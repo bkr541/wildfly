@@ -70,6 +70,7 @@ import BetaSignup from "./pages/BetaSignup";
 import AdminBetaApplications from "./pages/AdminBetaApplications";
 import PublicFlightSharePage from "./pages/PublicFlightSharePage";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import GoWildGuidePage from "./pages/GoWildGuidePage";
 
 const queryClient = new QueryClient();
 
