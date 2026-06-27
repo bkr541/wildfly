@@ -208,14 +208,15 @@ export default function GoWildGuidePage() {
   return (
     <main className="min-h-screen bg-white">
       {/* HERO */}
-      <section
-        className="relative w-full"
-        style={{
-          background:
-            "linear-gradient(180deg, #F0FDF4 0%, #E8F5E9 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%)",
-        }}
-      >
-        <div className="bg-white/55 backdrop-blur-[2px]">
+      <section className="relative w-full overflow-hidden bg-[#F4FBF6]">
+        <img
+          src="/assets/backgrounds/betasignupbkg.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-contain object-center select-none pointer-events-none"
+          loading="eager"
+        />
+        <div className="relative bg-white/35 backdrop-blur-[1px]">
           <div className="max-w-2xl mx-auto px-5 pt-10 pb-14 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
             <div className="flex flex-col items-center text-center">
               <img
