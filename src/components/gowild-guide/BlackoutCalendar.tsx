@@ -30,10 +30,13 @@ interface Props {
 }
 
 export function BlackoutCalendar({ id }: Props) {
+  const now = new Date();
+  const nowYear = now.getUTCFullYear();
+  const nowMonth = now.getUTCMonth();
   const years = useMemo(() => getBlackoutYears(), []);
-  const initialYear = years[0] ?? new Date().getUTCFullYear();
+  const initialYear = years.includes(nowYear) ? nowYear : (years[0] ?? nowYear);
   const [year, setYear] = useState<number>(initialYear);
-  const [month, setMonth] = useState<number>(0);
+  const [month, setMonth] = useState<number>(initialYear === nowYear ? nowMonth : 0);
 
   const today = todayYmdUtc();
   const blackoutDays = useMemo(() => new Set(getBlackoutDatesForMonth(year, month)), [year, month]);
