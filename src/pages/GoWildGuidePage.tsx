@@ -211,9 +211,8 @@ export default function GoWildGuidePage() {
       <section
         className="relative w-full"
         style={{
-          backgroundImage: "url('/assets/backgrounds/betasignupbkg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          background:
+            "linear-gradient(180deg, #F0FDF4 0%, #E8F5E9 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%)",
         }}
       >
         <div className="bg-white/55 backdrop-blur-[2px]">
