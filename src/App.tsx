@@ -575,7 +575,9 @@ const App = () => (
           <Route path="/betasignup" element={<BetaSignup />} />
           <Route path="/share/flights/:token" element={<PublicFlightSharePage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          <Route path="/gowild-guide" element={<GoWildGuidePage />} />
           <Route path="*" element={<MainApp />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>
