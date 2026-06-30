@@ -420,12 +420,36 @@ Deno.serve(async (req) => {
       .order("iata_code");
     if (error) throw new Error(`airports query: ${error.message}`);
 
-    const tzSet = new Set(TIMEZONE_GROUPS[tzGroup]);
-    const filtered = (airports ?? []).filter((a: any) =>
-      a.locations?.country === "United States of America" && tzSet.has(a.timezone)
+    // Airports actively selected as a user's home airport are searched first.
+    // The ordering is recomputed identically on every continuation invocation,
+    // so the numeric cursor remains stable while user-visible inventory lands
+    // as early as possible after local midnight.
+    const { data: homeAirportRows, error: homeAirportError } = await admin
+      .from("user_info")
+      .select("home_airport")
+      .not("home_airport", "is", null);
+    if (homeAirportError) {
+      console.warn(`[scheduled-bulk-search] home airport priority query: ${homeAirportError.message}`);
+    }
+    const priorityAirports = new Set(
+      (homeAirportRows ?? [])
+        .map((row: any) => String(row.home_airport ?? "").trim().toUpperCase())
+        .filter(Boolean),
     );
 
-    console.log(`[scheduled-bulk-search] tz=${tzGroup} date=${targetDate} airports=${filtered.length} cursor=${cursor}`);
+    const tzSet = new Set(TIMEZONE_GROUPS[tzGroup]);
+    const filtered = (airports ?? [])
+      .filter((a: any) =>
+        a.locations?.country === "United States of America" && tzSet.has(a.timezone)
+      )
+      .sort((left: any, right: any) => {
+        const leftCode = String(left.iata_code ?? "").toUpperCase();
+        const rightCode = String(right.iata_code ?? "").toUpperCase();
+        const priorityDelta = Number(priorityAirports.has(rightCode)) - Number(priorityAirports.has(leftCode));
+        return priorityDelta || leftCode.localeCompare(rightCode);
+      });
+
+    console.log(`[scheduled-bulk-search] tz=${tzGroup} date=${targetDate} airports=${filtered.length} priority=${priorityAirports.size} cursor=${cursor}`);
     await admin.from("bulk_search_job_logs")
       .update({ airports_total: filtered.length }).eq("id", logId);
 

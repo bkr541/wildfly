@@ -7,6 +7,7 @@ import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
 import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
+import { TodaysGoWildFlights } from "@/components/home/TodaysGoWildFlights";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Module-level flag: only show initial skeleton once per app session (i.e. after login),
@@ -62,6 +63,14 @@ const COMPONENT_MAP: Record<
     onFlightClick?: (flight: UserFlight) => void;
   }) => JSX.Element | null
 > = {
+  todays_gowild_flights: (props) => (
+    <TodaysGoWildFlights
+      key="todays_gowild_flights"
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+    />
+  ),
   upcoming_flights: (props) => (
     <UpcomingFlightsScroll
       key="upcoming_flights"

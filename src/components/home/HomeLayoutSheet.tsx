@@ -10,70 +10,14 @@ import {
   ArrowDown01Icon,
   FloppyDiskIcon,
   AddCircleIcon,
-  Airplane01Icon,
-  Search01Icon,
-  Alert01Icon,
-  Location01Icon,
-  FlashIcon,
-  Key01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { BottomSheet } from "@/components/BottomSheet";
 import { cn } from "@/lib/utils";
+import { HOME_COMPONENT_META, HOME_COMPONENT_OPTIONS } from "@/components/home/homeComponentRegistry";
 
-const COMPONENT_META: Record<string, {
-  label: string;
-  description: string;
-  icon: any;
-  iconBg: string;
-  iconColor: string;
-}> = {
-  upcoming_flights: {
-    label: "Upcoming Flights",
-    description: "Shows your next booked trip",
-    icon: Airplane01Icon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-  watched_flights: {
-    label: "Watched Flights",
-    description: "Tracks price-drop alerts",
-    icon: Alert01Icon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-  recent_searches: {
-    label: "Recent Searches",
-    description: "Displays your latest fare lookups",
-    icon: Search01Icon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-  quick_searches: {
-    label: "Quick Searches",
-    description: "Fast access to frequent routes",
-    icon: FlashIcon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-  day_trips: {
-    label: "Day Trips",
-    description: "Quick getaways from your airport",
-    icon: Location01Icon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-  token_expiration: {
-    label: "Token Expiration",
-    description: "Displays your GoWild token status",
-    icon: Key01Icon,
-    iconBg: "#E6F7F2",
-    iconColor: "#059669",
-  },
-};
-
-const ALL_COMPONENT_OPTIONS = Object.entries(COMPONENT_META).map(([value, m]) => ({ value, label: m.label }));
-const BASE_VALUES = new Set(["upcoming_flights", "watched_flights", "recent_searches", "quick_searches", "day_trips"]);
+const COMPONENT_META = HOME_COMPONENT_META;
+const ALL_COMPONENT_OPTIONS = HOME_COMPONENT_OPTIONS;
 
 interface HomepageRow {
   id?: string;
@@ -145,7 +89,7 @@ export const HomeLayoutSheet = ({ open, onClose }: HomeLayoutSheetProps) => {
   }, [open]);
 
   const availableOptions = ALL_COMPONENT_OPTIONS.filter(
-    (opt) => isDeveloper || BASE_VALUES.has(opt.value)
+    (opt) => isDeveloper || !opt.developerOnly
   );
 
   const addRow = () => {

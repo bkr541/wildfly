@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, UserIcon, LockPasswordIcon, LoginSquare01Icon, UserAdd01Icon, AlertCircleIcon, PasswordValidationIcon } from "@hugeicons/core-free-icons";
 import { AppInput } from "@/components/ui/app-input";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_HOME_COMPONENTS } from "@/components/home/homeComponentRegistry";
 import { lovable } from "@/integrations/lovable/index";
 import { isPasswordStrong, getPasswordStrengthScore } from "./PasswordStrengthInput";
 import { loadSignupControls, DEFAULT_SIGNUP_CONTROLS, type SignupControls } from "@/components/admin/developer-tools/SignupControlsAdminView";
@@ -215,10 +216,14 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
         setSubmitError(profileError.message);
         return;
       }
-      await supabase.from("user_homepage").insert([
-        { user_id: authData.user.id, component_name: "upcoming_flights", order: 1, status: "active" },
-        { user_id: authData.user.id, component_name: "recent_searches", order: 2, status: "active" },
-      ]);
+      await supabase.from("user_homepage").insert(
+        DEFAULT_HOME_COMPONENTS.map((componentName, index) => ({
+          user_id: authData.user.id,
+          component_name: componentName,
+          order: index + 1,
+          status: "active",
+        })),
+      );
       if (!authData.session) {
         setSubmitError("Check your email to confirm your account.");
         return;

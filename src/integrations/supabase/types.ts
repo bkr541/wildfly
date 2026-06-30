@@ -2700,6 +2700,8 @@ export type Database = {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
       }
+      get_todays_home_gowild_flights: { Args: never; Returns: Json }
+      gowild_timezone_group: { Args: { p_timezone: string }; Returns: string }
       authorize_paid_search: {
         Args: {
           p_all_destinations: boolean

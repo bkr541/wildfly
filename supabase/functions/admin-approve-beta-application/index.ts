@@ -216,9 +216,12 @@ Deno.serve(async (req) => {
       assertOk("user_info insert", uiErr);
 
       const { error: hpErr } = await serviceClient.from("user_homepage").insert([
-        { user_id: authUserId, component_name: "upcoming_flights", order: 1, status: "active" },
-        { user_id: authUserId, component_name: "recent_searches",  order: 2, status: "active" },
-      ]);
+          { user_id: authUserId, component_name: "todays_gowild_flights", order: 1, status: "active" },
+          { user_id: authUserId, component_name: "upcoming_flights",       order: 2, status: "active" },
+          { user_id: authUserId, component_name: "watched_flights",        order: 3, status: "active" },
+          { user_id: authUserId, component_name: "quick_searches",         order: 4, status: "active" },
+          { user_id: authUserId, component_name: "recent_searches",        order: 5, status: "active" },
+        ]);
       assertOk("user_homepage insert", hpErr);
     } else {
       // Repair missing user_info for an existing Auth user
@@ -243,8 +246,11 @@ Deno.serve(async (req) => {
         assertOk("user_info repair insert", uiErr);
 
         const { error: hpErr } = await serviceClient.from("user_homepage").insert([
-          { user_id: authUserId, component_name: "upcoming_flights", order: 1, status: "active" },
-          { user_id: authUserId, component_name: "recent_searches",  order: 2, status: "active" },
+          { user_id: authUserId, component_name: "todays_gowild_flights", order: 1, status: "active" },
+          { user_id: authUserId, component_name: "upcoming_flights",       order: 2, status: "active" },
+          { user_id: authUserId, component_name: "watched_flights",        order: 3, status: "active" },
+          { user_id: authUserId, component_name: "quick_searches",         order: 4, status: "active" },
+          { user_id: authUserId, component_name: "recent_searches",        order: 5, status: "active" },
         ]);
         assertOk("user_homepage repair insert", hpErr);
       } else {

@@ -14,6 +14,7 @@ import {
   Home01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import { HOME_COMPONENT_OPTIONS } from "@/components/home/homeComponentRegistry";
 
 interface AppearanceScreenProps {
   onBack: (configChanged?: boolean) => void;
@@ -25,13 +26,7 @@ const themes = [
   { key: "system", label: "System", icon: EarthIcon },
 ] as const;
 
-const COMPONENT_OPTIONS = [
-  { value: "upcoming_flights", label: "Upcoming Flights" },
-  { value: "watched_flights", label: "Watched Flights" },
-  { value: "recent_searches", label: "Recent Searches" },
-  { value: "quick_searches", label: "Quick Searches" },
-  { value: "day_trips", label: "Day Trips" },
-];
+const COMPONENT_OPTIONS = HOME_COMPONENT_OPTIONS.filter((option) => !option.developerOnly);
 
 interface HomepageRow {
   id?: string;
