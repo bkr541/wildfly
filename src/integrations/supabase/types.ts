@@ -1960,6 +1960,7 @@ export type Database = {
         Row: {
           billing_period: string
           created_at: string
+          entitlement_tier: string
           features: Json
           id: string
           is_active: boolean
@@ -1970,6 +1971,7 @@ export type Database = {
         Insert: {
           billing_period?: string
           created_at?: string
+          entitlement_tier?: string
           features?: Json
           id: string
           is_active?: boolean
@@ -1980,6 +1982,7 @@ export type Database = {
         Update: {
           billing_period?: string
           created_at?: string
+          entitlement_tier?: string
           features?: Json
           id?: string
           is_active?: boolean
@@ -2009,6 +2012,48 @@ export type Database = {
           dest_iata?: string
           id?: string
           origin_iata?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      search_usage_events: {
+        Row: {
+          counted_against_limit: boolean
+          created_at: string
+          entitlement_tier: string
+          id: string
+          metadata: Json
+          period_start: string | null
+          request_id: string
+          search_source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          counted_against_limit?: boolean
+          created_at?: string
+          entitlement_tier: string
+          id?: string
+          metadata?: Json
+          period_start?: string | null
+          request_id: string
+          search_source?: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          counted_against_limit?: boolean
+          created_at?: string
+          entitlement_tier?: string
+          id?: string
+          metadata?: Json
+          period_start?: string | null
+          request_id?: string
+          search_source?: string
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -2400,6 +2445,27 @@ export type Database = {
           },
         ]
       }
+      user_search_usage_monthly: {
+        Row: {
+          period_start: string
+          updated_at: string
+          used_count: number
+          user_id: string
+        }
+        Insert: {
+          period_start: string
+          updated_at?: string
+          used_count?: number
+          user_id: string
+        }
+        Update: {
+          period_start?: string
+          updated_at?: string
+          used_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           allow_friend_requests: boolean
@@ -2700,8 +2766,6 @@ export type Database = {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
       }
-      get_todays_home_gowild_flights: { Args: never; Returns: Json }
-      gowild_timezone_group: { Args: { p_timezone: string }; Returns: string }
       authorize_paid_search: {
         Args: {
           p_all_destinations: boolean
@@ -2710,6 +2774,10 @@ export type Database = {
           p_trip_type: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      authorize_user_search: {
+        Args: { p_request_id: string; p_search_source?: string }
         Returns: Json
       }
       consume_search_credits:
@@ -2851,10 +2919,13 @@ export type Database = {
           travel_date: string
         }[]
       }
+      get_search_entitlement: { Args: never; Returns: Json }
       get_shared_flight_result: {
         Args: { p_token_hash: string }
         Returns: Json
       }
+      get_todays_home_gowild_flights: { Args: never; Returns: Json }
+      gowild_timezone_group: { Args: { p_timezone: string }; Returns: string }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       list_applied_migrations: { Args: never; Returns: string[] }
       mark_disappeared_gowild_observations: {
@@ -2894,6 +2965,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      refund_authorized_search: {
+        Args: { p_reason?: string; p_request_id: string; p_user_id: string }
+        Returns: Json
       }
       refund_paid_search: {
         Args: { p_reason?: string; p_source_id: string; p_user_id: string }
@@ -3138,6 +3213,15 @@ export type Database = {
           signup_type: string
           status: string
           user_id: string
+        }[]
+      }
+      resolve_search_entitlement: {
+        Args: { p_user_id: string }
+        Returns: {
+          entitlement_tier: string
+          monthly_limit: number
+          plan_id: string
+          plan_name: string
         }[]
       }
       show_limit: { Args: never; Returns: number }
