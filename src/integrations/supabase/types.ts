@@ -2924,6 +2924,8 @@ export type Database = {
         Args: { p_token_hash: string }
         Returns: Json
       }
+      get_todays_home_gowild_flights: { Args: never; Returns: Json }
+      gowild_timezone_group: { Args: { p_timezone: string }; Returns: string }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
       list_applied_migrations: { Args: never; Returns: string[] }
       mark_disappeared_gowild_observations: {
