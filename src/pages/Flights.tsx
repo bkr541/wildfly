@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip, InsufficientCreditsError } from "@/lib/flightApi";
+import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip, SearchLimitReachedError } from "@/lib/flightApi";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -651,9 +651,9 @@ const FlightsPage = ({
   useWakeLock(loading);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creditError, setCreditError] = useState<{
-    cost: number;
-    remaining_monthly: number;
-    purchased_balance: number;
+    limit: number;
+    used: number;
+    remaining: number;
   } | null>(null);
   const showReturnDate = tripType === "round-trip" || tripType === "multi-day";
 
@@ -823,7 +823,7 @@ const FlightsPage = ({
         );
 
         const dialogTitle = creditError
-          ? "Not Enough Credits"
+          ? "Monthly Search Limit Reached"
           : isUnavailable
             ? "Search Unavailable"
             : isNoResults
@@ -831,7 +831,7 @@ const FlightsPage = ({
               : "Search Failed";
 
         const dialogBody = creditError
-          ? `This search costs ${creditError.cost} credit${creditError.cost !== 1 ? "s" : ""}. You have ${creditError.remaining_monthly} monthly + ${creditError.purchased_balance} purchased remaining.`
+          ? `You have used ${creditError.used} of ${creditError.limit} searches this month. Upgrade to Paid for unlimited searches.`
           : isUnavailable
             ? "Our flight search is temporarily unavailable. Please try again in a few minutes."
             : isNoResults
@@ -1119,6 +1119,9 @@ const FlightsPage = ({
             const cacheDest = searchAll ? "__ALL__" : destinationCode;
             const cacheDate = depFormatted;
             const cacheKey = await sha256(`${cacheOrigin}|${cacheDest}|${cacheDate}`);
+            // A billing request id represents this deliberate click, not the cache identity.
+            // Repeating the same route/date later must count as a new search.
+            const searchRequestId = crypto.randomUUID();
 
             const canonicalRequest = {
               origin: cacheOrigin,
@@ -1162,35 +1165,31 @@ const FlightsPage = ({
               if (cached?.payload) {
                 cacheLog.info("Cache HIT", { dep: originCode, arr: cacheDest });
 
-                // Charge for the cache hit (idempotent on cacheKey via consume_search_credits).
-                // This is safe to call client-side: the RPC only debits the calling user
-                // and is bounded by their own wallet.
-                const { data: creditResult, error: creditErr } = await supabase.rpc(
-                  "consume_search_credits" as any,
+                // Cached and live searches use the same atomic one-search entitlement.
+                const { data: authorization, error: authorizationError } = await (supabase.rpc as any)(
+                  "authorize_user_search",
                   {
-                    p_trip_type: tripTypeMapping,
-                    p_arrival_airports_count: arrivalAirportsCount,
-                    p_all_destinations: searchAll,
-                    p_source_id: cacheKey,
-                  } as any,
+                    p_request_id: searchRequestId,
+                    p_search_source: "cache_hit",
+                  },
                 );
-                if (creditErr) {
-                  flightLog.error("Credit check failed (cache path)", creditErr);
-                  setSearchError(creditErr.message ?? "Could not verify credits. Please try again.");
+                if (authorizationError) {
+                  flightLog.error("Search authorization failed (cache path)", authorizationError);
+                  setSearchError(authorizationError.message ?? "Could not verify your search allowance. Please try again.");
                   setLoading(false);
                   return;
                 }
-                const cr = creditResult as any;
-                if (!cr?.allowed) {
+                const authResult = authorization as any;
+                if (!authResult?.allowed) {
                   setCreditError({
-                    cost: cr?.cost ?? 0,
-                    remaining_monthly: cr?.remaining_monthly ?? 0,
-                    purchased_balance: cr?.purchased_balance ?? 0,
+                    limit: authResult?.limit ?? 5,
+                    used: authResult?.used ?? 5,
+                    remaining: authResult?.remaining ?? 0,
                   });
                   setLoading(false);
                   return;
                 }
-                creditsCost = cr?.cost ?? 0;
+                creditsCost = authResult?.charged ?? 0;
 
                 await new Promise((r) => setTimeout(r, 2000));
 
@@ -1250,10 +1249,8 @@ const FlightsPage = ({
               // refunds automatically if the upstream provider fails.
               cacheLog.info("Cache MISS", { dep: originCode, arr: cacheDest });
               const billingMeta = {
-                requestId: cacheKey,
-                tripType: tripTypeMapping,
-                arrivalAirportsCount,
-                allDestinations: searchAll,
+                requestId: searchRequestId,
+                searchSource: "flight_proxy" as const,
               };
               const edgeStart = performance.now();
               let data, error;
@@ -1295,11 +1292,11 @@ const FlightsPage = ({
                   error = null;
                 }
               } catch (fetchErr) {
-                if (fetchErr instanceof InsufficientCreditsError) {
+                if (fetchErr instanceof SearchLimitReachedError) {
                   setCreditError({
-                    cost: fetchErr.info.cost,
-                    remaining_monthly: fetchErr.info.remaining_monthly,
-                    purchased_balance: fetchErr.info.purchased_balance,
+                    limit: fetchErr.info.limit,
+                    used: fetchErr.info.used,
+                    remaining: fetchErr.info.remaining,
                   });
                   setLoading(false);
                   return;

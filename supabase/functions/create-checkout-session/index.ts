@@ -1,9 +1,8 @@
 /**
  * create-checkout-session
  *
- * Creates a Stripe Checkout session for either:
- *  - A recurring subscription upgrade (purchaseType = "subscription")
- *  - A one-time credit pack purchase (purchaseType = "credit_pack")
+ * Creates a Stripe Checkout session for a recurring Paid subscription.
+ * Credit packs are intentionally retired by the simplified Free / Paid model.
  *
  * Security contract:
  *  - Requires a valid Supabase JWT (authentication required)
@@ -85,9 +84,8 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   let body: {
-    purchaseType: "subscription" | "credit_pack";
+    purchaseType: "subscription";
     planId?: string;
-    creditPackId?: string;
     successUrl: string;
     cancelUrl: string;
   };
@@ -101,7 +99,7 @@ serve(async (req) => {
     });
   }
 
-  const { purchaseType, planId, creditPackId, successUrl, cancelUrl } = body;
+  const { purchaseType, planId, successUrl, cancelUrl } = body;
 
   if (!purchaseType || !successUrl || !cancelUrl) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -118,105 +116,56 @@ serve(async (req) => {
   }
 
   // ── Resolve Stripe price from DB (never trust client-provided IDs) ────────
-  let stripePriceId: string | null = null;
-  let productName = "";
-  let sessionMode: "subscription" | "payment" = "subscription";
-  let metadata: Record<string, string> = { user_id: user.id };
-
-  if (purchaseType === "subscription") {
-    if (!planId) {
-      return new Response(JSON.stringify({ error: "planId is required for subscription" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: plan, error: planError } = await supabase
-      .from("plans")
-      .select("id, name, stripe_price_id, is_active")
-      .eq("id", planId)
-      .maybeSingle();
-
-    if (planError || !plan) {
-      return new Response(JSON.stringify({ error: "Plan not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!plan.is_active) {
-      return new Response(JSON.stringify({ error: "This plan is no longer available" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!plan.stripe_price_id) {
-      return new Response(
-        JSON.stringify({ error: "Plan is not yet configured for purchase. Please contact support." }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    stripePriceId = plan.stripe_price_id;
-    productName = plan.name;
-    sessionMode = "subscription";
-    metadata = { user_id: user.id, plan_id: planId, purchase_type: "subscription" };
-  } else if (purchaseType === "credit_pack") {
-    if (!creditPackId) {
-      return new Response(JSON.stringify({ error: "creditPackId is required for credit_pack" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: pack, error: packError } = await supabase
-      .from("credit_packs")
-      .select("id, name, credits_amount, stripe_price_id, is_active")
-      .eq("id", creditPackId)
-      .maybeSingle();
-
-    if (packError || !pack) {
-      return new Response(JSON.stringify({ error: "Credit pack not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!pack.is_active) {
-      return new Response(JSON.stringify({ error: "This credit pack is no longer available" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!pack.stripe_price_id) {
-      return new Response(
-        JSON.stringify({ error: "Credit pack is not yet configured for purchase. Please contact support." }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    stripePriceId = pack.stripe_price_id;
-    productName = pack.name;
-    sessionMode = "payment";
-    metadata = {
-      user_id: user.id,
-      credit_pack: creditPackId,
-      purchase_type: "credit_pack",
-    };
-  } else {
-    return new Response(JSON.stringify({ error: "Invalid purchaseType" }), {
+  if (purchaseType !== "subscription") {
+    return new Response(JSON.stringify({ error: "Only Paid subscriptions are available" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  if (!planId) {
+    return new Response(JSON.stringify({ error: "planId is required for subscription" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const { data: plan, error: planError } = await supabase
+    .from("plans")
+    .select("id, name, stripe_price_id, is_active, entitlement_tier")
+    .eq("id", planId)
+    .maybeSingle();
+
+  if (planError || !plan) {
+    return new Response(JSON.stringify({ error: "Plan not found" }), {
+      status: 404,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!plan.is_active || plan.entitlement_tier !== "paid") {
+    return new Response(JSON.stringify({ error: "This Paid plan is not available" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!plan.stripe_price_id) {
+    return new Response(
+      JSON.stringify({ error: "Plan is not yet configured for purchase. Please contact support." }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  const stripePriceId = plan.stripe_price_id;
+  const metadata: Record<string, string> = {
+    user_id: user.id,
+    plan_id: planId,
+    purchase_type: "subscription",
+  };
 
   // ── Get or create Stripe customer ─────────────────────────────────────────
   let stripeCustomerId: string | null = null;
@@ -269,13 +218,11 @@ serve(async (req) => {
       customer: stripeCustomerId,
       payment_method_types: ["card"],
       line_items: [{ price: stripePriceId!, quantity: 1 }],
-      mode: sessionMode,
+      mode: "subscription",
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata,
-      ...(sessionMode === "subscription" && {
-        subscription_data: { metadata },
-      }),
+      subscription_data: { metadata },
     };
 
     const session = await stripe.checkout.sessions.create(sessionParams);

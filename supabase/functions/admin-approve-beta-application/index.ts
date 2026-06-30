@@ -275,19 +275,9 @@ Deno.serve(async (req) => {
     );
     assertOk("user_subscriptions upsert", subErr);
 
-    const { error: walletErr } = await serviceClient.from("user_credit_wallet").upsert(
-      {
-        user_id:              authUserId,
-        monthly_used:         0,
-        monthly_period_start: new Date().toISOString(),
-        monthly_period_end:   new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        purchased_balance:    0,
-      },
-      { onConflict: "user_id", ignoreDuplicates: true }
-    );
-    if (walletErr) {
-      console.error("user_credit_wallet upsert error (non-fatal):", walletErr.message);
-    }
+    // Search usage is created lazily by the entitlement RPC. Paid beta users
+    // do not need a wallet or a pre-seeded monthly balance.
+
 
     // ── Fetch messaging settings ──────────────────────────────────────────────
     const { data: settingsRows, error: settingsErr } = await serviceClient

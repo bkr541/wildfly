@@ -1742,7 +1742,7 @@ export default function AdminBetaApplications({ embedded = false }: { embedded?:
                 approveResult.alreadyExisted ? "Existing account activated" : "Auth account created",
                 "Account status → active",
                 approveResult.alreadyExisted ? null : "Homepage components added",
-                "Subscription upgraded → Gold (unlimited)",
+                "Subscription upgraded → Paid (unlimited)",
                 "Beta application → Accepted",
               ] as (string | null)[])
                 .filter(Boolean)

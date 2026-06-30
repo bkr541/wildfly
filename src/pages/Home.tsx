@@ -7,7 +7,6 @@ import { RecentSearches } from "@/components/home/RecentSearches";
 import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
 import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
-import { useDayTripAutoFetch } from "@/hooks/useDayTripAutoFetch";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Module-level flag: only show initial skeleton once per app session (i.e. after login),
@@ -149,9 +148,6 @@ const HomePage = ({ onNavigate, refreshTrigger, onFlightClick }: HomePageProps) 
   }, []);
 
 
-
-  // Background-fetch day trips for today + tomorrow on login
-  useDayTripAutoFetch();
 
   const loadHomepageConfig = useCallback(async (userId: string) => {
     const { data } = await supabase

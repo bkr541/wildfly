@@ -1,53 +1,48 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Proxy all flight API requests through the flight-proxy edge function
- * so the GoWilder token is never exposed client-side AND so that paid
- * searches are billed server-side (the only authoritative billing path).
- *
- * For paid endpoints (/search, /roundTrip, /dayTrips) callers MUST include
- * a `billing` block with a stable per-search `requestId` so the server can:
- *   - charge credits atomically,
- *   - deduplicate retries via the request id,
- *   - refund automatically when the upstream provider fails.
+ * Proxy all provider requests through the flight-proxy edge function so the
+ * GoWilder token stays server-side and deliberate searches share one atomic
+ * Free/Paid entitlement path.
  */
 
 export interface BillingMeta {
-  /** Stable per-search identifier. Use the same value for retries. */
+  /** Unique per deliberate search click. Reuse only when retrying that request. */
   requestId: string;
-  /** Normalized trip type, e.g. "one_way" | "round_trip" | "day_trip" | "trip_planner". */
-  tripType: string;
-  /** Number of arrival airports the user picked (0 when allDestinations). */
-  arrivalAirportsCount: number;
-  /** Whether the user is searching all destinations (costs more). */
-  allDestinations: boolean;
-  /** Developer/admin bypass — only honored for users in developer_allowlist. */
-  skip?: boolean;
+  /** Trusted server logging label. The server ignores client attempts to bypass billing. */
+  searchSource?: "flight_proxy" | "user_search";
 }
 
 export interface ProxyBillingResponse {
+  allowed: boolean;
+  reason: string | null;
   charged: number;
-  used_from_monthly: number;
-  used_from_purchased: number;
-  remaining_monthly: number | null;
-  purchased_balance: number | null;
+  tier: "free" | "paid";
+  limit: number | null;
+  used: number;
+  remaining: number | null;
   plan_id: string | null;
+  plan_name: string | null;
   request_id: string | null;
   already_processed: boolean;
+  period_start?: string | null;
+  period_end?: string | null;
 }
 
-export interface InsufficientCreditsInfo {
-  cost: number;
-  remaining_monthly: number;
-  purchased_balance: number;
-  plan_id: string | null;
-  request_id: string;
+export interface SearchLimitInfo {
+  limit: number;
+  used: number;
+  remaining: number;
+  planId: string | null;
+  requestId: string;
 }
 
-export class InsufficientCreditsError extends Error {
-  info: InsufficientCreditsInfo;
-  constructor(info: InsufficientCreditsInfo) {
-    super("INSUFFICIENT_CREDITS");
+export class SearchLimitReachedError extends Error {
+  info: SearchLimitInfo;
+
+  constructor(info: SearchLimitInfo) {
+    super("MONTHLY_SEARCH_LIMIT_REACHED");
+    this.name = "SearchLimitReachedError";
     this.info = info;
   }
 }
@@ -60,6 +55,17 @@ interface FlightProxyRequest {
   billing?: BillingMeta;
 }
 
+function toSearchLimitError(envelope: any, fallbackRequestId = "") {
+  const billing = envelope?.billing ?? {};
+  return new SearchLimitReachedError({
+    limit: billing.limit ?? 5,
+    used: billing.used ?? billing.limit ?? 5,
+    remaining: billing.remaining ?? 0,
+    planId: billing.plan_id ?? null,
+    requestId: billing.request_id ?? fallbackRequestId,
+  });
+}
+
 export async function flightApiFetch<T = any>(
   request: FlightProxyRequest,
 ): Promise<{ data: T; status: number; billing: ProxyBillingResponse | null }> {
@@ -67,41 +73,26 @@ export async function flightApiFetch<T = any>(
     body: request,
   });
 
-  // supabase-js sets `error` for non-2xx responses, but the body is still
-  // returned in `data` when the function emitted JSON. Read it for structured errors.
   if (error) {
     const body: any = (data as any) ?? null;
-    // Try to extract JSON body from the FunctionsHttpError context if needed
-    let ctxBody: any = null;
+    let contextBody: any = null;
     try {
-      const ctx = (error as any).context;
-      if (ctx?.response) {
-        ctxBody = await ctx.response.clone().json();
-      }
-    } catch { /* ignore */ }
-    const merged = body ?? ctxBody;
-    if (merged?.code === "INSUFFICIENT_CREDITS" && merged?.billing) {
-      throw new InsufficientCreditsError({
-        cost: merged.billing.cost ?? 0,
-        remaining_monthly: merged.billing.remaining_monthly ?? 0,
-        purchased_balance: merged.billing.purchased_balance ?? 0,
-        plan_id: merged.billing.plan_id ?? null,
-        request_id: merged.billing.request_id ?? request.billing?.requestId ?? "",
-      });
+      const response = (error as any).context?.response;
+      if (response) contextBody = await response.clone().json();
+    } catch {
+      // The generic error below still carries the edge-function message.
     }
-    throw new Error(merged?.error ?? error.message ?? "Flight proxy request failed");
+    const envelope = body ?? contextBody;
+    if (envelope?.code === "MONTHLY_SEARCH_LIMIT_REACHED") {
+      throw toSearchLimitError(envelope, request.billing?.requestId);
+    }
+    throw new Error(envelope?.error ?? error.message ?? "Flight proxy request failed");
   }
 
   const envelope = data as any;
-  if (envelope && envelope.ok === false) {
-    if (envelope.code === "INSUFFICIENT_CREDITS" && envelope.billing) {
-      throw new InsufficientCreditsError({
-        cost: envelope.billing.cost ?? 0,
-        remaining_monthly: envelope.billing.remaining_monthly ?? 0,
-        purchased_balance: envelope.billing.purchased_balance ?? 0,
-        plan_id: envelope.billing.plan_id ?? null,
-        request_id: envelope.billing.request_id ?? request.billing?.requestId ?? "",
-      });
+  if (envelope?.ok === false) {
+    if (envelope.code === "MONTHLY_SEARCH_LIMIT_REACHED") {
+      throw toSearchLimitError(envelope, request.billing?.requestId);
     }
     throw new Error(envelope.error ?? "Flight proxy request failed");
   }
@@ -113,22 +104,19 @@ export async function flightApiFetch<T = any>(
   };
 }
 
-/** Convenience: GET /api/flights/dayTrips */
 export function fetchDayTrips(params: Record<string, string>, billing?: BillingMeta) {
   return flightApiFetch({ path: "/dayTrips", method: "GET", params, billing });
 }
 
-/** Convenience: POST /api/flights/search */
 export function fetchFlightSearch(payload: Record<string, unknown>, billing?: BillingMeta) {
   return flightApiFetch({ path: "/search", method: "POST", payload, billing });
 }
 
-/** Convenience: POST /api/flights/roundTrip */
 export function fetchRoundTrip(payload: Record<string, unknown>, billing?: BillingMeta) {
   return flightApiFetch({ path: "/roundTrip", method: "POST", payload, billing });
 }
 
-/** Convenience: GET /api/flights/inbound (not a paid endpoint). */
+/** Inbound lookups are supporting data for an already-authorized search. */
 export function fetchInbound(params: Record<string, string>) {
   return flightApiFetch({ path: "/inbound", method: "GET", params });
 }

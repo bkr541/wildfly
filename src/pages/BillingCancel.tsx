@@ -25,7 +25,7 @@ export default function BillingCancel() {
         <h1 className="text-xl font-bold text-[#2E4A4A]">Purchase Canceled</h1>
         <p className="text-sm text-[#6B7B7B] leading-relaxed">
           Your checkout was canceled and you have not been charged.
-          You can upgrade your plan or purchase credits any time from the Subscription screen.
+          You can upgrade to unlimited searches any time from the Subscription screen.
         </p>
 
         <button

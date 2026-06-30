@@ -45,7 +45,7 @@ const baseMenuItems: MenuItem[] = [
   { icon: Airplane01Icon, label: "Travel Preferences", desc: "Set your home airport and trip defaults", key: "travel-prefs" },
   { icon: Notification01Icon, label: "Notifications", desc: "Manage alerts and push preferences", key: "notifications" },
   { icon: PaintBrushIcon, label: "Appearance", desc: "Theme, homepage layout, and display options", key: "appearance" },
-  { icon: CreditCardIcon, label: "Subscription & Wallet", desc: "Manage your plan and search credits", key: "subscription" },
+  { icon: CreditCardIcon, label: "Subscription & Usage", desc: "Manage your plan and monthly searches", key: "subscription" },
   { icon: HelpCircleIcon, label: "Help & Support", desc: "FAQs, contact, and feedback", key: "help" },
   { icon: Shield01Icon, label: "Security & Privacy", desc: "Password, privacy controls, and data", key: "security" },
 ];
@@ -55,7 +55,7 @@ const screenTitles: Record<string, string> = {
   "travel-prefs": "Travel Preferences",
   notifications: "Notifications",
   appearance: "Appearance",
-  wallet: "My Wallet",
+  wallet: "Search Usage",
   subscription: "Subscription",
   help: "Help & Support",
   security: "Security & Privacy",
