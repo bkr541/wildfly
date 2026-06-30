@@ -119,7 +119,7 @@ async function searchWithRetry(
     try {
       const result = await fetchFlightSearch(
         { origin: iata, departureDate: date },
-        { requestId: `admin-bulk-${iata}-${date}-${Date.now()}`, tripType: "one_way", arrivalAirportsCount: 0, allDestinations: false, skip: true },
+        { requestId: `admin-bulk-${iata}-${date}-${Date.now()}` },
       );
       return { data: result.data, attempts: attempt };
     } catch (err: any) {
