@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SearchingIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
@@ -27,7 +27,10 @@ export function GoWildFaq({ id }: Props) {
 
   return (
     <div className="space-y-3" id={id}>
-      <div className="app-input-container" style={{ minHeight: 48 }}>
+      <div
+        className="app-input-container"
+        style={{ minHeight: 48, "--input-bg": "#ffffff" } as CSSProperties}
+      >
         <button type="button" tabIndex={-1} className="app-input-icon-btn">
           <HugeiconsIcon icon={SearchingIcon} size={18} color="currentColor" strokeWidth={2} />
         </button>

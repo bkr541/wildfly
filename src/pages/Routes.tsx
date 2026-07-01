@@ -11,6 +11,7 @@ import { AppInput } from "@/components/ui/app-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import {
   RouteIcon,
   FavouriteIcon,
@@ -84,7 +85,7 @@ const OriginCombobox = ({
   };
 
   return (
-    <div className="relative w-full">
+    <div className={cn("relative w-full", open ? "z-[1000]" : "z-10")}>
       {/* Label styled like Flights UI */}
       <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Origin Airport</label>
 
@@ -136,7 +137,7 @@ const OriginCombobox = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-[#E3E6E6] max-h-72 overflow-y-auto z-50"
+            className="absolute left-0 right-0 top-full z-[1100] mt-1 max-h-72 overflow-y-auto rounded-xl border border-[#E3E6E6] bg-white shadow-lg"
           >
             {filtered.map(h => {
               const info = airportDict[h.iata];
@@ -461,7 +462,11 @@ const RouteMap = ({
   );
 };
 
-const viewOptions: { value: "map" | "grid"; label: string; icon: any }[] = [
+const viewOptions: {
+  value: "map" | "grid";
+  label: string;
+  icon: IconSvgElement;
+}[] = [
   { value: "map", label: "Map", icon: MapsIcon },
   { value: "grid", label: "List", icon: ListViewIcon },
 ];
@@ -470,7 +475,15 @@ type SortMode = "az" | "za" | "region";
 type ViewMode = "map" | "grid";
 
 /* ── Routes Page ──────────────────────────────────────── */
-const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string) => void }) => {
+interface RoutesPageProps {
+  onNavigate?: (page: string, data?: string) => void;
+  restoreInitialOrigin?: boolean;
+}
+
+const RoutesPage = ({
+  onNavigate,
+  restoreInitialOrigin = true,
+}: RoutesPageProps) => {
   const { dict: airportDict, loading: airportsLoading } = useAirportDictionary();
   const { isFavorite, toggleFavorite, clearAll, getFavoritesList } = useRouteFavorites();
   const { settings: userSettings } = useUserSettings();
@@ -482,6 +495,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
 
   const [origin, setOrigin] = useState<string>("");
   const [defaultHomeApplied, setDefaultHomeApplied] = useState(false);
+  const initialOriginRestoreAttempted = useRef(false);
   const [destSearch, setDestSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [viewMode, setViewMode] = useState<ViewMode>("map");
@@ -493,17 +507,25 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
   const stats = useRouteStats(origin || null);
 
   useEffect(() => {
+    if (!restoreInitialOrigin) return;
+    if (initialOriginRestoreAttempted.current) return;
+    if (stats.hubsSorted.length === 0) return;
+
+    initialOriginRestoreAttempted.current = true;
+
     if (urlOrigin) {
       setOrigin(urlOrigin);
-    } else {
-      const saved = localStorage.getItem(LS_ORIGIN_KEY);
-      if (saved && stats.hubsSorted.some(h => h.iata === saved)) {
-        setOrigin(saved);
-      }
+      return;
     }
-  }, [stats.hubsSorted.length]);
+
+    const saved = localStorage.getItem(LS_ORIGIN_KEY);
+    if (saved && stats.hubsSorted.some(h => h.iata === saved)) {
+      setOrigin(saved);
+    }
+  }, [restoreInitialOrigin, stats.hubsSorted, urlOrigin]);
 
   useEffect(() => {
+    if (!restoreInitialOrigin) return;
     if (defaultHomeApplied || urlOrigin || origin) return;
     if (!userSettings.default_departure_to_home) return;
     if (stats.hubsSorted.length === 0) return;
@@ -527,7 +549,14 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
         setDefaultHomeApplied(true);
       }
     })();
-  }, [userSettings.default_departure_to_home, stats.hubsSorted.length, defaultHomeApplied, urlOrigin, origin]);
+  }, [
+    defaultHomeApplied,
+    origin,
+    restoreInitialOrigin,
+    stats.hubsSorted,
+    urlOrigin,
+    userSettings.default_departure_to_home,
+  ]);
 
   useEffect(() => {
     if (origin) localStorage.setItem(LS_ORIGIN_KEY, origin);
@@ -588,7 +617,7 @@ const RoutesPage = ({ onNavigate }: { onNavigate?: (page: string, data?: string)
   return (
     <div className="px-5 pt-6 pb-6 animate-fade-in">
       {/* Single glass card wrapping everything */}
-      <div className="rounded-2xl overflow-visible" style={glassStyle}>
+      <div className="relative isolate overflow-visible rounded-2xl" style={glassStyle}>
         <div className="px-5 pt-5 pb-5 flex flex-col gap-4">
 
           {/* Origin Airport */}
