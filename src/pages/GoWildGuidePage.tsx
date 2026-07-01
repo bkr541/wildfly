@@ -1,8 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
   Rocket01Icon,
+  Menu03Icon,
+  Home01Icon,
+  ArrowLeft01Icon,
   Clock01Icon,
   Money03Icon,
   Tag01Icon,
@@ -23,12 +26,9 @@ import {
   AirportIcon,
 } from "@hugeicons/core-free-icons";
 import { GuideSectionCard } from "@/components/gowild-guide/GuideSectionCard";
-import { BookingWindowCalculator } from "@/components/gowild-guide/BookingWindowCalculator";
-import { FareDecoder } from "@/components/gowild-guide/FareDecoder";
 import { BlackoutCalendar } from "@/components/gowild-guide/BlackoutCalendar";
 import { GoWildTroubleshooter } from "@/components/gowild-guide/GoWildTroubleshooter";
 import { GoWildFaq } from "@/components/gowild-guide/GoWildFaq";
-import { FareBreakdownExample } from "@/components/gowild-guide/FareBreakdownExample";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EARLY_BOOKING_PROMOTION,
@@ -127,27 +127,120 @@ function usePageMetadata() {
   }, []);
 }
 
+type GuideSectionId = "overview" | "blackout" | "where-you-can-fly" | "faq";
+
 interface NavItem {
-  id: string;
+  id: GuideSectionId;
   label: string;
   icon: IconSvgElement;
 }
+
 const NAV: NavItem[] = [
-  { id: "quick-start", label: "Quick Start", icon: Rocket01Icon },
-  { id: "booking-window", label: "Booking Window", icon: Clock01Icon },
-  { id: "fare-pricing", label: "Fare Pricing", icon: Money03Icon },
-  { id: "early-booking", label: "Early Booking", icon: Tag01Icon },
+  { id: "overview", label: "Overview", icon: Home01Icon },
   { id: "blackout", label: "Blackout Dates", icon: CalendarRemove02Icon },
-  { id: "availability", label: "Availability", icon: AirplaneSeatIcon },
-  { id: "travel-rules", label: "Travel Rules", icon: Route02Icon },
-  { id: "troubleshooter", label: "Troubleshooter", icon: HelpCircleIcon },
+  { id: "where-you-can-fly", label: "Where You Can Fly", icon: GlobeIcon },
   { id: "faq", label: "FAQ", icon: BookOpen01Icon },
 ];
 
-function scrollToSection(id: string) {
+function scrollToSection(id: GuideSectionId) {
   const el = document.getElementById(id);
   if (!el) return;
   el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+interface GuideSidebarProps {
+  activeSection: GuideSectionId;
+  mobile?: boolean;
+  open?: boolean;
+  onClose?: () => void;
+  onNavigate: (id: GuideSectionId) => void;
+}
+
+function GuideSidebar({
+  activeSection,
+  mobile = false,
+  open = true,
+  onClose,
+  onNavigate,
+}: GuideSidebarProps) {
+  return (
+    <aside
+      id={mobile ? "gowild-guide-mobile-navigation" : undefined}
+      aria-label="GoWild Guide navigation"
+      aria-hidden={mobile && !open}
+      className={[
+        "flex flex-col bg-white",
+        mobile
+          ? "fixed inset-y-0 left-0 z-50 w-[80%] lg:hidden"
+          : "hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:border-r lg:border-[#E5E7EB]",
+      ].join(" ")}
+      style={
+        mobile
+          ? {
+              transform: open ? "translateX(0)" : "translateX(-100%)",
+              transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+              willChange: "transform",
+              pointerEvents: open ? "auto" : "none",
+            }
+          : undefined
+      }
+    >
+      <div className="flex items-center gap-3 px-6 pt-8 pb-3">
+        <img
+          src="/assets/logo/appicon.png"
+          alt="Wildfly"
+          className="h-12 w-12 rounded-2xl border-2 border-[#E3E6E6] bg-[#F0FDF4] object-cover shadow-sm shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-[#9CA3AF] text-sm font-medium">Wildfly</p>
+          <p className="text-[#2E4A4A] text-lg font-semibold truncate leading-tight">
+            GoWild Guide
+          </p>
+        </div>
+        {mobile && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close guide navigation"
+            tabIndex={open ? 0 : -1}
+            className="h-10 w-10 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-[#F2F3F3] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="currentColor" strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+
+      <div className="h-px bg-[#E5E7EB] mx-6" />
+
+      <nav className="flex-1 px-6 pt-3 flex flex-col gap-1 overflow-y-auto">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#059669] px-2 pb-1">
+          Guide
+        </p>
+        {NAV.map((item) => {
+          const isActive = item.id === activeSection;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onNavigate(item.id)}
+              aria-current={isActive ? "page" : undefined}
+              tabIndex={mobile && !open ? -1 : 0}
+              className={[
+                "flex items-center gap-2.5 py-1.5 rounded-xl px-2 transition-colors w-full text-left",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] focus-visible:ring-offset-2",
+                isActive
+                  ? "text-[#059669] hover:bg-[#F2F3F3]"
+                  : "text-[#2E4A4A] hover:text-[#345C5A] hover:bg-[#F2F3F3]",
+              ].join(" ")}
+            >
+              <HugeiconsIcon icon={item.icon} size={20} color="currentColor" strokeWidth={1.5} />
+              <span className="text-base font-semibold">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  );
 }
 
 function HeroPrimaryButton({
@@ -199,24 +292,114 @@ function BenefitCard({
 export default function GoWildGuidePage() {
   usePageMetadata();
 
+  const [activeSection, setActiveSection] = useState<GuideSectionId>("overview");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const promoVisible = useMemo(() => {
     if (!EARLY_BOOKING_PROMOTION.active) return false;
     const todayIso = new Date().toISOString().slice(0, 10);
     return todayIso <= EARLY_BOOKING_PROMOTION.purchaseThrough;
   }, []);
 
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    const sections = NAV.map((item) => document.getElementById(item.id)).filter(
+      (section): section is HTMLElement => Boolean(section),
+    );
+    if (sections.length === 0 || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visibleEntry) setActiveSection(visibleEntry.target.id as GuideSectionId);
+      },
+      { rootMargin: "-18% 0px -64% 0px", threshold: [0, 0.1, 0.25, 0.5] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  const handleNavigate = (id: GuideSectionId) => {
+    setActiveSection(id);
+    setDrawerOpen(false);
+    requestAnimationFrame(() => scrollToSection(id));
+  };
+
   return (
     <main
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         background:
           "linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 28%, #BBF7D0 62%, #A7F3D0 100%)",
       }}
     >
-      {/* HERO */}
-      <section
-        className="relative w-full overflow-hidden"
-      >
+      <div className="min-h-screen lg:flex">
+        <GuideSidebar activeSection={activeSection} onNavigate={handleNavigate} />
+        <GuideSidebar
+          activeSection={activeSection}
+          mobile
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          onNavigate={handleNavigate}
+        />
+
+        <button
+          type="button"
+          aria-label="Close guide navigation"
+          aria-hidden={!drawerOpen}
+          tabIndex={drawerOpen ? 0 : -1}
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] lg:hidden"
+          style={{
+            opacity: drawerOpen ? 1 : 0,
+            pointerEvents: drawerOpen ? "auto" : "none",
+            transition: "opacity 0.32s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        />
+
+        <div
+          className={[
+            "min-w-0 flex-1 transition-all duration-300 ease-in-out lg:translate-x-0 lg:rounded-none lg:shadow-none",
+            drawerOpen
+              ? "translate-x-[44%] rounded-[20px] shadow-[0_8px_40px_0_rgba(0,0,0,0.22),0_2px_8px_0_rgba(0,0,0,0.10)] overflow-hidden"
+              : "translate-x-0 rounded-none shadow-none",
+          ].join(" ")}
+        >
+          <header className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 bg-[#F0FDF4]/90 backdrop-blur-md border-b border-[#BBF7D0]/70 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open guide navigation"
+              aria-controls="gowild-guide-mobile-navigation"
+              aria-expanded={drawerOpen}
+              className="h-11 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] rounded-lg"
+            >
+              <HugeiconsIcon icon={Menu03Icon} size={26} color="currentColor" strokeWidth={2} />
+            </button>
+            <div className="flex items-baseline gap-1.5 select-none">
+              <span className="text-[20px] font-medium text-[#6B7280]">GoWild</span>
+              <span className="text-[20px] font-black tracking-widest uppercase text-[#10B981]">
+                Guide
+              </span>
+            </div>
+          </header>
+
+          {/* HERO */}
+          <section
+            id="overview"
+            className="relative w-full overflow-hidden scroll-mt-20 lg:scroll-mt-0"
+          >
         <div className="relative">
           <div className="max-w-2xl mx-auto px-5 pt-10 pb-14 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
             <div className="flex flex-col items-center text-center">
@@ -242,11 +425,11 @@ export default function GoWildGuidePage() {
                 blackout dates, and using your Frontier GoWild Pass.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-                <HeroPrimaryButton onClick={() => scrollToSection("booking-window")}>
-                  Check My Booking Window
-                </HeroPrimaryButton>
-                <HeroPrimaryButton onClick={() => scrollToSection("blackout")}>
+                <HeroPrimaryButton onClick={() => handleNavigate("blackout")}>
                   View Blackout Dates
+                </HeroPrimaryButton>
+                <HeroPrimaryButton onClick={() => handleNavigate("where-you-can-fly")}>
+                  Where You Can Fly
                 </HeroPrimaryButton>
               </div>
               <p className="text-[11px] text-[#6B7B7B] mt-5">
@@ -271,7 +454,7 @@ export default function GoWildGuidePage() {
               <BenefitCard
                 icon={Clock01Icon}
                 title="Know When to Book"
-                description="Origin-timezone aware countdown for the standard booking window."
+                description="Origin-timezone guidance for the standard booking window."
               />
               <BenefitCard
                 icon={Money03Icon}
@@ -288,31 +471,9 @@ export default function GoWildGuidePage() {
         </div>
       </section>
 
-      {/* MAIN CONTENT */}
-      <div className="pb-16">
-        {/* Sticky section navigator */}
-        <nav
-          aria-label="GoWild Guide sections"
-          className="sticky top-0 z-30 bg-[#F0FDF4]/80 backdrop-blur-md border-b border-[#BBF7D0]/70"
-        >
-          <div className="max-w-2xl mx-auto px-2">
-            <div className="flex gap-1 overflow-x-auto py-2 no-scrollbar">
-              {NAV.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  onClick={() => scrollToSection(n.id)}
-                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white border border-[#E8EBEB] text-[#2E4A4A] hover:border-[#10B981] hover:text-[#059669] px-3 py-1.5 text-xs font-semibold min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]"
-                >
-                  <HugeiconsIcon icon={n.icon} size={14} color="currentColor" strokeWidth={2} />
-                  {n.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </nav>
-
-        <div className="max-w-2xl mx-auto w-full px-4 pt-5 space-y-4">
+          {/* MAIN CONTENT */}
+          <div className="pb-16">
+            <div className="max-w-2xl mx-auto w-full px-4 pt-5 space-y-4">
           {/* Quick Start */}
           <GuideSectionCard
             id="quick-start"
@@ -341,34 +502,6 @@ export default function GoWildGuidePage() {
                 </li>
               ))}
             </ul>
-          </GuideSectionCard>
-
-          {/* Booking Window */}
-          <GuideSectionCard
-            id="booking-window"
-            icon={Clock01Icon}
-            title="Booking Window Calculator"
-            subtitle="See when GoWild fares should open in the origin's local time."
-          >
-            <BookingWindowCalculator />
-          </GuideSectionCard>
-
-          {/* Fare Pricing */}
-          <GuideSectionCard
-            id="fare-pricing"
-            icon={Money03Icon}
-            title="Fare Anatomy"
-            subtitle="What makes up your displayed GoWild total."
-          >
-            <FareBreakdownExample />
-          </GuideSectionCard>
-
-          <GuideSectionCard
-            icon={HelpCircleIcon}
-            title="Fare Decoder"
-            subtitle="A best-guess explanation for the price you see."
-          >
-            <FareDecoder />
           </GuideSectionCard>
 
           <GuideSectionCard
@@ -452,12 +585,28 @@ export default function GoWildGuidePage() {
             <BlackoutCalendar />
           </GuideSectionCard>
 
-          {/* Availability */}
-          <GuideSectionCard
-            id="availability"
-            icon={AirplaneSeatIcon}
-            title="Why Standard May Show When GoWild Doesn't"
+          {/* Where You Can Fly */}
+          <section
+            id="where-you-can-fly"
+            aria-labelledby="where-you-can-fly-heading"
+            className="scroll-mt-20 space-y-4"
           >
+            <div className="px-1 pt-2">
+              <h2
+                id="where-you-can-fly-heading"
+                className="text-[#059669] uppercase tracking-[0.14em] text-sm font-bold"
+              >
+                Where You Can Fly
+              </h2>
+              <p className="text-xs text-[#6B7B7B] mt-1">
+                Availability, itinerary, and destination-type rules for GoWild travel.
+              </p>
+            </div>
+
+            <GuideSectionCard
+              icon={AirplaneSeatIcon}
+              title="Why Standard May Show When GoWild Doesn't"
+            >
             <ul className="text-sm text-[#2E4A4A] list-disc pl-5 space-y-1">
               <li>Standard, Discount Den, Miles, and GoWild are separate fare products.</li>
               <li>GoWild inventory is limited and capacity-controlled.</li>
@@ -549,6 +698,7 @@ export default function GoWildGuidePage() {
               </TabsContent>
             </Tabs>
           </GuideSectionCard>
+          </section>
 
           <GuideSectionCard icon={AirportIcon} title="Included vs. Extra">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -699,6 +849,8 @@ export default function GoWildGuidePage() {
               External links open in a new tab. Frontier's current terms always control.
             </p>
           </GuideSectionCard>
+            </div>
+          </div>
         </div>
       </div>
     </main>
