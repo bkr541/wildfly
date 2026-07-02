@@ -25,6 +25,7 @@ import {
 import { GuideSectionCard } from "@/components/gowild-guide/GuideSectionCard";
 import { BlackoutCalendar } from "@/components/gowild-guide/BlackoutCalendar";
 import { GoWildFaq } from "@/components/gowild-guide/GoWildFaq";
+import { PastGoWildFlights } from "@/components/gowild-guide/PastGoWildFlights";
 import RoutesPage from "@/pages/Routes";
 import {
   EARLY_BOOKING_PROMOTION,
@@ -148,7 +149,12 @@ function usePageMetadata() {
   }, []);
 }
 
-type GuideViewId = "overview" | "blackout" | "where-you-can-fly" | "faq";
+type GuideViewId =
+  | "overview"
+  | "blackout"
+  | "where-you-can-fly"
+  | "past-flights"
+  | "faq";
 
 interface NavItem {
   id: GuideViewId;
@@ -160,6 +166,7 @@ const NAV: NavItem[] = [
   { id: "overview", label: "Overview", icon: Home01Icon },
   { id: "blackout", label: "Blackout Dates", icon: CalendarRemove02Icon },
   { id: "where-you-can-fly", label: "Where You Can Fly", icon: GlobeIcon },
+  { id: "past-flights", label: "Past GoWild Flights", icon: Clock01Icon },
   { id: "faq", label: "FAQ", icon: BookOpen01Icon },
 ];
 
@@ -356,6 +363,14 @@ const VIEW_META: Record<GuideViewId, GuideViewMeta> = {
     headerPrefix: "Explore",
     headerLabel: "Routes",
     icon: GlobeIcon,
+  },
+  "past-flights": {
+    title: "Past GoWild Flights",
+    description:
+      "Replay stored All Destinations results for a previous travel date without starting a live search.",
+    headerPrefix: "Explore",
+    headerLabel: "Past Flights",
+    icon: Clock01Icon,
   },
   faq: {
     title: "FAQ",
@@ -959,6 +974,7 @@ export default function GoWildGuidePage() {
             {activeView === "where-you-can-fly" && (
               <WhereYouCanFlyView onAppNavigate={handleAppNavigate} />
             )}
+            {activeView === "past-flights" && <PastGoWildFlights />}
             {activeView === "faq" && <FaqView />}
           </section>
         </div>
