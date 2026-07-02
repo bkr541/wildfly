@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CalendarCheckOut02Icon,
@@ -15,6 +15,10 @@ const MONTHS = [
   "July","August","September","October","November","December",
 ];
 
+function getNavigationBase(date: Date, pastOnly: boolean): Date {
+  return pastOnly ? new Date(date.getFullYear(), date.getMonth() - 1, 1) : date;
+}
+
 export function DatePickerSheet({
   open,
   onClose,
@@ -22,6 +26,7 @@ export function DatePickerSheet({
   selected,
   onSelect,
   minDate,
+  maxDate,
   departureDate,
 }: {
   open: boolean;
@@ -30,14 +35,25 @@ export function DatePickerSheet({
   selected?: Date;
   onSelect: (date: Date) => void;
   minDate?: Date;
+  maxDate?: Date;
   departureDate?: Date;
 }) {
-  const today = startOfDay(new Date());
-  const min = minDate ? startOfDay(minDate) : today;
+  const today = useMemo(() => startOfDay(new Date()), []);
+  // Existing Explore Flights callers remain future-only by default. A caller
+  // that supplies only maxDate opts into a past-date calendar instead.
+  const min = useMemo(
+    () => (minDate ? startOfDay(minDate) : maxDate ? null : today),
+    [maxDate, minDate, today],
+  );
+  const max = useMemo(
+    () => (maxDate ? startOfDay(maxDate) : null),
+    [maxDate],
+  );
+  const pastOnly = !!max && !min;
 
   const [calDate, setCalDate] = useState<Date | null>(selected ?? null);
 
-  const initialBase = selected ?? today;
+  const initialBase = getNavigationBase(selected ?? max ?? today, pastOnly);
   const [selMonth, setSelMonth] = useState(getMonth(initialBase));
   const [selYear, setSelYear] = useState(getYear(initialBase));
 
@@ -45,16 +61,17 @@ export function DatePickerSheet({
     if (open) {
       const base = selected ?? null;
       setCalDate(base);
-      const navBase = selected ?? today;
+      const navBase = getNavigationBase(selected ?? max ?? today, pastOnly);
       setSelMonth(getMonth(navBase));
       setSelYear(getYear(navBase));
     }
-  }, [open]);
+  }, [max, open, pastOnly, selected, today]);
 
   const handleCalendarSelect = (date: Date) => {
     setCalDate(date);
-    setSelMonth(getMonth(date));
-    setSelYear(getYear(date));
+    const navBase = getNavigationBase(date, pastOnly);
+    setSelMonth(getMonth(navBase));
+    setSelYear(getYear(navBase));
   };
 
   useEffect(() => {
@@ -72,18 +89,27 @@ export function DatePickerSheet({
 
   const goToPrevMonth = () => {
     const prev = new Date(selYear, selMonth - 1, 1);
-    if (prev >= new Date(min.getFullYear(), min.getMonth(), 1)) {
+    const earliest = min ? new Date(min.getFullYear(), min.getMonth(), 1) : null;
+    if (!earliest || prev >= earliest) {
       setSelMonth(getMonth(prev));
       setSelYear(getYear(prev));
     }
   };
   const goToNextMonth = () => {
     const next = new Date(selYear, selMonth + 1, 1);
-    setSelMonth(getMonth(next));
-    setSelYear(getYear(next));
+    const latest = max ? new Date(max.getFullYear(), max.getMonth() - 1, 1) : null;
+    if (!latest || next <= latest) {
+      setSelMonth(getMonth(next));
+      setSelYear(getYear(next));
+    }
   };
 
-  const canGoPrev = new Date(selYear, selMonth - 1, 1) >= new Date(min.getFullYear(), min.getMonth(), 1);
+  const previousMonth = new Date(selYear, selMonth - 1, 1);
+  const nextMonth = new Date(selYear, selMonth + 1, 1);
+  const earliestMonth = min ? new Date(min.getFullYear(), min.getMonth(), 1) : null;
+  const latestFirstMonth = max ? new Date(max.getFullYear(), max.getMonth() - 1, 1) : null;
+  const canGoPrev = !earliestMonth || previousMonth >= earliestMonth;
+  const canGoNext = !latestFirstMonth || nextMonth <= latestFirstMonth;
 
   const monthsToShow = [
     { month: selMonth, year: selYear },
@@ -130,7 +156,9 @@ export function DatePickerSheet({
               if (!day) return <div key={di} />;
 
               const thisDate = startOfDay(new Date(year, monthIdx, day));
-              const isPast = thisDate < min;
+              const isBeforeMin = !!min && thisDate < min;
+              const isAfterMax = !!max && thisDate > max;
+              const isDisabled = isBeforeMin || isAfterMax;
               const isSelected = calDate &&
                 thisDate.getFullYear() === calDate.getFullYear() &&
                 thisDate.getMonth() === calDate.getMonth() &&
@@ -148,7 +176,7 @@ export function DatePickerSheet({
               const rangeRight = (isInRange || isRangeStart) && di !== 6;
 
               let textColor = "text-[#2E4A4A]";
-              if (isPast) textColor = "text-[#C4C9C9]";
+              if (isDisabled) textColor = "text-[#C4C9C9]";
               else if (isSelected || isDeparture) textColor = "text-white";
               else if (isBlackout) textColor = "text-white";
               else if (isToday) textColor = "text-white";
@@ -156,15 +184,15 @@ export function DatePickerSheet({
               else if (isWeekend) textColor = "text-red-500";
 
               let buttonStyle: React.CSSProperties | undefined;
-              if (isSelected || isDeparture) {
+              if (!isDisabled && (isSelected || isDeparture)) {
                 buttonStyle = {
                   background: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
                   border: "none",
                   boxShadow: "0 2px 8px rgba(16,185,129,0.35)",
                 };
-              } else if (isBlackout) {
+              } else if (!isDisabled && isBlackout) {
                 buttonStyle = { background: isToday ? "#3B82F6" : "#374151" };
-              } else if (isToday) {
+              } else if (!isDisabled && isToday) {
                 buttonStyle = { background: "#3B82F6" };
               }
 
@@ -178,12 +206,12 @@ export function DatePickerSheet({
                   )}
                   <button
                     type="button"
-                    disabled={isPast}
-                    onClick={() => !isPast && handleCalendarSelect(thisDate)}
+                    disabled={isDisabled}
+                    onClick={() => !isDisabled && handleCalendarSelect(thisDate)}
                     className={cn(
                       "relative z-10 h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-                      isPast && "cursor-default",
-                      !isPast && !isSelected && !isDeparture && !isBlackout && "hover:bg-[#F0FDF4]",
+                      isDisabled && "cursor-default",
+                      !isDisabled && !isSelected && !isDeparture && !isBlackout && "hover:bg-[#F0FDF4]",
                       textColor,
                     )}
                     style={buttonStyle}
@@ -226,7 +254,8 @@ export function DatePickerSheet({
           <button
             type="button"
             onClick={goToNextMonth}
-            className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3]"
+            disabled={!canGoNext}
+            className="h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F2F3F3] disabled:opacity-30"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>

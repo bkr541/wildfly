@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   id?: string;
@@ -10,6 +11,9 @@ interface Props {
   children: ReactNode;
   /** Anchor scroll offset to clear the sticky nav. */
   scrollOffsetClass?: string;
+  className?: string;
+  headerClassName?: string;
+  bodyClassName?: string;
 }
 
 /**
@@ -23,11 +27,14 @@ export function GuideSectionCard({
   subtitle,
   children,
   scrollOffsetClass = "scroll-mt-24",
+  className = "",
+  headerClassName = "",
+  bodyClassName = "",
 }: Props) {
   return (
     <section
       id={id}
-      className={`rounded-2xl overflow-hidden ${scrollOffsetClass}`}
+      className={cn("rounded-2xl overflow-hidden", scrollOffsetClass, className)}
       style={{
         background: "rgba(255,255,255,0.72)",
         backdropFilter: "blur(18px)",
@@ -37,7 +44,7 @@ export function GuideSectionCard({
           "0 4px 6px -1px rgba(16,185,129,0.08), 0 8px 24px -4px rgba(52,92,90,0.13), 0 2px 40px 0 rgba(5,150,105,0.07)",
       }}
     >
-      <header className="px-5 py-4 flex items-center gap-3 border-b border-[#E8EBEB]/70">
+      <header className={cn("px-5 py-4 flex items-center gap-3 border-b border-[#E8EBEB]/70", headerClassName)}>
         <div
           className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: "#F0FDF4" }}
@@ -53,7 +60,7 @@ export function GuideSectionCard({
           )}
         </div>
       </header>
-      <div className="px-5 pt-4 pb-5">{children}</div>
+      <div className={cn("px-5 pt-4 pb-5", bodyClassName)}>{children}</div>
     </section>
   );
 }

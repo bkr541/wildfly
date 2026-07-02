@@ -49,16 +49,18 @@ const glassStyle: React.CSSProperties = {
 };
 
 /* ── Origin Input ────────────────────────────────────── */
-const OriginCombobox = ({
+export const OriginCombobox = ({
   value,
   onChange,
   hubsSorted,
   airportDict,
+  label = "Origin Airport",
 }: {
   value: string;
   onChange: (v: string) => void;
   hubsSorted: { iata: string; count: number }[];
   airportDict: Record<string, AirportInfo>;
+  label?: string;
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -87,7 +89,7 @@ const OriginCombobox = ({
   return (
     <div className={cn("relative w-full", open ? "z-[1000]" : "z-10")}>
       {/* Label styled like Flights UI */}
-      <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">Origin Airport</label>
+      <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">{label}</label>
 
       <div
         className={cn("app-input-container", isFocused && "focus-within")}

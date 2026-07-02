@@ -6,6 +6,13 @@ export interface HistoricalGoWildSearchResult {
   source: "stored_search" | "flight_snapshots";
 }
 
+export interface HistoricalGoWildRpcClient {
+  rpc(
+    functionName: "get_public_historical_gowild_search",
+    args: { p_origin_iata: string; p_travel_date: string },
+  ): Promise<{ data: unknown; error: { message?: string } | null }>;
+}
+
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export function toLocalIsoDate(date: Date): string {
@@ -40,6 +47,23 @@ export function parseHistoricalGoWildSearchResult(
   if (!/^[A-Z]{3}$/.test(origin) || !ISO_DATE_PATTERN.test(travelDate)) return null;
 
   return { origin, travelDate, observedAt, flights, source };
+}
+
+export async function fetchHistoricalGoWildSearch(
+  client: HistoricalGoWildRpcClient,
+  origin: string,
+  travelDate: string,
+): Promise<HistoricalGoWildSearchResult | null> {
+  // Deliberately invoke rpc as an object method. Supabase's implementation
+  // reads internal state from `this`, so assigning client.rpc to a standalone
+  // variable causes the "reading 'rest'" runtime failure.
+  const { data, error } = await client.rpc("get_public_historical_gowild_search", {
+    p_origin_iata: origin,
+    p_travel_date: travelDate,
+  });
+
+  if (error) throw error;
+  return parseHistoricalGoWildSearchResult(data);
 }
 
 export function buildHistoricalMultiDestinationPayload(

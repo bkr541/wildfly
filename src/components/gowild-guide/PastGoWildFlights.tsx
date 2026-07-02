@@ -1,79 +1,27 @@
 import { FormEvent, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AirportIcon,
-  Calendar03Icon,
+  CalendarCheckOut02Icon,
   Clock01Icon,
   GlobalSearchIcon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
+import { format } from "date-fns";
 import FlightDestResults from "@/pages/FlightDestResults";
 import FlightMultiDestResults from "@/pages/FlightMultiDestResults";
+import { OriginCombobox } from "@/pages/Routes";
+import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { GuideSectionCard } from "@/components/gowild-guide/GuideSectionCard";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  activeFrontierStationCodes,
-  marketDetailsByCode,
-} from "@/lib/frontierMarketOfferings";
+import { useAirportDictionary } from "@/hooks/useAirportDictionary";
+import { useRouteStats } from "@/hooks/useRouteStats";
 import {
   buildHistoricalMultiDestinationPayload,
-  getYesterdayLocalIso,
+  fetchHistoricalGoWildSearch,
+  type HistoricalGoWildRpcClient,
   isStrictlyPastLocalDate,
-  parseHistoricalGoWildSearchResult,
+  toLocalIsoDate,
 } from "@/utils/historicalGoWild";
-
-interface HistoricalRpcError {
-  message?: string;
-}
-
-type HistoricalRpc = (
-  functionName: "get_public_historical_gowild_search",
-  args: { p_origin_iata: string; p_travel_date: string },
-) => Promise<{ data: unknown; error: HistoricalRpcError | null }>;
-
-interface AirportOption {
-  code: string;
-  name: string;
-  stateCode: string;
-  searchText: string;
-}
-
-const AIRPORT_OPTIONS: AirportOption[] = Array.from(activeFrontierStationCodes)
-  .map((code) => {
-    const station = marketDetailsByCode.get(code);
-    return {
-      code,
-      name: station?.stationName ?? code,
-      stateCode: station?.stateCode ?? "",
-      searchText: [
-        code,
-        station?.stationName,
-        station?.cityAndCode,
-        station?.state,
-        station?.stateCode,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase(),
-    };
-  })
-  .sort((a, b) => a.name.localeCompare(b.name));
-
-function resolveAirport(value: string): AirportOption | null {
-  const trimmed = value.trim();
-  const exactCode = trimmed.toUpperCase();
-  const byCode = AIRPORT_OPTIONS.find((airport) => airport.code === exactCode);
-  if (byCode) return byCode;
-
-  const lowered = trimmed.toLowerCase();
-  return (
-    AIRPORT_OPTIONS.find(
-      (airport) =>
-        airport.name.toLowerCase() === lowered ||
-        `${airport.name}, ${airport.stateCode}`.toLowerCase() === lowered,
-    ) ?? null
-  );
-}
 
 function formatObservedAt(value: string | null): string | null {
   if (!value) return null;
@@ -89,30 +37,21 @@ function formatObservedAt(value: string | null): string | null {
 }
 
 export function PastGoWildFlights() {
-  const [airportInput, setAirportInput] = useState("");
-  const [selectedAirport, setSelectedAirport] = useState<AirportOption | null>(null);
-  const [date, setDate] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { dict: airportDict } = useAirportDictionary();
+  const { hubsSorted } = useRouteStats(null);
+  const [airport, setAirport] = useState("");
+  const [date, setDate] = useState<Date | undefined>();
+  const [dateSheetOpen, setDateSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultsPayload, setResultsPayload] = useState<string | null>(null);
   const [detailPayload, setDetailPayload] = useState<string | null>(null);
   const [observedAt, setObservedAt] = useState<string | null>(null);
 
-  const maxDate = useMemo(() => getYesterdayLocalIso(), []);
-
-  const suggestions = useMemo(() => {
-    const query = airportInput.trim().toLowerCase();
-    if (!query) return AIRPORT_OPTIONS.slice(0, 8);
-    return AIRPORT_OPTIONS.filter((airport) => airport.searchText.includes(query)).slice(0, 8);
-  }, [airportInput]);
-
-  const selectAirport = (airport: AirportOption) => {
-    setSelectedAirport(airport);
-    setAirportInput(airport.code);
-    setShowSuggestions(false);
-    setError(null);
-  };
+  const maxDate = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  }, []);
 
   const resetToSearch = () => {
     setResultsPayload(null);
@@ -124,12 +63,12 @@ export function PastGoWildFlights() {
     event.preventDefault();
     setError(null);
 
-    const airport = selectedAirport ?? resolveAirport(airportInput);
-    if (!airport) {
+    if (!airport || !hubsSorted.some((hub) => hub.iata === airport)) {
       setError("Choose a valid Frontier airport before searching.");
       return;
     }
-    if (!date || !isStrictlyPastLocalDate(date)) {
+    const travelDate = date ? toLocalIsoDate(date) : "";
+    if (!travelDate || !isStrictlyPastLocalDate(travelDate)) {
       setError("Choose a date before today. Today and future dates are unavailable here.");
       return;
     }
@@ -138,27 +77,18 @@ export function PastGoWildFlights() {
     try {
       // Historical guide searches are intentionally database-only. This RPC never
       // calls flight-proxy, consumes search credits, or writes a new flight search.
-      const historicalRpc = supabase.rpc as unknown as HistoricalRpc;
-      const { data, error: rpcError } = await historicalRpc(
-        "get_public_historical_gowild_search",
-        {
-          p_origin_iata: airport.code,
-          p_travel_date: date,
-        },
+      const result = await fetchHistoricalGoWildSearch(
+        supabase as unknown as HistoricalGoWildRpcClient,
+        airport,
+        travelDate,
       );
-
-      if (rpcError) throw rpcError;
-
-      const result = parseHistoricalGoWildSearchResult(data);
       if (!result || result.flights.length === 0) {
         setError(
-          `No stored All Destinations results were found for ${airport.code} on ${date}. Try another airport or earlier date.`,
+          `No stored All Destinations results were found for ${airport} on ${travelDate}. Try another airport or earlier date.`,
         );
         return;
       }
 
-      setSelectedAirport(airport);
-      setAirportInput(airport.code);
       setObservedAt(result.observedAt);
       setResultsPayload(buildHistoricalMultiDestinationPayload(result));
       setDetailPayload(null);
@@ -230,9 +160,12 @@ export function PastGoWildFlights() {
         icon={Clock01Icon}
         title="Explore Past GoWild Flights"
         subtitle="Replay a stored All Destinations result without running a live search."
+        className="overflow-visible"
+        headerClassName="hidden lg:flex"
+        bodyClassName="px-4 pt-4 pb-5 lg:px-5"
       >
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-          <div className="rounded-2xl border border-[#DDE7E4] bg-[#F8FFFB] p-4">
+          <div className="hidden rounded-2xl border border-[#DDE7E4] bg-[#F8FFFB] p-4 lg:block">
             <div className="flex items-start gap-2.5">
               <HugeiconsIcon
                 icon={InformationCircleIcon}
@@ -247,89 +180,54 @@ export function PastGoWildFlights() {
             </div>
           </div>
 
-          <div className="relative">
-            <label htmlFor="past-gowild-airport" className="mb-1.5 block text-sm font-bold text-[#059669]">
-              Departure airport
-            </label>
-            <div className="app-input-container bg-white">
-              <span className="app-input-icon-btn pointer-events-none" aria-hidden="true">
-                <HugeiconsIcon icon={AirportIcon} size={20} color="currentColor" strokeWidth={2} />
-              </span>
-              <input
-                id="past-gowild-airport"
-                type="text"
-                value={airportInput}
-                onChange={(event) => {
-                  setAirportInput(event.target.value);
-                  setSelectedAirport(null);
-                  setShowSuggestions(true);
-                  setError(null);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => window.setTimeout(() => setShowSuggestions(false), 120)}
-                placeholder="Search city or airport code"
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-                role="combobox"
-                aria-expanded={showSuggestions}
-                aria-controls="past-gowild-airport-options"
-                className="app-input bg-white"
-              />
-            </div>
-
-            {showSuggestions && suggestions.length > 0 && (
-              <div
-                id="past-gowild-airport-options"
-                role="listbox"
-                className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-[#DDE7E4] bg-white p-2 shadow-[0_18px_45px_rgba(26,46,46,0.16)]"
-              >
-                {suggestions.map((airport) => (
-                  <button
-                    key={airport.code}
-                    type="button"
-                    role="option"
-                    aria-selected={selectedAirport?.code === airport.code}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => selectAirport(airport)}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#F0FDF4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F0FDF4] text-xs font-black text-[#047857]">
-                      {airport.code}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold text-[#1A2E2E]">{airport.name}</span>
-                      {airport.stateCode && (
-                        <span className="block text-xs text-[#7A8B89]">{airport.stateCode}</span>
-                      )}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <OriginCombobox
+            value={airport}
+            onChange={(value) => {
+              setAirport(value);
+              setError(null);
+            }}
+            hubsSorted={hubsSorted}
+            airportDict={airportDict}
+            label="Departure Airport"
+          />
 
           <div>
-            <label htmlFor="past-gowild-date" className="mb-1.5 block text-sm font-bold text-[#059669]">
-              Past travel date
+            <DatePickerSheet
+              open={dateSheetOpen}
+              onClose={() => setDateSheetOpen(false)}
+              label="Past Travel Date"
+              selected={date}
+              onSelect={(selectedDate) => {
+                setDate(selectedDate);
+                setError(null);
+              }}
+              maxDate={maxDate}
+            />
+
+            <label className="ml-1 mb-0 block cursor-pointer text-sm font-bold text-[#059669]">
+              Past Travel Date
             </label>
-            <div className="app-input-container bg-white">
-              <span className="app-input-icon-btn pointer-events-none" aria-hidden="true">
-                <HugeiconsIcon icon={Calendar03Icon} size={20} color="currentColor" strokeWidth={2} />
+            <button
+              type="button"
+              className="app-input-container w-full text-left outline-none"
+              style={{ minHeight: 48 }}
+              onClick={() => setDateSheetOpen(true)}
+            >
+              <span className="app-input-icon-btn">
+                <HugeiconsIcon
+                  icon={CalendarCheckOut02Icon}
+                  size={20}
+                  color="currentColor"
+                  strokeWidth={2}
+                />
               </span>
-              <input
-                id="past-gowild-date"
-                type="date"
-                value={date}
-                max={maxDate}
-                onChange={(event) => {
-                  setDate(event.target.value);
-                  setError(null);
-                }}
-                className="app-input bg-white"
-                required
-              />
-            </div>
+              <span
+                className="flex-1 truncate px-[0.8em] py-[0.7em] text-base"
+                style={{ color: date ? "#1F2937" : "#6B7280" }}
+              >
+                {date ? format(date, "MMM d, yyyy") : "Select date"}
+              </span>
+            </button>
             <p className="mt-1.5 text-xs text-[#7A8B89]">Today and future dates are disabled.</p>
           </div>
 
