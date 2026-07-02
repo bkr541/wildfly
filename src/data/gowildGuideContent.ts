@@ -39,8 +39,8 @@ export const RESOURCE_LINKS: GuideResourceLink[] = [
 
 export const QUICK_POINTS: string[] = [
   "GoWild airfare is generally $0.01 per flight segment, but taxes, airport charges, and other fees still apply.",
-  "Domestic flights normally enter the standard booking window the calendar day before departure.",
-  "International flights normally enter the standard booking window 10 days before departure.",
+  "Domestic flights normally enter the standard booking window the calendar day before departure at 12:01am local to the Departure Airport's timezone.",
+  "International flights normally enter the standard booking window 10 days before departure at 12:01am local to the Departure Airport's timezone.",
   "Select flights may become available earlier through an early-booking promotion or charge.",
   "GoWild seats are limited and are not guaranteed on every flight.",
   "Bags, seats, bundles, pets, and other extras may cost more.",

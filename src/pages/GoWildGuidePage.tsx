@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
@@ -8,7 +8,6 @@ import {
   ArrowLeft01Icon,
   Clock01Icon,
   Money03Icon,
-  Tag01Icon,
   CalendarRemove02Icon,
   GlobeIcon,
   Calendar01Icon,
@@ -28,7 +27,6 @@ import { GoWildFaq } from "@/components/gowild-guide/GoWildFaq";
 import { PastGoWildFlights } from "@/components/gowild-guide/PastGoWildFlights";
 import RoutesPage from "@/pages/Routes";
 import {
-  EARLY_BOOKING_PROMOTION,
   LAST_VERIFIED_DATE,
   PASS_TRAVEL_PERIODS,
   QUICK_POINTS,
@@ -193,7 +191,7 @@ function GuideSidebar({
       className={[
         "flex flex-col bg-white",
         mobile
-          ? "fixed inset-y-0 left-0 z-50 w-[80%] lg:hidden"
+          ? "fixed inset-y-0 left-0 z-50 w-[80%] lg:w-72"
           : "hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:border-r lg:border-[#E5E7EB]",
       ].join(" ")}
       style={
@@ -413,10 +411,8 @@ function GuideViewHeader({ view }: { view: GuideViewId }) {
 }
 
 function OverviewView({
-  promoVisible,
   onNavigate,
 }: {
-  promoVisible: boolean;
   onNavigate: (view: GuideViewId) => void;
 }) {
   return (
@@ -524,99 +520,32 @@ function OverviewView({
           icon={InformationCircleIcon}
           title="How to Inspect the Exact Fare"
         >
-          <ol className="space-y-2 text-sm text-[#2E4A4A] list-decimal pl-5">
-            <li>Select the GoWild fare.</li>
-            <li>Open the cart or trip summary.</li>
-            <li>
-              Expand <em>Taxes and Carrier Imposed Fees</em>.
-            </li>
-            <li>
-              Look for: GoWild Early Booking · Transportation Tax · Domestic
-              Flight Segment Tax · Passenger Security Fee · Passenger Facility
-              Charge · International arrival/departure taxes.
-            </li>
-            <li>
-              Compare the final GoWild total with Standard and Discount Den.
-            </li>
-          </ol>
-          <div className="mt-3 rounded-xl border border-[#FDE68A] bg-[#FEF3C7] px-3 py-2 text-xs text-[#92400E]">
-            GoWild is not guaranteed to be the cheapest fare in every search.
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              {
+                title: "Around $15",
+                body: "Usually a domestic nonstop inside the normal booking window, mostly the $0.01 airfare plus required taxes and charges.",
+              },
+              {
+                title: "Around $30+",
+                body: "May indicate a connecting itinerary, multiple segments, territory routing, or another itinerary-specific charge.",
+              },
+              {
+                title: "$59 / $79 / $119+",
+                body: "May indicate a GoWild Early Booking charge, peak-date promotion, multiple segments, international taxes, or optional add-ons.",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className="rounded-2xl border border-[#F0F1F1] bg-white p-4 shadow-sm"
+              >
+                <p className="text-sm font-bold text-[#059669]">{card.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#6B7B7B]">
+                  {card.body}
+                </p>
+              </div>
+            ))}
           </div>
-        </GuideSectionCard>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            {
-              title: "Around $15",
-              body: "Usually a domestic nonstop inside the normal booking window, mostly the $0.01 airfare plus required taxes and charges.",
-            },
-            {
-              title: "Around $30+",
-              body: "May indicate a connecting itinerary, multiple segments, territory routing, or another itinerary-specific charge.",
-            },
-            {
-              title: "$59 / $79 / $119+",
-              body: "May indicate a GoWild Early Booking charge, peak-date promotion, multiple segments, international taxes, or optional add-ons.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="rounded-2xl border border-[#F0F1F1] bg-white p-4 shadow-sm"
-            >
-              <p className="text-sm font-bold text-[#059669]">{card.title}</p>
-              <p className="text-xs text-[#6B7B7B] leading-relaxed mt-1">
-                {card.body}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <GuideSectionCard
-          icon={Tag01Icon}
-          title="Early Booking"
-          subtitle="When GoWild appears outside the standard window."
-        >
-          <ul className="text-sm text-[#2E4A4A] list-disc pl-5 space-y-1">
-            <li>
-              Frontier may release select GoWild fares beyond the normal booking
-              window.
-            </li>
-            <li>
-              These fares may include a non-refundable early-booking charge.
-            </li>
-            <li>
-              The GoWild total may therefore be higher than Standard or Discount
-              Den.
-            </li>
-            <li>Early-booking inventory remains capacity-controlled.</li>
-            <li>
-              A flight unavailable through early booking may still appear when
-              the standard window opens.
-            </li>
-            <li>
-              An early-booking charge is not a universal blackout-date fee.
-            </li>
-          </ul>
-          {promoVisible && (
-            <div className="mt-3 rounded-xl border border-[#A7F3D0] bg-[#F0FDF4] p-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#059669] flex items-center gap-1.5">
-                <HugeiconsIcon
-                  icon={GiftIcon}
-                  size={14}
-                  color="#059669"
-                  strokeWidth={2}
-                />
-                {EARLY_BOOKING_PROMOTION.title}
-              </p>
-              <p className="text-sm text-[#1A2E2E] mt-1">
-                {EARLY_BOOKING_PROMOTION.message}
-              </p>
-              <p className="text-xs text-[#6B7B7B] mt-1">
-                Purchase through {EARLY_BOOKING_PROMOTION.purchaseThrough} ·
-                Travel through {EARLY_BOOKING_PROMOTION.travelThrough}.
-              </p>
-            </div>
-          )}
         </GuideSectionCard>
 
         <GuideSectionCard icon={AirportIcon} title="Included vs. Extra">
@@ -761,6 +690,26 @@ function OverviewView({
               All dates and prices are subject to change.
             </p>
           </div>
+          <a
+            href="https://booking.flyfrontier.com/FrontierMiles/GoWildSignup"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#10B981] bg-[#F0FDF4] px-4 py-2.5 text-sm font-bold text-[#059669] transition-colors hover:bg-[#DCFCE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]"
+          >
+            <HugeiconsIcon
+              icon={GiftIcon}
+              size={17}
+              color="currentColor"
+              strokeWidth={2}
+            />
+            <span>Buy your Frontier GoWild Pass</span>
+            <HugeiconsIcon
+              icon={ArrowUpRight01Icon}
+              size={16}
+              color="currentColor"
+              strokeWidth={2}
+            />
+          </a>
         </GuideSectionCard>
 
         <GuideSectionCard
@@ -863,12 +812,6 @@ export default function GoWildGuidePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const activeMeta = VIEW_META[activeView];
 
-  const promoVisible = useMemo(() => {
-    if (!EARLY_BOOKING_PROMOTION.active) return false;
-    const todayIso = new Date().toISOString().slice(0, 10);
-    return todayIso <= EARLY_BOOKING_PROMOTION.purchaseThrough;
-  }, []);
-
   useEffect(() => {
     if (!drawerOpen) return;
     const previousOverflow = document.body.style.overflow;
@@ -900,7 +843,6 @@ export default function GoWildGuidePage() {
       }}
     >
       <div className="min-h-screen lg:flex">
-        <GuideSidebar activeView={activeView} onNavigate={handleNavigate} />
         <GuideSidebar
           activeView={activeView}
           mobile
@@ -915,7 +857,7 @@ export default function GoWildGuidePage() {
           aria-hidden={!drawerOpen}
           tabIndex={drawerOpen ? 0 : -1}
           onClick={() => setDrawerOpen(false)}
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
           style={{
             opacity: drawerOpen ? 1 : 0,
             pointerEvents: drawerOpen ? "auto" : "none",
@@ -925,13 +867,13 @@ export default function GoWildGuidePage() {
 
         <div
           className={[
-            "min-w-0 flex-1 transition-all duration-300 ease-in-out lg:translate-x-0 lg:rounded-none lg:shadow-none",
+            "min-w-0 flex-1 transition-all duration-300 ease-in-out",
             drawerOpen
               ? "translate-x-[44%] rounded-[20px] shadow-[0_8px_40px_0_rgba(0,0,0,0.22),0_2px_8px_0_rgba(0,0,0,0.10)] overflow-hidden"
               : "translate-x-0 rounded-none shadow-none",
           ].join(" ")}
         >
-          <header className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 bg-[#F0FDF4]/90 backdrop-blur-md border-b border-[#BBF7D0]/70 lg:hidden">
+          <header className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 bg-[#F0FDF4]/90 backdrop-blur-md border-b border-[#BBF7D0]/70">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -964,12 +906,7 @@ export default function GoWildGuidePage() {
             aria-label={`${activeMeta.title} view`}
             key={activeView}
           >
-            {activeView === "overview" && (
-              <OverviewView
-                promoVisible={promoVisible}
-                onNavigate={handleNavigate}
-              />
-            )}
+            {activeView === "overview" && <OverviewView onNavigate={handleNavigate} />}
             {activeView === "blackout" && <BlackoutDatesView />}
             {activeView === "where-you-can-fly" && (
               <WhereYouCanFlyView onAppNavigate={handleAppNavigate} />
