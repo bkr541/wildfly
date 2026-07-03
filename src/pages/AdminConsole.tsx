@@ -882,11 +882,6 @@ const COLUMN_MAP: Record<string, ColumnInfo[]> = {
     c("all_destinations","bool"), c("json_body","jsonb"), c("request_body","jsonb"),
     c("gowild_found","bool"), c("flight_results_count","int4"), c("triggered_by","text"),
   ],
-  flight_search_cache: [
-    c("id","uuid"), c("cache_key","text"), c("reset_bucket","text"),
-    c("canonical_request","text"), c("provider","text"), c("status","text"),
-    c("payload","jsonb"), c("error","text"), c("created_at","timestamptz"), c("updated_at","timestamptz"),
-  ],
   gowild_snapshots: [
     c("id","uuid"), c("observed_at","timestamptz"), c("observed_date","date"),
     c("origin_iata","varchar",3), c("destination_iata","varchar",3), c("travel_date","date"),
@@ -1021,7 +1016,6 @@ const TABLE_GROUPS: { label: string; icon: any; tables: TableEntry[] }[] = [
     icon: AirplaneTakeOff01Icon,
     tables: [
       { name: "flight_searches" },
-      { name: "flight_search_cache" },
       { name: "gowild_snapshots" },
       { name: "route_favorites" },
     ],
@@ -1323,7 +1317,7 @@ function JsonPopup({ col, val, onClose }: { col: string; val: unknown; onClose: 
 const ALL_TABLES = [
   "airports", "announcement_views", "announcements", "app_config", "artist_genres", "artists",
   "credit_packs", "credit_transactions", "developer_allowlist", "developer_settings",
-  "flight_search_cache", "flight_searches", "friend_requests", "friends", "genres",
+  "flight_searches", "friend_requests", "friends", "genres",
   "gowild_snapshots", "locations", "notifications", "plans", "route_favorites", "trip_shares",
   "user_credit_wallet", "user_events", "user_favorite_artists", "user_favorite_genres",
   "user_favorite_locations", "user_flights", "user_homepage", "user_locations", "user_settings",

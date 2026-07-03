@@ -41,13 +41,6 @@ interface Airport {
   };
 }
 
-async function sha256(input: string): Promise<string> {
-  const buf = new TextEncoder().encode(input);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 interface FlightSearchExample {
   id: string;
@@ -630,19 +623,23 @@ const PreviewPage = () => {
     setExpandedId(ex.id);
     if (payloads[ex.id]) return;
     setPayloads((p) => ({ ...p, [ex.id]: { status: "loading" } }));
-    const cacheKey = await sha256(`${ex.departure_airport}|${ex.arrival_airport}|${ex.departure_date}`);
-    const { data } = await (supabase.from("flight_search_cache") as any)
-      .select("payload")
-      .eq("cache_key", cacheKey)
-      .eq("status", "ready")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const flights: any[] = data?.payload?.flights ?? [];
-    setPayloads((p) => ({
-      ...p,
-      [ex.id]: { status: flights.length > 0 ? "ready" : "empty", flights },
-    }));
+    try {
+      // Preview is historical user data, not a reason to expose a global cache
+      // lookup. RLS limits this read to the authenticated user's saved search.
+      const { data: saved, error } = await (supabase.from("flight_searches") as any)
+        .select("json_body")
+        .eq("id", ex.id)
+        .maybeSingle();
+      if (error) throw error;
+      const flights: any[] = saved?.json_body?.flights ?? [];
+
+      setPayloads((p) => ({
+        ...p,
+        [ex.id]: { status: flights.length > 0 ? "ready" : "empty", flights },
+      }));
+    } catch {
+      setPayloads((p) => ({ ...p, [ex.id]: { status: "empty", flights: [] } }));
+    }
   };
 
   return (

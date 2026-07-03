@@ -8,6 +8,7 @@ import {
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchTrustedCachedFlight } from "@/lib/flightApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
 
@@ -51,14 +52,6 @@ const CARD_SHADOW =
   "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** SHA-256 hex string (same as Home.tsx) */
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 /** Convert "HH:MM AM/PM" + date "YYYY-MM-DD" → Date */
 function parseTimeString(timeStr: string, dateStr: string): Date | null {
@@ -356,41 +349,23 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
         const today = format(new Date(), "yyyy-MM-dd");
         const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
 
-        // ── Resolve home airport ──────────────────────────────────────────────
-        const { data: info } = await supabase
-          .from("user_info")
-          .select("home_airport")
-          .eq("auth_user_id", user.id)
-          .maybeSingle();
-
-        const homeIata = info?.home_airport ?? null;
-
         let allPairs: DayTripPair[] = [];
 
-        // ── 1. Try flight_search_cache if we have a home airport ──────────────
-        if (homeIata) {
-          const [todayCacheKey, tomorrowCacheKey] = await Promise.all([
-            sha256(`${homeIata}|__DAYTRIPS__|${today}`),
-            sha256(`${homeIata}|__DAYTRIPS__|${tomorrow}`),
-          ]);
-
-          const [todayCached, tomorrowCached] = await Promise.all([
-            (supabase.from("flight_search_cache") as any)
-              .select("payload, status")
-              .eq("cache_key", todayCacheKey)
-              .eq("status", "ready")
-              .maybeSingle(),
-            (supabase.from("flight_search_cache") as any)
-              .select("payload, status")
-              .eq("cache_key", tomorrowCacheKey)
-              .eq("status", "ready")
-              .maybeSingle(),
-          ]);
-
-          allPairs = [
-            ...(todayCached.data?.payload ? parseDayTripPairs(todayCached.data.payload, today) : []),
-            ...(tomorrowCached.data?.payload ? parseDayTripPairs(tomorrowCached.data.payload, tomorrow) : []),
-          ];
+        // ── 1. Read the shared cache through its trusted, purpose-scoped owner.
+        // The server derives the home airport from the authenticated user and
+        // never accepts a browser-supplied cache key.
+        try {
+          const cached = await fetchTrustedCachedFlight<any>({
+            purpose: "home_day_trips",
+            dates: [today, tomorrow],
+          });
+          const rows: any[] = Array.isArray(cached?.data) ? cached.data : [];
+          allPairs = rows.flatMap((row) =>
+            row?.data ? parseDayTripPairs(row.data, String(row.date)) : [],
+          );
+        } catch {
+          // Saved-search fallback below keeps the widget useful during a cache
+          // service outage without opening direct access to the shared table.
         }
 
         // ── 2. Always fall back to flight_searches (works even without home_airport) ──

@@ -29,6 +29,12 @@ export interface ProxyBillingResponse {
   period_end?: string | null;
 }
 
+export interface FlightCacheMeta {
+  hit: boolean;
+  observedAt?: string | null;
+  expiresAt?: string | null;
+}
+
 export interface SearchLimitInfo {
   limit: number;
   used: number;
@@ -68,7 +74,7 @@ function toSearchLimitError(envelope: any, fallbackRequestId = "") {
 
 export async function flightApiFetch<T = any>(
   request: FlightProxyRequest,
-): Promise<{ data: T; status: number; billing: ProxyBillingResponse | null }> {
+): Promise<{ data: T; status: number; billing: ProxyBillingResponse | null; cache: FlightCacheMeta }> {
   const { data, error } = await supabase.functions.invoke("flight-proxy", {
     body: request,
   });
@@ -101,6 +107,7 @@ export async function flightApiFetch<T = any>(
     data: (envelope?.data ?? envelope) as T,
     status: 200,
     billing: envelope?.billing ?? null,
+    cache: envelope?.cache ?? { hit: false },
   };
 }
 
@@ -119,4 +126,30 @@ export function fetchRoundTrip(payload: Record<string, unknown>, billing?: Billi
 /** Inbound lookups are supporting data for an already-authorized search. */
 export function fetchInbound(params: Record<string, string>) {
   return flightApiFetch({ path: "/inbound", method: "GET", params });
+}
+
+
+/**
+ * Read a narrowly scoped non-metered cache view. The edge function derives the
+ * canonical request from trusted user/search data; callers cannot submit cache
+ * keys or select arbitrary shared rows.
+ */
+export async function fetchTrustedCachedFlight<T = any>(body: {
+  purpose: "home_day_trips";
+  dates: string[];
+}): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("flight-cache", { body });
+  if (error) {
+    let contextBody: any = null;
+    try {
+      const response = (error as any).context?.response;
+      if (response) contextBody = await response.clone().json();
+    } catch {
+      // Fall through to the generic edge-function message.
+    }
+    throw new Error(contextBody?.error ?? error.message ?? "Cached flight lookup failed");
+  }
+  const envelope = data as any;
+  if (envelope?.ok === false) throw new Error(envelope.error ?? "Cached flight lookup failed");
+  return envelope as T;
 }

@@ -92,18 +92,6 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function resetBucket(departureDateStr: string): string {
-  const [y, m, d] = departureDateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
-}
-
 function isRateLimit(err: any): boolean {
   const msg: string = (err?.message ?? "").toLowerCase();
   return msg.includes("429") || msg.includes("rate limit") || msg.includes("too many");
@@ -114,14 +102,26 @@ async function searchWithRetry(
   date: string,
   onBackoff: (iata: string, attempt: number, waitMs: number) => void,
   abortRef: React.MutableRefObject<boolean>,
-): Promise<{ data: any; attempts: number }> {
+): Promise<{
+  data: any;
+  attempts: number;
+  cacheHit: boolean;
+  observedAt: string | null;
+  creditsCost: number;
+}> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const result = await fetchFlightSearch(
         { origin: iata, departureDate: date },
-        { requestId: `admin-bulk-${iata}-${date}-${Date.now()}` },
+        { requestId: crypto.randomUUID() },
       );
-      return { data: result.data, attempts: attempt };
+      return {
+        data: result.data,
+        attempts: attempt,
+        cacheHit: result.cache.hit,
+        observedAt: result.cache.observedAt ?? null,
+        creditsCost: result.billing?.charged ?? 0,
+      };
     } catch (err: any) {
       if (!isRateLimit(err) || attempt === MAX_RETRIES) throw err;
       const waitMs = BACKOFF_BASE_MS * Math.pow(2, attempt - 1);
@@ -309,8 +309,6 @@ export default function AdminBulkSearch() {
     }
 
     setProgress({ current: 0, total: filtered.length });
-    const bucket = resetBucket(date);
-
     for (let i = 0; i < filtered.length; i++) {
       if (abortRef.current) break;
 
@@ -319,7 +317,7 @@ export default function AdminBulkSearch() {
       setStatusLine(`Searching ${iata_code}…`);
 
       try {
-        const { data: raw, attempts } = await searchWithRetry(
+        const { data: raw, attempts, cacheHit, observedAt, creditsCost } = await searchWithRetry(
           iata_code,
           date,
           (iata, attempt, waitMs) => {
@@ -340,21 +338,8 @@ export default function AdminBulkSearch() {
 
         const destinations = enrichDestinations(destIatas, airportLookup);
 
-        const cacheKey = await sha256(`${iata_code}|__ALL__|${date}`);
-
-        await (supabase.from("flight_search_cache") as any).upsert(
-          {
-            cache_key: cacheKey,
-            reset_bucket: bucket,
-            canonical_request: { origin: iata_code, destination: "__ALL__", departureDate: date },
-            provider: "frontier",
-            status: "ready",
-            payload: normalized,
-            dep_iata: iata_code,
-            arr_iata: "__ALL__",
-          },
-          { onConflict: "cache_key,reset_bucket" },
-        );
+        // flight-proxy owns the shared cache write. Admin browser code must not
+        // receive cache keys or mutate globally shared rows.
 
         const goWildFound = normalized.flights.some(
           (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,
@@ -375,18 +360,18 @@ export default function AdminBulkSearch() {
               headers: { "Content-Type": "application/json" },
               body: { origin: iata_code, departureDate: date },
             },
-            credits_cost: 0,
+            credits_cost: creditsCost,
             arrival_airports_count: 0,
             gowild_found: goWildFound,
             flight_results_count: normalized.flights.length,
             triggered_by: "admin_bulk_search",
-            result_source: "admin_bulk_search",
-            provider_observed_at: new Date().toISOString(),
+            result_source: cacheHit ? "cache_hit" : "admin_bulk_search",
+            provider_observed_at: observedAt ?? new Date().toISOString(),
           } as any)
           .select("id")
           .single();
 
-        if (fsRow?.id) {
+        if (fsRow?.id && !cacheHit) {
           // Await so we can pass the observed stable keys to the disappearance
           // tracker. Admin bulk searches "all destinations" from origin, so
           // destinationIata=null scopes the disappearance check to the origin

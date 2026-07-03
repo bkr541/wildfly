@@ -7,6 +7,7 @@
 // as Bearer in the Authorization header. verify_jwt is disabled in config.toml.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { normalizeFlightCacheRequest, writeFlightCache } from "../_shared/flightCache.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,18 +58,6 @@ const TIMEZONE_GROUPS: Record<TimezoneGroup, string[]> = {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function resetBucket(departureDateStr: string): string {
-  const [y, m, d] = departureDateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
-}
 
 function isRateLimit(err: any): boolean {
   const msg: string = (err?.message ?? "").toLowerCase();
@@ -453,7 +442,6 @@ Deno.serve(async (req) => {
     await admin.from("bulk_search_job_logs")
       .update({ airports_total: filtered.length }).eq("id", logId);
 
-    const bucket = resetBucket(targetDate);
     let succeeded = Math.max(0, Number(body.succeeded ?? 0));
     let failed = Math.max(0, Number(body.failed ?? 0));
     let gowildCount = Math.max(0, Number(body.gowildCount ?? 0));
@@ -465,13 +453,12 @@ Deno.serve(async (req) => {
         const { data: raw } = await searchWithRetry(iata_code, targetDate, token);
         const normalized = normalizeAllDestinationsResponse(raw, targetDate);
 
-        const cacheKey = await sha256(`${iata_code}|__ALL__|${targetDate}`);
-        await admin.from("flight_search_cache").upsert({
-          cache_key: cacheKey, reset_bucket: bucket,
-          canonical_request: { origin: iata_code, destination: "__ALL__", departureDate: targetDate },
-          provider: "frontier", status: "ready", payload: normalized,
-          dep_iata: iata_code, arr_iata: "__ALL__",
-        }, { onConflict: "cache_key,reset_bucket" });
+        const canonicalCacheRequest = normalizeFlightCacheRequest({
+          path: "/search",
+          method: "POST",
+          payload: { origin: iata_code, departureDate: targetDate },
+        });
+        await writeFlightCache(admin, canonicalCacheRequest, raw);
 
         const goWildFound = normalized.flights.some(
           (f: any) => f.fares?.go_wild != null || f.rawPayload?.fares?.go_wild?.total != null,

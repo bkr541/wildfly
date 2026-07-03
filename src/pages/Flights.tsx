@@ -47,20 +47,6 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
-/** SHA-256 hex hash (Web Crypto) */
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-/** 12:01 AM on the departure date in UTC – the GoWild reset boundary */
-function resetBucket(departureDateStr: string): string {
-  const [y, m, d] = departureDateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 0, 1, 0)).toISOString();
-}
-
 const flightLog = getLogger("FlightsPage");
 const cacheLog = getLogger("Cache");
 const edgeLog = getLogger("EdgeFunctions");
@@ -1115,20 +1101,10 @@ const FlightsPage = ({
             const allSameArrCity = arrivals.length > 1 && arrCity && arrivals.every(a => a.locations?.city === arrCity);
             const destinationCode = arrivals.length === 0 ? "__ALL__" : (allSameArrCity ? `CITY:${normalizeCityForApi(arrCity!)}` : arrivals[0].iata_code);
 
-            const cacheOrigin = originCode;
             const cacheDest = searchAll ? "__ALL__" : destinationCode;
-            const cacheDate = depFormatted;
-            const cacheKey = await sha256(`${cacheOrigin}|${cacheDest}|${cacheDate}`);
             // A billing request id represents this deliberate click, not the cache identity.
             // Repeating the same route/date later must count as a new search.
             const searchRequestId = crypto.randomUUID();
-
-            const canonicalRequest = {
-              origin: cacheOrigin,
-              destination: cacheDest,
-              departureDate: cacheDate,
-            };
-            const bucket = resetBucket(depFormatted);
 
             const tripTypeMapping =
               tripType === "round-trip"
@@ -1150,110 +1126,22 @@ const FlightsPage = ({
               date: depFormatted,
             });
             try {
-              // ── Cache check first (no charge until we know we need fresh data) ──
-              // Cache is valid if: same dep/arr/date (cache_key) AND written within last 6 hours
-              const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-              const { data: cached } = await (supabase.from("flight_search_cache") as any)
-                .select("payload, updated_at")
-                .eq("cache_key", cacheKey)
-                .eq("status", "ready")
-                .gte("updated_at", sixHoursAgo)
-                .maybeSingle();
-
+              // The trusted proxy owns authorization, cache lookup, provider access,
+              // validation, and cache persistence. The browser never receives a cache
+              // key and cannot select or mutate shared rows.
               let creditsCost = 0;
+              let cacheHit = false;
+              let cacheObservedAt: string | null = null;
 
-              if (cached?.payload) {
-                cacheLog.info("Cache HIT", { dep: originCode, arr: cacheDest });
-
-                // Cached and live searches use the same atomic one-search entitlement.
-                const { data: authorization, error: authorizationError } = await (supabase.rpc as any)(
-                  "authorize_user_search",
-                  {
-                    p_request_id: searchRequestId,
-                    p_search_source: "cache_hit",
-                  },
-                );
-                if (authorizationError) {
-                  flightLog.error("Search authorization failed (cache path)", authorizationError);
-                  setSearchError(authorizationError.message ?? "Could not verify your search allowance. Please try again.");
-                  setLoading(false);
-                  return;
-                }
-                const authResult = authorization as any;
-                if (!authResult?.allowed) {
-                  setCreditError({
-                    limit: authResult?.limit ?? 5,
-                    used: authResult?.used ?? 5,
-                    remaining: authResult?.remaining ?? 0,
-                  });
-                  setLoading(false);
-                  return;
-                }
-                creditsCost = authResult?.charged ?? 0;
-
-                await new Promise((r) => setTimeout(r, 2000));
-
-                // Log to flight_searches as cache_hit. Do NOT write flight_snapshots
-                // because cached data is not a fresh provider observation.
-                try {
-                  const {
-                    data: { user },
-                  } = await supabase.auth.getUser();
-                  if (user) {
-                    const cachedFlights: any[] = (cached.payload as any)?.flights ?? [];
-                    const cachedGoWild = cachedFlights.some(
-                      (f: any) =>
-                        f.fares?.go_wild != null ||
-                        f.rawPayload?.fares?.go_wild?.total != null,
-                    );
-                    await (supabase.from("flight_searches") as any).insert({
-                      user_id: user.id,
-                      departure_airport: originCode,
-                      arrival_airport: searchAll ? null : destinationCode,
-                      departure_date: depFormatted,
-                      return_date: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                      trip_type: tripTypeMapping,
-                      all_destinations: searchAll ? "Yes" : "No",
-                      json_body: cached.payload as any,
-                      credits_cost: creditsCost,
-                      arrival_airports_count: arrivalAirportsCount,
-                      gowild_found: cachedGoWild,
-                      flight_results_count: cachedFlights.length,
-                      result_source: "cache_hit",
-                      provider_observed_at: (cached as any).updated_at ?? null,
-                    } as any);
-                  }
-                } catch (logErr) {
-                  flightLog.warn("Flight search log failed (non-blocking)", logErr);
-                }
-
-                const payload = JSON.stringify(
-                  {
-                    response: cached.payload,
-                    departureDate: depFormatted,
-                    arrivalDate: arrivalDate ? format(arrivalDate, "yyyy-MM-dd") : null,
-                    tripType: tripType === "round-trip" ? "Round Trip" : tripType === "day-trip" ? "Day Trip" : "One Way",
-                    departureAirport: originCode,
-                    arrivalAirport: searchAll ? "All" : destinationCode,
-                    fromCache: true,
-                  },
-                  null,
-                  2,
-                );
-                onNavigate("flight-results", payload);
-                return;
-              }
-
-              // ── Cache MISS — call API via proxy. The server charges credits
-              // atomically before performing the upstream paid request, and
-              // refunds automatically if the upstream provider fails.
-              cacheLog.info("Cache MISS", { dep: originCode, arr: cacheDest });
+              // The server charges exactly once before deciding whether this
+              // deliberate search is satisfied by cache or by the provider.
               const billingMeta = {
                 requestId: searchRequestId,
                 searchSource: "flight_proxy" as const,
               };
               const edgeStart = performance.now();
               let data, error;
+              let cacheMeta: { hit: boolean; observedAt?: string | null } = { hit: false };
 
               try {
                 if (tripType === "day-trip") {
@@ -1264,6 +1152,7 @@ const FlightsPage = ({
                   );
                   data = dayTripResult.data;
                   creditsCost = dayTripResult.billing?.charged ?? 0;
+                  cacheMeta = dayTripResult.cache;
                   error = null;
                 } else if (tripType === "round-trip" && arrivalDate) {
                   const body = {
@@ -1276,6 +1165,7 @@ const FlightsPage = ({
                   const rtResult = await fetchRoundTrip(body, billingMeta);
                   data = rtResult.data;
                   creditsCost = rtResult.billing?.charged ?? 0;
+                  cacheMeta = rtResult.cache;
                   error = null;
                 } else {
                   const body: Record<string, string> = {
@@ -1289,6 +1179,7 @@ const FlightsPage = ({
                   const searchResult = await fetchFlightSearch(body, billingMeta);
                   data = searchResult.data;
                   creditsCost = searchResult.billing?.charged ?? 0;
+                  cacheMeta = searchResult.cache;
                   error = null;
                 }
               } catch (fetchErr) {
@@ -1305,9 +1196,16 @@ const FlightsPage = ({
                 error = fetchErr;
               }
 
+              cacheHit = Boolean(cacheMeta?.hit);
+              cacheObservedAt = cacheMeta?.observedAt ?? null;
+              cacheLog.info(cacheHit ? "Cache HIT" : "Cache MISS", {
+                dep: originCode,
+                arr: cacheDest,
+              });
               edgeLog.info("Edge function complete", {
                 duration: `${(performance.now() - edgeStart).toFixed(0)}ms`,
                 success: !error,
+                cacheHit,
               });
               if (error) {
                 edgeLog.error("Edge function error", error);
@@ -1321,32 +1219,6 @@ const FlightsPage = ({
                 flightLog.debug("Normalized in", `${(performance.now() - normalizeStart).toFixed(0)}ms`, {
                   flights: normalized.flights.length,
                 });
-                // ── Write to cache ──
-                try {
-                  await (supabase.from("flight_search_cache") as any).upsert(
-                    {
-                      cache_key: cacheKey,
-                      reset_bucket: bucket,
-                      canonical_request: canonicalRequest,
-                      provider: "frontier",
-                      status: "ready",
-                      payload: normalized,
-                      dep_iata: originCode,
-                      arr_iata: searchAll ? "__ALL__" : destinationCode,
-                    },
-                    { onConflict: "cache_key,reset_bucket" },
-                  );
-                  cacheLog.info("Cache WRITE", {
-                    cacheKey,
-                    bucket,
-                    dep: originCode,
-                    arr: searchAll ? "__ALL__" : destinationCode,
-                  });
-                } catch (cacheErr) {
-                  cacheLog.warn("Cache write failed (non-blocking)", cacheErr);
-                }
-
-
                 // Log to flight_searches + write snapshots
                 try {
                   const {
@@ -1390,7 +1262,7 @@ const FlightsPage = ({
                         f.fares?.go_wild != null ||
                         f.rawPayload?.fares?.go_wild?.total != null,
                     );
-                    const providerObservedAt = new Date().toISOString();
+                    const providerObservedAt = cacheObservedAt ?? new Date().toISOString();
                     const { data: fsRow } = await (supabase.from("flight_searches") as any).insert({
                       user_id: user.id,
                       departure_airport: originCode,
@@ -1405,11 +1277,12 @@ const FlightsPage = ({
                       arrival_airports_count: arrivalAirportsCount,
                       gowild_found: goWildFound,
                       flight_results_count: normalized.flights.length,
-                      result_source: "live_api",
+                      result_source: cacheHit ? "cache_hit" : "live_api",
                       provider_observed_at: providerObservedAt,
                     } as any).select("id").single();
-                    // Write flight_snapshots non-blockingly, then track disappeared itineraries.
-                    if (fsRow?.id) {
+                    // Cached data is not a fresh provider observation. Only live
+                    // responses create snapshots or disappearance records.
+                    if (fsRow?.id && !cacheHit) {
                       writeFlightSnapshots(fsRow.id, normalized.flights, originCode)
                         .then(({ stableKeys }) => {
                           return markDisappearedGoWildObservations({
@@ -1436,7 +1309,7 @@ const FlightsPage = ({
                     tripType: tripType === "round-trip" ? "Round Trip" : tripType === "day-trip" ? "Day Trip" : "One Way",
                     departureAirport: originCode,
                     arrivalAirport: searchAll ? "All" : destinationCode,
-                    fromCache: false,
+                    fromCache: cacheHit,
                   },
                   null,
                   2,

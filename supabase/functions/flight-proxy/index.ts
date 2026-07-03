@@ -1,4 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import {
+  MAX_PROVIDER_RESPONSE_BYTES,
+  type CanonicalFlightCacheRequest,
+  normalizeFlightCacheRequest,
+  readFlightCache,
+  validateProviderResponse,
+  validateProviderResponseForRequest,
+  writeFlightCache,
+} from "../_shared/flightCache.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +25,39 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function providerRequestFromCanonical(canonical: CanonicalFlightCacheRequest) {
+  if (canonical.path === "/dayTrips") {
+    return {
+      params: {
+        origin: canonical.origin,
+        date: canonical.departureDate,
+        nonstop: canonical.nonstop ?? "true",
+        layovertime: canonical.layovertime ?? "6",
+      },
+      payload: undefined,
+    };
+  }
+  if (canonical.path === "/roundTrip") {
+    return {
+      params: undefined,
+      payload: {
+        origin: canonical.origin,
+        destination: canonical.destination,
+        departureDate: canonical.departureDate,
+        returnDate: canonical.returnDate,
+      },
+    };
+  }
+  return {
+    params: undefined,
+    payload: {
+      origin: canonical.origin,
+      departureDate: canonical.departureDate,
+      ...(canonical.destination === "__ALL__" ? {} : { destination: canonical.destination }),
+    },
+  };
 }
 
 Deno.serve(async (req) => {
@@ -44,7 +86,7 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: "Invalid JSON body" }, 400);
     }
 
-    const { path, method, params, payload, billing } = body ?? {};
+    const { path, method, billing } = body ?? {};
     if (!path || !ALLOWED_PATHS.includes(path)) {
       return json({ ok: false, error: `Invalid path: ${path}` }, 400);
     }
@@ -56,6 +98,7 @@ Deno.serve(async (req) => {
     const isSearchRequest = SEARCH_PATHS.has(path);
     const requestId = typeof billing?.requestId === "string" ? billing.requestId : "";
     let billingResult: any = null;
+    let canonical: CanonicalFlightCacheRequest | null = null;
 
     if (isSearchRequest) {
       if (!UUID_PATTERN.test(requestId)) {
@@ -66,6 +109,19 @@ Deno.serve(async (req) => {
         }, 400);
       }
 
+      try {
+        canonical = normalizeFlightCacheRequest({
+          path,
+          method,
+          params: body.params,
+          payload: body.payload,
+        });
+      } catch (error) {
+        return json({ ok: false, error: (error as Error).message }, 400);
+      }
+
+      // Entitlement is owned here. A deliberate cache hit follows the same
+      // one-search product rule as a provider-backed result.
       const { data: authorization, error: authorizationError } = await userClient.rpc(
         "authorize_user_search",
         {
@@ -87,6 +143,27 @@ Deno.serve(async (req) => {
           error: "Monthly search limit reached",
           billing: billingResult,
         }, 402);
+      }
+
+      try {
+        const cached = await readFlightCache(adminClient, canonical);
+        if (cached) {
+          console.log(`[flight-proxy] cache hit: ${canonical.path} ${canonical.origin} ${canonical.departureDate}`);
+          return json({
+            ok: true,
+            data: cached.response,
+            billing: billingResult,
+            cache: {
+              hit: true,
+              observedAt: cached.observedAt,
+              expiresAt: cached.expiresAt,
+            },
+          });
+        }
+      } catch (error) {
+        // A cache outage must not turn into a user-visible search outage. The
+        // trusted provider path remains available and will repopulate the row.
+        console.error("[flight-proxy] cache read failed:", (error as Error).message);
       }
     }
 
@@ -113,6 +190,14 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: "Flight provider unavailable" }, 500);
     }
 
+    let params = body.params;
+    let payload = body.payload;
+    if (canonical) {
+      const normalizedProviderRequest = providerRequestFromCanonical(canonical);
+      params = normalizedProviderRequest.params;
+      payload = normalizedProviderRequest.payload;
+    }
+
     let url = `${FLIGHT_API_BASE}${path}`;
     const upstreamHeaders: Record<string, string> = {
       Authorization: `Bearer ${configRow.config_value}`,
@@ -130,14 +215,21 @@ Deno.serve(async (req) => {
 
     console.log(`[flight-proxy] provider request start: ${method} ${path}`);
     let upstream: Response;
-    let responseData: any;
+    let responseData: unknown;
     try {
       upstream = await fetch(url, fetchOptions);
       const responseText = await upstream.text();
+      if (new TextEncoder().encode(responseText).byteLength > MAX_PROVIDER_RESPONSE_BYTES) {
+        await refundAuthorization("PROVIDER_RESPONSE_TOO_LARGE");
+        console.error(`[flight-proxy] provider response too large: ${method} ${path}`);
+        return json({ ok: false, error: "Flight provider returned an oversized response" }, 502);
+      }
       try {
         responseData = responseText ? JSON.parse(responseText) : null;
       } catch {
-        responseData = { raw: responseText };
+        await refundAuthorization("MALFORMED_PROVIDER_RESPONSE");
+        console.error(`[flight-proxy] provider returned non-JSON: ${method} ${path}`);
+        return json({ ok: false, error: "Flight provider returned an invalid response" }, 502);
       }
     } catch (error) {
       await refundAuthorization("UPSTREAM_NETWORK_FAILURE");
@@ -152,13 +244,33 @@ Deno.serve(async (req) => {
         ok: false,
         error: "Flight provider returned an error",
         upstreamStatus: upstream.status,
-        data: responseData,
       }, 502);
     }
 
-    return json({ ok: true, data: responseData, billing: billingResult }, 200);
+    try {
+      if (canonical) validateProviderResponseForRequest(canonical, responseData);
+      else validateProviderResponse(responseData);
+    } catch (error) {
+      await refundAuthorization((error as Error).message);
+      console.error("[flight-proxy] provider response rejected:", (error as Error).message);
+      return json({ ok: false, error: "Flight provider returned an invalid response" }, 502);
+    }
+
+    let cacheMeta: Record<string, unknown> = { hit: false };
+    if (canonical) {
+      try {
+        const written = await writeFlightCache(adminClient, canonical, responseData);
+        cacheMeta = { hit: false, expiresAt: written.expiresAt };
+        console.log(`[flight-proxy] cache write: ${canonical.path} ${canonical.origin} ${canonical.departureDate}`);
+      } catch (error) {
+        // Provider success remains usable even if cache persistence is degraded.
+        console.error("[flight-proxy] cache write failed:", (error as Error).message);
+      }
+    }
+
+    return json({ ok: true, data: responseData, billing: billingResult, cache: cacheMeta }, 200);
   } catch (error) {
     console.error("[flight-proxy] unhandled error:", (error as Error).message);
-    return json({ ok: false, error: (error as Error).message ?? "Internal error" }, 500);
+    return json({ ok: false, error: "Internal error" }, 500);
   }
 });
