@@ -779,12 +779,8 @@ export type Database = {
           created_at: string
           dep_iata: string | null
           error: string | null
-          expires_at: string | null
           id: string
           payload: Json | null
-          payload_sha256: string | null
-          payload_size_bytes: number | null
-          payload_version: number | null
           provider: string
           reset_bucket: string
           status: string
@@ -797,12 +793,8 @@ export type Database = {
           created_at?: string
           dep_iata?: string | null
           error?: string | null
-          expires_at?: string | null
           id?: string
           payload?: Json | null
-          payload_sha256?: string | null
-          payload_size_bytes?: number | null
-          payload_version?: number | null
           provider?: string
           reset_bucket: string
           status?: string
@@ -815,12 +807,8 @@ export type Database = {
           created_at?: string
           dep_iata?: string | null
           error?: string | null
-          expires_at?: string | null
           id?: string
           payload?: Json | null
-          payload_sha256?: string | null
-          payload_size_bytes?: number | null
-          payload_version?: number | null
           provider?: string
           reset_bucket?: string
           status?: string
@@ -2814,6 +2802,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
