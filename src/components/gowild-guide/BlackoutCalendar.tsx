@@ -149,16 +149,16 @@ export function BlackoutCalendar({ id }: Props) {
                   aria-hidden="true"
                   className={[
                     "h-9 w-9 flex items-center justify-center rounded-full font-semibold",
-                    isBlack
-                      ? "bg-[#111827] text-white"
-                      : isToday
-                        ? "bg-white text-[#059669] ring-2 ring-[#059669]"
+                    isToday
+                      ? "bg-[#3B82F6] text-white shadow-[0_2px_8px_rgba(59,130,246,0.35)]"
+                      : isBlack
+                        ? "bg-[#111827] text-white"
                         : "text-[#2E4A4A]",
                   ].join(" ")}
                 >
                   {cell.d}
                 </div>
-                {isBlack && (
+                {isBlack && !isToday && (
                   <span
                     aria-hidden="true"
                     className="absolute bottom-0.5 text-[8px] font-bold uppercase tracking-wider text-[#111827]"
@@ -176,7 +176,7 @@ export function BlackoutCalendar({ id }: Props) {
             <span className="h-3 w-3 rounded-full bg-[#111827]" aria-hidden /> Blackout
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-white ring-2 ring-[#059669]" aria-hidden /> Today
+            <span className="h-3 w-3 rounded-full bg-[#3B82F6]" aria-hidden /> Today
           </span>
         </div>
       </div>

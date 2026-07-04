@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CalendarCheckOut02Icon,
@@ -36,7 +36,11 @@ function formatObservedAt(value: string | null): string | null {
   });
 }
 
-export function PastGoWildFlights() {
+interface PastGoWildFlightsProps {
+  onResultsModeChange?: (showingResults: boolean) => void;
+}
+
+export function PastGoWildFlights({ onResultsModeChange }: PastGoWildFlightsProps = {}) {
   const { dict: airportDict } = useAirportDictionary();
   const { hubsSorted } = useRouteStats(null);
   const [airport, setAirport] = useState("");
@@ -53,10 +57,16 @@ export function PastGoWildFlights() {
     return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   }, []);
 
+  useEffect(() => {
+    onResultsModeChange?.(Boolean(resultsPayload));
+    return () => onResultsModeChange?.(false);
+  }, [onResultsModeChange, resultsPayload]);
+
   const resetToSearch = () => {
     setResultsPayload(null);
     setDetailPayload(null);
     setObservedAt(null);
+    onResultsModeChange?.(false);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -92,6 +102,7 @@ export function PastGoWildFlights() {
       setObservedAt(result.observedAt);
       setResultsPayload(buildHistoricalMultiDestinationPayload(result));
       setDetailPayload(null);
+      onResultsModeChange?.(true);
     } catch (searchError: unknown) {
       const message =
         searchError && typeof searchError === "object" && "message" in searchError
@@ -107,49 +118,21 @@ export function PastGoWildFlights() {
   };
 
   if (resultsPayload) {
-    const formattedObservedAt = formatObservedAt(observedAt);
-
     return (
-      <div className="px-0 pb-8 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
-        <div className="mx-auto max-w-6xl px-4 pb-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#BBF7D0] bg-white/90 px-4 py-3 shadow-sm">
-            <div className="flex min-w-0 items-start gap-2.5">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
-                <HugeiconsIcon icon={Clock01Icon} size={17} color="#059669" strokeWidth={2} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-[#1A2E2E]">Historical snapshot</p>
-                <p className="text-xs leading-relaxed text-[#6B7B7B]">
-                  These are stored results only. No live Frontier search was started.
-                  {formattedObservedAt ? ` Snapshot captured ${formattedObservedAt}.` : ""}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={resetToSearch}
-              className="rounded-full border border-[#10B981] bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#059669] transition-colors hover:bg-[#F0FDF4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669]"
-            >
-              New Search
-            </button>
-          </div>
-        </div>
-
-        <div className="mx-auto h-[calc(100vh-12rem)] min-h-[680px] max-w-6xl overflow-hidden rounded-t-3xl border border-[#DDE7E4] bg-[#F1F5F5] shadow-xl lg:rounded-3xl">
-          {detailPayload ? (
-            <FlightDestResults
-              onBack={() => setDetailPayload(null)}
-              responseData={detailPayload}
-              onBackOverride={() => setDetailPayload(null)}
-            />
-          ) : (
-            <FlightMultiDestResults
-              onBack={resetToSearch}
-              responseData={resultsPayload}
-              onViewDest={setDetailPayload}
-            />
-          )}
-        </div>
+      <div className="h-screen min-h-[680px] w-full bg-[#F1F5F5] motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+        {detailPayload ? (
+          <FlightDestResults
+            onBack={() => setDetailPayload(null)}
+            responseData={detailPayload}
+            onBackOverride={() => setDetailPayload(null)}
+          />
+        ) : (
+          <FlightMultiDestResults
+            onBack={resetToSearch}
+            responseData={resultsPayload}
+            onViewDest={setDetailPayload}
+          />
+        )}
       </div>
     );
   }

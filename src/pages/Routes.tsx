@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppInput } from "@/components/ui/app-input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BottomSheet } from "@/components/BottomSheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
@@ -22,6 +23,9 @@ import {
   Link01Icon,
   Delete01Icon,
   ArrowDown01Icon,
+  Location01Icon,
+  Location04Icon,
+  AddCircleIcon,
   MapsIcon,
   ListViewIcon,
   FavouriteIcon as StarFilledIcon,
@@ -49,6 +53,8 @@ const glassStyle: React.CSSProperties = {
 };
 
 /* ── Origin Input ────────────────────────────────────── */
+type OriginOption = { iata: string; count: number; info?: AirportInfo };
+
 export const OriginCombobox = ({
   value,
   onChange,
@@ -62,116 +68,274 @@ export const OriginCombobox = ({
   airportDict: Record<string, AirportInfo>;
   label?: string;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    if (!q) return hubsSorted.slice(0, 30);
-    return hubsSorted.filter(h => {
-      const info = airportDict[h.iata];
-      return h.iata.toLowerCase().includes(q) ||
-        info?.name?.toLowerCase().includes(q) ||
-        info?.city?.toLowerCase().includes(q);
-    }).slice(0, 30);
-  }, [query, hubsSorted, airportDict]);
+  const sheetInputRef = useRef<HTMLInputElement>(null);
 
   const selectedInfo = airportDict[value];
 
-  const handleClear = () => {
+  const options = useMemo<OriginOption[]>(
+    () =>
+      hubsSorted.map((hub) => ({
+        ...hub,
+        info: airportDict[hub.iata],
+      })),
+    [airportDict, hubsSorted],
+  );
+
+  const popularOptions = useMemo(() => options.slice(0, 8), [options]);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    setQuery("");
+    requestAnimationFrame(() => {
+      setTimeout(() => sheetInputRef.current?.focus(), 50);
+    });
+  }, [sheetOpen]);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSheetOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [sheetOpen]);
+
+  const shouldShow = query.trim().length >= 2;
+
+  const groupedOptions = useMemo(() => {
+    if (!shouldShow) return {} as Record<string, OriginOption[]>;
+    const q = query.trim().toLowerCase();
+    const filtered = options
+      .filter(({ iata, info }) => {
+        const cityState = [info?.city, info?.state].filter(Boolean).join(" ");
+        return (
+          iata.toLowerCase().includes(q) ||
+          info?.name?.toLowerCase().includes(q) ||
+          info?.city?.toLowerCase().includes(q) ||
+          cityState.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 40);
+
+    const grouped = filtered.reduce((acc, option) => {
+      const city = option.info?.city;
+      const state = option.info?.state;
+      const key = city && state ? `${city}, ${state}` : "Other Locations";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(option);
+      return acc;
+    }, {} as Record<string, OriginOption[]>);
+
+    return Object.fromEntries(
+      Object.entries(grouped).map(([key, airports]) => {
+        const list = airports as OriginOption[];
+        return [list.length > 1 ? key : `__single__${key}`, list];
+      }),
+    ) as Record<string, OriginOption[]>;
+  }, [options, query, shouldShow]);
+
+  const displayValue = value
+    ? `${value}${selectedInfo?.city ? ` | ${selectedInfo.city}` : selectedInfo?.name ? ` | ${selectedInfo.name}` : ""}`
+    : "";
+
+  const selectAirport = (iata: string) => {
+    onChange(iata);
+    setQuery("");
+    setSheetOpen(false);
+  };
+
+  const handleClear = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     onChange("");
     setQuery("");
-    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   return (
-    <div className={cn("relative w-full", open ? "z-[1000]" : "z-10")}>
-      {/* Label styled like Flights UI */}
-      <label className="text-sm font-bold text-[#059669] ml-1 mb-0 block">{label}</label>
+    <div className="relative z-10 w-full">
+      <label className="ml-1 mb-0 block text-sm font-bold text-[#059669]">{label}</label>
 
       <div
-        className={cn("app-input-container", isFocused && "focus-within")}
-        style={{ backgroundColor: "transparent" }}
-        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
+        className="app-input-container cursor-pointer"
+        style={{ minHeight: 48, backgroundColor: "transparent" }}
+        onClick={() => setSheetOpen(true)}
       >
-        <HugeiconsIcon icon={RouteIcon} size={20} color="#345C5A" strokeWidth={1.5} className="shrink-0 mr-2" />
-
-        {value && !open ? (
-          <span className="flex-1 text-sm text-[#2E4A4A] font-medium truncate py-2">
-            <span className="font-bold text-[#345C5A]">{value}</span>
-            {selectedInfo?.city ? ` – ${selectedInfo.city}` : selectedInfo?.name ? ` – ${selectedInfo.name}` : ""}
-          </span>
-        ) : (
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={value ? `${value}${selectedInfo?.city ? ` – ${selectedInfo.city}` : ""}` : "Search airport or city..."}
-            value={query}
-            onChange={e => { setQuery(e.target.value); setOpen(true); }}
-            onFocus={() => { setIsFocused(true); setOpen(true); }}
-            onBlur={() => { setIsFocused(false); setTimeout(() => setOpen(false), 200); }}
-            className="app-input flex-1"
-          />
-        )}
-
-        {value && (
+        <button type="button" tabIndex={-1} className="app-input-icon-btn">
+          <HugeiconsIcon icon={RouteIcon} size={20} color="currentColor" strokeWidth={2} />
+        </button>
+        <span
+          className="app-input flex-1 truncate"
+          style={{ color: displayValue ? "#1F2937" : "#6B7280" }}
+        >
+          {displayValue || "Search airport or city..."}
+        </span>
+        {value ? (
           <button
             type="button"
-            onMouseDown={e => e.preventDefault()}
-            onClick={e => { e.stopPropagation(); handleClear(); }}
-            className="app-input-toggle ml-1"
+            onClick={handleClear}
+            className="app-input-reset app-input-reset--visible"
+            aria-label={`Clear ${label}`}
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={16} color="#9CA3AF" strokeWidth={1.5} />
+            <HugeiconsIcon icon={Cancel01Icon} size={16} color="currentColor" strokeWidth={2} />
           </button>
-        )}
-        {!value && (
+        ) : (
           <HugeiconsIcon icon={ArrowDown01Icon} size={16} color="#9CA3AF" strokeWidth={1.5} className="shrink-0 ml-1" />
         )}
       </div>
 
-      {/* Dropdown styled like Flights departure/arrival sheet */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full z-[1100] mt-1 max-h-72 overflow-y-auto rounded-xl border border-[#E3E6E6] bg-white shadow-lg"
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} style={{ top: "5%" }}>
+        <div className="flex items-center justify-between border-b border-[#F0F1F1] px-5 pt-2 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-full"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
+            >
+              <HugeiconsIcon icon={Location01Icon} size={15} color="white" strokeWidth={2} />
+            </div>
+            <h2 className="text-[22px] font-medium leading-tight text-[#6B7280]">
+              Select {label.replace(/ Airport$/, "")}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSheetOpen(false)}
+            className="ml-1 flex h-8 w-8 items-center justify-center rounded-full text-[#9CA3AF] transition-colors hover:bg-black/5 hover:text-[#2E4A4A]"
           >
-            {filtered.map(h => {
-              const info = airportDict[h.iata];
-              return (
-                <button
-                  key={h.iata}
-                  type="button"
-                  onMouseDown={e => e.preventDefault()}
-                  onClick={() => { onChange(h.iata); setOpen(false); setQuery(""); }}
-                  className={cn(
-                    "w-full text-left px-5 py-2 hover:bg-[#F2F3F3] active:bg-[#E8F5F0] transition-colors flex items-center gap-4",
-                    h.iata === value && "bg-[#345C5A]/5"
-                  )}
-                >
-                  <HugeiconsIcon icon={Airplane01Icon} size={20} color="#9CA3AF" strokeWidth={2} className="shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-bold text-[#345C5A] text-lg shrink-0">{h.iata}</span>
-                      <span className="text-[#6B7B7B] truncate text-base">{info?.city || info?.name || ""}</span>
-                      {info?.state && <span className="text-[#9CA3AF] text-sm shrink-0">{info.state}</span>}
-                    </div>
-                    {info?.name && info?.city && (
-                      <p className="text-sm text-[#9CA3AF] truncate">{info.name}</p>
+            <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />
+          </button>
+        </div>
+
+        <div className="px-5 pb-4 pt-3">
+          <div className="app-input-container">
+            <button type="button" tabIndex={-1} className="app-input-icon-btn">
+              <HugeiconsIcon icon={Location01Icon} size={20} color="currentColor" strokeWidth={2} />
+            </button>
+            <input
+              ref={sheetInputRef}
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search airport or city…"
+              className="app-input"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+            />
+            {query.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="app-input-reset app-input-reset--visible"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={14} color="currentColor" strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {!shouldShow ? (
+            <div className="px-5 pt-2">
+              <div className="mb-6">
+                <p className="mb-2 block text-[11px] font-bold uppercase tracking-[0.15em] text-[#6B7B7B]">
+                  Popular Airports
+                </p>
+                <div className="-mx-5 flex flex-nowrap gap-2.5 overflow-x-auto px-5 pb-1" style={{ scrollbarWidth: "none" }}>
+                  {popularOptions.map(({ iata, info, count }) => (
+                    <button
+                      key={iata}
+                      type="button"
+                      onClick={() => selectAirport(iata)}
+                      className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-1 text-sm font-semibold transition-opacity hover:opacity-80"
+                      style={{
+                        background: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)",
+                        color: "#065F46",
+                        border: "1px solid #6EE7B7",
+                      }}
+                    >
+                      <HugeiconsIcon icon={Airplane01Icon} size={14} color="#059669" strokeWidth={2.5} />
+                      <span className="font-bold">{iata}</span>
+                      {info?.city && <span className="font-medium opacity-60">{info.city}</span>}
+                      <span className="font-medium opacity-50">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center px-5 py-12 text-center">
+                <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#F0FDF4]">
+                  <HugeiconsIcon icon={Airplane01Icon} size={28} color="#059669" strokeWidth={2} />
+                </div>
+                <p className="mb-1 text-base font-bold text-[#2E4A4A]">Search for an airport</p>
+                <p className="text-sm text-[#9CA3AF]">Type 2 or more letters to see results</p>
+              </div>
+            </div>
+          ) : Object.keys(groupedOptions).length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+              <p className="mb-1 text-base font-bold text-[#2E4A4A]">No airports found</p>
+              <p className="text-sm text-[#9CA3AF]">Try a different city or airport code</p>
+            </div>
+          ) : (
+            <div className="py-3 px-4">
+              {Object.entries(groupedOptions).map(([cityGroup, cityAirports]) => {
+                const airports = cityAirports as OriginOption[];
+                const isSingle = cityGroup.startsWith("__single__");
+                const displayGroup = isSingle ? cityGroup.replace("__single__", "") : cityGroup;
+                const firstAirport = airports[0];
+                return (
+                  <div key={cityGroup} className="mb-2 last:mb-0">
+                    {!isSingle && firstAirport && (
+                      <button
+                        type="button"
+                        onClick={() => selectAirport(firstAirport.iata)}
+                        className="flex w-full items-center gap-2 px-5 py-3 text-sm font-bold uppercase tracking-wider text-[#6B7B7B] transition-colors hover:bg-[#F2F3F3]"
+                      >
+                        <HugeiconsIcon icon={Location04Icon} size={20} color="currentColor" strokeWidth={2} className="opacity-60" />
+                        {displayGroup !== "Other Locations" ? `${displayGroup} Area` : displayGroup}
+                      </button>
                     )}
+                    {airports.map(({ iata, count, info }, index) => (
+                      <div key={iata}>
+                        {index > 0 && <div className="mx-1 border-t border-[#F0F1F1]" />}
+                        <button
+                          type="button"
+                          onClick={() => selectAirport(iata)}
+                          className={cn(
+                            "flex w-full items-center gap-3 overflow-hidden py-1.5 pr-4 text-left text-base transition-colors hover:bg-[#F2F3F3] active:bg-[#E8F5F0]",
+                            isSingle ? "pl-4" : "pl-14",
+                          )}
+                        >
+                          <HugeiconsIcon icon={Airplane01Icon} size={22} color="#6B7B7B" strokeWidth={2} className="shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="shrink-0 text-sm font-bold text-[#345C5A]">{iata}</span>
+                              <span className="shrink-0 text-xs text-[#9CA3AF]">•</span>
+                              <span className="truncate text-sm font-medium text-[#2E4A4A]">
+                                {info?.name ?? `${iata} Airport`}
+                              </span>
+                            </div>
+                            {info?.city && (
+                              <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-[#F2F3F3] px-2 py-0.5 text-xs font-medium text-[#6B7B7B]">
+                                <HugeiconsIcon icon={Location01Icon} size={10} color="currentColor" strokeWidth={2} />
+                                <span className="truncate">
+                                  {info.city}{info.state ? `, ${info.state}` : ""}
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                          <span className="shrink-0 text-xs text-[#9CA3AF]">{count} dest</span>
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-xs text-[#9CA3AF] shrink-0">{h.count} dest</span>
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                );
+              })}
+            </div>
+          )}
+          <div className="h-10" />
+        </div>
+      </BottomSheet>
     </div>
   );
 };

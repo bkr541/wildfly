@@ -314,17 +314,19 @@ function BenefitCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[#F0F1F1] bg-white p-4 shadow-sm">
+    <div className="flex items-start gap-4 rounded-2xl border border-[#F0F1F1] bg-white p-4 shadow-sm">
       <div
-        className="h-10 w-10 rounded-xl flex items-center justify-center mb-3"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
         style={{ background: "#F0FDF4" }}
       >
-        <HugeiconsIcon icon={icon} size={22} color="#059669" strokeWidth={2} />
+        <HugeiconsIcon icon={icon} size={24} color="#059669" strokeWidth={2} />
       </div>
-      <p className="text-sm font-bold text-[#1A2E2E] leading-snug">{title}</p>
-      <p className="text-xs text-[#6B7B7B] leading-relaxed mt-1">
-        {description}
-      </p>
+      <div className="min-w-0 pt-0.5">
+        <p className="text-sm font-extrabold text-[#1A2E2E] leading-snug">{title}</p>
+        <p className="text-xs text-[#6B7B7B] leading-relaxed mt-1">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }
@@ -423,29 +425,19 @@ function OverviewView({
             <img
               src="/assets/logo/logo_horizontal.png"
               alt="Wildfly"
-              className="h-9 w-auto mb-3"
+              className="h-14 w-auto mb-3 sm:h-16"
               loading="eager"
             />
             <img
               src="/assets/logo/tag_noshadow.png"
               alt=""
               aria-hidden="true"
-              className="h-5 w-auto mb-6 opacity-90"
+              className="h-6 w-auto mb-7 opacity-90 sm:h-7"
             />
             <p className="text-[#6B7B7B] text-sm sm:text-base leading-relaxed max-w-md">
               Everything you need to understand booking windows, fare prices,
               availability, blackout dates, and using your Frontier GoWild Pass.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-              <HeroPrimaryButton onClick={() => onNavigate("blackout")}>
-                View Blackout Dates
-              </HeroPrimaryButton>
-              <HeroPrimaryButton
-                onClick={() => onNavigate("where-you-can-fly")}
-              >
-                Where You Can Fly
-              </HeroPrimaryButton>
-            </div>
             <p className="text-[11px] text-[#6B7B7B] mt-5">
               Last verified with Frontier:{" "}
               <span className="font-semibold text-[#1A2E2E]">
@@ -467,7 +459,7 @@ function OverviewView({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
+          <div className="grid grid-cols-1 gap-3 mt-8">
             <BenefitCard
               icon={Clock01Icon}
               title="Know When to Book"
@@ -810,7 +802,9 @@ export default function GoWildGuidePage() {
 
   const [activeView, setActiveView] = useState<GuideViewId>("overview");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pastFlightsShowingResults, setPastFlightsShowingResults] = useState(false);
   const activeMeta = VIEW_META[activeView];
+  const hideGuideChrome = activeView === "past-flights" && pastFlightsShowingResults;
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -823,6 +817,7 @@ export default function GoWildGuidePage() {
 
   const handleNavigate = useCallback((view: GuideViewId) => {
     setActiveView(view);
+    setPastFlightsShowingResults(false);
     setDrawerOpen(false);
     requestAnimationFrame(() =>
       window.scrollTo({ top: 0, left: 0, behavior: "auto" }),
@@ -873,33 +868,46 @@ export default function GoWildGuidePage() {
               : "translate-x-0 rounded-none shadow-none",
           ].join(" ")}
         >
-          <header className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 bg-[#F0FDF4]/90 backdrop-blur-md border-b border-[#BBF7D0]/70">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Open guide navigation"
-              aria-controls="gowild-guide-mobile-navigation"
-              aria-expanded={drawerOpen}
-              className="h-11 w-10 flex items-center justify-start text-[#2E4A4A] hover:opacity-70 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] rounded-lg"
-            >
-              <HugeiconsIcon
-                icon={Menu03Icon}
-                size={26}
-                color="currentColor"
-                strokeWidth={2}
-              />
-            </button>
-            <div className="min-w-0 flex items-baseline gap-1.5 select-none">
-              <span className="text-[18px] font-medium text-[#6B7280] shrink-0">
-                {activeMeta.headerPrefix}
-              </span>
-              <span className="text-[18px] font-black tracking-wider uppercase text-[#10B981] truncate">
-                {activeMeta.headerLabel}
-              </span>
-            </div>
-          </header>
-
-          <GuideViewHeader view={activeView} />
+          {!hideGuideChrome && (
+            <header className="sticky top-0 z-30 flex items-center gap-3 bg-[#F0FDF4]/90 px-5 py-3 backdrop-blur-md border-b border-[#BBF7D0]/70 lg:min-h-[146px] lg:items-center lg:px-14 lg:py-8">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                aria-label="Open guide navigation"
+                aria-controls="gowild-guide-mobile-navigation"
+                aria-expanded={drawerOpen}
+                className="h-11 w-10 flex shrink-0 items-center justify-start rounded-lg text-[#2E4A4A] transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#059669] lg:h-12 lg:w-12 lg:items-start lg:pt-1"
+              >
+                <HugeiconsIcon
+                  icon={Menu03Icon}
+                  size={26}
+                  color="currentColor"
+                  strokeWidth={2}
+                />
+              </button>
+              <div className="min-w-0 select-none">
+                <div className="flex items-baseline gap-1.5 lg:hidden">
+                  <span className="text-[18px] font-medium text-[#6B7280] shrink-0">
+                    {activeMeta.headerPrefix}
+                  </span>
+                  <span className="text-[18px] font-black tracking-wider uppercase text-[#10B981] truncate">
+                    {activeMeta.headerLabel}
+                  </span>
+                </div>
+                <div className="hidden lg:block">
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#059669]">
+                    GoWild Guide
+                  </p>
+                  <h1 className="mt-1 text-[40px] font-black leading-none tracking-tight text-[#1A2E2E]">
+                    {activeMeta.title}
+                  </h1>
+                  <p className="mt-4 max-w-3xl text-[19px] leading-relaxed text-[#6B7B7B]">
+                    {activeMeta.description}
+                  </p>
+                </div>
+              </div>
+            </header>
+          )}
 
           <section
             id="gowild-guide-view"
@@ -911,7 +919,7 @@ export default function GoWildGuidePage() {
             {activeView === "where-you-can-fly" && (
               <WhereYouCanFlyView onAppNavigate={handleAppNavigate} />
             )}
-            {activeView === "past-flights" && <PastGoWildFlights />}
+            {activeView === "past-flights" && <PastGoWildFlights onResultsModeChange={setPastFlightsShowingResults} />}
             {activeView === "faq" && <FaqView />}
           </section>
         </div>
