@@ -2814,6 +2814,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -2870,6 +2871,10 @@ export type Database = {
           total_count: number
           type: string
         }[]
+      }
+      get_public_historical_gowild_search: {
+        Args: { p_origin_iata: string; p_travel_date: string }
+        Returns: Json
       }
       get_route_gowild_inventory_calendar: {
         Args: {
