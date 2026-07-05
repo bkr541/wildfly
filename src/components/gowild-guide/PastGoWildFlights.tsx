@@ -9,7 +9,7 @@ import {
 import { format } from "date-fns";
 import FlightDestResults from "@/pages/FlightDestResults";
 import FlightMultiDestResults from "@/pages/FlightMultiDestResults";
-import { OriginCombobox } from "@/pages/Routes";
+import { GuideAirportPicker } from "@/components/gowild-guide/GuideAirportPicker";
 import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { GuideSectionCard } from "@/components/gowild-guide/GuideSectionCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,7 +163,7 @@ export function PastGoWildFlights({ onResultsModeChange }: PastGoWildFlightsProp
             </div>
           </div>
 
-          <OriginCombobox
+          <GuideAirportPicker
             value={airport}
             onChange={(value) => {
               setAirport(value);
