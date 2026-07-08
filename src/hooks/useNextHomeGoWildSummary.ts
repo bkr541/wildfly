@@ -11,6 +11,18 @@ export type NextHomeGoWildSummaryStatus =
   | "home_airport_missing"
   | "timezone_missing";
 
+export interface NextHomeGoWildSummaryRoute {
+  destination: string;
+  destinationCity?: string | null;
+  destinationState?: string | null;
+  goWildResults: number;
+  nonstopCount: number;
+  seats: number;
+  lowestPrice?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 export interface NextHomeGoWildSummaryFeed {
   status: NextHomeGoWildSummaryStatus;
   homeAirport?: string;
@@ -18,6 +30,8 @@ export interface NextHomeGoWildSummaryFeed {
   homeCity?: string | null;
   homeState?: string | null;
   homeAirportTimezone?: string;
+  homeAirportLatitude?: number | null;
+  homeAirportLongitude?: number | null;
   localDate?: string;
   targetDate?: string;
   observedAt?: string | null;
@@ -29,6 +43,7 @@ export interface NextHomeGoWildSummaryFeed {
   totalGoWildSeats: number;
   lowestGoWildPrice?: number | null;
   currency?: string;
+  topRoutes: NextHomeGoWildSummaryRoute[];
 }
 
 const EMPTY_FEED: NextHomeGoWildSummaryFeed = {
@@ -39,6 +54,7 @@ const EMPTY_FEED: NextHomeGoWildSummaryFeed = {
   nonstopGoWildCount: 0,
   totalGoWildSeats: 0,
   currency: "USD",
+  topRoutes: [],
 };
 
 export function useNextHomeGoWildSummary() {
@@ -74,6 +90,19 @@ export function useNextHomeGoWildSummary() {
         destinationCount: Number(next.destinationCount ?? 0),
         nonstopGoWildCount: Number(next.nonstopGoWildCount ?? 0),
         totalGoWildSeats: Number(next.totalGoWildSeats ?? 0),
+        homeAirportLatitude: next.homeAirportLatitude == null ? null : Number(next.homeAirportLatitude),
+        homeAirportLongitude: next.homeAirportLongitude == null ? null : Number(next.homeAirportLongitude),
+        topRoutes: Array.isArray(next.topRoutes)
+          ? next.topRoutes.map((route) => ({
+              ...route,
+              goWildResults: Number(route.goWildResults ?? 0),
+              nonstopCount: Number(route.nonstopCount ?? 0),
+              seats: Number(route.seats ?? 0),
+              lowestPrice: route.lowestPrice == null ? null : Number(route.lowestPrice),
+              latitude: route.latitude == null ? null : Number(route.latitude),
+              longitude: route.longitude == null ? null : Number(route.longitude),
+            }))
+          : [],
       });
     }
     setLoading(false);
