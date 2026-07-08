@@ -8,6 +8,7 @@ import { QuickSearches } from "@/components/home/QuickSearches";
 import { DayTrips } from "@/components/home/DayTrips";
 import { TokenExpirationCard } from "@/components/home/TokenExpirationCard";
 import { TodaysGoWildFlights } from "@/components/home/TodaysGoWildFlights";
+import { NextHomeGoWildSummary } from "@/components/home/NextHomeGoWildSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Module-level flag: only show initial skeleton once per app session (i.e. after login),
@@ -54,7 +55,7 @@ const COMPONENT_MAP: Record<
     searches: FlightSearch[];
     loading: boolean;
     searchesLoading: boolean;
-    onNavigate?: (page: string) => void;
+    onNavigate?: (page: string, data?: string) => void;
     isCollapsed: boolean;
     onToggle: () => void;
     onFlightRemoved?: (flightId: string) => void;
@@ -63,6 +64,14 @@ const COMPONENT_MAP: Record<
     onFlightClick?: (flight: UserFlight) => void;
   }) => JSX.Element | null
 > = {
+  next_home_gowild_summary: (props) => (
+    <NextHomeGoWildSummary
+      key="next_home_gowild_summary"
+      onNavigate={props.onNavigate}
+      isCollapsed={props.isCollapsed}
+      onToggle={props.onToggle}
+    />
+  ),
   todays_gowild_flights: (props) => (
     <TodaysGoWildFlights
       key="todays_gowild_flights"
@@ -131,7 +140,7 @@ const COMPONENT_MAP: Record<
 };
 
 interface HomePageProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, data?: string) => void;
   refreshTrigger?: number;
   onFlightClick?: (flight: UserFlight) => void;
 }

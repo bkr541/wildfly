@@ -1,5 +1,6 @@
 import {
   Airplane01Icon,
+  AirplaneTakeOff01Icon,
   Alert01Icon,
   FlashIcon,
   Key01Icon,
@@ -18,6 +19,13 @@ export interface HomeComponentMeta {
 }
 
 export const HOME_COMPONENT_META: Record<string, HomeComponentMeta> = {
+  next_home_gowild_summary: {
+    label: "Tomorrow's GoWild",
+    description: "Counts tomorrow's flights and GoWild results from your home airport",
+    icon: AirplaneTakeOff01Icon,
+    iconBg: "#E6F7F2",
+    iconColor: "#059669",
+  },
   todays_gowild_flights: {
     label: "Today's GoWild",
     description: "Today's scheduled GoWild flights from your home airport",
@@ -75,6 +83,7 @@ export const HOME_COMPONENT_OPTIONS = Object.entries(HOME_COMPONENT_META).map(
 );
 
 export const DEFAULT_HOME_COMPONENTS = [
+  "next_home_gowild_summary",
   "todays_gowild_flights",
   "upcoming_flights",
   "watched_flights",
