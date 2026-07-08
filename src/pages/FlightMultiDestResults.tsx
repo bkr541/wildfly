@@ -173,6 +173,15 @@ const FlightMultiDestResults = ({
     });
   }, [cards, sortBy, filterNonstopOnly, filterGoWildOnly, filterDestType]);
 
+  const visibleStats = useMemo(() => {
+    return {
+      destinations: sortedCards.length,
+      totalFlights: sortedCards.reduce((total, card) => total + card.flightCount, 0),
+      nonstopDestinations: sortedCards.filter((card) => card.hasNonstop).length,
+      goWildDestinations: sortedCards.filter((card) => card.hasGoWild).length,
+    };
+  }, [sortedCards]);
+
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
     const enriched = card.flights.map((f: any) => {
@@ -354,10 +363,10 @@ const FlightMultiDestResults = ({
         {/* Stats row */}
         <div className="flex items-center justify-center gap-4 mt-2 pb-1">
           {[
-            { label: "DEST", value: cards.length },
-            { label: "FLIGHTS", value: rawFlights.length },
-            { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
-            { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
+            { label: "DEST", value: visibleStats.destinations },
+            { label: "FLIGHTS", value: visibleStats.totalFlights },
+            { label: "NONSTOP", value: visibleStats.nonstopDestinations },
+            { label: "GO WILD", value: visibleStats.goWildDestinations },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-1">
               <span className="text-[11px] font-bold text-white/80">{label}</span>
@@ -457,10 +466,10 @@ const FlightMultiDestResults = ({
           {/* Stats strip */}
           <div className="relative mt-4 flex items-center justify-between w-full gap-2">
             {[
-              { label: "DESTINATIONS", value: cards.length },
-              { label: "TOTAL FLIGHTS", value: rawFlights.length },
-              { label: "NONSTOP", value: cards.filter((c) => c.hasNonstop).length },
-              { label: "GO WILD", value: cards.filter((c) => c.hasGoWild).length },
+              { label: "DESTINATIONS", value: visibleStats.destinations },
+              { label: "TOTAL FLIGHTS", value: visibleStats.totalFlights },
+              { label: "NONSTOP", value: visibleStats.nonstopDestinations },
+              { label: "GO WILD", value: visibleStats.goWildDestinations },
             ].map(({ label, value }) => (
               <div key={label} className="flex-1 flex flex-col items-center">
                 <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide leading-tight text-center">{label}</span>

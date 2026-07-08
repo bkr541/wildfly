@@ -4,6 +4,8 @@ import BetaFeedbackButton from "./components/BetaFeedbackButton";
 import { AnnouncementPopup } from "./components/AnnouncementPopup";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 
+const BETA_FEEDBACK_FLOATING_BUTTON_ENABLED = false;
+
 const PAGE_LABELS: Record<string, string> = {
   "home":                 "Home",
   "account":              "Account",
@@ -403,17 +405,18 @@ const MainApp = () => {
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
     ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights", "all-upcoming-flights", "all-watched-flights", "radar", "notifications"].includes(currentPage);
 
-  const showFeedbackButton =
+  const feedbackAudienceReady =
     splashDone &&
     !checkingSession &&
     isSignedIn &&
     !needsOnboarding &&
     !showProfileSetup &&
     !accountPending;
+  const showFeedbackButton = BETA_FEEDBACK_FLOATING_BUTTON_ENABLED && feedbackAudienceReady;
 
   const feedbackPageLabel = subScreenTitle ?? PAGE_LABELS[currentPage] ?? currentPage;
 
-  const { current: announcement, dismiss: dismissAnnouncement } = useAnnouncements(showFeedbackButton);
+  const { current: announcement, dismiss: dismissAnnouncement } = useAnnouncements(feedbackAudienceReady);
 
   return (
     <div className="flex justify-center">
