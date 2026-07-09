@@ -2864,6 +2864,14 @@ export type Database = {
           stops: number
         }[]
       }
+      get_home_day_trips_from_snapshots: {
+        Args: {
+          p_dates?: string[]
+          p_limit?: number
+          p_min_ground_minutes?: number
+        }
+        Returns: Json
+      }
       get_next_home_gowild_summary: { Args: never; Returns: Json }
       get_notification_type_stats: {
         Args: never
