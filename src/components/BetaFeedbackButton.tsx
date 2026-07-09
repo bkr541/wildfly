@@ -131,11 +131,20 @@ function DropdownField({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
+// Beta signup and collection are currently closed. Keep the feedback form code in
+// place so it can be restored later, but make this component self-collapsing as a
+// second line of defense. App.tsx also gates rendering, but this prevents the
+// floating trigger from appearing if the component is imported from another path
+// or a future refactor accidentally renders it.
+export const BETA_FEEDBACK_BUTTON_ENABLED = false;
+
 interface Props {
   pageLabel: string;
 }
 
 const BetaFeedbackButton = ({ pageLabel }: Props) => {
+  if (!BETA_FEEDBACK_BUTTON_ENABLED) return null;
+
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState("");

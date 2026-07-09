@@ -40,3 +40,11 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Beta feedback collection is paused. Keep this CSS kill-switch as a safety net
+   for any stale or alternate render path that still mounts the old floating
+   button. Remove alongside BETA_FEEDBACK_BUTTON_ENABLED when reopening beta
+   feedback collection. */
+button[aria-label="Submit beta feedback"] {
+  display: none !important;
+}
