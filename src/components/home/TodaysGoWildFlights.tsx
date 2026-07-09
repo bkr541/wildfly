@@ -35,85 +35,91 @@ function money(value: number | null, currency: string) {
   }).format(value);
 }
 
-function readableDate(value?: string) {
+function ticketDate(value?: string) {
   if (!value) return "Today";
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-}
-
-function observedLabel(value?: string | null, timezone?: string) {
-  if (!value) return null;
-  try {
-    return new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(new Date(value));
-  } catch {
-    return null;
-  }
+  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
 function FlightCard({ flight, index }: { flight: TodaysGoWildFlight; index: number }) {
   const destination = [flight.destinationCity, flight.destinationState].filter(Boolean).join(", ");
-  const nonstop = Number(flight.stops ?? 0) === 0;
+  const stops = flight.stops == null ? null : Number(flight.stops);
+  const nonstop = stops === 0;
+  const stopLabel = stops == null ? "Stops —" : nonstop ? "Nonstop" : `${stops} stop${stops === 1 ? "" : "s"}`;
+  const tripBadge = flight.flightType || "One Way";
 
   return (
     <motion.article
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: index * 0.06, ease: EASE } }}
-      className="relative flex-shrink-0 rounded-2xl overflow-hidden"
-      style={{ ...CARD_STYLE, scrollSnapAlign: "start", width: 286 }}
+      className="relative flex-shrink-0 w-[360px] sm:w-[390px] max-w-[calc(100vw-48px)] overflow-hidden rounded-[22px] bg-white"
+      style={{ ...CARD_STYLE, scrollSnapAlign: "start" }}
     >
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="absolute -left-[18px] top-[122px] h-9 w-9 rounded-full bg-[#DDEAE7] border border-[#D3E2DF] z-20" />
+      <div className="absolute -right-[18px] top-[122px] h-9 w-9 rounded-full bg-[#DDEAE7] border border-[#D3E2DF] z-20" />
+
+      <div className="px-5 pt-5 pb-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#059669] truncate">
+            <p className="text-[12px] font-black uppercase tracking-[0.18em] text-[#059669] truncate">
               {destination || flight.destinationIata}
             </p>
-            <div className="flex items-baseline gap-2 mt-0.5">
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-[34px] font-black leading-none tracking-tight text-[#1A2E2E]">
+                {flight.originIata}
+              </span>
+              <div className="flex items-center min-w-[76px] flex-1 pb-2.5">
+                <span className="h-px flex-1 border-t border-dashed border-[#B8CECE]" />
+                <HugeiconsIcon icon={Airplane01Icon} size={21} color="#2F665F" strokeWidth={2.5} className="mx-2" />
+                <span className="h-px flex-1 border-t border-dashed border-[#B8CECE]" />
+              </div>
               <span className="text-[34px] font-black leading-none tracking-tight text-[#1A2E2E]">
                 {flight.destinationIata}
               </span>
-              <span className="text-xs font-semibold text-[#6B7280] truncate">
-                {flight.flightNumber}
-              </span>
             </div>
           </div>
-          <div className="rounded-full bg-[#D1FAE5] px-2.5 py-1 text-right shrink-0">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-[#047857]">GoWild</p>
-            <p className="text-sm font-black text-[#047857] leading-tight">
-              {money(flight.goWildPrice, flight.currency)}
-            </p>
-          </div>
+          {flight.flightNumber && (
+            <span className="mt-8 text-[11px] font-black text-[#6B7280] whitespace-nowrap">
+              {flight.flightNumber}
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-3 rounded-xl bg-[#F5FAF8] px-3 py-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-[#8A9999]">Depart</p>
-            <p className="text-base font-black text-[#243F3F]">{flight.departureTime}</p>
-            <p className="text-[10px] font-medium text-[#6B7B7B] truncate">{flight.originIata}</p>
+        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
+          <div className="min-w-0">
+            <p className="text-[20px] font-black leading-none text-[#059669]">{flight.departureTime}</p>
+            <p className="mt-1 text-[12px] font-semibold text-[#7B8C8C]">{ticketDate(flight.departureDate)}</p>
           </div>
-          <div className="flex items-center flex-1 px-1">
-            <div className="flex-1 border-t border-dashed border-[#B8CECE]" />
-            <HugeiconsIcon icon={Airplane01Icon} size={20} color="#059669" strokeWidth={2} className="mx-2" />
-            <div className="flex-1 border-t border-dashed border-[#B8CECE]" />
+          <div className="mt-2 flex h-8 items-center justify-center text-[#2F665F]">
+            <HugeiconsIcon icon={Airplane01Icon} size={20} color="currentColor" strokeWidth={2.4} />
           </div>
-          <div className="flex-1 min-w-0 text-right">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-[#8A9999]">Arrive</p>
-            <p className="text-base font-black text-[#243F3F]">{flight.arrivalTime}</p>
-            <p className="text-[10px] font-medium text-[#6B7B7B] truncate">{flight.destinationIata}</p>
+          <div className="min-w-0 text-right">
+            <p className="text-[20px] font-black leading-none text-[#059669]">{flight.arrivalTime}</p>
+            <p className="mt-1 text-[12px] font-semibold text-[#7B8C8C]">{ticketDate(flight.arrivalDate)}</p>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between gap-2 mt-3 text-[10px] font-semibold text-[#6B7B7B]">
-          <span>{nonstop ? "Nonstop" : `${flight.stops} stop${flight.stops === 1 ? "" : "s"}`}</span>
+      <div className="relative border-t border-dashed border-[#B8CECE] px-5 py-3">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex h-9 items-center rounded-full bg-[#1D4ED8] px-4 text-[14px] font-black text-white shadow-[0_4px_10px_rgba(29,78,216,0.20)]">
+            → {tripBadge}
+          </span>
+          <span className="inline-flex h-9 items-center gap-1 rounded-full bg-[#059669] px-4 text-[14px] font-black text-white shadow-[0_4px_10px_rgba(5,150,105,0.20)]">
+            <HugeiconsIcon icon={SunCloud01Icon} size={14} color="white" strokeWidth={2.3} />
+            {money(flight.goWildPrice, flight.currency)}
+          </span>
+          <span className="inline-flex h-9 items-center rounded-full border border-[#A7D8CB] bg-white px-3 text-[12px] font-black text-[#2F665F]">
+            {stopLabel}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3 text-[11px] font-semibold text-[#6B7B7B]">
           {flight.duration && <span>{flight.duration}</span>}
           {flight.availableSeats != null && <span>{flight.availableSeats} seats seen</span>}
         </div>
       </div>
-      <div className="h-1.5 bg-gradient-to-r from-[#10B981] to-[#059669]" />
+      <div className="h-1.5 bg-[#059669]" />
     </motion.article>
   );
 }
@@ -145,8 +151,6 @@ function StateCard({
 
 export function TodaysGoWildFlights({ isCollapsed = false, onToggle, onNavigate }: Props) {
   const { feed, loading, error, refetch } = useTodaysGoWildFlights();
-  const observed = observedLabel(feed.observedAt, feed.homeAirportTimezone);
-
   return (
     <section className="px-5 pt-0 pb-5 relative z-10">
       <div
@@ -168,8 +172,18 @@ export function TodaysGoWildFlights({ isCollapsed = false, onToggle, onNavigate 
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {observed && !isCollapsed && (
-            <span className="hidden sm:inline text-[9px] font-semibold text-[#9AADAD]">Seen {observed}</span>
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                void refetch();
+              }}
+              aria-label="Refresh Today's GoWild"
+              className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-white/80 transition-colors"
+            >
+              <RefreshCw size={13} className="text-[#6B7B7B]" />
+            </button>
           )}
           <motion.div animate={{ rotate: isCollapsed ? -90 : 0 }} transition={{ duration: 0.22, ease: EASE }}>
             <ChevronDown size={15} strokeWidth={2.5} className="text-[#9AADAD]" />
@@ -187,20 +201,6 @@ export function TodaysGoWildFlights({ isCollapsed = false, onToggle, onNavigate 
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div className="flex items-center justify-between px-1 pb-2">
-              <p className="text-[11px] font-medium text-[#7B8C8C]">
-                {readableDate(feed.localDate)} · Shared nightly inventory · Uses 0 searches
-              </p>
-              <button
-                type="button"
-                onClick={() => void refetch()}
-                aria-label="Refresh Today's GoWild"
-                className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-white/80 transition-colors"
-              >
-                <RefreshCw size={13} className="text-[#6B7B7B]" />
-              </button>
-            </div>
-
             {loading ? (
               <div className="rounded-2xl p-4 animate-pulse" style={CARD_STYLE}>
                 <div className="h-3 w-32 rounded bg-[#E5EAEA] mb-3" />

@@ -298,7 +298,10 @@ export function DestCardItem({
         {card.minFare != null && (
           <div
             className="absolute top-3 right-3 inline-flex items-baseline gap-1 rounded-full px-3 py-1.5"
-            style={{ background: "#059669", boxShadow: "0 2px 8px rgba(5,150,105,0.30)" }}
+            style={{
+              background: card.hasGoWild ? "#059669" : "#111827",
+              boxShadow: card.hasGoWild ? "0 2px 8px rgba(5,150,105,0.30)" : "0 2px 8px rgba(17,24,39,0.28)",
+            }}
           >
             <span className="text-[14px] font-semibold leading-none" style={{ color: "rgba(255,255,255,0.80)" }}>From</span>
             <span className="text-[20px] font-black leading-none tracking-tight" style={{ color: "#FFFFFF" }}>${Math.round(card.minFare)}</span>

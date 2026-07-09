@@ -25,6 +25,8 @@ interface MultiDestMapProps {
   invalidateKey?: string | number;
   /** Called when the user clicks "View Flights" for a destination. */
   onViewDest?: (iata: string) => void;
+  /** Use inside small embedded cards where map chrome should stay quiet. */
+  compact?: boolean;
 }
 
 function FitAndInvalidate({
@@ -72,7 +74,7 @@ function FitAndInvalidate({
   return null;
 }
 
-export default function MultiDestMap({ depIata, depLatLng, destinations, invalidateKey, onViewDest }: MultiDestMapProps) {
+export default function MultiDestMap({ depIata, depLatLng, destinations, invalidateKey, onViewDest, compact = false }: MultiDestMapProps) {
   const allPositions: [number, number][] = [depLatLng, ...destinations.map((d) => d.latLng)];
 
   return (
@@ -82,8 +84,10 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
         center={depLatLng}
         zoom={4}
         zoomControl={false}
-        scrollWheelZoom={true}
-        attributionControl={true}
+        scrollWheelZoom={!compact}
+        attributionControl={!compact}
+        dragging={!compact}
+        doubleClickZoom={!compact}
       >
         <TileLayer url={TILE_URL} attribution={TILE_ATTR} />
         <FitAndInvalidate positions={allPositions} invalidateKey={invalidateKey} />
@@ -105,11 +109,12 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
           const label = dest.minFare != null
             ? `${dest.iata} · $${Math.round(dest.minFare)}`
             : dest.iata;
+          const markerColor = dest.hasGoWild ? COLOR_GREEN : "#111827";
           const badgeIcon = L.divIcon({
             html: `<span style="
               display:inline-block;
               transform:translateX(-50%);
-              background:${COLOR_GREEN};
+              background:${markerColor};
               color:white;
               font-family:Quicksand,sans-serif;
               font-size:9px;
@@ -133,7 +138,7 @@ export default function MultiDestMap({ depIata, depLatLng, destinations, invalid
               radius={6}
               pathOptions={{
                 color: "rgba(255,255,255,0.7)",
-                fillColor: COLOR_GREEN,
+                fillColor: dest.hasGoWild ? COLOR_GREEN : "#111827",
                 fillOpacity: 0.9,
                 weight: 1,
               }}
