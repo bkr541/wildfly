@@ -8,9 +8,8 @@ import {
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchTrustedCachedFlight } from "@/lib/flightApi";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -119,19 +118,22 @@ function formatGround(minutes: number): string {
  * 3. Both flights non-stop (stops === 0)
  * 4. Both flights have a GoWild fare
  */
-function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
-  // dayTrips API returns an array of pair objects with outbound/return keys
+function parseDayTripPairs(payload: any, fallbackDateStr: string): DayTripPair[] {
+  // The home RPC returns the same pair shape as the dayTrips API, but it can
+  // include multiple dates in a single payload.
   const rawTrips: any[] = payload?.dayTrips ?? [];
   const pairs: DayTripPair[] = [];
-  const seenDests = new Set<string>();
+  const seenDestsByDate = new Set<string>();
 
   for (const trip of rawTrips) {
     const out = trip.outbound;
     const ret = trip.return;
     if (!out || !ret) continue;
 
+    const tripDate = String(trip.date ?? fallbackDateStr);
     const dest = (trip.destination ?? out.destination ?? "").toUpperCase();
-    if (!dest || seenDests.has(dest)) continue;
+    const dedupeKey = `${tripDate}:${dest}`;
+    if (!dest || seenDestsByDate.has(dedupeKey)) continue;
 
     // ── Both GoWild ───────────────────────────────────────────────────────────
     const outGoWild = (out.cabin ?? "").toLowerCase().includes("wild") || (out.fares?.go_wild != null && out.fares.go_wild !== -1);
@@ -140,6 +142,15 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
 
     // ── Both non-stop ─────────────────────────────────────────────────────────
     if (Number(out.stops ?? 0) !== 0 || Number(ret.stops ?? 0) !== 0) continue;
+
+    // ── Same-day bounds + six-hour layover mirror the day-trip search UI ──────
+    const outDep = parseTimeString(out.departureIso ?? out.departureTime ?? "", tripDate);
+    const retArr = parseTimeString(ret.arrivalIso ?? ret.arrivalTime ?? "", tripDate);
+    if (!outDep || !retArr) continue;
+
+    const dayStart = new Date(`${tripDate}T00:01:00`);
+    const dayEnd = new Date(`${tripDate}T23:59:00`);
+    if (outDep < dayStart || outDep > dayEnd || retArr < dayStart || retArr > dayEnd) continue;
 
     // ── Use pre-computed ground time if available, else compute ───────────────
     const groundMinutes: number =
@@ -154,10 +165,10 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
 
     if (groundMinutes < 360) continue;
 
-    seenDests.add(dest);
+    seenDestsByDate.add(dedupeKey);
     pairs.push({
-      id: `${dest}-${dateStr}`,
-      date: dateStr,
+      id: trip.id ?? `${dest}-${tripDate}`,
+      date: tripDate,
       outbound: {
         origin: (out.origin ?? "").toUpperCase(),
         destination: (out.destination ?? dest).toUpperCase(),
@@ -178,8 +189,6 @@ function parseDayTripPairs(payload: any, dateStr: string): DayTripPair[] {
       },
       groundMinutes,
     });
-
-    if (pairs.length >= 3) break;
   }
 
   return pairs;
@@ -347,53 +356,19 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
     const load = async () => {
       try {
         const today = format(new Date(), "yyyy-MM-dd");
-        const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
 
-        let allPairs: DayTripPair[] = [];
+        // Read day-trip pairings from the nightly bulk-scan snapshots instead
+        // of the flight-cache edge function. The RPC derives the user's home
+        // airport server-side and pairs same-day nonstop GoWild outbound + return
+        // flights with at least six hours on the ground.
+        const { data, error } = await (supabase as any).rpc("get_home_day_trips_from_snapshots", {
+          p_min_ground_minutes: 360,
+          p_limit: 6,
+        });
 
-        // ── 1. Read the shared cache through its trusted, purpose-scoped owner.
-        // The server derives the home airport from the authenticated user and
-        // never accepts a browser-supplied cache key.
-        try {
-          const cached = await fetchTrustedCachedFlight<any>({
-            purpose: "home_day_trips",
-            dates: [today, tomorrow],
-          });
-          const rows: any[] = Array.isArray(cached?.data) ? cached.data : [];
-          allPairs = rows.flatMap((row) =>
-            row?.data ? parseDayTripPairs(row.data, String(row.date)) : [],
-          );
-        } catch {
-          // Saved-search fallback below keeps the widget useful during a cache
-          // service outage without opening direct access to the shared table.
-        }
+        if (error) throw error;
 
-        // ── 2. Always fall back to flight_searches (works even without home_airport) ──
-        if (allPairs.length === 0) {
-          const query = supabase
-            .from("flight_searches")
-            .select("json_body, departure_date, departure_airport")
-            .eq("user_id", user.id)
-            .eq("trip_type", "day_trip")
-            .in("departure_date", [today, tomorrow])
-            .order("search_timestamp", { ascending: false })
-            .limit(10);
-
-          const { data: searches } = await query;
-
-          if (searches && searches.length > 0) {
-            // Group by date, use latest per date
-            const byDate: Record<string, any> = {};
-            for (const s of searches) {
-              const d = String(s.departure_date);
-              if (!byDate[d]) byDate[d] = s.json_body;
-            }
-            allPairs = [
-              ...(byDate[today] ? parseDayTripPairs(byDate[today], today) : []),
-              ...(byDate[tomorrow] ? parseDayTripPairs(byDate[tomorrow], tomorrow) : []),
-            ];
-          }
-        }
+        const allPairs = parseDayTripPairs(data, today);
 
         setPairs(allPairs);
 
