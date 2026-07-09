@@ -2864,6 +2864,7 @@ export type Database = {
           stops: number
         }[]
       }
+      get_next_home_gowild_summary: { Args: never; Returns: Json }
       get_notification_type_stats: {
         Args: never
         Returns: {
@@ -2941,7 +2942,6 @@ export type Database = {
         Args: { p_token_hash: string }
         Returns: Json
       }
-      get_next_home_gowild_summary: { Args: never; Returns: Json }
       get_todays_home_gowild_flights: { Args: never; Returns: Json }
       gowild_timezone_group: { Args: { p_timezone: string }; Returns: string }
       is_owner_of_user_row: { Args: { _user_id: number }; Returns: boolean }
