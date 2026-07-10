@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TodaysGoWildFlights } from "./TodaysGoWildFlights";
 import { useTodaysGoWildFlights } from "@/hooks/useTodaysGoWildFlights";
@@ -67,11 +67,19 @@ describe("TodaysGoWildFlights", () => {
   it("uses the compact watched-flight card language without duplicate route metadata", () => {
     render(<TodaysGoWildFlights />);
 
-    expect(screen.getByText("Today's GoWild From ATL")).toBeInTheDocument();
-    expect(screen.getByText("F91242")).toBeInTheDocument();
-    expect(screen.getByText("Austin, TX")).toBeInTheDocument();
-    expect(screen.getByText("ATL")).toBeInTheDocument();
-    expect(screen.getByText("AUS")).toBeInTheDocument();
+    const heading = screen.getByRole("heading", { name: "Today's GoWild From ATL" });
+    expect(heading).toBeInTheDocument();
+    expect(heading.querySelector("span")).toHaveClass("font-extrabold");
+
+    const card = screen.getByRole("article");
+    expect(card).toHaveClass("w-[256px]");
+    expect(card.style.border).toBe("");
+
+    const destination = screen.getByText("Austin, TX");
+    const flightNumber = screen.getByText("F91242");
+    expect(destination.compareDocumentPosition(flightNumber) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(card).getByText("ATL")).toBeInTheDocument();
+    expect(within(card).getByText("AUS")).toBeInTheDocument();
     expect(screen.getByText("5:01 AM")).toBeInTheDocument();
     expect(screen.getByText("9:32 AM")).toBeInTheDocument();
     expect(screen.getAllByText("Fri, Jul 10, 2026")).toHaveLength(2);

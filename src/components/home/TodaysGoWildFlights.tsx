@@ -24,7 +24,6 @@ interface Props {
 const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 const CARD_STYLE = {
   background: "rgba(255,255,255,0.96)",
-  border: "1px solid rgba(255,255,255,0.72)",
   boxShadow:
     "0 2px 4px -1px rgba(16,185,129,0.10), 0 4px 12px -2px rgba(52,92,90,0.15), 0 1px 16px 0 rgba(5,150,105,0.08), 0 1px 2px 0 rgba(0,0,0,0.07)",
 };
@@ -77,20 +76,20 @@ function FlightCard({ flight, index }: { flight: TodaysGoWildFlight; index: numb
     <motion.article
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0, transition: { duration: 0.3, delay: index * 0.06, ease: EASE } }}
-      className="relative flex-shrink-0 w-[360px] sm:w-[390px] max-w-[calc(100vw-48px)] overflow-hidden rounded-2xl"
+      className="relative flex-shrink-0 w-[256px] max-w-[calc(100vw-48px)] overflow-hidden rounded-2xl"
       style={{ ...CARD_STYLE, scrollSnapAlign: "start" }}
     >
       <div className="relative px-3 pt-2 pb-[18px]">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-[12px] font-black uppercase tracking-[0.18em] text-[#059669]">
+              {destination || flight.destinationIata}
+            </span>
             {flight.flightNumber && (
               <span className="shrink-0 text-[11px] font-semibold text-[#6B7280]">
                 {flight.flightNumber}
               </span>
             )}
-            <span className="truncate text-[12px] font-black uppercase tracking-[0.18em] text-[#059669]">
-              {destination || flight.destinationIata}
-            </span>
           </div>
           {flight.availableSeats != null && (
             <span
@@ -212,7 +211,13 @@ export function TodaysGoWildFlights({ isCollapsed = false, onToggle, onNavigate 
         <div className="flex items-center gap-1.5 min-w-0">
           <HugeiconsIcon icon={SunCloud01Icon} size={13} color="#059669" strokeWidth={2} />
           <h2 className="text-xs font-semibold text-[#059669] uppercase tracking-wider truncate">
-            Today's GoWild{feed.homeAirport ? ` From ${feed.homeAirport}` : ""}
+            Today's GoWild
+            {feed.homeAirport && (
+              <>
+                {" From "}
+                <span className="font-extrabold">{feed.homeAirport}</span>
+              </>
+            )}
           </h2>
         </div>
         <div className="flex items-center gap-2 shrink-0">
