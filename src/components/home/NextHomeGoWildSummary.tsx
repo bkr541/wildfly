@@ -76,7 +76,7 @@ function CompactRouteMap({ feed }: { feed: NextHomeGoWildSummaryFeed }) {
           minFare: route.lowestPrice ?? null,
         } satisfies MultiDestMapDestination;
       })
-      .filter((destination): destination is MultiDestMapDestination => destination != null);
+      .filter((destination): destination is NonNullable<typeof destination> => destination != null);
   }, [feed.topRoutes]);
 
   if (!depLatLng || destinations.length === 0) {
