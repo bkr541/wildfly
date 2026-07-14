@@ -111,7 +111,10 @@ Deno.serve(async (req: Request) => {
     const row = data as PublicShareRpcResult;
 
     // Guard against unsupported display model versions from future migrations.
-    if (typeof row.display_model_version !== "number" || row.display_model_version !== 1) {
+    if (
+      typeof row.display_model_version !== "number" ||
+      ![1, 2].includes(row.display_model_version)
+    ) {
       return json({ ok: false, error: "Unsupported share version" }, 422);
     }
 

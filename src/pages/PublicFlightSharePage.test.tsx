@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import type { FlightShareModel } from "@/utils/flightShareModel";
+import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
 
 // ── Mock: Supabase client (prevents localStorage init error in jsdom) ──────────
@@ -148,6 +149,61 @@ function makeResponse(overrides: Partial<PublicSharedFlightResultResponse> = {})
   };
 }
 
+function makeMultiDestModel(): MultiDestShareModelV2 {
+  return {
+    kind: "multi-destination",
+    originCode: "ORD",
+    originLabel: "Chicago",
+    destinationLabel: "All Destinations",
+    tripTypeLabel: "One-way",
+    departureDate: "2026-07-18",
+    returnDate: null,
+    combinedDateLabel: "Sat, Jul 18, 2026 • One-way",
+    heroImageUrl: "/assets/locations/42_background.png",
+    totals: {
+      destinationCount: 1,
+      flightCount: 5,
+      nonstopDestinationCount: 1,
+      goWildDestinationCount: 1,
+    },
+    appliedView: {
+      sortBy: "fare",
+      nonstopOnly: true,
+      goWildOnly: false,
+      destinationType: "domestic",
+    },
+    destinations: [{
+      destination: "MIA",
+      city: "Miami",
+      stateCode: "FL",
+      country: "United States",
+      airportName: "Miami International Airport",
+      locationId: 7,
+      flightCount: 5,
+      minFare: 49,
+      maxFare: 159,
+      isMinFareGoWild: true,
+      hasGoWild: true,
+      hasNonstop: true,
+      nonstopCount: 3,
+      avgDurationMin: 190,
+      minDurationMin: 175,
+      departureWindow: "6:00 AM – 8:00 PM",
+      earliestDeparture: "6:00 AM",
+    }],
+    hasResults: true,
+  };
+}
+
+function makeMultiDestResponse(): PublicSharedFlightResultResponse {
+  return {
+    displayModelVersion: 2,
+    displayModel: makeMultiDestModel(),
+    createdAt: "2026-07-14T12:00:00Z",
+    expiresAt: "2026-09-14T12:00:00Z",
+  };
+}
+
 function makeRoundTripModel(): FlightShareModel {
   return makeModel({
     tripTypeLabel: "Round-trip", totalOptionCount: 2, totalNonstopCount: 2,
@@ -186,6 +242,18 @@ function renderPage(token: string) {
   return render(<RouterProvider router={router} />);
 }
 
+function renderPageInStrictMode(token: string) {
+  const router = createMemoryRouter(
+    [{ path: "/share/flights/:token", element: <PublicFlightSharePage /> }],
+    { initialEntries: [`/share/flights/${token}`] },
+  );
+  return render(
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>,
+  );
+}
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -209,6 +277,13 @@ describe("PublicFlightSharePage", () => {
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(mockGetShare).toHaveBeenCalledWith(token));
+    });
+
+    it("deduplicates Strict Mode fetches so view_count increments once", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeResponse());
+      await act(async () => { renderPageInStrictMode(token); });
+      await waitFor(() => expect(mockGetShare).toHaveBeenCalledTimes(1));
     });
 
     it("renders without a sign-in gate (anonymous access)", async () => {
@@ -264,6 +339,27 @@ describe("PublicFlightSharePage", () => {
       mockGetShare.mockResolvedValue(makeResponse());
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(document.title).toBe("Chicago to Orlando Flights | Wildfly"));
+    });
+
+    it("renders version-2 multi-destination snapshots through the public multi view", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeMultiDestResponse());
+      await act(async () => { renderPage(token); });
+
+      await waitFor(() => {
+        expect(screen.getAllByText("All Destinations").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("MIA").length).toBeGreaterThan(0);
+      });
+      expect(screen.getByRole("button", { name: "Download Image" })).toBeDefined();
+    });
+
+    it("sets a version-aware document title for multi-destination shares", async () => {
+      const token = nextToken();
+      mockGetShare.mockResolvedValue(makeMultiDestResponse());
+      await act(async () => { renderPage(token); });
+      await waitFor(() => expect(document.title).toBe(
+        "Flights from Chicago to All Destinations | Wildfly",
+      ));
     });
 
     it("injects noindex,nofollow meta tag", async () => {

@@ -10,6 +10,7 @@ import {
 import { getPublicSharedFlightResult } from "@/services/sharedFlightResults";
 import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
 import { PublicFlightShareView } from "@/components/flight-share/PublicFlightShareView";
+import { PublicMultiDestShareView } from "@/components/flight-share/PublicMultiDestShareView";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -290,9 +291,10 @@ export default function PublicFlightSharePage() {
 
   // Update document title when share data is loaded
   useEffect(() => {
-    if (shareData) {
-      const { displayModel } = shareData;
-      document.title = `${displayModel.originLabel} to ${displayModel.destinationLabel} Flights | Wildfly`;
+    if (shareData?.displayModelVersion === 1) {
+      document.title = `${shareData.displayModel.originLabel} to ${shareData.displayModel.destinationLabel} Flights | Wildfly`;
+    } else if (shareData?.displayModelVersion === 2) {
+      document.title = `Flights from ${shareData.displayModel.originLabel} to ${shareData.displayModel.destinationLabel} | Wildfly`;
     } else {
       document.title = "Flight Results | Wildfly";
     }
@@ -348,6 +350,17 @@ export default function PublicFlightSharePage() {
   if (!shareData) return null;
 
   const publicUrl = `${window.location.origin}/share/flights/${token}`;
+
+  if (shareData.displayModelVersion === 2) {
+    return (
+      <PublicMultiDestShareView
+        model={shareData.displayModel}
+        createdAt={shareData.createdAt}
+        expiresAt={shareData.expiresAt}
+        publicUrl={publicUrl}
+      />
+    );
+  }
 
   return (
     <PublicFlightShareView

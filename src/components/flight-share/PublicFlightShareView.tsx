@@ -101,6 +101,16 @@ function deriveDisplayModel(
   };
 }
 
+function formatSnapshotDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
 // ── Main public view ──────────────────────────────────────────────────────────
 
 export function PublicFlightShareView({
@@ -238,28 +248,129 @@ export function PublicFlightShareView({
         {/* Stats summary strip */}
         <FlightShareSummary model={model} />
 
+        <section
+          aria-label="Snapshot details and actions"
+          style={{
+            alignItems: "center",
+            background: "#F7F9F8",
+            borderBottom: "1px solid #DDE4E4",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+            justifyContent: "space-between",
+            padding: "12px 14px",
+          }}
+        >
+          <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, lineHeight: 1.45 }}>
+            <div>Results captured {formatSnapshotDate(createdAt)}</div>
+            {expiresAt && <div>Available until {formatSnapshotDate(expiresAt)}</div>}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              style={sheetTriggerStyle(false)}
+            >
+              {downloading ? "Exporting…" : "Download image"}
+            </button>
+            {canNativeShare && (
+              <button
+                type="button"
+                aria-label="Share via device"
+                onClick={handleNativeShare}
+                style={sheetTriggerStyle(false)}
+              >
+                Share
+              </button>
+            )}
+            <button type="button" onClick={handleCopy} style={sheetTriggerStyle(copied)}>
+              {copied ? "Copied!" : "Copy link"}
+            </button>
+          </div>
+        </section>
+
         {/* ── Content area ─────────────────────────────────────────────────── */}
         <div style={{ padding: "0 12px" }}>
 
-          {/* Sort + Filter trigger row */}
+          {/* Direct public snapshot controls */}
           {model.hasResults && (
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <div
+              style={{
+                alignItems: "center",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 10,
+              }}
+            >
               <button
-                style={sheetTriggerStyle(sort !== "dep")}
-                onClick={() => setSortSheet(true)}
-                aria-label="Sort flights"
+                type="button"
+                aria-label="Show all flights"
+                aria-pressed={filter === "all"}
+                onClick={() => setFilter("all")}
+                style={sheetTriggerStyle(filter === "all")}
               >
-                <HugeiconsIcon icon={SortByDown02Icon} size={12} color={sort !== "dep" ? EMERALD : MUTED} strokeWidth={2} />
-                Sort By
+                All
               </button>
-              <button
-                style={sheetTriggerStyle(filter !== "all")}
-                onClick={() => setFilterSheet(true)}
-                aria-label="Filter flights"
-              >
-                <HugeiconsIcon icon={FilterIcon} size={12} color={filter !== "all" ? EMERALD : MUTED} strokeWidth={2} />
-                Filter
-              </button>
+              {hasGoWild && (
+                <button
+                  type="button"
+                  aria-label="GoWild fares"
+                  aria-pressed={filter === "gowild"}
+                  onClick={() => setFilter(filter === "gowild" ? "all" : "gowild")}
+                  style={sheetTriggerStyle(filter === "gowild")}
+                >
+                  GoWild
+                </button>
+              )}
+              {hasNonstop && (
+                <button
+                  type="button"
+                  aria-label="Nonstop flights"
+                  aria-pressed={filter === "nonstop"}
+                  onClick={() => setFilter(filter === "nonstop" ? "all" : "nonstop")}
+                  style={sheetTriggerStyle(filter === "nonstop")}
+                >
+                  Nonstop
+                </button>
+              )}
+              {hasStops && (
+                <button
+                  type="button"
+                  aria-label="One or more stops"
+                  aria-pressed={filter === "1stop"}
+                  onClick={() => setFilter(filter === "1stop" ? "all" : "1stop")}
+                  style={sheetTriggerStyle(filter === "1stop")}
+                >
+                  1+ Stop
+                </button>
+              )}
+              <label style={{ marginLeft: "auto" }}>
+                <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
+                  Sort flights
+                </span>
+                <select
+                  aria-label="Sort flights"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as SortKey)}
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1.5px solid #E8EBEB",
+                    borderRadius: 999,
+                    color: DARK_TEAL,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "7px 30px 7px 12px",
+                  }}
+                >
+                  <option value="dep">Departure Time</option>
+                  <option value="arr">Arrival Time</option>
+                  <option value="dur">Shortest Flight</option>
+                  <option value="stops">Fewest Stops</option>
+                  <option value="fare">Lowest Fare</option>
+                </select>
+              </label>
             </div>
           )}
 

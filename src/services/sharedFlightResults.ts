@@ -14,32 +14,53 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FlightShareModel } from "@/utils/flightShareModel";
-import { normalizeStoredFlightShare } from "@/utils/flightShareNormalize";
+import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
+import { normalizeStoredFlightShareEnvelope } from "@/utils/flightShareNormalize";
 
 // ── Request / response contracts ───────────────────────────────────────────────
 
-export interface CreateSharedFlightResultRequest {
-  payloadVersion:       1;
-  displayModelVersion:  1;
-  rawSearchPayload:     unknown;
-  displayModel:         FlightShareModel;
+type CreateSharedFlightResultRequestBase = {
+  payloadVersion: 1;
+  rawSearchPayload: unknown;
   sourceFlightSearchId?: string | null;
-  expiresInDays?:       number | null;
-}
+  expiresInDays?: number | null;
+};
+
+export type CreateSharedFlightResultRequest =
+  | (CreateSharedFlightResultRequestBase & {
+      displayModelVersion: 1;
+      displayModel: FlightShareModel;
+    })
+  | (CreateSharedFlightResultRequestBase & {
+      displayModelVersion: 2;
+      displayModel: MultiDestShareModelV2;
+    });
 
 export interface CreateSharedFlightResultResponse {
-  shareId:   string;
+  shareId: string;
   publicUrl: string;
   createdAt: string;
   expiresAt: string | null;
 }
 
-export interface PublicSharedFlightResultResponse {
-  displayModelVersion: number;
-  displayModel:        FlightShareModel;
-  createdAt:           string;
-  expiresAt:           string | null;
-}
+type PublicSharedFlightResultResponseBase = {
+  createdAt: string;
+  expiresAt: string | null;
+};
+
+export type PublicSharedFlightResultResponse =
+  | (PublicSharedFlightResultResponseBase & {
+      displayModelVersion: 1;
+      displayModel: FlightShareModel;
+    })
+  | (PublicSharedFlightResultResponseBase & {
+      displayModelVersion: 2;
+      displayModel: MultiDestShareModelV2;
+    });
+
+// Must remain byte-for-byte aligned with MAX_BODY_BYTES in the create Edge
+// Function. The request is measured as UTF-8 JSON before any network activity.
+export const SHARED_FLIGHT_RESULT_MAX_BODY_BYTES = 3 * 1024 * 1024;
 
 // ── Typed error ────────────────────────────────────────────────────────────────
 
@@ -194,6 +215,24 @@ function classifyBodyError(errorText: string): SharedFlightResultError {
 export async function createSharedFlightResult(
   request: CreateSharedFlightResultRequest,
 ): Promise<CreateSharedFlightResultResponse> {
+  let serializedRequest: string;
+  try {
+    serializedRequest = JSON.stringify(request);
+  } catch {
+    throw new SharedFlightResultError(
+      "VALIDATION",
+      "The flight-share request could not be serialized.",
+    );
+  }
+
+  const bodySizeBytes = new TextEncoder().encode(serializedRequest).byteLength;
+  if (bodySizeBytes > SHARED_FLIGHT_RESULT_MAX_BODY_BYTES) {
+    throw new SharedFlightResultError(
+      "PAYLOAD_TOO_LARGE",
+      `Payload too large: ${bodySizeBytes} UTF-8 bytes exceeds the ${SHARED_FLIGHT_RESULT_MAX_BODY_BYTES}-byte limit.`,
+    );
+  }
+
   const { data, error } = await supabase.functions.invoke<CreateEdgeFnResponse>(
     "create-shared-flight-result",
     { body: request },
@@ -245,14 +284,26 @@ export async function getPublicSharedFlightResult(
     );
   }
 
-  const displayModelVersion = data.displayModelVersion!;
+  const displayModelVersion = data.displayModelVersion;
+  if (typeof displayModelVersion !== "number") {
+    throw new SharedFlightResultError(
+      "SERVER_ERROR",
+      "Public share response is missing displayModelVersion.",
+    );
+  }
+  if (typeof data.createdAt !== "string") {
+    throw new SharedFlightResultError(
+      "SERVER_ERROR",
+      "Public share response is missing createdAt.",
+    );
+  }
 
-  // Normalize the stored display model through the versioned deserializer.
-  // Unknown versions or malformed payloads throw here so callers surface a
-  // typed error rather than rendering a broken page.
-  let displayModel: FlightShareModel;
+  let normalized;
   try {
-    displayModel = normalizeStoredFlightShare(displayModelVersion, data.displayModel);
+    normalized = normalizeStoredFlightShareEnvelope(
+      displayModelVersion,
+      data.displayModel,
+    );
   } catch (normErr) {
     const msg = normErr instanceof Error ? normErr.message : String(normErr);
     if (msg.startsWith("UNSUPPORTED_VERSION")) {
@@ -264,13 +315,22 @@ export async function getPublicSharedFlightResult(
     );
   }
 
-  // Explicitly select only the public fields — owner, token hash, and raw
-  // payload are not present in the Edge Function response (the RPC excludes
-  // them at the SQL level), but we project here to make that contract explicit.
+  const publicFields = {
+    createdAt: data.createdAt,
+    expiresAt: data.expiresAt ?? null,
+  };
+
+  if (normalized.displayModelVersion === 1) {
+    return {
+      displayModelVersion: 1,
+      displayModel: normalized.displayModel,
+      ...publicFields,
+    };
+  }
+
   return {
-    displayModelVersion,
-    displayModel,
-    createdAt:  data.createdAt!,
-    expiresAt:  data.expiresAt ?? null,
+    displayModelVersion: 2,
+    displayModel: normalized.displayModel,
+    ...publicFields,
   };
 }

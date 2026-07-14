@@ -23,6 +23,7 @@ import {
   type CreateSharedFlightResultRequest,
 } from "./sharedFlightResults";
 import type { FlightShareModel } from "@/utils/flightShareModel";
+import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 
 // ── Mock Supabase client ───────────────────────────────────────────────────────
 
@@ -103,6 +104,52 @@ function makeDisplayModel(
   };
 }
 
+function makeMultiDestDisplayModel(): MultiDestShareModelV2 {
+  return {
+    kind: "multi-destination",
+    originCode: "DEN",
+    originLabel: "Denver",
+    destinationLabel: "All Destinations",
+    tripTypeLabel: "One-way",
+    departureDate: "2026-06-15",
+    returnDate: null,
+    combinedDateLabel: "Mon, Jun 15, 2026 • One-way",
+    heroImageUrl: "/assets/locations/12_background.png",
+    totals: {
+      destinationCount: 1,
+      flightCount: 5,
+      nonstopDestinationCount: 1,
+      goWildDestinationCount: 1,
+    },
+    appliedView: {
+      sortBy: "fare",
+      nonstopOnly: false,
+      goWildOnly: false,
+      destinationType: "all",
+    },
+    destinations: [{
+      destination: "LAS",
+      city: "Las Vegas",
+      stateCode: "NV",
+      country: "United States",
+      airportName: "Harry Reid International Airport",
+      locationId: 33,
+      flightCount: 5,
+      minFare: 49,
+      maxFare: 129,
+      isMinFareGoWild: true,
+      hasGoWild: true,
+      hasNonstop: true,
+      nonstopCount: 3,
+      avgDurationMin: 90,
+      minDurationMin: 75,
+      departureWindow: "6:00 AM – 8:00 PM",
+      earliestDeparture: "6:00 AM",
+    }],
+    hasResults: true,
+  };
+}
+
 function makeRawPayload(): unknown {
   return {
     flights: [
@@ -146,6 +193,16 @@ function makeCreateRequest(
     displayModel:        makeDisplayModel(),
     expiresInDays:       null,
     ...overrides,
+  };
+}
+
+function makeV2CreateRequest(): CreateSharedFlightResultRequest {
+  return {
+    payloadVersion: 1,
+    displayModelVersion: 2,
+    rawSearchPayload: { response: { flights: [] } },
+    displayModel: makeMultiDestDisplayModel(),
+    expiresInDays: null,
   };
 }
 
@@ -238,6 +295,15 @@ describe("createSharedFlightResult — success", () => {
     const [, opts] = mockInvoke.mock.calls[0];
     expect(opts.body.payloadVersion).toBe(1);
     expect(opts.body.displayModelVersion).toBe(1);
+  });
+
+  it("creates a version-2 request without changing the version-1 contract", async () => {
+    mockInvoke.mockResolvedValue(successCreateResponse());
+    await createSharedFlightResult(makeV2CreateRequest());
+
+    const [, opts] = mockInvoke.mock.calls[0];
+    expect(opts.body.displayModelVersion).toBe(2);
+    expect(opts.body.displayModel.kind).toBe("multi-destination");
   });
 
   it("forwards rawSearchPayload in the request body", async () => {
@@ -394,6 +460,27 @@ describe("createSharedFlightResult — validation errors", () => {
 describe("createSharedFlightResult — payload size", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it("rejects oversized UTF-8 JSON before invoking the Edge Function", async () => {
+    const request = makeCreateRequest({
+      rawSearchPayload: { text: "✈".repeat(1_100_000) },
+    });
+
+    await expect(createSharedFlightResult(request)).rejects.toMatchObject({
+      kind: "PAYLOAD_TOO_LARGE",
+    });
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
+  it("rejects circular requests as validation errors before invocation", async () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+
+    await expect(createSharedFlightResult(makeCreateRequest({
+      rawSearchPayload: circular,
+    }))).rejects.toMatchObject({ kind: "VALIDATION" });
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
   it("throws PAYLOAD_TOO_LARGE when body error indicates oversized payload", async () => {
     mockInvoke.mockResolvedValue({
       data: { ok: false, error: "Payload too large" },
@@ -531,6 +618,27 @@ describe("getPublicSharedFlightResult — success", () => {
     expect(result.displayModel).toStrictEqual(model);
     expect(result.createdAt).toBe("2026-06-15T10:00:00.000Z");
     expect(result.expiresAt).toBeNull();
+  });
+
+  it("returns a normalized discriminated version-2 response", async () => {
+    const model = makeMultiDestDisplayModel();
+    mockInvoke.mockResolvedValue({
+      data: {
+        ok: true,
+        displayModelVersion: 2,
+        displayModel: model,
+        createdAt: "2026-06-15T10:00:00.000Z",
+        expiresAt: null,
+      },
+      error: null,
+    });
+
+    const result = await getPublicSharedFlightResult(VALID_TOKEN);
+    expect(result.displayModelVersion).toBe(2);
+    if (result.displayModelVersion === 2) {
+      expect(result.displayModel.kind).toBe("multi-destination");
+      expect(result.displayModel.totals.flightCount).toBe(5);
+    }
   });
 
   it("calls the correct Edge Function name", async () => {
@@ -726,6 +834,29 @@ describe("getPublicSharedFlightResult — malformed display model", () => {
         displayModel:        [],
         createdAt:           "2026-06-15T10:00:00.000Z",
         expiresAt:           null,
+      },
+      error: null,
+    });
+
+    await expect(getPublicSharedFlightResult(VALID_TOKEN)).rejects.toMatchObject({
+      kind: "SERVER_ERROR",
+    });
+  });
+});
+
+describe("getPublicSharedFlightResult — malformed version 2", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("fails safely when version-2 totals do not match destinations", async () => {
+    const model = makeMultiDestDisplayModel();
+    model.totals.flightCount = 999;
+    mockInvoke.mockResolvedValue({
+      data: {
+        ok: true,
+        displayModelVersion: 2,
+        displayModel: model,
+        createdAt: "2026-06-15T10:00:00.000Z",
+        expiresAt: null,
       },
       error: null,
     });
