@@ -66,9 +66,16 @@ describe("selectPixelRatio", () => {
     expect(ratio).toBeGreaterThanOrEqual(1.25);
   });
 
-  it("does not go below 1.25 for extremely tall templates", () => {
-    expect(selectPixelRatio(100_000)).toBeGreaterThanOrEqual(1.25);
-    expect(selectPixelRatio(50_000)).toBeGreaterThanOrEqual(1.25);
+  it("keeps extreme templates within conservative canvas limits", () => {
+    const ratio = selectPixelRatio(100_000, 941);
+    expect(ratio).toBeLessThan(1);
+    expect(100_000 * ratio).toBeLessThanOrEqual(32_000);
+    expect(941 * 100_000 * ratio * ratio).toBeLessThanOrEqual(80_000_000);
+  });
+
+  it("keeps the ratio positive while honoring the hard dimension budget", () => {
+    expect(selectPixelRatio(100_000)).toBeGreaterThan(0);
+    expect(selectPixelRatio(400_000) * 400_000).toBeLessThanOrEqual(32_000);
   });
 
   it("returns exactly 1.5 at the threshold boundary", () => {
@@ -82,6 +89,7 @@ describe("exportFlightShareImage", () => {
   let origRAF: typeof requestAnimationFrame;
   let origCreateObjectURL: typeof URL.createObjectURL;
   let origRevokeObjectURL: typeof URL.revokeObjectURL;
+  let origAnchorClick: typeof HTMLAnchorElement.prototype.click;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -98,12 +106,15 @@ describe("exportFlightShareImage", () => {
     origRevokeObjectURL = URL.revokeObjectURL;
     URL.createObjectURL = vi.fn(() => "blob:test-url");
     URL.revokeObjectURL = vi.fn();
+    origAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = vi.fn();
   });
 
   afterEach(() => {
     globalThis.requestAnimationFrame = origRAF;
     URL.createObjectURL = origCreateObjectURL;
     URL.revokeObjectURL = origRevokeObjectURL;
+    HTMLAnchorElement.prototype.click = origAnchorClick;
   });
 
   it("throws when the node has no measurable dimensions", async () => {
@@ -161,6 +172,11 @@ describe("exportFlightShareImage", () => {
         width: 941,
         height: 1500,
         pixelRatio: 2,
+        style: expect.objectContaining({
+          animation: "none",
+          transition: "none",
+          transform: "none",
+        }),
       }),
     );
   });
@@ -180,5 +196,28 @@ describe("exportFlightShareImage", () => {
     const opts = call[1] as { pixelRatio: number };
     expect(opts.pixelRatio).toBeLessThan(2);
     expect(opts.pixelRatio).toBeGreaterThanOrEqual(1.25);
+  });
+
+  it("continues when a local image fails to load", async () => {
+    const { toBlob } = await import("html-to-image");
+    const fakeBlob = new Blob(["img"], { type: "image/png" });
+    (toBlob as ReturnType<typeof vi.fn>).mockResolvedValue(fakeBlob);
+
+    const node = document.createElement("div");
+    const image = document.createElement("img");
+    node.appendChild(image);
+    Object.defineProperty(node, "scrollWidth", { value: 941, configurable: true });
+    Object.defineProperty(node, "scrollHeight", { value: 1200, configurable: true });
+
+    const exportPromise = exportFlightShareImage(node, "missing-image.png");
+    image.dispatchEvent(new Event("error"));
+
+    await expect(exportPromise).resolves.toBe(fakeBlob);
+  });
+
+  it("bounds deterministic filenames for unusually long labels", () => {
+    const filename = buildShareFilename("A".repeat(200), "B".repeat(200), "2026-07-14");
+    expect(filename.length).toBeLessThan(170);
+    expect(filename).toMatch(/^wildfly-a+-to-b+-2026-07-14\.png$/);
   });
 });

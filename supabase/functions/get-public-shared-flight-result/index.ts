@@ -6,25 +6,31 @@
 // sanitized display model. raw_search_payload and owner identity are never returned.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SHARED_FLIGHT_RESULT_RAW_TOKEN_RE } from "../_shared/sharedFlightResultSecurity.ts";
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
+
+const RESPONSE_HEADERS = {
+  ...CORS,
+  "Cache-Control": "no-store",
+  "Content-Type": "application/json",
+  "X-Content-Type-Options": "nosniff",
 };
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: RESPONSE_HEADERS,
   });
 }
 
 // ── Token validation ───────────────────────────────────────────────────────────
-
-const RAW_TOKEN_RE  = /^[0-9a-f]{64}$/;
-const MAX_TOKEN_LEN = 128;
 
 async function hashToken(raw: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
@@ -48,6 +54,9 @@ interface PublicShareRpcResult {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
+  }
+  if (req.method !== "GET" && req.method !== "POST") {
+    return json({ ok: false, error: "Method not allowed" }, 405);
   }
 
   try {
@@ -81,7 +90,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Validate token shape ──────────────────────────────────
-    if (rawToken.length > MAX_TOKEN_LEN || !RAW_TOKEN_RE.test(rawToken)) {
+    if (!SHARED_FLIGHT_RESULT_RAW_TOKEN_RE.test(rawToken)) {
       return json({ ok: false, error: "Invalid token" }, 400);
     }
 
@@ -89,9 +98,13 @@ Deno.serve(async (req: Request) => {
     const tokenHash = await hashToken(rawToken);
 
     // ── Call service-role RPC ─────────────────────────────────
-    const supabaseUrl    = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const adminClient    = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("[get-public-shared-flight-result] required Supabase environment is not configured");
+      return json({ ok: false, error: "Server configuration error" }, 500);
+    }
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const { data, error } = await adminClient.rpc("get_shared_flight_result", {
       p_token_hash: tokenHash,
@@ -109,6 +122,14 @@ Deno.serve(async (req: Request) => {
     }
 
     const row = data as PublicShareRpcResult;
+    if (
+      row == null ||
+      typeof row !== "object" ||
+      typeof row.created_at !== "string" ||
+      (row.expires_at !== null && typeof row.expires_at !== "string")
+    ) {
+      return json({ ok: false, error: "Invalid share response" }, 500);
+    }
 
     // Guard against unsupported display model versions from future migrations.
     if (

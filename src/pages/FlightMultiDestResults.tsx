@@ -71,6 +71,27 @@ type AirportLookupRow = {
 type RawSearchPayload = Record<string, unknown>;
 type RawFlights = Parameters<typeof buildDestCards>[0];
 
+type RawFlightSegment = {
+  departure_airport?: string;
+  arrival_airport?: string;
+  departure_time?: string;
+  arrival_time?: string;
+};
+
+type RawFareTotal = { total?: number | null };
+
+type RawFlightPayload = {
+  segments?: RawFlightSegment[];
+  fares?: {
+    discount_den?: RawFareTotal;
+    standard?: RawFareTotal;
+    go_wild?: RawFareTotal;
+  };
+  total_trip_time?: string;
+  departure_time?: string;
+  arrival_time?: string;
+};
+
 type ParsedMultiDestSearch = {
   parsedResponse: RawSearchPayload | null;
   rawFlights: RawFlights;
@@ -131,6 +152,7 @@ const FlightMultiDestResults = ({
   const imageExportInFlightRef = useRef(false);
   const publicShareInFlightRef = useRef(false);
   const shareNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGeneratingShareImage, setIsGeneratingShareImage] = useState(false);
   const [imageExportError, setImageExportError] = useState<string | null>(null);
@@ -356,19 +378,23 @@ const FlightMultiDestResults = ({
     if (shareNoticeTimerRef.current !== null) {
       clearTimeout(shareNoticeTimerRef.current);
     }
+    if (!mountedRef.current) return;
     setShareNotice(message);
     shareNoticeTimerRef.current = setTimeout(() => {
-      setShareNotice(null);
+      if (mountedRef.current) setShareNotice(null);
       shareNoticeTimerRef.current = null;
     }, 2200);
   }, []);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      imageExportInFlightRef.current = false;
+      publicShareInFlightRef.current = false;
       if (shareNoticeTimerRef.current !== null) clearTimeout(shareNoticeTimerRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const handleOpenShareSheet = useCallback(() => {
     if (!airportMetadataReady) return;
@@ -410,14 +436,16 @@ const FlightMultiDestResults = ({
         departureDate,
       );
       await exportFlightShareImage(node, filename);
-      setIsShareSheetOpen(false);
-      showShareNotice("Destination image downloaded.");
+      if (mountedRef.current) {
+        setIsShareSheetOpen(false);
+        showShareNotice("Destination image downloaded.");
+      }
     } catch (error) {
       console.error("[Wildfly] multi-destination image export failed:", error);
-      setImageExportError("Export failed — try again.");
+      if (mountedRef.current) setImageExportError("Export failed — try again.");
     } finally {
       imageExportInFlightRef.current = false;
-      setIsGeneratingShareImage(false);
+      if (mountedRef.current) setIsGeneratingShareImage(false);
     }
   }, [airportMetadataReady, multiDestShareModel, departureDate, showShareNotice]);
 
@@ -450,7 +478,7 @@ const FlightMultiDestResults = ({
         displayModel: multiDestShareModel,
         ...(sourceFlightSearchId ? { sourceFlightSearchId } : {}),
       });
-      if (shareSnapshotKeyRef.current === requestedSnapshotKey) {
+      if (mountedRef.current && shareSnapshotKeyRef.current === requestedSnapshotKey) {
         setPublicShareResult(result);
       }
     } catch (error: unknown) {
@@ -458,7 +486,7 @@ const FlightMultiDestResults = ({
         typeof error === "object" && error !== null && "kind" in error
           ? String((error as { kind: unknown }).kind)
           : "SERVER_ERROR";
-      if (shareSnapshotKeyRef.current === requestedSnapshotKey) {
+      if (mountedRef.current && shareSnapshotKeyRef.current === requestedSnapshotKey) {
         if (kind === "UNAUTHENTICATED") {
           setPublicShareError("Sign in to create a shareable link.");
         } else if (kind === "VALIDATION") {
@@ -474,7 +502,7 @@ const FlightMultiDestResults = ({
       console.error("[Wildfly] multi-destination public share failed:", error);
     } finally {
       publicShareInFlightRef.current = false;
-      setIsCreatingPublicShare(false);
+      if (mountedRef.current) setIsCreatingPublicShare(false);
     }
   }, [
     airportMetadataReady,
@@ -487,20 +515,20 @@ const FlightMultiDestResults = ({
 
   // ── Build single-dest payload for drilling in ────────────
   const handleViewDest = (card: DestCard) => {
-    const enriched = card.flights.map((f: any) => {
-      const rp = f.rawPayload ?? {};
-      const segments: any[] = Array.isArray(rp.segments) ? rp.segments : [];
+    const enriched = card.flights.map((f) => {
+      const rp = (f.rawPayload ?? {}) as RawFlightPayload;
+      const segments = Array.isArray(rp.segments) ? rp.segments : [];
 
       // Rebuild legs with real ISO times from rawPayload.segments
       const enrichedLegs =
         segments.length > 0
-          ? segments.map((seg: any) => ({
+          ? segments.map((seg) => ({
               origin: seg.departure_airport ?? "",
               destination: seg.arrival_airport ?? "",
               departure_time: seg.departure_time ?? "",
               arrival_time: seg.arrival_time ?? "",
             }))
-          : (f.legs ?? []).map((leg: any) => ({
+          : (f.legs ?? []).map((leg) => ({
               ...leg,
               departure_time: leg.departure_time || rp.departure_time || "",
               arrival_time: leg.arrival_time || rp.arrival_time || "",
@@ -655,6 +683,7 @@ const FlightMultiDestResults = ({
               <button
                 type="button"
                 onClick={() => setSortSheet(true)}
+                aria-label="Sort destination results from compact header"
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
                   sortBy !== "city" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
@@ -665,6 +694,7 @@ const FlightMultiDestResults = ({
               <button
                 type="button"
                 onClick={() => setFilterSheet(true)}
+                aria-label="Filter destination results from compact header"
                 className={cn(
                   "h-8 w-8 flex items-center justify-center rounded-full border transition-all",
                   filterNonstopOnly || filterGoWildOnly || filterDestType !== "all" ? "bg-white/20 border-white/40" : "bg-white/10 border-white/30",
@@ -975,6 +1005,8 @@ const FlightMultiDestResults = ({
                     <button
                       type="button"
                       onClick={toggle}
+                      aria-label={`${active ? "Disable" : "Enable"} ${label}`}
+                      aria-pressed={active}
                       className={cn(
                         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors",
                         active ? "bg-[#10B981]" : "bg-[#D1D5DB]",
@@ -1029,6 +1061,7 @@ const FlightMultiDestResults = ({
                         key={opt}
                         type="button"
                         onClick={() => setFilterDestType(opt)}
+                        aria-pressed={filterDestType === opt}
                         className={cn(
                           "relative z-10 flex-1 py-2 text-[12px] font-semibold rounded-full transition-colors duration-200 capitalize",
                           filterDestType === opt ? "text-white" : "text-[#9CA3AF]",
@@ -1091,6 +1124,7 @@ const FlightMultiDestResults = ({
                 <button
                   type="button"
                   onClick={() => setMapSheet(false)}
+                  aria-label="Close route map"
                   className="h-8 w-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#2E4A4A] hover:bg-black/5 transition-colors ml-1"
                 >
                   <HugeiconsIcon icon={AddCircleIcon} size={18} color="currentColor" strokeWidth={2} className="rotate-45" />

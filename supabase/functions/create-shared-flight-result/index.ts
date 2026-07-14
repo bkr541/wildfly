@@ -5,21 +5,34 @@
 // The raw public token is returned exactly once in publicUrl and never stored.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { z } from "https://esm.sh/zod@3";
+import { z } from "https://esm.sh/zod@3.24.2";
 import {
   deriveMultiDestinationMeta,
   deriveSingleDestinationMeta,
 } from "../_shared/sharedFlightResultMeta.ts";
+import {
+  normalizePublicAppUrl,
+  sanitizeSharedFlightResultPayload,
+  SHARED_FLIGHT_RESULT_MAX_BODY_BYTES,
+} from "../_shared/sharedFlightResultSecurity.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const RESPONSE_HEADERS = {
+  ...CORS,
+  "Cache-Control": "no-store",
+  "Content-Type": "application/json",
+  "X-Content-Type-Options": "nosniff",
 };
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: RESPONSE_HEADERS,
   });
 }
 
@@ -32,33 +45,6 @@ function generateRawToken(): string {
 async function hashToken(raw: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-const CREDENTIAL_KEYS = new Set([
-  "authorization",
-  "cookie",
-  "set-cookie",
-  "access_token",
-  "refresh_token",
-  "apikey",
-  "api_key",
-  "jwt",
-]);
-
-function sanitizeCredentials(value: unknown, depth = 0): unknown {
-  if (depth > 30) return null;
-  if (Array.isArray(value)) {
-    return value.map((item) => sanitizeCredentials(item, depth + 1));
-  }
-  if (value !== null && typeof value === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
-      if (CREDENTIAL_KEYS.has(key.toLowerCase())) continue;
-      out[key] = sanitizeCredentials(nestedValue, depth + 1);
-    }
-    return out;
-  }
-  return value;
 }
 
 const LOCAL_ASSET_RE =
@@ -195,6 +181,8 @@ const DisplayModelV2Schema = z.object({
   const flightCount = model.destinations.reduce((sum, item) => sum + item.flightCount, 0);
   const nonstopDestinationCount = model.destinations.filter((item) => item.hasNonstop).length;
   const goWildDestinationCount = model.destinations.filter((item) => item.hasGoWild).length;
+  const destinationCodes = model.destinations.map((item) => item.destination.toUpperCase());
+  const uniqueDestinationCodes = new Set(destinationCodes);
 
   const checks: Array<[boolean, (string | number)[], string]> = [
     [model.totals.destinationCount === model.destinations.length, ["totals", "destinationCount"], "destinationCount does not match destinations"],
@@ -204,6 +192,7 @@ const DisplayModelV2Schema = z.object({
     [model.hasResults === (model.destinations.length > 0), ["hasResults"], "hasResults does not match destinations"],
     [model.tripTypeLabel === "Round-trip" || model.returnDate === null, ["returnDate"], "one-way snapshots cannot have a returnDate"],
     [model.tripTypeLabel === "One-way" || model.returnDate !== null, ["returnDate"], "round-trip snapshots require a returnDate"],
+    [uniqueDestinationCodes.size === destinationCodes.length, ["destinations"], "destinations must not contain duplicate airport codes"],
   ];
 
   for (const [valid, path, message] of checks) {
@@ -235,13 +224,12 @@ const RequestSchema = z.discriminatedUnion("displayModelVersion", [
   RequestV2Schema,
 ]);
 
-// Must remain aligned with SHARED_FLIGHT_RESULT_MAX_BODY_BYTES in the client.
-// UTF-8 bytes are measured, not JavaScript UTF-16 code units.
-const MAX_BODY_BYTES = 3 * 1024 * 1024;
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
+  }
+  if (req.method !== "POST") {
+    return json({ ok: false, error: "Method not allowed" }, 405);
   }
 
   try {
@@ -250,9 +238,13 @@ Deno.serve(async (req: Request) => {
       return json({ ok: false, error: "Unauthorized" }, 401);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      console.error("[create-shared-flight-result] required Supabase environment is not configured");
+      return json({ ok: false, error: "Server configuration error" }, 500);
+    }
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -263,7 +255,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const rawBody = await req.text();
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
+    if (new TextEncoder().encode(rawBody).byteLength > SHARED_FLIGHT_RESULT_MAX_BODY_BYTES) {
       return json({ ok: false, error: "Payload too large" }, 413);
     }
 
@@ -291,7 +283,7 @@ Deno.serve(async (req: Request) => {
       expiresInDays,
     } = parsed.data;
 
-    const sanitizedPayload = sanitizeCredentials(rawSearchPayload);
+    const sanitizedPayload = sanitizeSharedFlightResultPayload(rawSearchPayload);
     const meta = displayModelVersion === 1
       ? deriveSingleDestinationMeta(displayModel, sanitizedPayload)
       : deriveMultiDestinationMeta(displayModel);
@@ -304,11 +296,11 @@ Deno.serve(async (req: Request) => {
     }
 
     const publicAppUrl = Deno.env.get("PUBLIC_APP_URL");
-    if (!publicAppUrl) {
-      console.error("[create-shared-flight-result] PUBLIC_APP_URL is not configured");
+    const baseUrl = publicAppUrl ? normalizePublicAppUrl(publicAppUrl) : null;
+    if (!baseUrl) {
+      console.error("[create-shared-flight-result] PUBLIC_APP_URL is missing or invalid");
       return json({ ok: false, error: "Server configuration error" }, 500);
     }
-    const baseUrl = publicAppUrl.replace(/\/+$/, "");
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     let shareId: string | null = null;

@@ -148,6 +148,7 @@ const MultiDestShareModelV2Schema = z.object({
   const flightCount = model.destinations.reduce((sum, item) => sum + item.flightCount, 0);
   const nonstopDestinationCount = model.destinations.filter((item) => item.hasNonstop).length;
   const goWildDestinationCount = model.destinations.filter((item) => item.hasGoWild).length;
+  const destinationCodes = model.destinations.map((item) => item.destination.toUpperCase());
 
   const checks: Array<[boolean, (string | number)[], string]> = [
     [model.totals.destinationCount === model.destinations.length, ["totals", "destinationCount"], "destinationCount does not match destinations"],
@@ -157,6 +158,7 @@ const MultiDestShareModelV2Schema = z.object({
     [model.hasResults === (model.destinations.length > 0), ["hasResults"], "hasResults does not match destinations"],
     [model.tripTypeLabel === "Round-trip" || model.returnDate === null, ["returnDate"], "one-way snapshots cannot have a returnDate"],
     [model.tripTypeLabel === "One-way" || model.returnDate !== null, ["returnDate"], "round-trip snapshots require a returnDate"],
+    [new Set(destinationCodes).size === destinationCodes.length, ["destinations"], "destinations must not contain duplicate airport codes"],
   ];
 
   for (const [valid, path, message] of checks) {

@@ -9,6 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { getPublicSharedFlightResult } from "@/services/sharedFlightResults";
 import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
+import { isValidSharedFlightResultToken } from "@/utils/sharedFlightResultContract";
 import { PublicFlightShareView } from "@/components/flight-share/PublicFlightShareView";
 import { PublicMultiDestShareView } from "@/components/flight-share/PublicMultiDestShareView";
 
@@ -305,23 +306,31 @@ export default function PublicFlightSharePage() {
 
   // Fetch share data
   useEffect(() => {
-    if (!token || token.length > 128) return;
+    if (!isValidSharedFlightResultToken(token)) return;
 
+    let active = true;
     setLoading(true);
+    setShareData(null);
     setErrorKind(null);
 
     fetchShare(token)
       .then(data => {
+        if (!active) return;
         setShareData(data);
         setLoading(false);
       })
       .catch(err => {
+        if (!active) return;
         const kind = (typeof err === "object" && err !== null && "kind" in err && typeof (err as { kind: unknown }).kind === "string")
           ? String((err as { kind: unknown }).kind)
           : "SERVER_ERROR";
         setErrorKind(kind);
         setLoading(false);
       });
+
+    return () => {
+      active = false;
+    };
   // retryKey intentionally triggers a fresh fetch on retry; fetchShare is module-level
   }, [token, retryKey]);
 
@@ -331,7 +340,7 @@ export default function PublicFlightSharePage() {
   };
 
   // Invalid / missing token in URL
-  if (!token || token.length > 128) {
+  if (!isValidSharedFlightResultToken(token)) {
     return <InvalidTokenView />;
   }
 

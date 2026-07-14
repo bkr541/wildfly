@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -132,6 +132,9 @@ export function PublicFlightShareView({
   const [copied,      setCopied]      = useState(false);
   const [downloading, setDownloading] = useState(false);
   const templateRef = useRef<HTMLDivElement>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const downloadInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
 
   // Bottom sheets
   const [sortSheet,   setSortSheet]   = useState(false);
@@ -150,12 +153,30 @@ export function PublicFlightShareView({
     s.airportGroups.some((g) => g.options.some((o) => o.stopCount >= 1)),
   );
 
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      downloadInFlightRef.current = false;
+      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  const markCopied = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+    setCopied(true);
+    copyTimerRef.current = setTimeout(() => {
+      if (mountedRef.current) setCopied(false);
+      copyTimerRef.current = null;
+    }, 2000);
+  }, []);
+
   // Copy public link
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(publicUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      markCopied();
     } catch {
       const input = document.createElement("input");
       input.value = publicUrl;
@@ -166,14 +187,13 @@ export function PublicFlightShareView({
       input.select();
       try {
         document.execCommand("copy");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        markCopied();
       } catch {
         /* ignore */
       }
       document.body.removeChild(input);
     }
-  }, [publicUrl]);
+  }, [markCopied, publicUrl]);
 
   // Native share
   const canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
@@ -193,7 +213,8 @@ export function PublicFlightShareView({
   // Download image (uses the off-screen FlightShareTemplate for exact image-mode rendering)
   const handleDownload = useCallback(async () => {
     const node = templateRef.current;
-    if (!node || downloading) return;
+    if (!node || downloadInFlightRef.current) return;
+    downloadInFlightRef.current = true;
     setDownloading(true);
     try {
       const filename = buildShareFilename(
@@ -205,9 +226,10 @@ export function PublicFlightShareView({
     } catch (err) {
       console.error("[PublicFlightShareView] image export failed:", err);
     } finally {
-      setDownloading(false);
+      downloadInFlightRef.current = false;
+      if (mountedRef.current) setDownloading(false);
     }
-  }, [downloading, model]);
+  }, [model]);
 
   // ── Sheet trigger button style ─────────────────────────────────────────────
 

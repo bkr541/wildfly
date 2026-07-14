@@ -2,84 +2,96 @@ import { toBlob } from "html-to-image";
 
 const TEMPLATE_BG = "#F7F9F8";
 const TALL_THRESHOLD = 6500;
+const MAX_CANVAS_DIMENSION = 32_000;
+const MAX_CANVAS_PIXELS = 80_000_000;
+const IMAGE_SETTLE_TIMEOUT_MS = 5000;
+const MAX_FILENAME_PART_LENGTH = 64;
 
 /**
- * Select canvas pixel ratio based on template height.
- *
- * 2× for normal-height exports; backs off toward 1.25 for very tall
- * templates to avoid catastrophic canvas memory use.
+ * Select a canvas pixel ratio that remains within conservative browser canvas
+ * dimension and memory budgets, including unusually long destination exports.
  */
-export function selectPixelRatio(height: number): number {
-  if (height <= TALL_THRESHOLD) return 2;
-  // Scale from 1.5 at the threshold down to a floor of 1.25
-  return Math.max(1.25, Math.min(1.5, (TALL_THRESHOLD * 1.5) / height));
+export function selectPixelRatio(height: number, width = 941): number {
+  const safeHeight = Math.max(1, height);
+  const safeWidth = Math.max(1, width);
+  const preferred =
+    safeHeight <= TALL_THRESHOLD
+      ? 2
+      : Math.max(1.25, Math.min(1.5, (TALL_THRESHOLD * 1.5) / safeHeight));
+  const maxByDimension = MAX_CANVAS_DIMENSION / Math.max(safeWidth, safeHeight);
+  const maxByPixels = Math.sqrt(MAX_CANVAS_PIXELS / (safeWidth * safeHeight));
+
+  return Math.min(preferred, maxByDimension, maxByPixels);
 }
 
-function sanitizeFilenamePart(s: string): string {
-  return s
+function sanitizeFilenamePart(value: string): string {
+  return value
     .toLowerCase()
     .replace(/[^a-z0-9\s]+/g, "-")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_FILENAME_PART_LENGTH)
+    .replace(/-+$/g, "");
 }
 
-/**
- * Build a readable, URL-safe PNG filename from route and date.
- *
- * Example: "wildfly-chicago-to-atlanta-2026-06-13.png"
- * Falls back to "wildfly-flight-search.png" when route data is missing.
- */
+/** Build a deterministic, bounded, URL-safe PNG filename from route and date. */
 export function buildShareFilename(
   originLabel: string | null | undefined,
   destinationLabel: string | null | undefined,
   departureDate: string | null | undefined,
 ): string {
   const origin = originLabel ? sanitizeFilenamePart(originLabel) : "";
-  const dest = destinationLabel ? sanitizeFilenamePart(destinationLabel) : "";
+  const destination = destinationLabel
+    ? sanitizeFilenamePart(destinationLabel)
+    : "";
 
-  if (!origin || !dest) return "wildfly-flight-search.png";
+  if (!origin || !destination) return "wildfly-flight-search.png";
 
-  const route = `${origin}-to-${dest}`;
-  const date = departureDate ? sanitizeFilenamePart(departureDate) : null;
+  const route = `${origin}-to-${destination}`;
+  const date = departureDate ? sanitizeFilenamePart(departureDate) : "";
   return date ? `wildfly-${route}-${date}.png` : `wildfly-${route}.png`;
+}
+
+async function settleImage(img: HTMLImageElement): Promise<void> {
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      img.removeEventListener("load", onLoad);
+      img.removeEventListener("error", finish);
+      resolve();
+    };
+    const onLoad = () => {
+      if (typeof img.decode === "function") {
+        img.decode().then(finish, finish);
+      } else {
+        finish();
+      }
+    };
+    const timeoutId = window.setTimeout(finish, IMAGE_SETTLE_TIMEOUT_MS);
+
+    if (img.complete) onLoad();
+    else {
+      img.addEventListener("load", onLoad, { once: true });
+      img.addEventListener("error", finish, { once: true });
+    }
+  });
 }
 
 async function waitForImages(node: HTMLElement): Promise<void> {
   const images = Array.from(node.querySelectorAll("img")) as HTMLImageElement[];
-  await Promise.all(
-    images.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          const afterLoad = () => {
-            img.decode?.().then(resolve, resolve);
-          };
-          if (img.complete) {
-            afterLoad();
-            return;
-          }
-          const onLoad = () => {
-            img.removeEventListener("load", onLoad);
-            img.removeEventListener("error", onError);
-            afterLoad();
-          };
-          const onError = () => {
-            img.removeEventListener("load", onLoad);
-            img.removeEventListener("error", onError);
-            resolve();
-          };
-          img.addEventListener("load", onLoad, { once: true });
-          img.addEventListener("error", onError, { once: true });
-        }),
-    ),
-  );
+  await Promise.all(images.map(settleImage));
 }
 
 function waitForAnimationFrames(count: number): Promise<void> {
   return new Promise<void>((resolve) => {
     let remaining = count;
     const tick = () => {
-      if (--remaining <= 0) resolve();
+      remaining -= 1;
+      if (remaining <= 0) resolve();
       else requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -88,6 +100,10 @@ function waitForAnimationFrames(count: number): Promise<void> {
 
 function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
+  const revokeObjectUrl =
+    typeof URL.revokeObjectURL === "function"
+      ? URL.revokeObjectURL.bind(URL)
+      : null;
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
@@ -95,16 +111,10 @@ function triggerDownload(blob: Blob, filename: string): void {
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  if (revokeObjectUrl) setTimeout(() => revokeObjectUrl(url), 2000);
 }
 
-/**
- * Render `node` to a PNG using html-to-image, trigger a browser download,
- * and return the generated Blob.
- *
- * Waits for fonts, images, and two animation frames before capturing so
- * the template is fully laid out and all images are decoded.
- */
+/** Render a measurable off-screen template to PNG and trigger a browser download. */
 export async function exportFlightShareImage(
   node: HTMLElement,
   filename: string,
@@ -113,20 +123,15 @@ export async function exportFlightShareImage(
     throw new Error("exportFlightShareImage: node is null or undefined");
   }
 
-  // Wait for font load
   if (typeof document?.fonts?.ready?.then === "function") {
-    await document.fonts.ready;
+    await document.fonts.ready.catch(() => undefined);
   }
 
-  // Wait for every <img> to load and decode
   await waitForImages(node);
-
-  // Two rAF cycles let React flush layout and image intrinsic sizes settle
   await waitForAnimationFrames(2);
 
   const width = node.scrollWidth;
   const height = node.scrollHeight;
-
   if (width === 0 || height === 0) {
     throw new Error(
       `exportFlightShareImage: node has no dimensions (${width}×${height}). ` +
@@ -134,14 +139,18 @@ export async function exportFlightShareImage(
     );
   }
 
-  const pixelRatio = selectPixelRatio(height);
-
   const blob = await toBlob(node, {
     backgroundColor: TEMPLATE_BG,
     cacheBust: true,
     width,
     height,
-    pixelRatio,
+    pixelRatio: selectPixelRatio(height, width),
+    style: {
+      animation: "none",
+      scrollBehavior: "auto",
+      transform: "none",
+      transition: "none",
+    },
   });
 
   if (!blob) {

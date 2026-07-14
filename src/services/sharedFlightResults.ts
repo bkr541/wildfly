@@ -16,6 +16,13 @@ import { supabase } from "@/integrations/supabase/client";
 import type { FlightShareModel } from "@/utils/flightShareModel";
 import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 import { normalizeStoredFlightShareEnvelope } from "@/utils/flightShareNormalize";
+import {
+  isValidSharedFlightResultToken,
+  serializeSharedFlightResultRequest,
+  SHARED_FLIGHT_RESULT_MAX_BODY_BYTES,
+} from "@/utils/sharedFlightResultContract";
+
+export { SHARED_FLIGHT_RESULT_MAX_BODY_BYTES } from "@/utils/sharedFlightResultContract";
 
 // ── Request / response contracts ───────────────────────────────────────────────
 
@@ -57,10 +64,6 @@ export type PublicSharedFlightResultResponse =
       displayModelVersion: 2;
       displayModel: MultiDestShareModelV2;
     });
-
-// Must remain byte-for-byte aligned with MAX_BODY_BYTES in the create Edge
-// Function. The request is measured as UTF-8 JSON before any network activity.
-export const SHARED_FLIGHT_RESULT_MAX_BODY_BYTES = 3 * 1024 * 1024;
 
 // ── Typed error ────────────────────────────────────────────────────────────────
 
@@ -215,9 +218,9 @@ function classifyBodyError(errorText: string): SharedFlightResultError {
 export async function createSharedFlightResult(
   request: CreateSharedFlightResultRequest,
 ): Promise<CreateSharedFlightResultResponse> {
-  let serializedRequest: string;
+  let bodySizeBytes: number;
   try {
-    serializedRequest = JSON.stringify(request);
+    bodySizeBytes = serializeSharedFlightResultRequest(request).byteLength;
   } catch {
     throw new SharedFlightResultError(
       "VALIDATION",
@@ -225,7 +228,6 @@ export async function createSharedFlightResult(
     );
   }
 
-  const bodySizeBytes = new TextEncoder().encode(serializedRequest).byteLength;
   if (bodySizeBytes > SHARED_FLIGHT_RESULT_MAX_BODY_BYTES) {
     throw new SharedFlightResultError(
       "PAYLOAD_TOO_LARGE",
@@ -269,6 +271,10 @@ export async function createSharedFlightResult(
 export async function getPublicSharedFlightResult(
   rawToken: string,
 ): Promise<PublicSharedFlightResultResponse> {
+  if (!isValidSharedFlightResultToken(rawToken)) {
+    throw new SharedFlightResultError("VALIDATION", "Invalid share token.");
+  }
+
   const { data, error } = await supabase.functions.invoke<GetEdgeFnResponse>(
     "get-public-shared-flight-result",
     { body: { token: rawToken } },

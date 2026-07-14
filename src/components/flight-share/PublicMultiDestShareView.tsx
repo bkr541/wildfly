@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, Download, Share2 } from "lucide-react";
 import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 import { buildShareFilename, exportFlightShareImage } from "@/utils/exportFlightShareImage";
@@ -60,8 +60,21 @@ export function PublicMultiDestShareView({
   const templateRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const downloadInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
   const expired = isExpired(expiresAt);
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      downloadInFlightRef.current = false;
+      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -76,8 +89,13 @@ export function PublicMultiDestShareView({
       document.execCommand("copy");
       document.body.removeChild(input);
     }
+    if (!mountedRef.current) return;
+    if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    copyTimerRef.current = window.setTimeout(() => {
+      if (mountedRef.current) setCopied(false);
+      copyTimerRef.current = null;
+    }, 2000);
   }, [publicUrl]);
 
   const handleNativeShare = useCallback(async () => {
@@ -95,8 +113,10 @@ export function PublicMultiDestShareView({
 
   const handleDownload = useCallback(async () => {
     const node = templateRef.current;
-    if (!node || downloading) return;
+    if (!node || downloadInFlightRef.current) return;
+    downloadInFlightRef.current = true;
     setDownloading(true);
+    setDownloadError(null);
     try {
       const filename = buildShareFilename(
         model.originLabel,
@@ -106,10 +126,12 @@ export function PublicMultiDestShareView({
       await exportFlightShareImage(node, filename);
     } catch (error) {
       console.error("[PublicMultiDestShareView] image export failed:", error);
+      if (mountedRef.current) setDownloadError("Could not download the destination image. Please try again.");
     } finally {
-      setDownloading(false);
+      downloadInFlightRef.current = false;
+      if (mountedRef.current) setDownloading(false);
     }
-  }, [downloading, model.departureDate, model.destinationLabel, model.originLabel]);
+  }, [model.departureDate, model.destinationLabel, model.originLabel]);
 
   return (
     <div style={{ background: "#E8ECEC", minHeight: "100vh" }}>
@@ -165,6 +187,12 @@ export function PublicMultiDestShareView({
             </button>
           </div>
         </section>
+
+        {downloadError && (
+          <div role="alert" style={{ color: "#B42318", fontSize: 12, fontWeight: 700, margin: "12px 14px 0" }}>
+            {downloadError}
+          </div>
+        )}
 
         {expired && (
           <div

@@ -141,4 +141,20 @@ describe("normalizeStoredFlightShareEnvelope", () => {
     malformed.destinations[0].flights = [{ secret: "raw flight" }];
     expect(() => normalizeStoredFlightShareEnvelope(2, malformed)).toThrow("INVALID_PAYLOAD");
   });
+
+  it("rejects duplicate destination airport codes case-insensitively", () => {
+    const malformed = makeV2();
+    malformed.destinations.push({
+      ...malformed.destinations[0],
+      destination: "mia",
+    });
+    malformed.totals.destinationCount = 2;
+    malformed.totals.flightCount = 10;
+    malformed.totals.nonstopDestinationCount = 2;
+    malformed.totals.goWildDestinationCount = 2;
+
+    expect(() => normalizeStoredFlightShareEnvelope(2, malformed)).toThrow(
+      "destinations must not contain duplicate airport codes",
+    );
+  });
 });

@@ -300,6 +300,17 @@ describe("PublicFlightSharePage", () => {
       expect(mockGetShare).not.toHaveBeenCalled();
     });
 
+    it.each([
+      "a".repeat(63),
+      "A".repeat(64),
+      `${"a".repeat(63)}g`,
+      "a".repeat(65),
+    ])("rejects malformed exact tokens before public fetch", async (token) => {
+      await act(async () => { renderPage(token); });
+      expect(screen.getByText("Invalid link")).toBeDefined();
+      expect(mockGetShare).not.toHaveBeenCalled();
+    });
+
     it("does not call the live flight search API (snapshot only)", async () => {
       const token = nextToken();
       mockGetShare.mockResolvedValue(makeResponse());

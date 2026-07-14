@@ -291,9 +291,9 @@ describe("FlightShareContent", () => {
       expect(groupBtn).toBeDefined();
     });
 
-    it("nonstop option shows NONSTOP badge", () => {
+    it("nonstop option shows Nonstop badge", () => {
       render(<FlightShareContent model={oneWaySingleGroupModel} mode="page" />);
-      expect(screen.getAllByText("NONSTOP").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Nonstop").length).toBeGreaterThan(0);
     });
 
     it("standard fare renders with dollar amount", () => {
@@ -392,11 +392,11 @@ describe("FlightShareContent", () => {
   // ── Standard option attributes ──────────────────────────────────────────────
 
   describe("option row details", () => {
-    it("renders NONSTOP and connecting stop badge", () => {
+    it("renders Nonstop and connecting stop badge", () => {
       render(<FlightShareContent model={oneWayMultiGroupModel} mode="image" />);
-      expect(screen.getAllByText("NONSTOP").length).toBeGreaterThan(0);
-      // "1 STOP" appears on every connecting option row; getAllByText handles multiples
-      expect(screen.getAllByText("1 STOP").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Nonstop").length).toBeGreaterThan(0);
+      // "1 Stop" appears on every connecting option row; getAllByText handles multiples
+      expect(screen.getAllByText("1 Stop").length).toBeGreaterThan(0);
     });
 
     it("renders +1 for plus-one-day arrival", () => {

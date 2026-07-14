@@ -20,8 +20,10 @@ import {
   SharedFlightResultError,
   createSharedFlightResult,
   getPublicSharedFlightResult,
+  SHARED_FLIGHT_RESULT_MAX_BODY_BYTES,
   type CreateSharedFlightResultRequest,
 } from "./sharedFlightResults";
+import { serializeSharedFlightResultRequest } from "@/utils/sharedFlightResultContract";
 import type { FlightShareModel } from "@/utils/flightShareModel";
 import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 
@@ -204,6 +206,19 @@ function makeV2CreateRequest(): CreateSharedFlightResultRequest {
     displayModel: makeMultiDestDisplayModel(),
     expiresInDays: null,
   };
+}
+
+function requestWithExactUtf8Bytes(
+  version: 1 | 2,
+  targetBytes: number,
+): CreateSharedFlightResultRequest {
+  const request = version === 1 ? makeCreateRequest() : makeV2CreateRequest();
+  request.rawSearchPayload = { text: "" };
+  const baseBytes = serializeSharedFlightResultRequest(request).byteLength;
+  if (targetBytes < baseBytes) throw new Error("Target is smaller than request envelope");
+  request.rawSearchPayload = { text: "a".repeat(targetBytes - baseBytes) };
+  expect(serializeSharedFlightResultRequest(request).byteLength).toBe(targetBytes);
+  return request;
 }
 
 function successCreateResponse(n = 1) {
@@ -460,6 +475,33 @@ describe("createSharedFlightResult — validation errors", () => {
 describe("createSharedFlightResult — payload size", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  for (const version of [1, 2] as const) {
+    it(`accepts a version-${version} request exactly one byte below the limit`, async () => {
+      mockInvoke.mockResolvedValue(successCreateResponse(version));
+      const request = requestWithExactUtf8Bytes(
+        version,
+        SHARED_FLIGHT_RESULT_MAX_BODY_BYTES - 1,
+      );
+
+      await expect(createSharedFlightResult(request)).resolves.toMatchObject({
+        shareId: `share-uuid-${version}`,
+      });
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+    });
+
+    it(`rejects a version-${version} request exactly one byte above the limit before invocation`, async () => {
+      const request = requestWithExactUtf8Bytes(
+        version,
+        SHARED_FLIGHT_RESULT_MAX_BODY_BYTES + 1,
+      );
+
+      await expect(createSharedFlightResult(request)).rejects.toMatchObject({
+        kind: "PAYLOAD_TOO_LARGE",
+      });
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+  }
+
   it("rejects oversized UTF-8 JSON before invoking the Edge Function", async () => {
     const request = makeCreateRequest({
       rawSearchPayload: { text: "✈".repeat(1_100_000) },
@@ -666,6 +708,23 @@ describe("getPublicSharedFlightResult — success", () => {
     const [, opts] = mockInvoke.mock.calls[0];
     const headers = opts?.headers ?? {};
     expect(headers).not.toHaveProperty("Authorization");
+  });
+});
+
+describe("getPublicSharedFlightResult — token validation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it.each([
+    "",
+    "a".repeat(63),
+    "A".repeat(64),
+    `${"a".repeat(63)}g`,
+    "a".repeat(65),
+  ])("rejects malformed token %j before invoking the Edge Function", async (token) => {
+    await expect(getPublicSharedFlightResult(token)).rejects.toMatchObject({
+      kind: "VALIDATION",
+    });
+    expect(mockInvoke).not.toHaveBeenCalled();
   });
 });
 

@@ -244,11 +244,11 @@ describe("FlightShareTemplate", () => {
   });
 
   // 5. Nonstop and stop badges render
-  it("renders NONSTOP and 1 STOP badges", () => {
+  it("renders Nonstop and 1 Stop badges", () => {
     render(<FlightShareTemplate model={oneWayModel} />);
-    const nonstopBadges = screen.getAllByText("NONSTOP");
+    const nonstopBadges = screen.getAllByText("Nonstop");
     expect(nonstopBadges.length).toBeGreaterThan(0);
-    expect(screen.getByText("1 STOP")).toBeDefined();
+    expect(screen.getByText("1 Stop")).toBeDefined();
   });
 
   // 6. GoWild label renders

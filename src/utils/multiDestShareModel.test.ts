@@ -11,6 +11,36 @@ interface TestCard extends MultiDestShareCardInput {
   rawPayload?: unknown;
 }
 
+const FORBIDDEN_DISPLAY_KEYS = new Set([
+  "flights",
+  "legs",
+  "fares",
+  "rawPayload",
+  "raw_search_payload",
+  "headers",
+  "authorization",
+  "access_token",
+  "refresh_token",
+  "token",
+  "apikey",
+  "pageRef",
+  "ref",
+]);
+
+function collectForbiddenKeys(value: unknown, found: string[] = []): string[] {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectForbiddenKeys(item, found));
+    return found;
+  }
+  if (value !== null && typeof value === "object") {
+    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+      if (FORBIDDEN_DISPLAY_KEYS.has(key)) found.push(key);
+      collectForbiddenKeys(nested, found);
+    }
+  }
+  return found;
+}
+
 function makeCard(overrides: Partial<TestCard> = {}): TestCard {
   return {
     destination: "MCO",
@@ -178,6 +208,47 @@ describe("buildMultiDestShareModel", () => {
     expect(destination).not.toHaveProperty("flights");
     expect(destination).not.toHaveProperty("rawPayload");
     expect(serialized).not.toContain("must-not-leak");
+  });
+
+  it("recursively excludes raw response, credential, page-ref, leg, and fare keys", () => {
+    const card = makeCard({
+      flights: [{
+        legs: [{ fares: { token: "secret" } }],
+        rawPayload: {
+          headers: { authorization: "secret" },
+          pageRef: { current: "react-ref" },
+        },
+      }],
+      rawPayload: { access_token: "secret" },
+    });
+
+    const model = buildMultiDestShareModel(makeArgs({ destinationCards: [card] }));
+    expect(collectForbiddenKeys(model)).toEqual([]);
+  });
+
+  it("builds a deterministic compact snapshot for 300 destinations", () => {
+    const cards = Array.from({ length: 300 }, (_, index) => makeCard({
+      destination: `D${String(index).padStart(3, "0")}`,
+      city: `Destination ${index}`,
+      flightCount: (index % 7) + 1,
+      hasNonstop: index % 2 === 0,
+      nonstopCount: index % 2 === 0 ? 1 : 0,
+      hasGoWild: index % 3 === 0,
+      flights: [{ rawPayload: { secret: `flight-${index}` } }],
+      rawPayload: { secret: `card-${index}` },
+    }));
+
+    const first = buildMultiDestShareModel(makeArgs({ destinationCards: cards }));
+    const second = buildMultiDestShareModel(makeArgs({ destinationCards: cards }));
+
+    expect(first).toEqual(second);
+    expect(first.destinations).toHaveLength(300);
+    expect(first.totals.destinationCount).toBe(300);
+    expect(first.destinations.map((item) => item.destination)).toEqual(
+      cards.map((item) => item.destination),
+    );
+    expect(collectForbiddenKeys(first)).toEqual([]);
+    expect(JSON.stringify(first)).not.toContain("card-299");
   });
 
   it("returns deeply equal output for identical input", () => {
