@@ -202,7 +202,7 @@ describe("buildMultiDestShareModel", () => {
     const model = buildMultiDestShareModel(
       makeArgs({ destinationCards: [makeCard()] }),
     );
-    const destination = model.destinations[0] as Record<string, unknown>;
+    const destination = model.destinations[0] as unknown as Record<string, unknown>;
     const serialized = JSON.stringify(model);
 
     expect(destination).not.toHaveProperty("flights");
