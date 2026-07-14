@@ -146,7 +146,7 @@ function makeResponse(overrides: Partial<PublicSharedFlightResultResponse> = {})
     createdAt:           "2026-06-13T12:00:00Z",
     expiresAt:           "2026-09-13T12:00:00Z",
     ...overrides,
-  };
+  } as PublicSharedFlightResultResponse;
 }
 
 function makeMultiDestModel(): MultiDestShareModelV2 {
@@ -737,11 +737,11 @@ describe("PublicFlightSharePage", () => {
     it("does not mutate the original displayModel from the service response", async () => {
       const token = nextToken();
       const response = makeResponse();
-      const count = response.displayModel.totalOptionCount;
+      const count = (response.displayModel as FlightShareModel).totalOptionCount;
       mockGetShare.mockResolvedValue(response);
       await act(async () => { renderPage(token); });
       await waitFor(() => expect(screen.getAllByText("Chicago").length).toBeGreaterThan(0));
-      expect(response.displayModel.totalOptionCount).toBe(count);
+      expect((response.displayModel as FlightShareModel).totalOptionCount).toBe(count);
     });
   });
 

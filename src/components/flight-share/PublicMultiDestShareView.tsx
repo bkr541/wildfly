@@ -92,7 +92,7 @@ export function PublicMultiDestShareView({
     if (!mountedRef.current) return;
     if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
     setCopied(true);
-    copyTimerRef.current = window.setTimeout(() => {
+    copyTimerRef.current = setTimeout(() => {
       if (mountedRef.current) setCopied(false);
       copyTimerRef.current = null;
     }, 2000);

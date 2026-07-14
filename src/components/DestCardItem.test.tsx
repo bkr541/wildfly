@@ -7,7 +7,7 @@ vi.mock("framer-motion", () => ({
   motion: {
     div: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & Record<string, unknown>>(
       ({ children, initial, whileInView, viewport, transition, ...props }, ref) => (
-        <div ref={ref} {...props}>{children}</div>
+        <div ref={ref} {...props}>{children as React.ReactNode}</div>
       ),
     ),
     img: React.forwardRef<HTMLImageElement, React.ImgHTMLAttributes<HTMLImageElement> & Record<string, unknown>>(

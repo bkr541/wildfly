@@ -195,7 +195,7 @@ function makeCreateRequest(
     displayModel:        makeDisplayModel(),
     expiresInDays:       null,
     ...overrides,
-  };
+  } as CreateSharedFlightResultRequest;
 }
 
 function makeV2CreateRequest(): CreateSharedFlightResultRequest {
