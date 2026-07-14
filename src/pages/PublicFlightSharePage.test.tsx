@@ -146,7 +146,7 @@ function makeResponse(overrides: Partial<PublicSharedFlightResultResponse> = {})
     createdAt:           "2026-06-13T12:00:00Z",
     expiresAt:           "2026-09-13T12:00:00Z",
     ...overrides,
-  };
+  } as PublicSharedFlightResultResponse;
 }
 
 function makeMultiDestModel(): MultiDestShareModelV2 {
