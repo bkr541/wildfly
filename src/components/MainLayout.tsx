@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useRef, useEffect } from "react";
+import { useState, type ReactNode, useRef, useEffect, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -39,6 +39,7 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { resetViewportScroll } from "@/lib/viewportScroll";
 
 const menuItems = [
   { icon: Home01Icon, label: "Home" },
@@ -105,6 +106,7 @@ const MainLayout = ({
   const [tokenExpiry, setTokenExpiry] = useState<Date | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const contentScrollRef = useRef<HTMLElement>(null);
   const { avatarUrl, initials, fullName, userName } = useProfile();
   const unreadCount = useUnreadNotificationCount();
   const navigate = useNavigate();
@@ -160,17 +162,38 @@ const MainLayout = ({
     }
   }, [isSearchOpen]);
 
-  // Prevent body scroll when drawer is open
+  // The signed-in shell owns scrolling. Keep the browser document stationary
+  // so iOS toolbar changes and prior document offsets cannot move the app frame.
   useEffect(() => {
-    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
-  }, [drawerOpen]);
+  }, []);
+
+  // MainLayout stays mounted while pages change, so explicitly reset its
+  // internal scroll surface before the next page paints.
+  useLayoutEffect(() => {
+    const scroller = contentScrollRef.current;
+    if (scroller) {
+      if (typeof scroller.scrollTo === "function") {
+        scroller.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      } else {
+        scroller.scrollTop = 0;
+        scroller.scrollLeft = 0;
+      }
+    }
+    resetViewportScroll();
+  }, [currentPage, subScreenTitle]);
 
   return (
     <div
-      className="relative flex h-full overflow-hidden"
+      className="viewport-height relative flex min-h-0 overflow-hidden"
       style={{ background: "linear-gradient(160deg, #DDE8E8 0%, #CDDADA 100%)" }}
     >
       {/* ── Sidebar drawer panel ── */}
@@ -283,21 +306,23 @@ const MainLayout = ({
 
       {/* ── Main content panel (push + card effect) ── */}
       <div
-        className="relative flex flex-col h-full w-full"
+        className="relative flex h-full min-h-0 w-full flex-col overflow-hidden"
         style={{
           background: "linear-gradient(160deg, #DDE8E8 0%, #CDDADA 100%)",
-          transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "translateX(0)",
+          transform: drawerOpen ? `translateX(${DRAWER_WIDTH * 0.55}%)` : "none",
           borderRadius: drawerOpen ? "20px" : "0px",
           boxShadow: drawerOpen ? "0 8px 40px 0 rgba(0,0,0,0.22), 0 2px 8px 0 rgba(0,0,0,0.10)" : "none",
           transition:
             "transform 0.32s cubic-bezier(0.4,0,0.2,1), border-radius 0.32s cubic-bezier(0.4,0,0.2,1), box-shadow 0.32s cubic-bezier(0.4,0,0.2,1)",
-          willChange: "transform",
-          overflow: drawerOpen ? "hidden" : "visible",
+          willChange: drawerOpen ? "transform" : "auto",
         }}
       >
         {/* Header */}
         {subScreenTitle ? (
-          <header className="flex items-center justify-between px-5 pb-2 pt-4 relative z-10">
+          <header
+            className="relative z-10 flex items-center justify-between px-5 pb-2"
+            style={{ paddingTop: "calc(1rem + env(safe-area-inset-top))" }}
+          >
             <button
               type="button"
               onClick={onSubScreenBack}
@@ -314,7 +339,13 @@ const MainLayout = ({
             <div className="w-10" />
           </header>
         ) : (
-          <header className="flex flex-col px-5 pb-2 pt-6 relative z-10 gap-3" style={{ background: "transparent" }}>
+          <header
+            className="relative z-10 flex flex-col gap-3 px-5 pb-2"
+            style={{
+              background: "transparent",
+              paddingTop: "calc(1.5rem + env(safe-area-inset-top))",
+            }}
+          >
             {/* Top row: hamburger + greeting + notification */}
             <div className="flex items-center gap-2">
               <button
@@ -506,7 +537,13 @@ const MainLayout = ({
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main
+          ref={contentScrollRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {children}
+        </main>
       </div>
 
       {/* Home layout quick-editor sheet */}

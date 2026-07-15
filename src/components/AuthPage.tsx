@@ -333,33 +333,31 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
 
   return (
     <div
-      className="relative flex flex-col min-h-screen bg-cover bg-center bg-no-repeat"
+      className="auth-viewport relative flex flex-col bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/assets/authuser/wfbackground.png')" }}
     >
       {/* Top section with logo */}
-      <div className="flex-1 flex flex-col items-center justify-center z-10 py-4">
+      <div className="z-10 flex min-h-[clamp(210px,32dvh,360px)] flex-none flex-col items-center justify-center px-4 py-3 md:min-h-0 md:flex-1 md:py-4">
         <img
           src="/assets/logo/logo_horizontal.png"
           alt="Logo"
-          className="w-auto object-contain mx-auto p-[6px]"
-          style={{ height: "clamp(90px, 22vw, 140px)" }}
+          className="mx-auto h-[clamp(76px,15dvh,108px)] w-auto object-contain p-[6px] sm:h-[clamp(84px,16dvh,124px)] md:h-[clamp(90px,10vw,140px)]"
         />
         <img
           src="/assets/logo/tag_noshadow.png"
           alt="Tag"
-          className="w-auto object-contain mx-auto"
-          style={{ height: "clamp(28px, 7vw, 50px)" }}
+          className="mx-auto h-[clamp(24px,4.5dvh,36px)] w-auto object-contain sm:h-[clamp(26px,5dvh,42px)] md:h-[clamp(28px,4vw,50px)]"
         />
       </div>
 
       {/* White card form */}
-      <div className="flex flex-col items-center z-10">
+      <div className="z-10 flex flex-none flex-col items-center">
         <div
-          className="w-full max-w-md bg-white rounded-t-[2rem] px-7 pt-6 pb-[44px] flex flex-col"
+          className="auth-card flex w-full max-w-md flex-col rounded-t-[2rem] bg-white px-5 pt-5 sm:px-7 sm:pt-6"
           style={{ boxShadow: "0 -6px 16px rgba(0,0,0,0.18)", borderTop: "1px solid rgba(0,0,0,0.12)" }}
         >
           {/* Header label */}
-          <div className="w-full mb-4">
+          <div className="mb-3 w-full sm:mb-4">
             <div className="flex items-center gap-1.5 w-full">
               {displayChars.map((char, i) => {
                 const isGreen = i >= greenStart;
@@ -370,9 +368,8 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                 return (
                   <div
                     key={i}
-                    className="relative flex flex-col items-center justify-center rounded-lg shadow-md border overflow-hidden flex-1 min-w-0"
+                    className="relative flex h-[42px] min-w-0 flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border shadow-md sm:h-[46px]"
                     style={{
-                      height: 46,
                       background: isBlank
                         ? "#e8eaed"
                         : isGreen
@@ -402,7 +399,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
                     />
                     {displayChar && (
                       <span
-                        className="font-black text-xl leading-none select-none"
+                        className="select-none text-lg font-black leading-none sm:text-xl"
                         style={{ color: isGreen ? "#fff" : "#1f2937", letterSpacing: "0.04em" }}
                       >
                         {displayChar}
@@ -417,11 +414,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
           <form
             key={isSignUp ? "signup" : "signin"}
             onSubmit={handleSubmit}
-            className="flex flex-col flex-1 animate-fade-in min-h-0 mt-3"
+            className="mt-2 flex min-h-0 flex-1 animate-fade-in flex-col sm:mt-3"
             noValidate
           >
             {/* Fields — no fixed height, let content flow naturally */}
-            <div className="space-y-3 shrink-0">
+            <div className="shrink-0 space-y-2.5 sm:space-y-3">
               {/* First/Last Name for Sign Up (same line, no placeholder clipping) */}
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4 min-w-0">
@@ -501,7 +498,7 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               </div>
 
               {!isSignUp && (
-                <div className="flex items-center justify-between text-sm text-[#6B7280] pt-[18px]">
+                <div className="flex items-center justify-between pt-3 text-sm text-[#6B7280] sm:pt-[18px]">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <div className="relative inline-flex items-center">
                       <input
@@ -525,11 +522,11 @@ const AuthPage = ({ onSignIn }: AuthPageProps) => {
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-sm shadow-lg hover:shadow-xl transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 px-6"
+                className="flex h-11 w-full transform items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] px-6 text-sm font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-[0.98] disabled:opacity-50 sm:h-12"
               >
                 <span className="text-center uppercase tracking-[0.35em]">
                   {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}

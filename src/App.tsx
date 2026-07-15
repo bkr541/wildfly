@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { CreditCardIcon, Timer02Icon, Alert01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 import BetaFeedbackButton from "./components/BetaFeedbackButton";
 import { AnnouncementPopup } from "./components/AnnouncementPopup";
@@ -73,6 +73,7 @@ import AdminBetaApplications from "./pages/AdminBetaApplications";
 import PublicFlightSharePage from "./pages/PublicFlightSharePage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import GoWildGuidePage from "./pages/GoWildGuidePage";
+import { resetViewportScroll } from "@/lib/viewportScroll";
 
 const queryClient = new QueryClient();
 
@@ -106,6 +107,13 @@ const MainApp = () => {
       sessionStorage.removeItem("wf_returnPage");
     }
   }, []);
+
+  // React swaps whole application screens without a browser navigation. Reset
+  // the document before paint so an iPhone cannot carry the Auth form's scroll
+  // position into Home, search results, or another top-level screen.
+  useLayoutEffect(() => {
+    if (!checkingSession) resetViewportScroll();
+  }, [accountPending, checkingSession, currentPage, isSignedIn, needsOnboarding, showProfileSetup]);
 
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
@@ -265,6 +273,7 @@ const MainApp = () => {
   }, []);
 
   const handleSignIn = async (onboarding: boolean) => {
+    resetViewportScroll();
     setCurrentPage("home");
     setIsSignedIn(true);
     setShowProfileSetup(false);
@@ -405,6 +414,14 @@ const MainApp = () => {
   const isMainLayoutPage = isSignedIn && !needsOnboarding && !showProfileSetup && !accountPending &&
     ["home", "account", "flights", "destinations", "itinerary", "routes", "design-system", "friends", "hubs", "explorer", "gowild-insights", "all-upcoming-flights", "all-watched-flights", "radar", "notifications"].includes(currentPage);
 
+  const usesViewportShell =
+    splashDone &&
+    !checkingSession &&
+    isSignedIn &&
+    !needsOnboarding &&
+    !showProfileSetup &&
+    !accountPending;
+
   const feedbackAudienceReady =
     splashDone &&
     !checkingSession &&
@@ -419,16 +436,20 @@ const MainApp = () => {
   const { current: announcement, dismiss: dismissAnnouncement } = useAnnouncements(feedbackAudienceReady);
 
   return (
-    <div className="flex justify-center">
+    <div className="viewport-min-height flex justify-center overflow-x-hidden">
       {showFeedbackButton && <BetaFeedbackButton pageLabel={feedbackPageLabel} />}
       {announcement && (
         <AnnouncementPopup announcement={announcement} onDismiss={dismissAnnouncement} />
       )}
-      <div className="w-full max-w-[1320px] min-h-screen flex flex-col">
+      <div
+        className={`w-full max-w-[1320px] flex flex-col ${
+          usesViewportShell ? "viewport-height min-h-0 overflow-hidden" : "viewport-min-height"
+        }`}
+      >
         {/* Splash video removed */}
 
         {splashDone && checkingSession && (
-          <div className="flex items-center justify-center min-h-screen bg-background" />
+          <div className="viewport-min-height flex items-center justify-center bg-background" />
         )}
 
         {splashDone && !checkingSession && !isSignedIn && <AuthPage onSignIn={handleSignIn} />}
@@ -510,7 +531,7 @@ const MainApp = () => {
         )}
 
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-details" && selectedFlight && (
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-full min-h-0 flex flex-col overflow-hidden">
             <FlightDetails
               flight={selectedFlight}
               onBack={() => { setCurrentPage("home"); setSelectedFlight(null); }}
@@ -518,7 +539,7 @@ const MainApp = () => {
           </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-results" && (
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-full min-h-0 flex flex-col overflow-hidden">
             <FlightDestResults
               onBack={() => setCurrentPage("flights")}
               responseData={flightResultsData}
@@ -531,7 +552,7 @@ const MainApp = () => {
           </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "flight-multi-results" && (
-          <div className="h-screen flex flex-col overflow-hidden">
+          <div className="h-full min-h-0 flex flex-col overflow-hidden">
             <FlightMultiDestResults
               onBack={() => setCurrentPage("flights")}
               responseData={flightResultsData}
@@ -545,7 +566,7 @@ const MainApp = () => {
           </div>
         )}
         {splashDone && !checkingSession && isSignedIn && !needsOnboarding && currentPage === "day-trip-results" && (
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-full min-h-0 flex flex-col overflow-hidden">
             <DayTripResults
               onBack={() => setCurrentPage("flights")}
               responseData={flightResultsData}

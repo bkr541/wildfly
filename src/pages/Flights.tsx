@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { fetchDayTrips, fetchFlightSearch, fetchRoundTrip, SearchLimitReachedError } from "@/lib/flightApi";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -575,12 +576,26 @@ function SplitFlapWord({ word, green, delay = 0 }: { word: string; green?: boole
 }
 
 function SearchingOverlay() {
-  return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
-      <SplitFlapWord word="SEARCHING" delay={0} />
-      <SplitFlapWord word="FLIGHTS" green delay={100} />
-      <p className="text-sm text-[#6B7B7B] mt-2">This may take a moment…</p>
-    </div>
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="viewport-height fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-[#F2F3F3] px-4"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+      role="status"
+      aria-live="polite"
+      aria-label="Searching flights"
+    >
+      <div className="flex flex-col items-center gap-5">
+        <SplitFlapWord word="SEARCHING" delay={0} />
+        <SplitFlapWord word="FLIGHTS" green delay={100} />
+        <p className="mt-2 text-sm text-[#6B7B7B]">This may take a moment…</p>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

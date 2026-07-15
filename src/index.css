@@ -52,6 +52,13 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+  }
+
   * {
     @apply border-border;
   }
@@ -59,6 +66,46 @@
   body {
     @apply text-foreground;
     background-color: white;
+    overflow-x: hidden;
+  }
+}
+
+/* Mobile browser chrome changes the visual viewport while the page is open.
+   Keep a 100vh fallback, then prefer the dynamic viewport unit when supported. */
+.viewport-height {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.viewport-min-height {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.auth-viewport {
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  padding-top: env(safe-area-inset-top);
+}
+
+.auth-card {
+  padding-bottom: max(1.5rem, calc(1rem + env(safe-area-inset-bottom)));
+}
+
+@media (min-width: 640px) {
+  .auth-card {
+    padding-bottom: max(2rem, calc(1.25rem + env(safe-area-inset-bottom)));
+  }
+}
+
+@media (min-width: 768px) {
+  .auth-card {
+    padding-bottom: 44px;
   }
 }
 
