@@ -1,9 +1,9 @@
 import React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowRight04Icon,
-  Calendar03Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowRight04Icon } from "@hugeicons/core-free-icons";
+
+// Shared constants (kept in sync with FlightShareTemplate)
+const NAVY = "#0F2040";
 
 interface FlightShareHeroProps {
   originLabel:      string;
@@ -23,15 +23,6 @@ interface FlightShareHeroProps {
   style?: React.CSSProperties;
   /** When false, hides the Wildfly logo overlay. Defaults to true. */
   showLogo?: boolean;
-  /**
-   * Keeps the shared diagonal artwork while switching the route typography to
-   * the same stacked treatment used by FlightMultiDestResults.
-   */
-  contentLayout?: "diagonal" | "multi-destination";
-  /** Optional compact date shown beneath the multi-destination route title. */
-  dateLabel?: string;
-  /** Optional controls rendered in the hero's upper-right corner. */
-  actions?: React.ReactNode;
 }
 
 /**
@@ -50,9 +41,6 @@ export function FlightShareHero({
   className = "",
   style: styleProp,
   showLogo = true,
-  contentLayout = "diagonal",
-  dateLabel,
-  actions,
 }: FlightShareHeroProps) {
   const textShadow = "0 1px 6px rgba(0,0,0,0.90), 0 2px 14px rgba(0,0,0,0.65)";
 
@@ -151,148 +139,56 @@ export function FlightShareHero({
           />
         )}
 
-        {contentLayout === "multi-destination" ? (
-          <>
-            {actions && (
-              <div
-                data-flight-share-hero-actions="true"
-                style={{
-                  alignItems: "center",
-                  display: "flex",
-                  gap: 8,
-                  position: "absolute",
-                  right: 20,
-                  top: 20,
-                }}
-              >
-                {actions}
-              </div>
-            )}
+        {/* Origin city — top-left */}
+        <span
+          style={{
+            position: "absolute",
+            top: showLogo ? 56 : 10,
+            left: showLogo ? 28 : 14,
+            fontSize: 44,
+            fontWeight: 900,
+            color: "#FFFFFF",
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            textShadow,
+          }}
+        >
+          {originLabel}
+        </span>
 
-            <div
-              data-flight-share-hero-route="multi-destination"
-              style={{
-                left: 20,
-                position: "absolute",
-                right: 20,
-                top: 72,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 0,
-                  lineHeight: 1.25,
-                }}
-              >
-                <span
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 22,
-                    fontWeight: 300,
-                    textShadow: "0 2px 8px rgba(0,0,0,0.55)",
-                  }}
-                >
-                  {originLabel} to
-                </span>
-                <span
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 36,
-                    fontWeight: 900,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.1,
-                    textShadow: "0 2px 5px rgba(0,0,0,0.4)",
-                  }}
-                >
-                  {destinationLabel}
-                </span>
-              </div>
+        {/* Center arrow */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.55))",
+          }}
+        >
+          <HugeiconsIcon icon={ArrowRight04Icon} size={26} color="#FFFFFF" strokeWidth={2.5} />
+        </div>
 
-              {dateLabel && (
-                <div
-                  style={{
-                    alignItems: "center",
-                    background: "rgba(255,255,255,0.90)",
-                    borderRadius: 999,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)",
-                    display: "inline-flex",
-                    gap: 6,
-                    marginTop: 8,
-                    padding: "6px 12px",
-                  }}
-                >
-                  <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-                  <span
-                    style={{
-                      color: "#065F46",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      lineHeight: 1,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {dateLabel}
-                  </span>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Origin city — top-left */}
-            <span
-              style={{
-                position: "absolute",
-                top: showLogo ? 56 : 10,
-                left: showLogo ? 28 : 14,
-                fontSize: 44,
-                fontWeight: 900,
-                color: "#FFFFFF",
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-                textShadow,
-              }}
-            >
-              {originLabel}
-            </span>
-
-            {/* Center arrow */}
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.55))",
-              }}
-            >
-              <HugeiconsIcon icon={ArrowRight04Icon} size={26} color="#FFFFFF" strokeWidth={2.5} />
-            </div>
-
-            {/* Destination city — bottom-right */}
-            <span
-              style={{
-                position: "absolute",
-                bottom: showLogo ? 20 : 10,
-                right: showLogo ? 28 : 14,
-                fontSize: 44,
-                fontWeight: 900,
-                color: "#FFFFFF",
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-                textShadow,
-                textAlign: "right",
-              }}
-            >
-              {destinationLabel}
-            </span>
-          </>
-        )}
+        {/* Destination city — bottom-right */}
+        <span
+          style={{
+            position: "absolute",
+            bottom: showLogo ? 20 : 10,
+            right: showLogo ? 28 : 14,
+            fontSize: 44,
+            fontWeight: 900,
+            color: "#FFFFFF",
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            textShadow,
+            textAlign: "right",
+          }}
+        >
+          {destinationLabel}
+        </span>
       </div>
     </div>
   );
