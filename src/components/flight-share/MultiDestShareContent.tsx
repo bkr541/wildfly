@@ -23,14 +23,7 @@ export interface MultiDestShareContentProps {
 
 function getMultiDestAppliedViewLabels(model: MultiDestShareModelV2): string[] {
   const labels: string[] = [];
-  const sortLabels = {
-    city: "Sorted by City",
-    fare: "Sorted by Lowest Price",
-    flights: "Sorted by Most Flights",
-    duration: "Sorted by Shortest Duration",
-  } as const;
 
-  labels.push(sortLabels[model.appliedView.sortBy]);
   if (model.appliedView.nonstopOnly) labels.push("Nonstop Only");
   if (model.appliedView.goWildOnly) labels.push("GoWild Only");
   if (model.appliedView.destinationType === "domestic") labels.push("Domestic Only");
@@ -40,6 +33,8 @@ function getMultiDestAppliedViewLabels(model: MultiDestShareModelV2): string[] {
 
 function AppliedView({ model, mode }: { model: MultiDestShareModelV2; mode: MultiDestShareRenderMode }) {
   const labels = getMultiDestAppliedViewLabels(model);
+  if (labels.length === 0) return null;
+
   return (
     <div
       aria-label="Applied view"

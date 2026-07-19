@@ -135,7 +135,7 @@ describe("MultiDestShareContent", () => {
     expect(screen.getByText("GoWild from")).toBeInTheDocument();
   });
 
-  it("renders only active filters plus the selected sort", () => {
+  it("renders only active filters and omits the selected sort badge", () => {
     const model = makeModel({
       appliedView: {
         sortBy: "duration",
@@ -146,7 +146,7 @@ describe("MultiDestShareContent", () => {
     });
     render(<MultiDestShareContent model={model} mode="image" />);
 
-    expect(screen.getByText("Sorted by Shortest Duration")).toBeInTheDocument();
+    expect(screen.queryByText("Sorted by Shortest Duration")).not.toBeInTheDocument();
     expect(screen.getByText("Nonstop Only")).toBeInTheDocument();
     expect(screen.getByText("GoWild Only")).toBeInTheDocument();
     expect(screen.getByText("International Only")).toBeInTheDocument();
