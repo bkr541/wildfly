@@ -92,10 +92,33 @@ describe("PublicMultiDestShareView", () => {
       />,
     );
     const publicGrid = container.querySelector("[data-multi-dest-grid='page']");
+    const heroStats = container.querySelector("[data-flight-share-hero-stats='true']") as HTMLElement;
+    const heroActions = container.querySelector("[data-flight-share-hero-actions='true']");
+    const downloadButton = screen.getByRole("button", { name: "Download Image" });
+    const copyButton = screen.getByRole("button", { name: "Copy Link" });
+    const shareButton = screen.getByRole("button", { name: "Share" });
 
     expect(publicGrid).toHaveClass("grid-cols-1", "sm:grid-cols-2", "xl:grid-cols-3");
+    expect(container.querySelector("main > [data-multi-dest-summary='true']")).not.toBeInTheDocument();
+    expect(heroStats.style.gridTemplateColumns).toBe("repeat(4, minmax(0, 1fr))");
+    expect(heroStats.children).toHaveLength(4);
+    expect(Array.from(heroStats.children).map((item) => item.textContent)).toEqual([
+      "DESTINATIONS2",
+      "TOTAL FLIGHTS9",
+      "NONSTOP2",
+      "GO WILD1",
+    ]);
     expect(screen.getByText("Snapshot created Jul 14, 2026")).toBeInTheDocument();
     expect(screen.getByText("Available until Jul 21, 2099")).toBeInTheDocument();
+    expect(screen.getByText("Chicago to")).toBeInTheDocument();
+    expect(screen.getByText("Sat, Jul 18")).toBeInTheDocument();
+    expect(screen.queryByText("Sorted by Lowest Price")).not.toBeInTheDocument();
+    expect(heroActions).toContainElement(downloadButton);
+    expect(heroActions).toContainElement(copyButton);
+    expect(heroActions).toContainElement(shareButton);
+    expect(downloadButton.textContent).toBe("");
+    expect(copyButton.textContent).toBe("");
+    expect(shareButton.textContent).toBe("");
     expect(container.querySelector("a[href]")).not.toBeInTheDocument();
     expect(container.textContent).not.toContain("raw_search_payload");
   });

@@ -4,12 +4,9 @@ import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
 import { buildShareFilename, exportFlightShareImage } from "@/utils/exportFlightShareImage";
 import { FlightShareHero } from "./FlightShareHero";
 import { MultiDestShareContent } from "./MultiDestShareContent";
-import { MultiDestShareSummary } from "./MultiDestShareSummary";
 import { MultiDestShareTemplate } from "./MultiDestShareTemplate";
 
-const DARK_TEAL = "#1A2E2E";
 const MUTED = "#6B7B7B";
-const EMERALD = "#059669";
 
 export interface PublicMultiDestShareViewProps {
   model: MultiDestShareModelV2;
@@ -34,19 +31,36 @@ function isExpired(expiresAt?: string | null): boolean {
   return Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
-function actionButtonStyle(disabled = false): React.CSSProperties {
+function formatHeroDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    weekday: "short",
+  });
+}
+
+function heroActionButtonStyle(disabled = false, active = false): React.CSSProperties {
   return {
     alignItems: "center",
-    background: disabled ? "#E5E7EB" : "#FFFFFF",
-    border: "1px solid #DDE4E4",
+    backdropFilter: "blur(8px)",
+    background: disabled
+      ? "rgba(255,255,255,0.08)"
+      : active
+        ? "rgba(255,255,255,0.28)"
+        : "rgba(255,255,255,0.15)",
+    border: "1px solid rgba(255,255,255,0.30)",
     borderRadius: 999,
-    color: disabled ? "#9CA3AF" : DARK_TEAL,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+    color: disabled ? "rgba(255,255,255,0.48)" : "#FFFFFF",
     cursor: disabled ? "not-allowed" : "pointer",
     display: "inline-flex",
-    fontSize: 12,
-    fontWeight: 800,
-    gap: 7,
-    padding: "9px 14px",
+    height: 36,
+    justifyContent: "center",
+    padding: 0,
+    width: 36,
   };
 }
 
@@ -98,18 +112,22 @@ export function PublicMultiDestShareView({
     }, 2000);
   }, [publicUrl]);
 
-  const handleNativeShare = useCallback(async () => {
-    if (!canNativeShare) return;
-    try {
-      await navigator.share({
-        title: `${model.originLabel} to ${model.destinationLabel} | Wildfly`,
-        text: `Explore this Wildfly snapshot with ${model.totals.destinationCount} destinations.`,
-        url: publicUrl,
-      });
-    } catch {
-      // Native share dismissal is not an error state for the page.
+  const handleShare = useCallback(async () => {
+    if (canNativeShare) {
+      try {
+        await navigator.share({
+          title: `${model.originLabel} to ${model.destinationLabel} | Wildfly`,
+          text: `Explore this Wildfly snapshot with ${model.totals.destinationCount} destinations.`,
+          url: publicUrl,
+        });
+      } catch {
+        // Native share dismissal is not an error state for the page.
+      }
+      return;
     }
-  }, [canNativeShare, model.destinationLabel, model.originLabel, model.totals.destinationCount, publicUrl]);
+
+    await handleCopy();
+  }, [canNativeShare, handleCopy, model.destinationLabel, model.originLabel, model.totals.destinationCount, publicUrl]);
 
   const handleDownload = useCallback(async () => {
     const node = templateRef.current;
@@ -142,14 +160,52 @@ export function PublicMultiDestShareView({
           heroImageUrl={model.heroImageUrl}
           arrivalImageUrl="/assets/locations/init_background.png"
           showLogo={false}
+          contentLayout="multi-destination"
+          dateLabel={formatHeroDate(model.departureDate)}
+          stats={[
+            { label: "DESTINATIONS", value: model.totals.destinationCount },
+            { label: "TOTAL FLIGHTS", value: model.totals.flightCount },
+            { label: "NONSTOP", value: model.totals.nonstopDestinationCount },
+            { label: "GO WILD", value: model.totals.goWildDestinationCount },
+          ]}
+          actions={(
+            <>
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                aria-label={downloading ? "Preparing Image" : "Download Image"}
+                title={downloading ? "Preparing image" : "Download image"}
+                style={heroActionButtonStyle(downloading)}
+              >
+                <Download aria-hidden="true" size={17} />
+              </button>
+              <button
+                type="button"
+                onClick={handleCopy}
+                aria-label={copied ? "Link Copied" : "Copy Link"}
+                title={copied ? "Link copied" : "Copy link"}
+                style={heroActionButtonStyle(false, copied)}
+              >
+                <Copy aria-hidden="true" size={17} />
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share"
+                title={canNativeShare ? "Share" : "Copy link to share"}
+                style={heroActionButtonStyle()}
+              >
+                <Share2 aria-hidden="true" size={17} />
+              </button>
+            </>
+          )}
           className="w-full"
-          style={{ height: "clamp(170px, 25vw, 270px)" }}
+          style={{ height: 260 }}
         />
 
-        <MultiDestShareSummary model={model} />
-
         <section
-          aria-label="Share details and actions"
+          aria-label="Share details"
           style={{
             alignItems: "center",
             background: "#F7F9F8",
@@ -157,7 +213,6 @@ export function PublicMultiDestShareView({
             display: "flex",
             flexWrap: "wrap",
             gap: 10,
-            justifyContent: "space-between",
             padding: "12px 14px",
           }}
         >
@@ -168,23 +223,6 @@ export function PublicMultiDestShareView({
                 {expired ? "Expired" : "Available until"} {formatPublicDate(expiresAt)}
               </div>
             )}
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <button type="button" onClick={handleDownload} disabled={downloading} style={actionButtonStyle(downloading)}>
-              <Download aria-hidden="true" size={15} />
-              {downloading ? "Preparing Image" : "Download Image"}
-            </button>
-            {canNativeShare && (
-              <button type="button" onClick={handleNativeShare} style={actionButtonStyle()}>
-                <Share2 aria-hidden="true" size={15} />
-                Share
-              </button>
-            )}
-            <button type="button" onClick={handleCopy} style={actionButtonStyle()}>
-              <Copy aria-hidden="true" size={15} />
-              {copied ? "Link Copied" : "Copy Link"}
-            </button>
           </div>
         </section>
 
