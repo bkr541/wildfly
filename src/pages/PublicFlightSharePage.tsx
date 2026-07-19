@@ -11,7 +11,7 @@ import { getPublicSharedFlightResult } from "@/services/sharedFlightResults";
 import type { PublicSharedFlightResultResponse } from "@/services/sharedFlightResults";
 import { isValidSharedFlightResultToken } from "@/utils/sharedFlightResultContract";
 import { PublicFlightShareView } from "@/components/flight-share/PublicFlightShareView";
-import { PublicMultiDestShareView } from "@/components/flight-share/PublicMultiDestShareView";
+import { PublicMultiDestShareSearchView } from "@/components/flight-share/PublicMultiDestShareSearchView";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -362,7 +362,7 @@ export default function PublicFlightSharePage() {
 
   if (shareData.displayModelVersion === 2) {
     return (
-      <PublicMultiDestShareView
+      <PublicMultiDestShareSearchView
         model={shareData.displayModel}
         createdAt={shareData.createdAt}
         expiresAt={shareData.expiresAt}
