@@ -361,7 +361,9 @@ describe("PublicFlightSharePage", () => {
         expect(screen.getAllByText("All Destinations").length).toBeGreaterThan(0);
         expect(screen.getAllByText("MIA").length).toBeGreaterThan(0);
       });
-      expect(screen.getByRole("button", { name: "Download Image" })).toBeDefined();
+      expect(screen.queryByRole("button", { name: "Download Image" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Copy Link" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
     });
 
     it("sets a version-aware document title for multi-destination shares", async () => {
