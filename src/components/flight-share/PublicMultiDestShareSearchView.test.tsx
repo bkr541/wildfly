@@ -100,6 +100,9 @@ describe("PublicMultiDestShareSearchView", () => {
     const stats = hero.querySelector("[data-public-multi-dest-hero-stats='true']") as HTMLElement;
 
     expect(hero.querySelectorAll("img")).toHaveLength(2);
+    expect(hero.querySelector("[data-public-multi-dest-hero-tint='true']")).toHaveStyle({
+      background: "rgba(8, 18, 32, 0.36)",
+    });
     expect(title).toHaveTextContent("Chicago to");
     expect(title).toHaveTextContent("All Destinations");
     expect(title).toHaveTextContent("Sat, Jul 18");
@@ -121,6 +124,9 @@ describe("PublicMultiDestShareSearchView", () => {
     expect(download.textContent).toBe("");
     expect(copy.textContent).toBe("");
     expect(share.textContent).toBe("");
+    expect(screen.queryByText(/Snapshot created/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Available until/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Share details" })).not.toBeInTheDocument();
   });
 
   it("never renders a sorted-by badge above destination cards", () => {

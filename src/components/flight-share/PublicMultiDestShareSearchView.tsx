@@ -23,16 +23,6 @@ export interface PublicMultiDestShareSearchViewProps {
   publicUrl: string;
 }
 
-function formatPublicDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
 function formatHeroDate(value: string | null): string | null {
   if (!value) return null;
   const date = new Date(value);
@@ -160,8 +150,9 @@ function PublicMultiDestHero({
       />
       <div
         aria-hidden="true"
+        data-public-multi-dest-hero-tint="true"
         style={{
-          background: "rgba(8, 18, 32, 0.42)",
+          background: "rgba(8, 18, 32, 0.36)",
           inset: 0,
           pointerEvents: "none",
           position: "absolute",
@@ -171,7 +162,7 @@ function PublicMultiDestHero({
         aria-hidden="true"
         style={{
           background:
-            "linear-gradient(to bottom right, rgba(0,0,0,0.28) 0%, transparent 45%, rgba(0,0,0,0.28) 100%)",
+            "linear-gradient(to bottom right, rgba(0,0,0,0.24) 0%, transparent 45%, rgba(0,0,0,0.24) 100%)",
           inset: 0,
           pointerEvents: "none",
           position: "absolute",
@@ -276,6 +267,8 @@ function PublicMultiDestHero({
 
 function getActiveFilterLabels(model: MultiDestShareModelV2): string[] {
   const labels: string[] = [];
+  // The destination order already communicates sorting; only active filters
+  // belong above the cards.
   if (model.appliedView.nonstopOnly) labels.push("Nonstop Only");
   if (model.appliedView.goWildOnly) labels.push("GoWild Only");
   if (model.appliedView.destinationType === "domestic") labels.push("Domestic Only");
@@ -386,7 +379,6 @@ function PublicDestinationContent({ model }: { model: MultiDestShareModelV2 }) {
  */
 export function PublicMultiDestShareSearchView({
   model,
-  createdAt,
   expiresAt,
   publicUrl,
 }: PublicMultiDestShareSearchViewProps) {
@@ -481,28 +473,6 @@ export function PublicMultiDestShareSearchView({
           onDownload={handleDownload}
           onShare={handleShare}
         />
-
-        <section
-          aria-label="Share details"
-          style={{
-            alignItems: "center",
-            background: "#F7F9F8",
-            borderBottom: "1px solid #DDE4E4",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            padding: "12px 14px",
-          }}
-        >
-          <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, lineHeight: 1.45 }}>
-            <div>Snapshot created {formatPublicDate(createdAt)}</div>
-            {expiresAt && (
-              <div data-expiration-state={expired ? "expired" : "active"} style={{ color: expired ? "#B42318" : MUTED }}>
-                {expired ? "Expired" : "Available until"} {formatPublicDate(expiresAt)}
-              </div>
-            )}
-          </div>
-        </section>
 
         {downloadError && (
           <div role="alert" style={{ color: "#B42318", fontSize: 12, fontWeight: 700, margin: "12px 14px 0" }}>

@@ -24,6 +24,7 @@ export interface MultiDestShareContentProps {
 function getMultiDestAppliedViewLabels(model: MultiDestShareModelV2): string[] {
   const labels: string[] = [];
 
+  // Sorting is represented by destination order, not a badge above the cards.
   if (model.appliedView.nonstopOnly) labels.push("Nonstop Only");
   if (model.appliedView.goWildOnly) labels.push("GoWild Only");
   if (model.appliedView.destinationType === "domestic") labels.push("Domestic Only");
@@ -50,10 +51,10 @@ function AppliedView({ model, mode }: { model: MultiDestShareModelV2; mode: Mult
         <span
           key={label}
           style={{
-            background: label.startsWith("Sorted") ? "#EAF7F2" : "#FFFFFF",
-            border: `1px solid ${label.startsWith("Sorted") ? "#B7E4D2" : "#DDE4E4"}`,
+            background: "#FFFFFF",
+            border: "1px solid #DDE4E4",
             borderRadius: 999,
-            color: label.startsWith("Sorted") ? "#047857" : MUTED,
+            color: MUTED,
             fontSize: mode === "image" ? 11 : 10,
             fontWeight: 800,
             padding: mode === "image" ? "5px 10px" : "4px 8px",
