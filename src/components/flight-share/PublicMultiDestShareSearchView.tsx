@@ -1,15 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AirplaneTakeOff01Icon,
-  Calendar03Icon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { Copy, Download, Share2 } from "lucide-react";
 import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
-import { buildShareFilename, exportFlightShareImage } from "@/utils/exportFlightShareImage";
 import { MultiDestShareCard } from "./MultiDestShareCard";
-import { MultiDestShareTemplate } from "./MultiDestShareTemplate";
 
 const DARK_TEAL = "#1A2E2E";
 const MUTED = "#6B7B7B";
@@ -23,73 +19,21 @@ export interface PublicMultiDestShareSearchViewProps {
   publicUrl: string;
 }
 
-function formatHeroDate(value: string | null): string | null {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-    weekday: "short",
-  });
-}
-
 function isExpired(expiresAt?: string | null): boolean {
   if (!expiresAt) return false;
   const timestamp = new Date(expiresAt).getTime();
   return Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
-function heroActionButtonStyle(disabled = false, active = false): React.CSSProperties {
-  return {
-    alignItems: "center",
-    backdropFilter: "blur(8px)",
-    background: disabled
-      ? "rgba(255,255,255,0.08)"
-      : active
-        ? "rgba(255,255,255,0.28)"
-        : "rgba(255,255,255,0.15)",
-    border: "1px solid rgba(255,255,255,0.30)",
-    borderRadius: 999,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-    color: disabled ? "rgba(255,255,255,0.48)" : "#FFFFFF",
-    cursor: disabled ? "not-allowed" : "pointer",
-    display: "inline-flex",
-    flex: "0 0 36px",
-    height: 36,
-    justifyContent: "center",
-    padding: 0,
-    width: 36,
-  };
-}
-
-interface PublicMultiDestHeroProps {
-  model: MultiDestShareModelV2;
-  copied: boolean;
-  downloading: boolean;
-  onCopy: () => void;
-  onDownload: () => void;
-  onShare: () => void;
-}
-
 /**
  * Public all-destinations hero.
  *
  * The two diagonal image panes, divider, and overlays are intentionally kept
- * identical to the original public-share hero. The foreground layout mirrors
- * FlightMultiDestResults: top-right circular actions, stacked route title,
- * date pill, and the four statistics inside the hero.
+ * identical to the original public-share hero. The foreground layout shows the
+ * stacked route title and the four statistics inside the hero without any action
+ * buttons or snapshot date.
  */
-function PublicMultiDestHero({
-  model,
-  copied,
-  downloading,
-  onCopy,
-  onDownload,
-  onShare,
-}: PublicMultiDestHeroProps) {
-  const dateLabel = formatHeroDate(model.departureDate);
+function PublicMultiDestHero({ model }: { model: MultiDestShareModelV2 }) {
   const stats = [
     { label: "DESTINATIONS", value: model.totals.destinationCount },
     { label: "TOTAL FLIGHTS", value: model.totals.flightCount },
@@ -152,7 +96,7 @@ function PublicMultiDestHero({
         aria-hidden="true"
         data-public-multi-dest-hero-tint="true"
         style={{
-          background: "rgba(8, 18, 32, 0.36)",
+          background: "rgba(8, 18, 32, 0.28)",
           inset: 0,
           pointerEvents: "none",
           position: "absolute",
@@ -162,49 +106,19 @@ function PublicMultiDestHero({
         aria-hidden="true"
         style={{
           background:
-            "linear-gradient(to bottom right, rgba(0,0,0,0.24) 0%, transparent 45%, rgba(0,0,0,0.24) 100%)",
+            "linear-gradient(to bottom right, rgba(0,0,0,0.16) 0%, transparent 45%, rgba(0,0,0,0.16) 100%)",
           inset: 0,
           pointerEvents: "none",
           position: "absolute",
         }}
       />
 
-      {/* Download, Copy, and Share are icon-only controls in the hero. */}
-      <div className="relative flex h-10 w-full items-center justify-end">
-        <div data-public-multi-dest-hero-actions="true" className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Download Image"
-            title={downloading ? "Preparing image" : "Download image"}
-            disabled={downloading}
-            onClick={onDownload}
-            style={heroActionButtonStyle(downloading)}
-          >
-            <Download aria-hidden="true" size={16} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            aria-label="Copy Link"
-            title={copied ? "Link copied" : "Copy link"}
-            onClick={onCopy}
-            style={heroActionButtonStyle(false, copied)}
-          >
-            <Copy aria-hidden="true" size={16} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            aria-label="Share"
-            title="Share"
-            onClick={onShare}
-            style={heroActionButtonStyle()}
-          >
-            <Share2 aria-hidden="true" size={16} strokeWidth={2} />
-          </button>
-        </div>
-      </div>
-
-      {/* Exact route title and date hierarchy from FlightMultiDestResults. */}
-      <div data-public-multi-dest-hero-title="true" className="relative mt-0">
+      {/* Exact route title hierarchy from FlightMultiDestResults. */}
+      <div
+        data-public-multi-dest-hero-title="true"
+        className="relative flex-1"
+        style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}
+      >
         <div
           className="flex flex-col gap-0 leading-tight"
           style={{ textShadow: "0 2px 5px rgba(0,0,0,0.4)" }}
@@ -219,20 +133,6 @@ function PublicMultiDestHero({
             {model.destinationLabel}
           </span>
         </div>
-
-        {dateLabel && (
-          <div className="mt-2 flex items-center gap-2">
-            <div
-              className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 backdrop-blur-sm"
-              style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)" }}
-            >
-              <HugeiconsIcon icon={Calendar03Icon} size={13} color="#065F46" strokeWidth={1.5} />
-              <span className="whitespace-nowrap text-xs font-semibold leading-none text-[#065F46]">
-                {dateLabel}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Four exact-width columns with centered, contained labels and totals. */}
@@ -265,45 +165,10 @@ function PublicMultiDestHero({
   );
 }
 
-function getActiveFilterLabels(model: MultiDestShareModelV2): string[] {
-  const labels: string[] = [];
-  // The destination order already communicates sorting; only active filters
-  // belong above the cards.
-  if (model.appliedView.nonstopOnly) labels.push("Nonstop Only");
-  if (model.appliedView.goWildOnly) labels.push("GoWild Only");
-  if (model.appliedView.destinationType === "domestic") labels.push("Domestic Only");
-  if (model.appliedView.destinationType === "international") labels.push("International Only");
-  return labels;
-}
-
 function PublicDestinationContent({ model }: { model: MultiDestShareModelV2 }) {
-  const filterLabels = getActiveFilterLabels(model);
-
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "16px 0 0" }}>
-        {filterLabels.length > 0 && (
-          <div aria-label="Applied filters" style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {filterLabels.map((label) => (
-              <span
-                key={label}
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #DDE4E4",
-                  borderRadius: 999,
-                  color: MUTED,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  padding: "4px 8px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        )}
-
         {!model.hasResults ? (
           <div
             data-multi-dest-empty="true"
@@ -380,105 +245,13 @@ function PublicDestinationContent({ model }: { model: MultiDestShareModelV2 }) {
 export function PublicMultiDestShareSearchView({
   model,
   expiresAt,
-  publicUrl,
 }: PublicMultiDestShareSearchViewProps) {
-  const templateRef = useRef<HTMLDivElement>(null);
-  const [copied, setCopied] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const downloadInFlightRef = useRef(false);
-  const mountedRef = useRef(true);
   const expired = isExpired(expiresAt);
-  const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      downloadInFlightRef.current = false;
-      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
-    };
-  }, []);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(publicUrl);
-    } catch {
-      const input = document.createElement("input");
-      input.value = publicUrl;
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand("copy");
-      document.body.removeChild(input);
-    }
-    if (!mountedRef.current) return;
-    if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
-    setCopied(true);
-    copyTimerRef.current = setTimeout(() => {
-      if (mountedRef.current) setCopied(false);
-      copyTimerRef.current = null;
-    }, 2000);
-  }, [publicUrl]);
-
-  const handleShare = useCallback(async () => {
-    if (canNativeShare) {
-      try {
-        await navigator.share({
-          title: `${model.originLabel} to ${model.destinationLabel} | Wildfly`,
-          text: `Explore this Wildfly snapshot with ${model.totals.destinationCount} destinations.`,
-          url: publicUrl,
-        });
-      } catch {
-        // Native share dismissal is not an error state for the page.
-      }
-      return;
-    }
-
-    await handleCopy();
-  }, [canNativeShare, handleCopy, model.destinationLabel, model.originLabel, model.totals.destinationCount, publicUrl]);
-
-  const handleDownload = useCallback(async () => {
-    const node = templateRef.current;
-    if (!node || downloadInFlightRef.current) return;
-    downloadInFlightRef.current = true;
-    setDownloading(true);
-    setDownloadError(null);
-    try {
-      const filename = buildShareFilename(
-        model.originLabel,
-        model.destinationLabel,
-        model.departureDate,
-      );
-      await exportFlightShareImage(node, filename);
-    } catch (error) {
-      console.error("[PublicMultiDestShareSearchView] image export failed:", error);
-      if (mountedRef.current) setDownloadError("Could not download the destination image. Please try again.");
-    } finally {
-      downloadInFlightRef.current = false;
-      if (mountedRef.current) setDownloading(false);
-    }
-  }, [model.departureDate, model.destinationLabel, model.originLabel]);
 
   return (
     <div style={{ background: "#E8ECEC", minHeight: "100vh" }}>
       <main style={{ margin: "0 auto", maxWidth: 1180, paddingBottom: 48 }}>
-        <PublicMultiDestHero
-          model={model}
-          copied={copied}
-          downloading={downloading}
-          onCopy={handleCopy}
-          onDownload={handleDownload}
-          onShare={handleShare}
-        />
-
-        {downloadError && (
-          <div role="alert" style={{ color: "#B42318", fontSize: 12, fontWeight: 700, margin: "12px 14px 0" }}>
-            {downloadError}
-          </div>
-        )}
+        <PublicMultiDestHero model={model} />
 
         {expired && (
           <div
@@ -502,21 +275,6 @@ export function PublicMultiDestShareSearchView({
           <PublicDestinationContent model={model} />
         </div>
       </main>
-
-      <div
-        aria-hidden="true"
-        data-offscreen-multi-dest-template="true"
-        style={{
-          left: -9999,
-          opacity: 0,
-          pointerEvents: "none",
-          position: "fixed",
-          top: -9999,
-          zIndex: -1,
-        }}
-      >
-        <MultiDestShareTemplate ref={templateRef} model={model} />
-      </div>
     </div>
   );
 }

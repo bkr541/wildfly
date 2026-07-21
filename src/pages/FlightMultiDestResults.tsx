@@ -739,12 +739,12 @@ const FlightMultiDestResults = ({
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "linear-gradient(to bottom, rgba(6, 78, 59, 0.45) 0%, rgba(6, 78, 59, 0.22) 25%, rgba(6, 78, 59, 0.35) 50%, rgba(6, 78, 59, 0.48) 75%, rgba(6, 78, 59, 0.55) 100%)",
+                "linear-gradient(to bottom, rgba(6, 78, 59, 0.35) 0%, rgba(6, 78, 59, 0.15) 25%, rgba(6, 78, 59, 0.28) 50%, rgba(6, 78, 59, 0.38) 75%, rgba(6, 78, 59, 0.45) 100%)",
             }}
           />
           <div
             className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
-            style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.85) 100%)" }}
+            style={{ background: "linear-gradient(to bottom, rgba(6, 78, 59, 0) 0%, rgba(6, 78, 59, 0.75) 100%)" }}
           />
 
           {/* Back button + controls */}

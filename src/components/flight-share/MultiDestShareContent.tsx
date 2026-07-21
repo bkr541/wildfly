@@ -33,6 +33,10 @@ function getMultiDestAppliedViewLabels(model: MultiDestShareModelV2): string[] {
 }
 
 function AppliedView({ model, mode }: { model: MultiDestShareModelV2; mode: MultiDestShareRenderMode }) {
+  // The destination order already communicates sorting; active filter badges are
+  // only shown in image mode so the public page stays clean.
+  if (mode !== "image") return null;
+
   const labels = getMultiDestAppliedViewLabels(model);
   if (labels.length === 0) return null;
 
@@ -44,7 +48,7 @@ function AppliedView({ model, mode }: { model: MultiDestShareModelV2; mode: Mult
         alignItems: "center",
         display: "flex",
         flexWrap: "wrap",
-        gap: mode === "image" ? 8 : 6,
+        gap: 8,
       }}
     >
       {labels.map((label) => (
@@ -55,9 +59,9 @@ function AppliedView({ model, mode }: { model: MultiDestShareModelV2; mode: Mult
             border: "1px solid #DDE4E4",
             borderRadius: 999,
             color: MUTED,
-            fontSize: mode === "image" ? 11 : 10,
+            fontSize: 11,
             fontWeight: 800,
-            padding: mode === "image" ? "5px 10px" : "4px 8px",
+            padding: "5px 10px",
             whiteSpace: "nowrap",
           }}
         >

@@ -1,14 +1,8 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MultiDestShareModelV2 } from "@/utils/multiDestShareModel";
-import { exportFlightShareImage } from "@/utils/exportFlightShareImage";
 import { PublicMultiDestShareSearchView } from "./PublicMultiDestShareSearchView";
-
-vi.mock("@/utils/exportFlightShareImage", () => ({
-  buildShareFilename: vi.fn(() => "wildfly-chicago-to-all-destinations-2026-07-18.png"),
-  exportFlightShareImage: vi.fn(() => Promise.resolve(new Blob(["png"], { type: "image/png" }))),
-}));
 
 function makeModel(overrides: Partial<MultiDestShareModelV2> = {}): MultiDestShareModelV2 {
   const model: MultiDestShareModelV2 = {
@@ -96,16 +90,14 @@ describe("PublicMultiDestShareSearchView", () => {
 
     const hero = container.querySelector("[data-public-multi-dest-hero='true']") as HTMLElement;
     const title = hero.querySelector("[data-public-multi-dest-hero-title='true']") as HTMLElement;
-    const actions = hero.querySelector("[data-public-multi-dest-hero-actions='true']") as HTMLElement;
     const stats = hero.querySelector("[data-public-multi-dest-hero-stats='true']") as HTMLElement;
 
     expect(hero.querySelectorAll("img")).toHaveLength(2);
     expect(hero.querySelector("[data-public-multi-dest-hero-tint='true']")).toHaveStyle({
-      background: "rgba(8, 18, 32, 0.36)",
+      background: "rgba(8, 18, 32, 0.28)",
     });
     expect(title).toHaveTextContent("Chicago to");
     expect(title).toHaveTextContent("All Destinations");
-    expect(title).toHaveTextContent("Sat, Jul 18");
     expect(stats).toHaveClass("grid-cols-4");
     expect(stats.children).toHaveLength(4);
     expect(Array.from(stats.children).map((item) => item.textContent?.trim())).toEqual([
@@ -115,21 +107,15 @@ describe("PublicMultiDestShareSearchView", () => {
       "GO WILD1",
     ]);
 
-    const download = screen.getByRole("button", { name: "Download Image" });
-    const copy = screen.getByRole("button", { name: "Copy Link" });
-    const share = screen.getByRole("button", { name: "Share" });
-    expect(actions).toContainElement(download);
-    expect(actions).toContainElement(copy);
-    expect(actions).toContainElement(share);
-    expect(download.textContent).toBe("");
-    expect(copy.textContent).toBe("");
-    expect(share.textContent).toBe("");
+    expect(screen.queryByRole("button", { name: "Download Image" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy Link" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Snapshot created/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Available until/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Share details" })).not.toBeInTheDocument();
   });
 
-  it("never renders a sorted-by badge above destination cards", () => {
+  it("never renders filter or sorted-by badges above destination cards", () => {
     const { container } = render(
       <PublicMultiDestShareSearchView
         model={makeModel({
@@ -141,34 +127,29 @@ describe("PublicMultiDestShareSearchView", () => {
           },
         })}
         createdAt="2026-07-14T12:00:00.000Z"
+        expiresAt="2099-07-21T12:00:00.000Z"
         publicUrl="https://example.test/share/flights/token"
       />,
     );
 
     const main = container.querySelector("main") as HTMLElement;
     expect(within(main).queryByText(/Sorted by/i)).not.toBeInTheDocument();
-    expect(within(main).getByText("Nonstop Only")).toBeInTheDocument();
-    expect(within(main).getByText("GoWild Only")).toBeInTheDocument();
-    expect(within(main).getByText("International Only")).toBeInTheDocument();
+    expect(within(main).queryByText("Nonstop Only")).not.toBeInTheDocument();
+    expect(within(main).queryByText("GoWild Only")).not.toBeInTheDocument();
+    expect(within(main).queryByText("International Only")).not.toBeInTheDocument();
   });
 
-  it("downloads through the existing off-screen export template", async () => {
+  it("renders destination cards when results are present", () => {
     const { container } = render(
       <PublicMultiDestShareSearchView
         model={makeModel()}
         createdAt="2026-07-14T12:00:00.000Z"
+        expiresAt="2099-07-21T12:00:00.000Z"
         publicUrl="https://example.test/share/flights/token"
       />,
     );
 
-    expect(container.querySelector("[data-offscreen-multi-dest-template='true'] [data-multi-dest-share-root='true']")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Download Image" }));
-
-    await waitFor(() => {
-      expect(exportFlightShareImage).toHaveBeenCalledWith(
-        expect.any(HTMLElement),
-        "wildfly-chicago-to-all-destinations-2026-07-18.png",
-      );
-    });
+    const cards = container.querySelectorAll("[data-multi-dest-card]");
+    expect(cards).toHaveLength(2);
   });
 });
