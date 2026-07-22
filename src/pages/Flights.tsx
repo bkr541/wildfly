@@ -32,6 +32,7 @@ import { format, startOfDay, getYear, getMonth, getDaysInMonth } from "date-fns"
 import { DatePickerSheet } from "@/components/DatePickerSheet";
 import { normalizeGetMyDataResponse, normalizeAllDestinationsResponse } from "@/utils/normalizeFlights";
 import { isBlackoutDate } from "@/utils/blackoutDates";
+import { formatAirportSelectionLabel } from "@/utils/airportSelection";
 import { writeFlightSnapshots, markDisappearedGoWildObservations } from "@/utils/flightSnapshotWriter";
 import {
   activeFrontierStationCodes,
@@ -407,10 +408,7 @@ const MultiAirportSearchbox = ({
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const displayValue =
-    selected.length > 0
-      ? `${selected[0].iata_code} | ${selected[0].locations?.city ?? selected[0].name}`
-      : "";
+  const displayValue = formatAirportSelectionLabel(selected);
 
   const handleSelect = (newSelected: Airport[]) => {
     onChange(newSelected);

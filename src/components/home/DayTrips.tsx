@@ -424,45 +424,47 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
             transition={{ duration: 0.28, ease: EASE }}
             style={{ overflow: "visible" }}
           >
-            <div style={{ padding: "2px 6px 10px" }}>
+            <div style={{ padding: "2px 0 10px" }}>
               {loading ? (
                 // Skeleton
-                <div className="flex gap-3 overflow-x-hidden pb-1 -mx-1 px-1">
-                  {[1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl overflow-hidden flex-shrink-0 w-[272px]"
-                      style={{
-                        background: "rgba(255,255,255,0.95)",
-                        border: "1px solid rgba(255,255,255,0.65)",
-                        boxShadow: CARD_SHADOW,
-                      }}
-                    >
-                      <div className="h-9 animate-pulse" style={{ background: HEADER_GREEN, opacity: 0.35 }} />
-                      <div className="px-4 pt-4 pb-4">
-                        <div className="flex gap-3">
-                          <div className="flex-1 space-y-2">
-                            <div className="h-3 w-14 rounded bg-[#e5e7eb]" />
-                            <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
-                            <div className="h-3 w-16 rounded bg-[#e5e7eb]" />
-                            <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
-                            <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
-                          </div>
-                          <div className="w-16 flex flex-col items-center gap-2 pt-4">
-                            <div className="h-6 w-14 rounded-full bg-[#e5e7eb]" />
-                            <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
-                          </div>
-                          <div className="flex-1 space-y-2 items-end flex flex-col">
-                            <div className="h-3 w-14 rounded bg-[#e5e7eb]" />
-                            <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
-                            <div className="h-3 w-16 rounded bg-[#e5e7eb]" />
-                            <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
-                            <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
+                <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
+                  <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="rounded-2xl overflow-hidden flex-shrink-0 w-[272px]"
+                        style={{
+                          background: "rgba(255,255,255,0.95)",
+                          border: "1px solid rgba(255,255,255,0.65)",
+                          boxShadow: CARD_SHADOW,
+                        }}
+                      >
+                        <div className="h-9 animate-pulse" style={{ background: HEADER_GREEN, opacity: 0.35 }} />
+                        <div className="px-4 pt-4 pb-4">
+                          <div className="flex gap-3">
+                            <div className="flex-1 space-y-2">
+                              <div className="h-3 w-14 rounded bg-[#e5e7eb]" />
+                              <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
+                              <div className="h-3 w-16 rounded bg-[#e5e7eb]" />
+                              <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
+                              <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
+                            </div>
+                            <div className="w-16 flex flex-col items-center gap-2 pt-4">
+                              <div className="h-6 w-14 rounded-full bg-[#e5e7eb]" />
+                              <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
+                            </div>
+                            <div className="flex-1 space-y-2 items-end flex flex-col">
+                              <div className="h-3 w-14 rounded bg-[#e5e7eb]" />
+                              <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
+                              <div className="h-3 w-16 rounded bg-[#e5e7eb]" />
+                              <div className="h-3 w-12 rounded bg-[#e5e7eb]" />
+                              <div className="h-7 w-10 rounded bg-[#e5e7eb]" />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : pairs.length === 0 ? (
                 <div
@@ -488,13 +490,12 @@ export function DayTrips({ isCollapsed = false, onToggle, onNavigate }: Props) {
                   </div>
                 </div>
               ) : (
-                <div
-                  className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide"
-                  style={{ scrollSnapType: "x mandatory" }}
-                >
-                  {pairs.map((pair, i) => (
-                    <DayTripCard key={pair.id} pair={pair} index={i} cityNames={cityNames} />
-                  ))}
+                <div className="overflow-x-auto scrollbar-hide" style={{ margin: "0 -20px" }}>
+                  <div className="flex gap-3" style={{ padding: "2px 20px 2px", scrollSnapType: "x mandatory" }}>
+                    {pairs.map((pair, i) => (
+                      <DayTripCard key={pair.id} pair={pair} index={i} cityNames={cityNames} />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
