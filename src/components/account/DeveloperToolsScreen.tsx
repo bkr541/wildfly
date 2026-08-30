@@ -316,10 +316,10 @@ const DeveloperToolsScreen = ({ onBack, onTitleChange, onNavigate, backRef }: De
           {tokensOpen && (
             <div className="border-t border-[#F0F1F1] border-b border-[#F0F1F1] px-4 py-3 animate-fade-in bg-[#F8F9F9] space-y-3">
               <AppInput
-                label="GoWilder Token"
+                label="Auth Token"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                placeholder="Enter your GoWilder token..."
+                placeholder="Enter your Auth token..."
                 isPassword
               />
               {expiry && (

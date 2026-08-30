@@ -567,7 +567,7 @@ const MainLayout = ({
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="text-center space-y-1">
-                <p className="text-xs text-[#6B7B7B]">The current GoWilder token expires on</p>
+                <p className="text-xs text-[#6B7B7B]">The current Auth token expires on</p>
                 <p className="text-sm font-semibold" style={{ color: (() => {
                   if (!tokenExpiry) return "#059669";
                   const days = (tokenExpiry.getTime() - Date.now()) / 86400000;

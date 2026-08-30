@@ -61,3 +61,54 @@ export function toAirportUTC(
 
   return timeStr; // Unknown format — pass through unchanged
 }
+
+/**
+ * Format a stored UTC flight instant in an airport's local timezone.
+ *
+ * If timezone metadata is unavailable (or invalid), this intentionally falls
+ * back to the runtime's local timezone so existing data still renders instead
+ * of throwing a RangeError.
+ */
+export function formatAirportDateTime(
+  dateStr: string,
+  timezone: string | null | undefined,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+
+    const withTimezone: Intl.DateTimeFormatOptions = timezone
+      ? { ...options, timeZone: timezone }
+      : options;
+
+    try {
+      return date.toLocaleString("en-US", withTimezone);
+    } catch {
+      // Bad/missing IANA metadata should not make the flight card disappear.
+      return date.toLocaleString("en-US", options);
+    }
+  } catch {
+    return "";
+  }
+}
+
+export function formatAirportTime(
+  dateStr: string,
+  timezone: string | null | undefined,
+): string {
+  const formatted = formatAirportDateTime(dateStr, timezone, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return formatted || dateStr;
+}
+
+export function formatAirportDate(
+  dateStr: string,
+  timezone: string | null | undefined,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  return formatAirportDateTime(dateStr, timezone, options);
+}

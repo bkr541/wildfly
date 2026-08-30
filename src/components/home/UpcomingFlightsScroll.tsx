@@ -4,6 +4,8 @@ import { ChevronDown, X } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer02Icon, Delete02Icon, ArrowRight04Icon, CircleArrowReload01Icon, Rocket01Icon } from "@hugeicons/core-free-icons";
 import { supabase } from "@/integrations/supabase/client";
+import { useAirportTimezones } from "@/hooks/useAirportTimezones";
+import { formatAirportDate, formatAirportTime } from "@/utils/airportTime";
 import { TicketDivider } from "./TicketDivider";
 import {
   AlertDialog,
@@ -27,34 +29,17 @@ interface UserFlight {
   created_at: string;
 }
 
-function formatFullDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return "";
-  }
+function formatFullDate(dateStr: string, timezone?: string | null): string {
+  return formatAirportDate(dateStr, timezone, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function formatTime(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-  } catch {
-    return dateStr;
-  }
-}
-
-function formatShortDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return "";
-  }
+function formatShortDate(dateStr: string, timezone?: string | null): string {
+  return formatAirportDate(dateStr, timezone, { month: "short", day: "numeric", year: "numeric" });
 }
 
 function departsInLabel(dateStr: string): string | null {
@@ -140,6 +125,9 @@ interface Props {
 export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapsed = false, onToggle, onFlightRemoved, onFlightClick }: Props) {
   const [flightToRemove, setFlightToRemove] = useState<UserFlight | null>(null);
   const [removing, setRemoving] = useState(false);
+  const airportTimezones = useAirportTimezones(
+    flights.flatMap((flight) => [flight.departure_airport, flight.arrival_airport]),
+  );
 
   const handleRemove = async () => {
     if (!flightToRemove) return;
@@ -289,17 +277,25 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
                             </div>
 
                             {/* Time / date row */}
-                            <div className="flex items-center justify-between">
-                              <span className="leading-tight">
-                                <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.departure_time)}</span>
-                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.departure_time)}</span>
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                              <span className="min-w-0 leading-tight">
+                                <span className="block text-sm font-semibold text-[#059669]">
+                                  {formatAirportTime(flight.departure_time, airportTimezones[flight.departure_airport])}
+                                </span>
+                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">
+                                  {formatFullDate(flight.departure_time, airportTimezones[flight.departure_airport])}
+                                </span>
                               </span>
-                              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#065F46] bg-[#D1FAE5]">
+                              <span className="inline-flex shrink-0 whitespace-nowrap text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#065F46] bg-[#D1FAE5]">
                                 {formatDuration(flight.departure_time, flight.arrival_time)}
                               </span>
-                              <span className="leading-tight text-right">
-                                <span className="block text-sm font-semibold text-[#059669]">{formatTime(flight.arrival_time)}</span>
-                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">{formatFullDate(flight.arrival_time)}</span>
+                              <span className="min-w-0 leading-tight text-right">
+                                <span className="block text-sm font-semibold text-[#059669]">
+                                  {formatAirportTime(flight.arrival_time, airportTimezones[flight.arrival_airport])}
+                                </span>
+                                <span className="block text-xs font-medium text-[#6B7B7B] mt-0.5">
+                                  {formatFullDate(flight.arrival_time, airportTimezones[flight.arrival_airport])}
+                                </span>
                               </span>
                             </div>
 
@@ -355,7 +351,7 @@ export function UpcomingFlightsScroll({ flights, loading, onNavigate, isCollapse
               Removing {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-[#6B7B7B] text-center">
-              Proceeding will remove {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on {flightToRemove ? formatShortDate(flightToRemove.departure_time) : ""} from your itinerary. Do you wish to continue?
+              Proceeding will remove {flightToRemove?.departure_airport} to {flightToRemove?.arrival_airport} on {flightToRemove ? formatShortDate(flightToRemove.departure_time, airportTimezones[flightToRemove.departure_airport]) : ""} from your itinerary. Do you wish to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 mt-3">

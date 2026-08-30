@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -112,11 +113,15 @@ export function SplitFlapOverlay({
   bottomWord: string;
   subtitle?: string;
 }) {
-  return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
+  const overlay = (
+    <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-[#F2F3F3] gap-5">
       <SplitFlapWord word={topWord} delay={0} />
       <SplitFlapWord word={bottomWord} green delay={100} />
       <p className="text-sm text-[#6B7B7B] mt-2">{subtitle}</p>
     </div>
   );
+
+  // Render at the document root so MainLayout's header/scroll container cannot
+  // establish a stacking or containing context above the full-screen loader.
+  return typeof document === "undefined" ? overlay : createPortal(overlay, document.body);
 }

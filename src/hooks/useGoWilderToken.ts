@@ -99,7 +99,7 @@ export function useGoWilderToken() {
       }
 
       setSavedToken(token);
-      toast.success(isLegacyMigration ? "GoWilder Token migrated to global" : "GoWilder Token saved");
+      toast.success(isLegacyMigration ? "Auth Token migrated to global" : "Auth Token saved");
     } catch (err: any) {
       toast.error(`Save failed: ${err?.message ?? "Unknown error"}`);
     } finally {
@@ -133,7 +133,7 @@ export function useGoWilderToken() {
       setToken("");
       setSavedToken("");
       setLegacyUserId(null);
-      toast.success("GoWilder Token deleted");
+      toast.success("Auth Token deleted");
     } catch (err: any) {
       toast.error(`Delete failed: ${err?.message ?? "Unknown error"}`);
     } finally {

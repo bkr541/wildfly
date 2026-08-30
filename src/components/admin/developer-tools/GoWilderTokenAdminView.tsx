@@ -62,8 +62,8 @@ export function GoWilderTokenAdminView() {
 
   return (
     <DeveloperToolsAdminShell
-      title="GoWilder Token"
-      description="Global GoWilder API token stored in app_config. Shared across all developer-allowlisted users."
+      title="Auth Token"
+      description="Global Auth API token stored in app_config. Shared across all developer-allowlisted users."
       badges={<TokenStatusBadge expiry={expiry} hasToken={hasToken} />}
       loading={initialLoading}
     >
@@ -73,7 +73,7 @@ export function GoWilderTokenAdminView() {
 
         {!hasToken && (
           <p className="text-xs text-[#9CA3AF] mb-3">
-            No GoWilder token saved. Paste a token below to store it globally.
+            No Auth token saved. Paste a token below to store it globally.
           </p>
         )}
 
@@ -82,7 +82,7 @@ export function GoWilderTokenAdminView() {
             <textarea
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="Paste GoWilder API token…"
+              placeholder="Paste Auth API token…"
               rows={4}
               disabled={loading}
               className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 pr-10 text-sm text-[#1A2E2E] font-mono placeholder:text-[#9CA3AF] placeholder:font-sans focus:outline-none focus:ring-2 focus:ring-[#059669]/30 resize-none overflow-hidden break-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -92,7 +92,7 @@ export function GoWilderTokenAdminView() {
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="Paste GoWilder API token…"
+              placeholder="Paste Auth API token…"
               disabled={loading}
               className="w-full h-10 rounded-xl border border-[#E5E7EB] bg-white px-3 pr-10 text-sm text-[#1A2E2E] font-mono placeholder:text-[#9CA3AF] placeholder:font-sans focus:outline-none focus:ring-2 focus:ring-[#059669]/30 disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -137,7 +137,7 @@ export function GoWilderTokenAdminView() {
         {confirmDelete ? (
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm font-semibold text-[#EF4444]">
-              Permanently delete the GoWilder token?
+              Permanently delete the Auth token?
             </p>
             <div className="flex items-center gap-2">
               <button

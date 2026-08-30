@@ -145,7 +145,7 @@ const DEV_ITEMS: { id: View; label: string; icon: any }[] = [
   { id: "developer-design-system", label: "Design System",    icon: BookOpen01Icon },
   { id: "developer-debug",         label: "Debug Settings",   icon: Settings01Icon },
   { id: "developer-sql-cache",     label: "SQL / Cache Tools", icon: DatabaseIcon },
-  { id: "developer-token",         label: "GoWilder Token",   icon: Coins01Icon },
+  { id: "developer-token",         label: "Auth Token",       icon: Coins01Icon },
   { id: "developer-logging",       label: "Logging Settings", icon: FilterMailSquareIcon },
 ];
 

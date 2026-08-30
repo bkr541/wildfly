@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import StaticRouteMapBase from "@/components/StaticRouteMapBase";
 import RouteMapCard from "@/components/RouteMapCard";
+import { formatAirportDate, formatAirportTime } from "@/utils/airportTime";
 
 interface UserFlight {
   id: string;
@@ -34,42 +35,27 @@ interface Props {
 }
 
 interface AirportInfo {
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   city: string;
   stateCode: string;
   country: string;
   name: string;
+  timezone: string | null;
 }
 
 
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return "";
-  }
+function formatDate(dateStr: string, timezone?: string | null): string {
+  return formatAirportDate(dateStr, timezone, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function formatTime(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  } catch {
-    return dateStr;
-  }
+function formatTime(dateStr: string, timezone?: string | null): string {
+  return formatAirportTime(dateStr, timezone);
 }
 
 function formatDuration(dep: string, arr: string): string {
@@ -168,21 +154,21 @@ const FlightDetails = ({ flight, onBack }: Props) => {
     (async () => {
       const { data } = await supabase
         .from("airports")
-        .select("iata_code, name, latitude, longitude, locations(city, state_code, country)")
+        .select("iata_code, name, latitude, longitude, timezone, locations(city, state_code, country)")
         .in("iata_code", [flight.departure_airport, flight.arrival_airport]);
       if (!data) return;
       const map: Record<string, AirportInfo> = {};
       for (const row of data as any[]) {
-        if (row.latitude != null && row.longitude != null) {
-          map[row.iata_code] = {
-            lat: row.latitude,
-            lng: row.longitude,
-            city: row.locations?.city ?? "",
-            stateCode: row.locations?.state_code ?? "",
-            country: row.locations?.country ?? "",
-            name: row.name ?? "",
-          };
-        }
+        const location = Array.isArray(row.locations) ? row.locations[0] : row.locations;
+        map[row.iata_code] = {
+          lat: row.latitude ?? null,
+          lng: row.longitude ?? null,
+          city: location?.city ?? "",
+          stateCode: location?.state_code ?? "",
+          country: location?.country ?? "",
+          name: row.name ?? "",
+          timezone: row.timezone ?? null,
+        };
       }
       setDepInfo(map[flight.departure_airport] ?? null);
       setArrInfo(map[flight.arrival_airport] ?? null);
@@ -197,13 +183,18 @@ const FlightDetails = ({ flight, onBack }: Props) => {
   const confirmationCode: string | null = fj.confirmationCode ?? fj.confirmation_code ?? fj.pnr ?? null;
   const stops: number | null = fj.stops != null ? Number(fj.stops) : (fj.legs?.length > 1 ? fj.legs.length - 1 : null);
 
-  const distanceMiles =
-    depInfo && arrInfo
-      ? Math.round(haversineDistance(depInfo.lat, depInfo.lng, arrInfo.lat, arrInfo.lng))
+  const routeCoords =
+    depInfo?.lat != null && depInfo?.lng != null && arrInfo?.lat != null && arrInfo?.lng != null
+      ? {
+          dep: [depInfo.lat, depInfo.lng] as [number, number],
+          arr: [arrInfo.lat, arrInfo.lng] as [number, number],
+        }
       : null;
+  const distanceMiles = routeCoords
+    ? Math.round(haversineDistance(routeCoords.dep[0], routeCoords.dep[1], routeCoords.arr[0], routeCoords.arr[1]))
+    : null;
 
   const hasFlightDetails = !!(flightNumber || aircraft || confirmationCode || terminal || gate || flight.type);
-  const hasRouteMap = !!(depInfo && arrInfo);
 
   return (
     <div className="relative flex flex-col h-full bg-[#F1F5F5] overflow-hidden">
@@ -211,11 +202,11 @@ const FlightDetails = ({ flight, onBack }: Props) => {
 
         {/* ── Hero header ── */}
         <header className="relative flex flex-col px-5 pt-12 pb-6 overflow-hidden shrink-0">
-          {depInfo && arrInfo ? (
+          {routeCoords ? (
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
               <StaticRouteMapBase
-                depLatLng={[depInfo.lat, depInfo.lng]}
-                arrLatLng={[arrInfo.lat, arrInfo.lng]}
+                depLatLng={routeCoords.dep}
+                arrLatLng={routeCoords.arr}
                 onProjected={(dep, arr) => { setDepPx(dep); setArrPx(arr); }}
               />
             </div>
@@ -258,7 +249,7 @@ const FlightDetails = ({ flight, onBack }: Props) => {
           {/* Share button */}
           <button
             type="button"
-            onClick={() => navigator.share?.({ title: `${flight.departure_airport} → ${flight.arrival_airport}`, text: `Flight on ${formatDate(flight.departure_time)}` })}
+            onClick={() => navigator.share?.({ title: `${flight.departure_airport} → ${flight.arrival_airport}`, text: `Flight on ${formatDate(flight.departure_time, depInfo?.timezone)}` })}
             className="absolute top-5 right-5 h-10 w-10 flex items-center justify-end hover:opacity-70 transition-opacity"
             style={{ zIndex: 10 }}
           >
@@ -299,7 +290,7 @@ const FlightDetails = ({ flight, onBack }: Props) => {
               className="text-center text-[13px] font-medium mt-2"
               style={{ color: "#059669", textShadow: "0 1px 3px rgba(5,150,105,0.15)" }}
             >
-              {formatDate(flight.departure_time)}
+              {formatDate(flight.departure_time, depInfo?.timezone)}
             </p>
           </div>
         </header>
@@ -318,9 +309,9 @@ const FlightDetails = ({ flight, onBack }: Props) => {
                   <HugeiconsIcon icon={AirplaneTakeOff01Icon} size={15} color="#059669" strokeWidth={2} />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#9AADAD]">Departs</span>
                 </div>
-                <span className="text-[28px] font-black text-[#1A2E2E] leading-none">{formatTime(flight.departure_time)}</span>
+                <span className="text-[28px] font-black text-[#1A2E2E] leading-none">{formatTime(flight.departure_time, depInfo?.timezone)}</span>
                 <span className="text-[12px] font-semibold text-[#2E4A4A]">{flight.departure_airport}</span>
-                <span className="text-[11px] text-[#9AADAD] font-medium text-center">{formatDate(flight.departure_time)}</span>
+                <span className="text-[11px] text-[#9AADAD] font-medium text-center">{formatDate(flight.departure_time, depInfo?.timezone)}</span>
               </div>
               <div className="w-px bg-[#E8EBEB] my-4" />
               <div className="flex-1 flex flex-col items-center py-5 px-4 gap-1">
@@ -328,9 +319,9 @@ const FlightDetails = ({ flight, onBack }: Props) => {
                   <HugeiconsIcon icon={AirplaneLandingIcon} size={15} color="#059669" strokeWidth={2} />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#9AADAD]">Arrives</span>
                 </div>
-                <span className="text-[28px] font-black text-[#1A2E2E] leading-none">{formatTime(flight.arrival_time)}</span>
+                <span className="text-[28px] font-black text-[#1A2E2E] leading-none">{formatTime(flight.arrival_time, arrInfo?.timezone)}</span>
                 <span className="text-[12px] font-semibold text-[#2E4A4A]">{flight.arrival_airport}</span>
-                <span className="text-[11px] text-[#9AADAD] font-medium text-center">{formatDate(flight.arrival_time)}</span>
+                <span className="text-[11px] text-[#9AADAD] font-medium text-center">{formatDate(flight.arrival_time, arrInfo?.timezone)}</span>
               </div>
             </div>
             {duration && (
@@ -364,7 +355,7 @@ const FlightDetails = ({ flight, onBack }: Props) => {
           )}
 
           {/* Route Map */}
-          {hasRouteMap && (
+          {routeCoords && (
             <SectionCard
               icon={Location01Icon}
               label="Route Map"
@@ -375,12 +366,12 @@ const FlightDetails = ({ flight, onBack }: Props) => {
               {/* Map */}
               <div className="px-3 pt-3 pb-2">
                 <RouteMapCard
-                  depLatLng={[depInfo!.lat, depInfo!.lng]}
-                  arrLatLng={[arrInfo!.lat, arrInfo!.lng]}
+                  depLatLng={routeCoords.dep}
+                  arrLatLng={routeCoords.arr}
                   depIata={flight.departure_airport}
                   arrIata={flight.arrival_airport}
-                  depCity={depInfo!.city}
-                  arrCity={arrInfo!.city}
+                  depCity={depInfo?.city ?? ""}
+                  arrCity={arrInfo?.city ?? ""}
                 />
               </div>
 
